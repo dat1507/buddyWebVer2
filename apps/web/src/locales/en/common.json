@@ -122,6 +122,6 @@
     "helpCenter": "International Office",
     "emergency": "Emergency Contacts",
     "technical": "Technical Support",
-    "copyright": "© 2025 VGU Buddy Program. All rights reserved. | Available in English & German"
+    "copyright": "© {{year}} VGU Buddy Program. All rights reserved. | Available in English & German"
   }
 }
