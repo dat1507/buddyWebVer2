@@ -5,7 +5,14 @@
     "features": "Features",
     "community": "Community",
     "contact": "Contact",
-    "surbook": "Survival Book"
+    "surbook": "Survival Book",
+    "menu": "Menu",
+    "language": "Language",
+    "primaryNavigation": "Primary navigation",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu",
+    "currentLanguage": "Current language: {{language}}",
+    "languageComingSoon": "Language switching will be available soon"
   },
   "hero": {
     "title1": "Connect with",

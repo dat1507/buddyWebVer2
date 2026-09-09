@@ -5,7 +5,14 @@
     "features": "Funktionen",
     "community": "Community",
     "contact": "Kontakt",
-    "surbook": "Überlebensbuch"
+    "surbook": "Überlebensbuch",
+    "menu": "Menü",
+    "language": "Sprache",
+    "primaryNavigation": "Hauptnavigation",
+    "openMenu": "Navigationsmenü öffnen",
+    "closeMenu": "Navigationsmenü schließen",
+    "currentLanguage": "Aktuelle Sprache: {{language}}",
+    "languageComingSoon": "Der Sprachwechsel wird bald verfügbar sein"
   },
   "hero": {
     "title1": "Verbinde dich mit",
