@@ -1,100 +1,56 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { ArrowRight } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Typography } from '@/components/ui/typography'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <main className="min-h-screen bg-vgu-black text-vgu-text selection:bg-vgu-orange selection:text-vgu-black">
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button type="button" className="counter" onClick={() => setCount((count) => count + 1)}>
-          Count is {count}
-        </button>
-      </section>
+    <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(255,103,13,0.22),transparent_38%)] px-6 py-20 selection:bg-vgu-orange selection:text-vgu-black lg:px-8">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="space-y-8" aria-labelledby="page-title">
+          <Typography variant="small" className="uppercase tracking-[0.2em] text-vgu-orange">
+            VGU Buddy Program
+          </Typography>
+          <div className="space-y-5">
+            <Typography id="page-title" variant="h1">
+              Connect with <span className="text-vgu-orange">VGU Buddy</span>
+            </Typography>
+            <Typography variant="lead" className="max-w-2xl">
+              Join the Vietnamese-German University community. Build connections, share experiences,
+              and thrive together.
+            </Typography>
+          </div>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <Button asChild size="lg">
+              <a href="https://www.facebook.com/VGUBuddyProgram" target="_blank" rel="noreferrer">
+                Join the community
+                <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <a href="#welcome">Learn more</a>
+            </Button>
+          </div>
+        </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank" rel="noreferrer">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank" rel="noreferrer">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank" rel="noreferrer">
-                <svg className="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank" rel="noreferrer">
-                <svg className="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank" rel="noreferrer">
-                <svg className="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank" rel="noreferrer">
-                <svg className="button-icon" role="presentation" aria-hidden="true">
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+        <Card id="welcome" variant="interactive">
+          <CardHeader>
+            <div className="mb-3 flex size-14 items-center justify-center rounded-xl bg-vgu-orange text-2xl text-vgu-black">
+              <span aria-hidden="true">🤝</span>
+            </div>
+            <CardTitle>Welcome to VGU Buddy</CardTitle>
+            <CardDescription>
+              Your gateway to university life with friends who care.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Typography variant="p" className="text-vgu-muted">
+              Meet your buddy, explore campus, join events, and find reliable answers in one place.
+            </Typography>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   )
 }

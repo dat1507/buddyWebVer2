@@ -48,6 +48,10 @@ export default [
   {
     ...reactRefresh.configs.vite,
     files: reactFiles,
+    rules: {
+      ...reactRefresh.configs.vite.rules,
+      'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
+    },
   },
   prettier,
 ]
