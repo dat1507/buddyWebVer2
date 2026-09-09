@@ -8,7 +8,7 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
+    <main className="min-h-screen bg-vgu-black text-vgu-text selection:bg-vgu-orange selection:text-vgu-black">
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
@@ -95,7 +95,7 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
