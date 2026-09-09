@@ -38,12 +38,13 @@
   "about": {
     "title": "Why Choose VGU Buddy?",
     "subtitle": "VGU Buddy isn’t just any club, we are here to support international transfer students and help them feel at home during their time at VGU.",
+    "imageAlt": "VGU Buddy Program members together",
     "social": {
       "title": "Social Networking",
       "desc": "Connect with peers, share experiences, and build lasting friendships."
     },
     "academic": {
-      "title": "Events & Activites",
+      "title": "Events & Activities",
       "desc": "Access resources, join study groups, and excel in your studies."
     },
     "campus": {
