@@ -1,1 +1,120 @@
-{}
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "features": "Features",
+    "community": "Community",
+    "contact": "Contact",
+    "surbook": "Survival Book"
+  },
+  "hero": {
+    "title1": "Connect with",
+    "title2": "VGU Buddy",
+    "subtitle": "Join the ultimate Vietnamese-German University community. Build connections, share experiences, and thrive together.",
+    "joinNow": "Join Now",
+    "learnMore": "Learn More",
+    "cardTitle": "Welcome to VGU Buddy",
+    "cardSubtitle": "Your gateway to an amazing university experience with friends who care."
+  },
+  "stats": {
+    "title": "Upcoming Events",
+    "subtitle": "Join thriving events that's making university life better for everyone."
+  },
+  "about": {
+    "title": "Why Choose VGU Buddy?",
+    "subtitle": "VGU Buddy isn’t just any club, we are here to support international transfer students and help them feel at home during their time at VGU.",
+    "social": {
+      "title": "Social Networking",
+      "desc": "Connect with peers, share experiences, and build lasting friendships."
+    },
+    "academic": {
+      "title": "Events & Activites",
+      "desc": "Access resources, join study groups, and excel in your studies."
+    },
+    "campus": {
+      "title": "Campus Support",
+      "desc": "Book facilities, access library services, and manage your schedule."
+    },
+    "visual": {
+      "title": "Launch Your Journey",
+      "subtitle": "Everything you need in one place"
+    }
+  },
+  "features": {
+    "title": "Outstanding Benefits",
+    "subtitle": "Everything you need for an amazing university experience, all in one platform.",
+    "social": {
+      "title": "Merchandise",
+      "desc": "Show your spirit with our fun and practical merch.",
+      "item1": "Show it",
+      "item2": "Wear it",
+      "item3": "Love it"
+    },
+    "events": {
+      "title": "Events Calendar",
+      "desc": "Never miss important events, workshops, or cultural activities.",
+      "item1": "Stay updated",
+      "item2": "Never miss out",
+      "item3": "Easy reminders"
+    },
+    "academic": {
+      "title": "Library Regulations",
+      "desc": "Access all your academic resources and manage your studies.",
+      "item1": "Class schedules",
+      "item2": "Library access",
+      "item3": "Study rooms"
+    },
+    "sports": {
+      "title": "Sports Hall",
+      "desc": "Book facilities and stay active with your buddies.",
+      "item1": "Play hard",
+      "item2": "Stay fit",
+      "item3": "Team up"
+    },
+    "support": {
+      "title": "International Office",
+      "desc": "Make your stay as comfortable as possible.",
+      "item1": "Study abroad",
+      "item2": "Global support",
+      "item3": "Stay connected"
+    },
+    "global": {
+      "title": "Dormitory Service",
+      "desc": "Comfortable living, just steps from campus life.",
+      "item1": "Cozy living",
+      "item2": "Student community",
+      "item3": "Campus close"
+    }
+  },
+  "community": {
+    "title": "What Students Say",
+    "subtitle": "Hear from real VGU students about their experiences with the Buddy Program.",
+    "testimonial1": "VGU Buddy transformed my university experience. I found my study group, made lifelong friends, and never missed an important event. It's like having a personal assistant for student life!",
+    "testimonial2": "I first heard about the Buddy Program through the VGU Tour. After following Buddy on Facebook, I found their video interesting and quirky. I hope I’ll have the chance to become a Buddy member in the future.",
+    "testimonial3": "I work in the marketing department at Buddy, and it has given me many valuable experiences. I get to work and communicate with great teammates and international students, which helps me improve my skills and create wonderful memories.",
+    "testimonial4": "My first impression of Buddy was “international.” Every member can communicate fluently with international students, and they organize many cultural events like Easter and Currywurst Day. I hope to join next semester. #BuddyProgramPlsCollab.",
+    "testimonial5": "From my perspective, the Buddy Program has amazing merchandise—especially their newest T-shirt. Can I have one, pls?",
+    "testimonial6": "Well, as someone with experience in web programming and UI/UX design, I think this new Buddy website is really helpful. It makes it much easier to access basic services like booking the sports hall, using the library, and catching up on event information.",
+    "testimonial7": "OMG, I just wanna join the Buddy marketing team right away. Their recent posters are straight fireee—no cap. Plus, I’d love to learn how to design posters like that!",
+    "testimonial8": "I left the Buddy Program due to my personal workload, but it’s a great place to gain soft skills and professional experience if you have the time.",
+    "testimonial9": "From my perspective, the Buddy Program sometimes runs into delays—I’m not sure why. It’s just an area where I think they could improve a little. Apart from that, everything else is great. Overall, I’d give it a solid 4/5.",
+    "testimonial10": "The Buddy Program is great, but communication can be a bit scattered. If that improves, it’ll be close to perfect.",
+    "testimonial11": "Even though I just joined devCrew in the marketing team, being part of Buddy already feels great. Everyone’s really welcoming and full of energy. Can’t wait to pick up some new skills and help make Buddy even cooler!",
+    "testimonial12": "In my first year, I have already recognized the VGU Buddy Program as a young, enthusiastic, and energetic club. That is the reason why I want to be an essential member of this organization. Hopefully, I can earn many experiences and memories here."
+  },
+  "cta": {
+    "title": "Ready to Transform Your University Experience?",
+    "subtitle": "Join thousands of VGU students who are already making the most of their university journey.",
+    "join": "Join the Community",
+    "demo": "Watch Demo"
+  },
+  "footer": {
+    "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",
+    "quickLinks": "Quick Links",
+    "support": "Support",
+    "helpCenter": "International Office",
+    "emergency": "Emergency Contacts",
+    "technical": "Technical Support",
+    "copyright": "© 2025 VGU Buddy Program. All rights reserved. | Available in English & German"
+  }
+}

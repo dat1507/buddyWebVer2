@@ -1,1 +1,120 @@
-{}
+{
+  "nav": {
+    "home": "Startseite",
+    "about": "Über uns",
+    "features": "Funktionen",
+    "community": "Community",
+    "contact": "Kontakt",
+    "surbook": "Überlebensbuch"
+  },
+  "hero": {
+    "title1": "Verbinde dich mit",
+    "title2": "VGU Buddy",
+    "subtitle": "Werde Teil der ultimativen Vietnamesisch-Deutschen Universitäts-Community. Knüpfe Kontakte, teile Erfahrungen und wachse gemeinsam.",
+    "joinNow": "Jetzt beitreten",
+    "learnMore": "Mehr erfahren",
+    "cardTitle": "Willkommen bei VGU Buddy",
+    "cardSubtitle": "Dein Tor zu einem großartigen Universitätsleben mit Freunden, die sich kümmern."
+  },
+  "stats": {
+    "title": "Bevorstehende Veranstaltungen",
+    "subtitle": "Mach mit bei spannenden Events, die das Unileben für alle verbessern."
+  },
+  "about": {
+    "title": "Warum VGU Buddy wählen?",
+    "subtitle": "VGU Buddy ist nicht einfach nur ein Club – wir sind hier, um internationale Austauschstudierende zu unterstützen und ihnen zu helfen, sich während ihrer Zeit an der VGU wie zu Hause zu fühlen.",
+    "social": {
+      "title": "Soziales Netzwerk",
+      "desc": "Vernetze dich mit Kommilitonen, teile Erfahrungen und baue dauerhafte Freundschaften auf."
+    },
+    "academic": {
+      "title": "Veranstaltungen & Aktivitäten",
+      "desc": "Greife auf Ressourcen zu, trete Lerngruppen bei und glänze in deinem Studium."
+    },
+    "campus": {
+      "title": "Campus-Unterstützung",
+      "desc": "Buche Einrichtungen, nutze Bibliotheksdienste und verwalte deinen Zeitplan."
+    },
+    "visual": {
+      "title": "Starte deine Reise",
+      "subtitle": "Alles, was du brauchst, an einem Ort"
+    }
+  },
+  "features": {
+    "title": "Hervorragende Vorteile",
+    "subtitle": "Alles, was du für ein großartiges Universitätsleben brauchst – alles auf einer Plattform.",
+    "social": {
+      "title": "Merchandise",
+      "desc": "Zeige deinen Spirit mit unserem coolen und praktischen Merch.",
+      "item1": "Zeig es",
+      "item2": "Trag es",
+      "item3": "Liebe es"
+    },
+    "events": {
+      "title": "Eventkalender",
+      "desc": "Verpasse keine wichtigen Veranstaltungen, Workshops oder kulturellen Aktivitäten.",
+      "item1": "Bleib informiert",
+      "item2": "Nichts verpassen",
+      "item3": "Einfache Erinnerungen"
+    },
+    "academic": {
+      "title": "Bibliotheksregeln",
+      "desc": "Greife auf alle akademischen Ressourcen zu und organisiere dein Studium.",
+      "item1": "Stundenpläne",
+      "item2": "Bibliothekszugang",
+      "item3": "Lernräume"
+    },
+    "sports": {
+      "title": "Sporthalle",
+      "desc": "Buche Einrichtungen und bleib aktiv mit deinen Freunden.",
+      "item1": "Spiel mit Power",
+      "item2": "Bleib fit",
+      "item3": "Teamwork"
+    },
+    "support": {
+      "title": "International Office",
+      "desc": "Mach deinen Aufenthalt so angenehm wie möglich.",
+      "item1": "Auslandsstudium",
+      "item2": "Globale Unterstützung",
+      "item3": "Verbunden bleiben"
+    },
+    "global": {
+      "title": "Wohnheimservice",
+      "desc": "Komfortables Wohnen, nur wenige Schritte vom Campus entfernt.",
+      "item1": "Gemütliches Wohnen",
+      "item2": "Studentengemeinschaft",
+      "item3": "Campusnah"
+    }
+  },
+  "community": {
+    "title": "Was Studierende sagen",
+    "subtitle": "Erfahre von echten VGU-Studierenden, wie sie das Buddy-Programm erlebt haben.",
+    "testimonial1": "VGU Buddy hat mein Unileben verändert. Ich habe meine Lerngruppe gefunden, lebenslange Freunde gewonnen und kein wichtiges Event verpasst. Es ist wie ein persönlicher Assistent fürs Studentenleben!",
+    "testimonial2": "Ich habe durch die VGU Tour zum ersten Mal vom Buddy-Programm erfahren. Nachdem ich Buddy auf Facebook gefolgt bin, fand ich ihr Video interessant und originell. Ich hoffe, dass ich in Zukunft die Chance bekomme, Mitglied bei Buddy zu werden.",
+    "testimonial3": "Ich arbeite in der Marketingabteilung bei Buddy, und das hat mir viele wertvolle Erfahrungen ermöglicht. Ich kann mit großartigen Teammitgliedern und internationalen Studierenden zusammenarbeiten und kommunizieren. Das hilft mir, meine Fähigkeiten zu verbessern und wunderbare Erinnerungen zu schaffen.",
+    "testimonial4": "Mein erster Eindruck von Buddy war „international“. Jedes Mitglied kann fließend mit internationalen Studierenden kommunizieren, und sie organisieren viele kulturelle Veranstaltungen wie Ostern und den Currywurst-Tag. Ich hoffe, im nächsten Semester beitreten zu können. #BuddyProgramPlsCollab.",
+    "testimonial5": "Aus meiner Sicht hat das Buddy-Programm großartiges Merchandise – besonders das neueste T-Shirt. Kann ich bitte eins haben?",
+    "testimonial6": "Als jemand mit Erfahrung in Webprogrammierung und UI/UX-Design finde ich diese neue Buddy-Website wirklich hilfreich. Sie erleichtert den Zugang zu grundlegenden Angeboten wie der Buchung der Sporthalle, der Nutzung der Bibliothek und aktuellen Veranstaltungsinformationen erheblich.",
+    "testimonial7": "OMG, ich möchte sofort dem Marketingteam von Buddy beitreten. Die neuesten Poster sind einfach mega – ohne Witz. Außerdem würde ich gern lernen, wie man solche Poster gestaltet!",
+    "testimonial8": "Ich habe das Buddy-Programm wegen meiner persönlichen Arbeitsbelastung verlassen, aber es ist ein großartiger Ort, um Soft Skills und Berufserfahrung zu sammeln, wenn man die Zeit dafür hat.",
+    "testimonial9": "Aus meiner Sicht kommt es beim Buddy-Programm manchmal zu Verzögerungen – ich bin mir nicht sicher, warum. In diesem Bereich könnte es sich meiner Meinung nach noch etwas verbessern. Abgesehen davon ist alles großartig. Insgesamt würde ich solide 4 von 5 Punkten vergeben.",
+    "testimonial10": "Das Buddy-Programm ist großartig, aber die Kommunikation kann etwas verstreut sein. Wenn sich das verbessert, ist es nahezu perfekt.",
+    "testimonial11": "Ich bin erst seit Kurzem im DevCrew-Marketingteam, aber es ist jetzt schon super, Teil von Buddy zu sein. Alle sind freundlich und motiviert – ich freue mich darauf, Neues zu lernen und Buddy noch cooler zu machen!",
+    "testimonial12": "Bereits in meinem ersten Jahr habe ich das VGU Buddy-Programm als jungen, enthusiastischen und dynamischen Club kennengelernt. Deshalb möchte ich ein wichtiges Mitglied dieser Organisation werden. Ich hoffe, ich kann hier viele Erfahrungen sammeln und Erinnerungen festhalten."
+  },
+  "cta": {
+    "title": "Bereit, dein Unileben zu transformieren?",
+    "subtitle": "Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.",
+    "join": "Community beitreten",
+    "demo": "Demo ansehen"
+  },
+  "footer": {
+    "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
+    "quickLinks": "Schnellzugriff",
+    "support": "Unterstützung",
+    "helpCenter": "International Office",
+    "emergency": "Notfallkontakte",
+    "technical": "Technischer Support",
+    "copyright": "© 2025 VGU Buddy Program. Alle Rechte vorbehalten. | Verfügbar auf Englisch & Deutsch"
+  }
+}
