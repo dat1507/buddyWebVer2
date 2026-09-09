@@ -25,7 +25,15 @@
   },
   "stats": {
     "title": "Upcoming Events",
-    "subtitle": "Join thriving events that's making university life better for everyone."
+    "subtitle": "Join thriving events that's making university life better for everyone.",
+    "carouselLabel": "Upcoming events carousel",
+    "previousEvent": "Show previous event",
+    "nextEvent": "Show next event",
+    "slideStatus": "Event {{current}} of {{total}}",
+    "loading": "Loading upcoming events",
+    "error": "Upcoming events could not be loaded.",
+    "retry": "Try again",
+    "empty": "There are no upcoming events to show right now."
   },
   "about": {
     "title": "Why Choose VGU Buddy?",

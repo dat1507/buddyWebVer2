@@ -25,7 +25,15 @@
   },
   "stats": {
     "title": "Bevorstehende Veranstaltungen",
-    "subtitle": "Mach mit bei spannenden Events, die das Unileben für alle verbessern."
+    "subtitle": "Mach mit bei spannenden Events, die das Unileben für alle verbessern.",
+    "carouselLabel": "Karussell für bevorstehende Veranstaltungen",
+    "previousEvent": "Vorherige Veranstaltung anzeigen",
+    "nextEvent": "Nächste Veranstaltung anzeigen",
+    "slideStatus": "Veranstaltung {{current}} von {{total}}",
+    "loading": "Bevorstehende Veranstaltungen werden geladen",
+    "error": "Bevorstehende Veranstaltungen konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "empty": "Derzeit gibt es keine bevorstehenden Veranstaltungen."
   },
   "about": {
     "title": "Warum VGU Buddy wählen?",
