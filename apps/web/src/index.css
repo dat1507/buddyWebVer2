@@ -74,3 +74,10 @@
     font: inherit;
   }
 }
+
+@layer components {
+  .hero-gradient {
+    background: linear-gradient(135deg, #000000 0%, rgb(255 103 13 / 60%) 100%);
+    background-size: 400% 400%;
+  }
+}
