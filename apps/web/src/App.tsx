@@ -3,13 +3,12 @@ import { Navigate, Route, Routes } from 'react-router'
 import { AdminLayout } from '@/components/layout/admin-layout'
 import { PublicLayout } from '@/components/layout/public-layout'
 import { UserLayout } from '@/components/layout/user-layout'
+import { AdminLoginPage } from '@/pages/public/admin-login-page'
 import { LandingPage } from '@/pages/public/landing-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
-
-const publicRoutes = [{ path: 'adminLogin', title: 'Admin login' }]
 
 const userRoutes = [
   { path: 'dashboard', title: 'Dashboard' },
@@ -40,15 +39,9 @@ function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<LandingPage />} />
+        <Route path="adminLogin" element={<AdminLoginPage />} />
         <Route path="login" element={<UserLoginPage />} />
         <Route path="register" element={<UserRegistrationPage />} />
-        {publicRoutes.map(({ path, title }) => (
-          <Route
-            key={path}
-            path={path}
-            element={<RoutePlaceholder area="Public" title={title} />}
-          />
-        ))}
       </Route>
 
       <Route path="user" element={<UserLayout />}>

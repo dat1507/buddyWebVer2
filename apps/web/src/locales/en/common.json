@@ -173,6 +173,25 @@
         "passwordRequired": "Enter a password.",
         "consentRequired": "Consent is required to create an account."
       }
+    },
+    "adminLogin": {
+      "eyebrow": "Restricted area",
+      "title": "Administration access",
+      "subtitle": "This sign-in surface is reserved for authorized VGU Buddy administrators.",
+      "provisioningNote": "Administrator accounts are provisioned during deployment and cannot be self-registered.",
+      "formTitle": "Admin sign in",
+      "formDescription": "Use your provisioned administrator credentials.",
+      "emailLabel": "Admin email address",
+      "emailPlaceholder": "admin@vgu.edu.vn",
+      "passwordLabel": "Admin password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Continue to administration",
+      "backendPending": "Admin authentication will be connected when the authentication backend is available.",
+      "validation": {
+        "emailRequired": "Enter the administrator email address.",
+        "emailInvalid": "Enter a valid administrator email address.",
+        "passwordRequired": "Enter the administrator password."
+      }
     }
   },
   "footer": {

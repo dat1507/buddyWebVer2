@@ -173,6 +173,25 @@
         "passwordRequired": "Gib ein Passwort ein.",
         "consentRequired": "Für die Kontoerstellung ist deine Zustimmung erforderlich."
       }
+    },
+    "adminLogin": {
+      "eyebrow": "Geschützter Bereich",
+      "title": "Verwaltungszugang",
+      "subtitle": "Diese Anmeldeseite ist ausschließlich für autorisierte VGU-Buddy-Administratoren bestimmt.",
+      "provisioningNote": "Administratorkonten werden bei der Bereitstellung eingerichtet und können nicht selbst registriert werden.",
+      "formTitle": "Admin-Anmeldung",
+      "formDescription": "Verwende deine bereitgestellten Administrator-Zugangsdaten.",
+      "emailLabel": "Admin-E-Mail-Adresse",
+      "emailPlaceholder": "admin@vgu.edu.vn",
+      "passwordLabel": "Admin-Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "submit": "Zur Verwaltung fortfahren",
+      "backendPending": "Die Admin-Authentifizierung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
+      "validation": {
+        "emailRequired": "Gib die Administrator-E-Mail-Adresse ein.",
+        "emailInvalid": "Gib eine gültige Administrator-E-Mail-Adresse ein.",
+        "passwordRequired": "Gib das Administrator-Passwort ein."
+      }
     }
   },
   "footer": {

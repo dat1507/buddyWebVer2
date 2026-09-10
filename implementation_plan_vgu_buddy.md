@@ -1751,10 +1751,20 @@ src/
 - A valid UI-only submit displays a neutral backend-pending status without calling an API, persisting account/token data, or navigating away from `/register`.
 - Added route-level tests covering semantics, validation, consent, focus behavior, localization, UI-only submission, and the absence of Admin registration paths.
 
-#### AUTH-003 — Remaining UI-only Admin Login Page
+#### AUTH-003 — UI-only Admin Login Page
+
+**Status**: Completed (✅)
 
 - Provide a visually distinct Admin Login form at `/adminLogin`, reachable by direct URL only.
 - The UI-only page must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
+
+**Implementation Notes**:
+- Replaced the `/adminLogin` placeholder with `AdminLoginPage`, using a distinct restricted-area visual treatment and explicit administration context.
+- Added accessible email/password controls, localized field validation, browser-appropriate autocomplete attributes, and focus movement to the first invalid field.
+- Kept the route direct-URL-only: no `/adminLogin` link exists in the Navbar, mobile drawer, Footer, User Login page, or Student Registration page.
+- Exposed no registration or role-selection controls and states that Admin accounts are provisioned during deployment, consistent with the plan's no-self-registration policy.
+- A valid UI-only submit displays a neutral backend-pending status without calling an API, persisting tokens, checking a fake role, or navigating to an Admin route.
+- Added EN/DE resources and route-level tests for the distinct Admin surface, validation, focus, localization, UI-only behavior, and public-discovery boundary.
 
 #### FE-AUTH-ENTRY-001 through FE-AUTH-ENTRY-003 — Public Auth Discovery
 
