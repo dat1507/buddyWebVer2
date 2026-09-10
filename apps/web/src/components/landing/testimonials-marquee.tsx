@@ -89,20 +89,26 @@ function MarqueeRow({
         setPaused(false)
       }}
     >
-      <div ref={trackRef} className="flex w-max gap-5" aria-hidden="false">
+      <div ref={trackRef} className="flex w-max gap-5">
         {/* Original + clone for seamless loop */}
-        {[...keys, ...keys].map((key, i) => (
-          <Card
-            key={`${key}-${i}`}
-            className="w-[340px] shrink-0 border-white/10 bg-zinc-900/70 shadow-lg sm:w-[380px]"
-          >
-            <CardContent className="p-5 sm:p-6">
-              <blockquote className="text-sm leading-relaxed text-zinc-300 sm:text-base">
-                &ldquo;{t(`community.${key}`)}&rdquo;
-              </blockquote>
-            </CardContent>
-          </Card>
-        ))}
+        {[...keys, ...keys].map((key, i) => {
+          const isVisualClone = i >= keys.length
+
+          return (
+            <Card
+              key={`${key}-${i}`}
+              className="w-[340px] shrink-0 border-white/10 bg-zinc-900/70 shadow-lg sm:w-[380px]"
+              aria-hidden={isVisualClone || undefined}
+              data-marquee-clone={isVisualClone || undefined}
+            >
+              <CardContent className="p-5 sm:p-6">
+                <blockquote className="text-sm leading-relaxed text-zinc-300 sm:text-base">
+                  &ldquo;{t(`community.${key}`)}&rdquo;
+                </blockquote>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )

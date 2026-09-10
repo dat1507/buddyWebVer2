@@ -37,12 +37,21 @@ describe('TestimonialsMarquee', () => {
     expect(last.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('renders testimonials as blockquotes', () => {
+  it('keeps visual clones out of the accessibility tree', () => {
     const { container } = render(<TestimonialsMarquee />)
     const quotes = container.querySelectorAll('blockquote')
+    const visualClones = container.querySelectorAll('[data-marquee-clone="true"]')
 
-    // 12 testimonials × 2 (original + clone) = 24
+    // The seamless loop still needs 24 visual cards in the DOM.
     expect(quotes).toHaveLength(24)
+    expect(visualClones).toHaveLength(12)
+
+    for (const clone of visualClones) {
+      expect(clone).toHaveAttribute('aria-hidden', 'true')
+    }
+
+    // Assistive technology must encounter each unique testimonial only once.
+    expect(screen.getAllByRole('blockquote')).toHaveLength(12)
   })
 
   it('uses German content after a language change', async () => {

@@ -1624,8 +1624,15 @@ src/
 
 #### FE-FIX-001 — Testimonials Clone Accessibility
 
+**Status**: Completed (✅)
+
 - Preserve the two-row seamless visual loop while exposing each of the 12 unique testimonials only once to assistive technology.
 - Mark visual clone groups as accessibility-hidden and update tests so duplicate accessible quotes are treated as a failure.
+
+**Implementation Notes**:
+- The 12 duplicated visual cards remain in the DOM so the two marquee rows loop without a seam.
+- Each duplicated card is marked with `aria-hidden="true"`; only the 12 unique originals remain in the accessibility tree.
+- The component test now verifies both the 24-card visual DOM contract and the 12-blockquote accessibility contract.
 
 #### FE-FIX-002 — Language Toggle Localization
 
