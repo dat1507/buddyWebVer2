@@ -1684,9 +1684,20 @@ src/
 - Loop normalization handles both left- and right-moving rows at the duplicated-content boundary, including elapsed intervals that cross more than one boundary.
 - Added deterministic coverage for elapsed-time movement, bidirectional looping, pointer pause/resume, initial and runtime reduced-motion disablement, and two-row RAF cleanup on unmount.
 
-#### FE-DEMO-001 through FE-DEMO-003 — Demo Video Migration
+#### FE-DEMO-001 — Demo Video Asset Migration
+
+**Status**: Completed (✅)
 
 - Place the approved MP4 and generated WebP poster under `apps/web/public/media/` without importing the MP4 into the JavaScript graph.
+
+**Implementation Notes**:
+- Copied the approved legacy `Demo.mp4` byte-for-byte to `apps/web/public/media/vgu-buddy-demo.mp4`; the source and destination SHA-256 hashes match.
+- Generated `apps/web/public/media/vgu-buddy-demo-poster.webp` from the video's designed opening frame at its native 720 × 960 dimensions.
+- Kept both assets in Vite's public directory so FE-DEMO-002 can reference stable `/media/...` URLs without adding the MP4 to the JavaScript module graph.
+- No dialog, route, or Landing Page trigger was added in this asset-only task.
+
+#### FE-DEMO-002 through FE-DEMO-003 — Demo Video Dialog and Trigger
+
 - Implement the dialog as an isolated Landing component and connect it to `Watch Demo` without creating a new route.
 - Mount/load video only after an explicit User action; use native controls and `playsInline`; pause and reset on every close.
 
