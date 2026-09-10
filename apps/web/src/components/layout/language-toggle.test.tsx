@@ -1,0 +1,78 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
+
+import { LanguageToggle } from '@/components/layout/language-toggle'
+import i18n from '@/i18n'
+
+describe('LanguageToggle (FE-020)', () => {
+  beforeEach(async () => {
+    localStorage.clear()
+    await i18n.changeLanguage('en')
+  })
+
+  it('renders default English state with EN label and flag icon', () => {
+    render(<LanguageToggle />)
+
+    const button = screen.getByRole('button')
+    expect(button).toBeVisible()
+    expect(button).toHaveTextContent('EN')
+    expect(button).toHaveAttribute(
+      'aria-label',
+      expect.stringContaining('EN'),
+    )
+  })
+
+  it('toggles language from EN to DE on click and persists to localStorage', async () => {
+    render(<LanguageToggle />)
+
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+
+    // Await language transition
+    expect(i18n.resolvedLanguage).toBe('de')
+    expect(localStorage.getItem('vgu-language')).toBe('de')
+    expect(button).toHaveTextContent('DE')
+    expect(button).toHaveAttribute(
+      'aria-label',
+      expect.stringContaining('DE'),
+    )
+  })
+
+  it('toggles language from DE back to EN on second click', async () => {
+    render(<LanguageToggle />)
+
+    const button = screen.getByRole('button')
+
+    // First click: EN -> DE
+    fireEvent.click(button)
+    expect(i18n.resolvedLanguage).toBe('de')
+
+    // Second click: DE -> EN
+    fireEvent.click(button)
+    expect(i18n.resolvedLanguage).toBe('en')
+    expect(localStorage.getItem('vgu-language')).toBe('en')
+    expect(button).toHaveTextContent('EN')
+  })
+
+  it('renders mobile variant with interactive button and triggers toggle', async () => {
+    render(<LanguageToggle variant="mobile" />)
+
+    const button = screen.getByRole('button')
+    expect(button).toBeVisible()
+    expect(button).toHaveTextContent(/Language|Sprache/)
+    expect(button).toHaveTextContent('EN')
+
+    fireEvent.click(button)
+    expect(i18n.resolvedLanguage).toBe('de')
+    expect(localStorage.getItem('vgu-language')).toBe('de')
+    expect(button).toHaveTextContent('DE')
+  })
+
+  it('is accessible via keyboard focus and can be activated', () => {
+    render(<LanguageToggle />)
+
+    const button = screen.getByRole('button')
+    button.focus()
+    expect(document.activeElement).toBe(button)
+  })
+})

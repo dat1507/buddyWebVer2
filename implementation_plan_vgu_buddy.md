@@ -327,6 +327,9 @@ graph TB
     ADMIN --> A_SETTINGS["/admin/settings"]
 ```
 
+> [!IMPORTANT]
+> **Public authentication entry-point policy**: The public Navbar `Sign in` menu exposes only `/login` (User Login) and `/register` (Create Student Account). `/adminLogin` must not be linked from the Navbar, mobile drawer, Footer, User Login page, or User Registration page. Administrators access `/adminLogin` directly by its known URL. This discoverability decision is not a security boundary; Admin authorization remains enforced by JWT role checks, `RoleGuard`, and backend `require_role("ADMIN")`.
+
 ### Level 5: Matching Pipeline
 
 ```mermaid
@@ -1069,6 +1072,22 @@ graph TD
 | FE-019 | Assemble Landing Page from all sections | 2 | FE-011..FE-018 | P0 |
 | FE-020 | Create Language Toggle component (EN/DE with flag icons) | 2 | FE-009, FE-011 | P0 |
 
+### Phase 3A: Frontend Completion Remediation
+
+This phase is an approved completion gate inserted after FE-020 and before Backend Foundation.
+
+| ID | Task | Deps | Pri |
+|----|------|------|-----|
+| FE-HYGIENE-001 | Review and commit the FE-016..FE-020 baseline | FE-020 | P0 |
+| FE-FIX-001 | Hide duplicated testimonial clones from the accessibility tree | FE-HYGIENE-001 | P0 |
+| FE-FIX-002 | Fully localize Language Toggle accessible labels and tooltips | FE-HYGIENE-001 | P0 |
+| FE-FIX-003 | Remove duplicate SVG IDs from language flag instances | FE-FIX-002 | P1 |
+| FE-FIX-004 | Correct Landing Page anchor and layout integration coverage | FE-HYGIENE-001 | P1 |
+| FE-FIX-005 | Harden marquee timing, reduced-motion behavior, and interaction tests | FE-FIX-001 | P1 |
+| FE-DEMO-001 | Migrate Demo.mp4 and create a WebP poster | FE-HYGIENE-001 | P1 |
+| FE-DEMO-002 | Create an accessible responsive Demo Video dialog | FE-DEMO-001, FE-FIX-002 | P1 |
+| FE-DEMO-003 | Connect Watch Demo to the video dialog | FE-DEMO-002 | P1 |
+
 ### Phase 4: Auth UI
 
 | ID | Task | Cx | Deps | Pri |
@@ -1079,6 +1098,21 @@ graph TD
 | AUTH-004 | Create Zustand auth store (token, user, role) | 2 | FE-001 | P0 |
 | AUTH-005 | Create ProtectedRoute component (requires auth) | 2 | AUTH-004, FE-006 | P0 |
 | AUTH-006 | Create RoleGuard component (requires specific role) | 2 | AUTH-005 | P0 |
+
+> [!IMPORTANT]
+> **Approved UI-first exception**: AUTH-001, AUTH-002, and AUTH-003 are implemented as UI-only pages before Backend Foundation. They may include responsive layouts, accessible forms, client-side validation, and loading/error presentation contracts, but must not simulate successful authentication, create fake tokens, or perform fake role redirects. Backend connectivity remains exclusively in AUTH-021 through AUTH-023.
+>
+> AUTH-003 remains reachable only through the direct `/adminLogin` URL and must not be advertised in public navigation. Admin self-registration is prohibited.
+
+### Phase 4A: Public Auth Entry Integration
+
+| ID | Task | Deps | Pri |
+|----|------|------|-----|
+| FE-AUTH-ENTRY-001 | Add desktop Sign in menu with User Login and Create Student Account only | AUTH-001, AUTH-002 | P0 |
+| FE-AUTH-ENTRY-002 | Add direct User Login and Create Student Account actions to the mobile drawer | AUTH-001, AUTH-002 | P0 |
+| FE-AUTH-ENTRY-003 | Route Join the Community to `/register` | AUTH-002 | P1 |
+| FE-TECH-001 | Assess and enable TypeScript strict mode without introducing `any` | Frontend functional fixes | P2 |
+| FE-VERIFY-001 | Run the final Frontend completion gate | All selected Frontend completion tasks | P0 |
 
 ### Phase 5: Auth Backend + RBAC
 
@@ -1467,41 +1501,177 @@ src/
 
 ### Task 16: FE-016 — Create Benefits Grid
 
+**Status**: Completed (✅)
 **Objective**: 6-card grid (Merchandise, Calendar, Library, Sports, International Office, Dormitory) with hover effects
 **Commit**: `feat(frontend): implement benefits grid`
 **Deps**: FE-005
+
+**Implementation Notes**:
+- Implemented `BenefitsGrid` in `apps/web/src/components/landing/benefits-grid.tsx`.
+- 6 informational cards with icons (Lucide), titles, descriptions, and 3 localized bullet points each.
+- Cards are informational (no links/buttons); card navigation is deferred until related pages/routing strategies are established.
+- 5 component tests in `apps/web/src/components/landing/benefits-grid.test.tsx`.
+- Integrated into `LandingPage` in `apps/web/src/pages/public/landing-page.tsx`.
 
 ---
 
 ### Task 17: FE-017 — Create Testimonials Marquee
 
+**Status**: Completed (✅)
 **Objective**: Horizontally scrolling testimonial cards with requestAnimationFrame, pause on hover, clone-for-seamless-loop
 **Commit**: `feat(frontend): implement testimonials marquee`
 **Deps**: FE-005
+
+**Architecture & Implementation Details**:
+- Implemented `TestimonialsMarquee` in `apps/web/src/components/landing/testimonials-marquee.tsx`.
+- 12 testimonials split into 2 marquee rows (top row moving left, bottom row moving right).
+- High-performance 60fps scrolling using `requestAnimationFrame` and CSS `translateX`.
+- Seamless looping achieved by duplicating cards (`[...keys, ...keys]`) and wrapping offset when half-width is traversed.
+- Interactive pause on pointer hover (`onPointerEnter` / `onPointerLeave`).
+- Accessibility: respects `prefers-reduced-motion: reduce` by disabling auto-scroll.
+- Dark theme styling using `bg-black`, `bg-zinc-900/70`, `border-white/10`, and semantic typography.
+- Fully localized in English and German via `react-i18next` (`community.*` translation keys).
+- 5 comprehensive component tests in `apps/web/src/components/landing/testimonials-marquee.test.tsx` verifying header rendering, all 12 cards + clones (24 blockquotes), EN/DE language switching, and absence of extraneous interactive elements.
+- Integrated directly into `LandingPage` in `apps/web/src/pages/public/landing-page.tsx`.
 
 ---
 
 ### Task 18: FE-018 — Create CTA Section
 
+**Status**: Completed (✅)
 **Objective**: "Ready to Transform Your University Experience?" with Join + Demo buttons
 **Commit**: `feat(frontend): implement cta section`
 **Deps**: FE-005
+
+**Architecture & Implementation Details**:
+- Implemented `CtaSection` in `apps/web/src/components/landing/cta-section.tsx`.
+- Centered layout with responsive container, subtle radial ambient glow (`bg-vgu-orange/10 blur-3xl`), and dark surface background (`bg-vgu-surface`).
+- Typography tokens using `Typography variant="h2"` with responsive font sizing and `Typography variant="lead"` for the supporting subtitle.
+- Action buttons: Primary gradient button ("Join the Community") with VGU orange glow and secondary outline button ("Watch Demo"). Buttons adapt to mobile by stacking vertically with full width, and align side-by-side on desktop.
+- Both buttons use accessible `type="button"` with proper focus ring and keyboard navigation; routing is cleanly deferred until Auth Phase (AUTH-002) and media modal specifications are defined to prevent speculative links.
+- Fully localized in English and German via `react-i18next` (`cta.*` translation keys).
+- 5 comprehensive component tests in `apps/web/src/components/landing/cta-section.test.tsx` covering title/subtitle rendering, button accessibility roles, EN/DE localization, keyboard focusability, and absence of external navigation leaks.
+- Integrated directly into `LandingPage` in `apps/web/src/pages/public/landing-page.tsx`.
 
 ---
 
 ### Task 19: FE-019 — Assemble Landing Page
 
+**Status**: Completed (✅)
 **Objective**: Compose all section components into complete Landing page matching current visual flow
 **Commit**: `feat(frontend): assemble landing page from components`
 **Deps**: FE-011 through FE-018
+
+**Architecture & Implementation Details**:
+- Assembled all section components into `LandingPage` (`apps/web/src/pages/public/landing-page.tsx`) wrapped by `PublicLayout` (`apps/web/src/components/layout/public-layout.tsx`).
+- Complete vertical sequence faithfully reproduces the target structure and visual flow:
+  1. Header / Navbar (`FE-011`): Brand logo, anchor navigation links, external survival book link, language toggle placeholder, mobile drawer menu.
+  2. Hero Section (`FE-013`): `id="home"`, single `<h1>` tag ("Connect with VGU Buddy"), animated subtitle, CTA anchor button, welcome interactive card.
+  3. Events Slider (`FE-014`): Dynamic API/mock carousel with autoplay, infinite loop, accessible prev/next controls, localized EN/DE data.
+  4. About Section (`FE-015`): `id="about"`, 3 feature cards (Social, Events, Campus), group photo with gradient glow accent.
+  5. Benefits Grid (`FE-016`): `id="features"`, 6-card informational benefit grid with hover glow effects and bulleted item lists.
+  6. Testimonials Marquee (`FE-017`): `id="community"`, two-row bidirectional infinite loop with `requestAnimationFrame`, hover-to-pause, `prefers-reduced-motion` compliance.
+  7. CTA Section (`FE-018`): `id="cta"`, action-driving section with "Join the Community" and "Watch Demo" buttons with ambient backdrop glow.
+  8. Footer (`FE-012`): `id="contact"`, branding description, quick links, social media links, localized copyright notice.
+- Validated HTML5 semantic structure: single `<header>`, single `<main>`, and single `<footer>`.
+- In-page navigation anchors (`/#home`, `/#about`, `/#features`, `/#community`, `/#contact`) tested and verified with smooth scrolling.
+- 5 comprehensive integration tests in `apps/web/src/pages/public/landing-page.test.tsx` verifying section sequence, single `<h1>` constraint, section headings, bilingual EN/DE rendering, and anchor existence.
 
 ---
 
 ### Task 20: FE-020 — Create Language Toggle
 
+**Status**: Completed (✅)
 **Objective**: EN/DE toggle button with flag icons, persists to localStorage, updates all i18n text
 **Commit**: `feat(frontend): implement language toggle component`
 **Deps**: FE-009, FE-011
+
+**Architecture & Implementation Details**:
+- Implemented `LanguageToggle` in `apps/web/src/components/layout/language-toggle.tsx` with sharp, scalable inline SVG flag icons for UK (`UkFlag`) and Germany (`GermanFlag`).
+- Integrated into `Navbar` (`apps/web/src/components/layout/navbar.tsx`):
+  - Desktop: compact button in the header right actions (`<div className="hidden sm:inline-flex"><LanguageToggle /></div>`).
+  - Mobile: interactive full-width row in the drawer menu (`<LanguageToggle variant="mobile" onToggle={closeMenu} />`) that toggles language and closes the drawer cleanly.
+- Language switching via `i18n.changeLanguage(nextLang)` updates document language `<html lang="...">` and immediately re-renders all localized UI text across the entire platform.
+- Persistence: writes to `localStorage` under key `'vgu-language'` managed by `i18next-browser-languagedetector` and confirmed on toggle.
+- Accessibility: includes descriptive `aria-label` with current and target languages, tooltips, focus rings, and keyboard accessibility.
+- 5 comprehensive unit/component tests in `apps/web/src/components/layout/language-toggle.test.tsx` and 3 integration tests in `apps/web/src/components/layout/navbar.test.tsx`.
+
+---
+
+## PART 18A — FRONTEND COMPLETION REMEDIATION & UI-FIRST AUTH
+
+### Approved Product Decisions
+
+- The public desktop `Sign in` menu contains only User Login (`/login`) and Create Student Account (`/register`).
+- The mobile drawer exposes the same two User actions directly, without a nested menu.
+- `/adminLogin` is direct-URL-only and is not linked from any public UI surface.
+- AUTH-001, AUTH-002, and AUTH-003 may be completed as UI-only pages before Backend Foundation. API authentication, JWT persistence, role redirects, and protected-route behavior remain deferred to AUTH-021 through AUTH-023.
+- `Join the Community` will route to `/register` after AUTH-002 exists.
+- The approved legacy demo source is `C:/Users/phuoc/Downloads/VGU_Buddy_Website/VGU_Buddy_Website/main/images/Demo.mp4`; its project destination is `apps/web/public/media/vgu-buddy-demo.mp4`, accompanied by a WebP poster.
+- The Demo dialog must not autoplay. It must support close button, backdrop click, Escape, focus containment/return, scroll locking, responsive sizing, loading/error fallback, and pause plus reset-to-start on close.
+- Captions are not required for the approved demo migration.
+
+### Completion Task Contracts
+
+#### FE-HYGIENE-001 — Establish Frontend Baseline
+
+**Status**: Completed (✅)
+
+- Review FE-016 through FE-020 source, tests, plan notes, and Git status.
+- Commit only files belonging to the approved Frontend baseline and plan update.
+- Do not include unrelated or unexplained generated files.
+- Acceptance: the baseline is recoverable from Git and unrelated working-tree changes remain untouched.
+
+#### FE-FIX-001 — Testimonials Clone Accessibility
+
+- Preserve the two-row seamless visual loop while exposing each of the 12 unique testimonials only once to assistive technology.
+- Mark visual clone groups as accessibility-hidden and update tests so duplicate accessible quotes are treated as a failure.
+
+#### FE-FIX-002 — Language Toggle Localization
+
+- Move all current-language, target-language, and tooltip prose into EN/DE locale resources.
+- Acceptance: German UI contains no English `Switch to` fragment; language persistence and `<html lang>` behavior remain intact.
+
+#### FE-FIX-003 — Language Flag SVG IDs
+
+- Ensure multiple flag instances cannot create duplicate DOM IDs.
+- Preserve the current flag appearance in desktop and mobile variants.
+
+#### FE-FIX-004 — Landing Integration Coverage
+
+- Test `home`, `about`, `features`, `community`, and `contact` anchors.
+- Render through the real PublicLayout/router composition and verify exactly one header, main, footer, and h1.
+
+#### FE-FIX-005 — Marquee Motion Robustness
+
+- Cover pointer pause, reduced-motion disablement, RAF cleanup, and loop behavior with deterministic tests.
+- Use elapsed-time-based movement if timing is changed so refresh rate does not alter perceived speed.
+
+#### FE-DEMO-001 through FE-DEMO-003 — Demo Video Migration
+
+- Place the approved MP4 and generated WebP poster under `apps/web/public/media/` without importing the MP4 into the JavaScript graph.
+- Implement the dialog as an isolated Landing component and connect it to `Watch Demo` without creating a new route.
+- Mount/load video only after an explicit User action; use native controls and `playsInline`; pause and reset on every close.
+
+#### AUTH-001 through AUTH-003 — UI-only Auth Pages
+
+- AUTH-001: accessible User Login form at `/login`, with a link to `/register` and no Admin Login link.
+- AUTH-002: accessible Student Registration form at `/register`, with no role selector and no ability to register an Admin.
+- AUTH-003: visually distinct Admin Login form at `/adminLogin`, reachable by direct URL only.
+- UI-only pages must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
+
+#### FE-AUTH-ENTRY-001 through FE-AUTH-ENTRY-003 — Public Auth Discovery
+
+- Desktop uses one compact `Sign in` trigger so the header is not overloaded.
+- Its menu contains only User Login and Create Student Account.
+- Mobile exposes those two actions directly in the existing drawer.
+- `Join the Community` becomes an internal navigation action to `/register` only after AUTH-002 exists.
+
+#### FE-TECH-001 and FE-VERIFY-001 — Completion Gate
+
+- Assess strict TypeScript without masking errors with `any`.
+- Final verification includes lint, type-check, all tests, production build, browser console, EN/DE, mobile/tablet/desktop, keyboard focus, accessibility tree, auth entry points, and Demo dialog behavior.
+- Backend Foundation may begin only after selected Frontend completion tasks pass this gate and deferred work is explicitly recorded.
 
 ---
 
@@ -1837,7 +2007,7 @@ async def seed_initial_admin():
 
 ## PART 24 — NEW MASTER IMPLEMENTATION ORDER
 
-The exact sequence to build the project from scratch:
+The exact sequence to build the project from scratch is defined by line order and task ID below. Legacy ordinal labels are retained for cross-reference and are not required to remain contiguous after the approved UI-first insertion.
 
 ```
 Task 1:  FE-001  Initialize React + TypeScript + Vite
@@ -1860,7 +2030,26 @@ Task 17: FE-017  Create Testimonials marquee
 Task 18: FE-018  Create CTA section
 Task 19: FE-019  Assemble Landing Page
 Task 20: FE-020  Create Language Toggle
-                 ── Frontend foundation complete ──
+                 ── Frontend completion remediation ──
+Next:    FE-HYGIENE-001  Establish recoverable FE-016..FE-020 baseline
+Next:    FE-FIX-001      Fix testimonial clone accessibility
+Next:    FE-FIX-002      Fully localize Language Toggle labels/tooltips
+Next:    FE-FIX-003      Remove duplicate flag SVG IDs
+Next:    FE-FIX-004      Correct Landing integration coverage
+Next:    FE-FIX-005      Harden marquee motion and tests
+Next:    FE-DEMO-001     Migrate Demo.mp4 and create WebP poster
+Next:    FE-DEMO-002     Create accessible Demo Video dialog
+Next:    FE-DEMO-003     Connect Watch Demo to the dialog
+                 ── UI-only authentication pages (approved before backend) ──
+Next:    AUTH-001        Create User Login UI (/login)
+Next:    AUTH-002        Create Student Registration UI (/register)
+Next:    AUTH-003        Create direct-URL-only Admin Login UI (/adminLogin)
+Next:    FE-AUTH-ENTRY-001  Add desktop User Sign in menu
+Next:    FE-AUTH-ENTRY-002  Add mobile User auth actions
+Next:    FE-AUTH-ENTRY-003  Route Join the Community to /register
+Next:    FE-TECH-001        Assess TypeScript strict mode
+Next:    FE-VERIFY-001      Run Frontend completion gate
+                 ── Frontend UI complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure
 Task 23: BE-003  Configure SQLAlchemy + Alembic
@@ -1883,10 +2072,7 @@ Task 38: AUTH-017 Create require_auth dependency
 Task 39: AUTH-018 Create require_role(role) dependency
 Task 40: AUTH-019 Create admin seed CLI command
 Task 41: AUTH-020 Create rate limiting middleware
-                 ── Auth backend complete ──
-Task 42: AUTH-001 Create User Login page (/login)
-Task 43: AUTH-002 Create User Registration page (/register)
-Task 44: AUTH-003 Create Admin Login page (/adminLogin)
+                 ── Auth backend complete; AUTH-001..AUTH-003 already completed UI-only ──
 Task 45: AUTH-004 Create Zustand auth store
 Task 46: AUTH-005 Create ProtectedRoute component
 Task 47: AUTH-006 Create RoleGuard component

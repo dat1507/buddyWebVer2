@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, Languages, Menu, X } from 'lucide-react'
+import { ExternalLink, Menu, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
+import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
@@ -16,12 +17,11 @@ const navItems = [
 const survivalBookPath = '/documents/vgu-buddy-survival-book.pdf'
 
 function Navbar() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
-  const languageCode = i18n.resolvedLanguage?.startsWith('de') ? 'DE' : 'EN'
 
   useEffect(() => {
     if (!isMenuOpen) return
@@ -106,18 +106,9 @@ function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            disabled
-            className="hidden gap-2 text-zinc-300 opacity-100 disabled:cursor-default disabled:opacity-100 sm:inline-flex"
-            aria-label={t('nav.currentLanguage', { language: languageCode })}
-            title={t('nav.languageComingSoon')}
-          >
-            <Languages aria-hidden="true" className="size-4 text-orange-500" />
-            {languageCode}
-          </Button>
+          <div className="hidden sm:inline-flex">
+            <LanguageToggle />
+          </div>
 
           <Button
             ref={menuButtonRef}
@@ -196,15 +187,7 @@ function Navbar() {
             </nav>
 
             <div className="border-t border-white/10 pt-4">
-              <div
-                className="flex items-center gap-2 rounded-lg bg-white/5 px-4 py-3 text-sm text-zinc-300"
-                aria-label={t('nav.currentLanguage', { language: languageCode })}
-                title={t('nav.languageComingSoon')}
-              >
-                <Languages aria-hidden="true" className="size-4 text-orange-500" />
-                <span>{t('nav.language')}</span>
-                <span className="ml-auto font-semibold text-white">{languageCode}</span>
-              </div>
+              <LanguageToggle variant="mobile" onToggle={closeMenu} />
             </div>
           </aside>
         </div>
