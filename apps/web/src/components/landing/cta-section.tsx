@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { DemoVideoDialog } from '@/components/landing/demo-video-dialog'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,8 @@ import { Typography } from '@/components/ui/typography'
  * Prompts students to take action ("Ready to Transform Your University Experience?")
  * with "Join the Community" (primary) and "Watch Demo" (secondary) action buttons.
  *
- * Registration navigation remains deferred to AUTH-002. The demo action opens
- * the local media dialog without introducing a route.
+ * The primary action routes students to registration. The demo action opens the
+ * local media dialog without introducing a route.
  */
 function CtaSection() {
   const { t } = useTranslation()
@@ -44,8 +45,8 @@ function CtaSection() {
         </Typography>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-          <Button type="button" size="lg" className="w-full sm:w-auto">
-            {t('cta.join')}
+          <Button asChild size="lg" className="w-full sm:w-auto">
+            <Link to="/register">{t('cta.join')}</Link>
           </Button>
 
           <Button

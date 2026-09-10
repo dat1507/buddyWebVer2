@@ -1548,9 +1548,9 @@ src/
 - Centered layout with responsive container, subtle radial ambient glow (`bg-vgu-orange/10 blur-3xl`), and dark surface background (`bg-vgu-surface`).
 - Typography tokens using `Typography variant="h2"` with responsive font sizing and `Typography variant="lead"` for the supporting subtitle.
 - Action buttons: Primary gradient button ("Join the Community") with VGU orange glow and secondary outline button ("Watch Demo"). Buttons adapt to mobile by stacking vertically with full width, and align side-by-side on desktop.
-- Both buttons use accessible `type="button"` with proper focus ring and keyboard navigation; routing is cleanly deferred until Auth Phase (AUTH-002) and media modal specifications are defined to prevent speculative links.
+- The primary action is an accessible internal link to `/register` (connected by FE-AUTH-ENTRY-003); the Demo action remains a keyboard-accessible `type="button"` that opens the local media dialog.
 - Fully localized in English and German via `react-i18next` (`cta.*` translation keys).
-- 5 comprehensive component tests in `apps/web/src/components/landing/cta-section.test.tsx` covering title/subtitle rendering, button accessibility roles, EN/DE localization, keyboard focusability, and absence of external navigation leaks.
+- 6 comprehensive component tests in `apps/web/src/components/landing/cta-section.test.tsx` covering title/subtitle rendering, action semantics, the approved `/register` route, EN/DE localization, keyboard focusability, Demo dialog integration, and absence of external/Admin navigation leaks.
 - Integrated directly into `LandingPage` in `apps/web/src/pages/public/landing-page.tsx`.
 
 ---
@@ -1793,9 +1793,17 @@ src/
 - Added vertical overflow handling for short mobile viewports so the expanded navigation remains usable.
 - Confirmed through EN/DE tests that the mobile drawer contains both User actions and no `/adminLogin` link.
 
-#### FE-AUTH-ENTRY-003 — Remaining Public Auth Discovery
+#### FE-AUTH-ENTRY-003 — Connect Landing CTA to Registration
+
+**Status**: Completed (✅)
 
 - `Join the Community` becomes an internal navigation action to `/register` only after AUTH-002 exists.
+
+**Implementation Notes**:
+- Converted the CTA Section's localized `Join the Community` action from an inert button to a React Router link targeting `/register`.
+- Preserved the existing primary Button visual, responsive full-width/mobile behavior, hover treatment, and visible keyboard focus style through the Button `asChild` composition.
+- Kept `Watch Demo` as an independent button with its existing accessible dialog behavior; Hero actions remain outside this task's scope.
+- Updated EN/DE component tests to require link semantics, the exact internal destination, keyboard focusability, and the absence of external or Admin navigation.
 
 #### FE-TECH-001 and FE-VERIFY-001 — Completion Gate
 

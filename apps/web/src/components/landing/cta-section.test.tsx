@@ -1,8 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CtaSection } from '@/components/landing/cta-section'
 import i18n from '@/i18n'
+
+function renderCtaSection() {
+  return render(
+    <MemoryRouter>
+      <CtaSection />
+    </MemoryRouter>,
+  )
+}
 
 describe('CtaSection', () => {
   beforeEach(async () => {
@@ -10,7 +19,7 @@ describe('CtaSection', () => {
   })
 
   it('renders section title and subtitle', () => {
-    render(<CtaSection />)
+    renderCtaSection()
 
     expect(
       screen.getByRole('heading', { name: 'Ready to Transform Your University Experience?' }),
@@ -22,14 +31,14 @@ describe('CtaSection', () => {
     ).toBeVisible()
   })
 
-  it('renders Join and Demo buttons with correct accessible roles', () => {
-    render(<CtaSection />)
+  it('renders an internal registration link and the Demo button with correct roles', () => {
+    renderCtaSection()
 
-    const joinBtn = screen.getByRole('button', { name: 'Join the Community' })
+    const joinLink = screen.getByRole('link', { name: 'Join the Community' })
     const demoBtn = screen.getByRole('button', { name: 'Watch Demo' })
 
-    expect(joinBtn).toBeVisible()
-    expect(joinBtn).toBeEnabled()
+    expect(joinLink).toBeVisible()
+    expect(joinLink).toHaveAttribute('href', '/register')
 
     expect(demoBtn).toBeVisible()
     expect(demoBtn).toBeEnabled()
@@ -37,7 +46,7 @@ describe('CtaSection', () => {
 
   it('renders German content after language switch', async () => {
     await i18n.changeLanguage('de')
-    render(<CtaSection />)
+    renderCtaSection()
 
     expect(
       screen.getByRole('heading', { name: 'Bereit, dein Unileben zu transformieren?' }),
@@ -47,18 +56,21 @@ describe('CtaSection', () => {
         'Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.',
       ),
     ).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Community beitreten' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Community beitreten' })).toHaveAttribute(
+      'href',
+      '/register',
+    )
     expect(screen.getByRole('button', { name: 'Demo ansehen' })).toBeVisible()
   })
 
-  it('buttons are keyboard focusable', () => {
-    render(<CtaSection />)
+  it('actions are keyboard focusable', () => {
+    renderCtaSection()
 
-    const joinBtn = screen.getByRole('button', { name: 'Join the Community' })
+    const joinLink = screen.getByRole('link', { name: 'Join the Community' })
     const demoBtn = screen.getByRole('button', { name: 'Watch Demo' })
 
-    joinBtn.focus()
-    expect(document.activeElement).toBe(joinBtn)
+    joinLink.focus()
+    expect(document.activeElement).toBe(joinLink)
 
     demoBtn.focus()
     expect(document.activeElement).toBe(demoBtn)
@@ -66,7 +78,7 @@ describe('CtaSection', () => {
 
   it('opens the demo dialog on demand and returns focus when it closes', () => {
     const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
-    render(<CtaSection />)
+    renderCtaSection()
     const demoButton = screen.getByRole('button', { name: 'Watch Demo' })
 
     expect(document.querySelector('video')).not.toBeInTheDocument()
@@ -87,10 +99,14 @@ describe('CtaSection', () => {
     pause.mockRestore()
   })
 
-  it('does not contain unverified links or external navigation', () => {
-    const { container } = render(<CtaSection />)
+  it('contains only the approved internal registration link', () => {
+    const { container } = renderCtaSection()
     const section = container.querySelector('#cta')!
+    const links = section.querySelectorAll('a')
 
-    expect(section.querySelectorAll('a')).toHaveLength(0)
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute('href', '/register')
+    expect(links[0]).not.toHaveAttribute('target')
+    expect(section.querySelector('a[href="/adminLogin"]')).not.toBeInTheDocument()
   })
 })
