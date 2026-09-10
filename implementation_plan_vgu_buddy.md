@@ -1780,9 +1780,21 @@ src/
 - Left the mobile drawer unchanged for FE-AUTH-ENTRY-002.
 - Added Navbar tests for the closed/open contract, exact route boundary, Escape/focus behavior, outside-click dismissal, and EN/DE localization.
 
-#### FE-AUTH-ENTRY-002 through FE-AUTH-ENTRY-003 — Remaining Public Auth Discovery
+#### FE-AUTH-ENTRY-002 — Mobile User Auth Discovery
+
+**Status**: Completed (✅)
 
 - Mobile exposes those two actions directly in the existing drawer.
+
+**Implementation Notes**:
+- Added direct User Login (`/login`) and Create Student Account (`/register`) links to the existing mobile drawer without introducing a nested menu.
+- Both actions use internal React Router navigation, share the drawer's visible focus treatment, and close the drawer after selection.
+- Preserved the existing dialog semantics, focus containment, Escape handling, focus return, scroll lock, language toggle, and public navigation items.
+- Added vertical overflow handling for short mobile viewports so the expanded navigation remains usable.
+- Confirmed through EN/DE tests that the mobile drawer contains both User actions and no `/adminLogin` link.
+
+#### FE-AUTH-ENTRY-003 — Remaining Public Auth Discovery
+
 - `Join the Community` becomes an internal navigation action to `/register` only after AUTH-002 exists.
 
 #### FE-TECH-001 and FE-VERIFY-001 — Completion Gate

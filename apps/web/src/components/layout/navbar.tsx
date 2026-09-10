@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ExternalLink, Menu, UserRound, X } from 'lucide-react'
+import { ChevronDown, ExternalLink, Menu, UserPlus, UserRound, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -236,7 +236,7 @@ function Navbar() {
             </div>
 
             <nav
-              className="flex flex-1 flex-col gap-1 py-5"
+              className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-5"
               aria-label={t('nav.primaryNavigation')}
             >
               {navItems.map((item) => (
@@ -259,6 +259,25 @@ function Navbar() {
                 {t('nav.surbook')}
                 <ExternalLink aria-hidden="true" className="size-4" />
               </a>
+
+              <div className="mt-4 space-y-1 border-t border-white/10 pt-4">
+                <Link
+                  to="/login"
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  onClick={closeMenu}
+                >
+                  <UserRound aria-hidden="true" className="size-4" />
+                  {t('nav.userLogin')}
+                </Link>
+                <Link
+                  to="/register"
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  onClick={closeMenu}
+                >
+                  <UserPlus aria-hidden="true" className="size-4" />
+                  {t('nav.createStudentAccount')}
+                </Link>
+              </div>
             </nav>
 
             <div className="border-t border-white/10 pt-4">

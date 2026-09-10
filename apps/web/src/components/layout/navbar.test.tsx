@@ -13,7 +13,7 @@ function renderNavbar() {
   )
 }
 
-describe('Navbar with LanguageToggle (FE-020)', () => {
+describe('Navbar', () => {
   beforeEach(async () => {
     localStorage.clear()
     await i18n.changeLanguage('en')
@@ -128,6 +128,43 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
     ).toHaveAttribute('href', '/login')
     expect(
       within(accountNavigation).getByRole('link', { name: 'Studierendenkonto erstellen' }),
+    ).toHaveAttribute('href', '/register')
+  })
+
+  it('exposes direct User auth actions in the mobile drawer and no Admin Login link', async () => {
+    renderNavbar()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }))
+    const dialog = screen.getByRole('dialog', { name: 'Primary navigation' })
+    const userLogin = within(dialog).getByRole('link', { name: 'User login' })
+
+    expect(userLogin).toHaveAttribute('href', '/login')
+    expect(within(dialog).getByRole('link', { name: 'Create student account' })).toHaveAttribute(
+      'href',
+      '/register',
+    )
+    expect(dialog.querySelector('a[href="/adminLogin"]')).not.toBeInTheDocument()
+
+    fireEvent.click(userLogin)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+  })
+
+  it('localizes the direct mobile auth actions in German', async () => {
+    await i18n.changeLanguage('de')
+    renderNavbar()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Navigationsmenü öffnen' }))
+    const dialog = screen.getByRole('dialog', { name: 'Hauptnavigation' })
+
+    expect(within(dialog).getByRole('link', { name: 'Benutzeranmeldung' })).toHaveAttribute(
+      'href',
+      '/login',
+    )
+    expect(
+      within(dialog).getByRole('link', { name: 'Studierendenkonto erstellen' }),
     ).toHaveAttribute('href', '/register')
   })
 })
