@@ -1805,9 +1805,20 @@ src/
 - Kept `Watch Demo` as an independent button with its existing accessible dialog behavior; Hero actions remain outside this task's scope.
 - Updated EN/DE component tests to require link semantics, the exact internal destination, keyboard focusability, and the absence of external or Admin navigation.
 
-#### FE-TECH-001 and FE-VERIFY-001 — Completion Gate
+#### FE-TECH-001 — Enable TypeScript Strict Mode
+
+**Status**: Completed (✅)
 
 - Assess strict TypeScript without masking errors with `any`.
+
+**Implementation Notes**:
+- Audited both referenced TypeScript projects with strict mode forced from the CLI before changing configuration; the application source and Vite configuration passed without type errors.
+- Enabled `strict: true` explicitly in both `tsconfig.app.json` and `tsconfig.node.json`, ensuring `tsc -b` applies strict checks to browser code, tests, and build tooling.
+- Confirmed the source contains no `any` type escape hatch, `@ts-ignore`, or `@ts-expect-error`; no runtime logic or compiler suppression was introduced.
+- Kept additional opt-in checks such as `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes` outside this task because they are not part of TypeScript's `strict` family or the approved contract.
+
+#### FE-VERIFY-001 — Frontend Completion Gate
+
 - Final verification includes lint, type-check, all tests, production build, browser console, EN/DE, mobile/tablet/desktop, keyboard focus, accessibility tree, auth entry points, and Demo dialog behavior.
 - Backend Foundation may begin only after selected Frontend completion tasks pass this gate and deferred work is explicitly recorded.
 
