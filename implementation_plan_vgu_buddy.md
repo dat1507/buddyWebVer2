@@ -1736,11 +1736,25 @@ src/
 - The only auth discovery link on the page points to `/register`; `/adminLogin` is not exposed.
 - Added EN/DE locale resources and route-level tests for accessibility semantics, validation, focus behavior, UI-only submission, localization, and the absence of an Admin Login link.
 
-#### AUTH-002 through AUTH-003 — Remaining UI-only Auth Pages
+#### AUTH-002 — UI-only Student Registration Page
 
-- AUTH-002: accessible Student Registration form at `/register`, with no role selector and no ability to register an Admin.
-- AUTH-003: visually distinct Admin Login form at `/adminLogin`, reachable by direct URL only.
-- These UI-only pages must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
+**Status**: Completed (✅)
+
+- Provide an accessible Student Registration form at `/register`, with no role selector and no ability to register an Admin.
+- The UI-only page must not fake account creation, JWT creation, or dashboard redirects before the backend contract is connected.
+
+**Implementation Notes**:
+- Replaced the `/register` placeholder route with `UserRegistrationPage` while retaining the existing public layout.
+- Limited account fields to the plan's User account contract: email and password. Student profile data remains deferred to the Profile UI phase.
+- Added the explicit consent checkbox required by the plan's GDPR section; no role field, Admin option, or `/adminLogin` link is exposed.
+- Added responsive EN/DE UI, field-level validation, browser-appropriate autocomplete attributes, and focus movement to the first invalid field.
+- A valid UI-only submit displays a neutral backend-pending status without calling an API, persisting account/token data, or navigating away from `/register`.
+- Added route-level tests covering semantics, validation, consent, focus behavior, localization, UI-only submission, and the absence of Admin registration paths.
+
+#### AUTH-003 — Remaining UI-only Admin Login Page
+
+- Provide a visually distinct Admin Login form at `/adminLogin`, reachable by direct URL only.
+- The UI-only page must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
 
 #### FE-AUTH-ENTRY-001 through FE-AUTH-ENTRY-003 — Public Auth Discovery
 

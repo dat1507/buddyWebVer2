@@ -7,11 +7,9 @@ import { LandingPage } from '@/pages/public/landing-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
+import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 
-const publicRoutes = [
-  { path: 'register', title: 'Create your account' },
-  { path: 'adminLogin', title: 'Admin login' },
-]
+const publicRoutes = [{ path: 'adminLogin', title: 'Admin login' }]
 
 const userRoutes = [
   { path: 'dashboard', title: 'Dashboard' },
@@ -43,6 +41,7 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="login" element={<UserLoginPage />} />
+        <Route path="register" element={<UserRegistrationPage />} />
         {publicRoutes.map(({ path, title }) => (
           <Route
             key={path}

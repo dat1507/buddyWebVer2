@@ -153,6 +153,26 @@
         "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
         "passwordRequired": "Gib dein Passwort ein."
       }
+    },
+    "register": {
+      "eyebrow": "Registrierung für Studierende",
+      "title": "Konto erstellen",
+      "subtitle": "Erstelle ein Studierendenkonto und beginne deine Reise mit VGU Buddy.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "student@example.com",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Passwort erstellen",
+      "consentLabel": "Ich stimme der Verarbeitung meiner personenbezogenen Daten durch VGU Buddy zur Bereitstellung dieses Dienstes zu.",
+      "submit": "Studierendenkonto erstellen",
+      "hasAccount": "Du hast bereits ein Konto?",
+      "signIn": "Anmelden",
+      "backendPending": "Die Kontoerstellung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
+      "validation": {
+        "emailRequired": "Gib deine E-Mail-Adresse ein.",
+        "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
+        "passwordRequired": "Gib ein Passwort ein.",
+        "consentRequired": "Für die Kontoerstellung ist deine Zustimmung erforderlich."
+      }
     }
   },
   "footer": {
