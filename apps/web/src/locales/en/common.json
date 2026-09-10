@@ -12,6 +12,9 @@
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
     "currentLanguage": "Current language: {{language}}",
+    "switchToLanguage": "Switch to {{language}}",
+    "languageEnglish": "English",
+    "languageGerman": "German",
     "languageComingSoon": "Language switching will be available soon"
   },
   "hero": {

@@ -16,10 +16,8 @@ describe('LanguageToggle (FE-020)', () => {
     const button = screen.getByRole('button')
     expect(button).toBeVisible()
     expect(button).toHaveTextContent('EN')
-    expect(button).toHaveAttribute(
-      'aria-label',
-      expect.stringContaining('EN'),
-    )
+    expect(button).toHaveAttribute('aria-label', 'Current language: EN. Switch to German')
+    expect(button).toHaveAttribute('title', 'Switch to German')
   })
 
   it('toggles language from EN to DE on click and persists to localStorage', async () => {
@@ -32,10 +30,8 @@ describe('LanguageToggle (FE-020)', () => {
     expect(i18n.resolvedLanguage).toBe('de')
     expect(localStorage.getItem('vgu-language')).toBe('de')
     expect(button).toHaveTextContent('DE')
-    expect(button).toHaveAttribute(
-      'aria-label',
-      expect.stringContaining('DE'),
-    )
+    expect(button).toHaveAttribute('aria-label', 'Aktuelle Sprache: DE. Zu Englisch wechseln')
+    expect(button).toHaveAttribute('title', 'Zu Englisch wechseln')
   })
 
   it('toggles language from DE back to EN on second click', async () => {
@@ -61,11 +57,13 @@ describe('LanguageToggle (FE-020)', () => {
     expect(button).toBeVisible()
     expect(button).toHaveTextContent(/Language|Sprache/)
     expect(button).toHaveTextContent('EN')
+    expect(button).toHaveAttribute('aria-label', 'Current language: EN. Switch to German')
 
     fireEvent.click(button)
     expect(i18n.resolvedLanguage).toBe('de')
     expect(localStorage.getItem('vgu-language')).toBe('de')
     expect(button).toHaveTextContent('DE')
+    expect(button).toHaveAttribute('aria-label', 'Aktuelle Sprache: DE. Zu Englisch wechseln')
   })
 
   it('is accessible via keyboard focus and can be activated', () => {

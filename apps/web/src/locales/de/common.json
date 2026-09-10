@@ -12,6 +12,9 @@
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen",
     "currentLanguage": "Aktuelle Sprache: {{language}}",
+    "switchToLanguage": "Zu {{language}} wechseln",
+    "languageEnglish": "Englisch",
+    "languageGerman": "Deutsch",
     "languageComingSoon": "Der Sprachwechsel wird bald verfügbar sein"
   },
   "hero": {

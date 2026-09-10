@@ -59,7 +59,9 @@ function LanguageToggle({ variant = 'desktop', className, onToggle }: LanguageTo
   const currentLang = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
   const isGerman = currentLang === 'de'
   const languageCode = isGerman ? 'DE' : 'EN'
-  const targetLanguage = isGerman ? 'English' : 'Deutsch'
+  const targetLanguage = t(isGerman ? 'nav.languageEnglish' : 'nav.languageGerman')
+  const switchToLanguage = t('nav.switchToLanguage', { language: targetLanguage })
+  const accessibleLabel = `${t('nav.currentLanguage', { language: languageCode })}. ${switchToLanguage}`
 
   const handleToggle = () => {
     const nextLang = isGerman ? 'en' : 'de'
@@ -81,7 +83,7 @@ function LanguageToggle({ variant = 'desktop', className, onToggle }: LanguageTo
           'flex w-full items-center justify-between rounded-lg bg-white/5 px-4 py-3 text-sm text-zinc-200 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500',
           className,
         )}
-        aria-label={`${t('nav.currentLanguage', { language: languageCode })}. Switch to ${targetLanguage}`}
+        aria-label={accessibleLabel}
       >
         <span className="flex items-center gap-2.5">
           {isGerman ? <GermanFlag /> : <UkFlag />}
@@ -105,8 +107,8 @@ function LanguageToggle({ variant = 'desktop', className, onToggle }: LanguageTo
         'gap-2 text-zinc-300 hover:bg-white/10 hover:text-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500',
         className,
       )}
-      aria-label={`${t('nav.currentLanguage', { language: languageCode })}. Switch to ${targetLanguage}`}
-      title={`Switch to ${targetLanguage}`}
+      aria-label={accessibleLabel}
+      title={switchToLanguage}
     >
       {isGerman ? <GermanFlag /> : <UkFlag />}
       <span className="font-semibold tracking-wide">{languageCode}</span>

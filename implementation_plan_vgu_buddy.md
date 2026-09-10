@@ -1636,8 +1636,15 @@ src/
 
 #### FE-FIX-002 — Language Toggle Localization
 
+**Status**: Completed (✅)
+
 - Move all current-language, target-language, and tooltip prose into EN/DE locale resources.
 - Acceptance: German UI contains no English `Switch to` fragment; language persistence and `<html lang>` behavior remain intact.
+
+**Implementation Notes**:
+- Added localized target-language names and `switchToLanguage` templates to both EN and DE locale resources.
+- Desktop `aria-label` and tooltip text now share the active locale; the mobile accessible label uses the same localized contract.
+- Exact-string tests prevent mixed-language accessible labels from regressing while preserving localStorage and EN/DE toggle behavior.
 
 #### FE-FIX-003 — Language Flag SVG IDs
 

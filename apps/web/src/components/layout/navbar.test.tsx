@@ -49,7 +49,7 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
 
     // Find and click mobile language toggle inside drawer
     const mobileToggle = within(dialog).getByRole('button', {
-      name: /Current language: EN.*Switch to Deutsch/i,
+      name: 'Current language: EN. Switch to German',
     })
     fireEvent.click(mobileToggle)
 
