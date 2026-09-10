@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { PublicLayout } from '@/components/layout/public-layout'
 import { LandingPage } from '@/pages/public/landing-page'
 import i18n from '@/i18n'
 
@@ -12,7 +14,13 @@ function renderLandingPage() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <LandingPage />
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route index element={<LandingPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -44,6 +52,14 @@ describe('LandingPage (FE-019 Assembly)', () => {
     const h1s = screen.getAllByRole('heading', { level: 1 })
     expect(h1s).toHaveLength(1)
     expect(h1s[0]).toHaveTextContent(/Connect with/i)
+  })
+
+  it('renders exactly one header, main, and footer through PublicLayout', () => {
+    const { container } = renderLandingPage()
+
+    expect(container.querySelectorAll('header')).toHaveLength(1)
+    expect(container.querySelectorAll('main')).toHaveLength(1)
+    expect(container.querySelectorAll('footer')).toHaveLength(1)
   })
 
   it('renders section headings for all assembled sections', () => {
@@ -95,7 +111,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
   it('contains valid section anchors matching navigation targets', () => {
     const { container } = renderLandingPage()
 
-    const expectedAnchors = ['home', 'about', 'features', 'community']
+    const expectedAnchors = ['home', 'about', 'features', 'community', 'contact']
     for (const anchor of expectedAnchors) {
       const el = container.querySelector(`#${anchor}`)
       expect(el).not.toBeNull()

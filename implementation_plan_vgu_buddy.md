@@ -1660,8 +1660,15 @@ src/
 
 #### FE-FIX-004 — Landing Integration Coverage
 
+**Status**: Completed (✅)
+
 - Test `home`, `about`, `features`, `community`, and `contact` anchors.
 - Render through the real PublicLayout/router composition and verify exactly one header, main, footer, and h1.
+
+**Implementation Notes**:
+- The Landing integration helper now renders the production composition through `MemoryRouter`, `Routes`, `PublicLayout`, and the index `LandingPage` route.
+- Anchor coverage now includes the Footer-owned `contact` target in addition to `home`, `about`, `features`, and `community`.
+- A dedicated semantic-layout test verifies exactly one `header`, `main`, and `footer`; the existing SEO test continues to enforce exactly one `h1`.
 
 #### FE-FIX-005 — Marquee Motion Robustness
 
