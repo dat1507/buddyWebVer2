@@ -135,6 +135,26 @@
     "loading": "Demo-Video wird geladen",
     "error": "Das Demo-Video konnte nicht geladen werden. Bitte versuche es später erneut."
   },
+  "auth": {
+    "login": {
+      "eyebrow": "Zugang für Studierende",
+      "title": "Willkommen zurück",
+      "subtitle": "Melde dich mit deinem VGU-Buddy-Konto an.",
+      "emailLabel": "E-Mail-Adresse",
+      "emailPlaceholder": "student@example.com",
+      "passwordLabel": "Passwort",
+      "passwordPlaceholder": "Passwort eingeben",
+      "submit": "Anmelden",
+      "noAccount": "Neu bei VGU Buddy?",
+      "createAccount": "Konto erstellen",
+      "backendPending": "Die Anmeldung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
+      "validation": {
+        "emailRequired": "Gib deine E-Mail-Adresse ein.",
+        "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
+        "passwordRequired": "Gib dein Passwort ein."
+      }
+    }
+  },
   "footer": {
     "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
     "quickLinks": "Schnellzugriff",

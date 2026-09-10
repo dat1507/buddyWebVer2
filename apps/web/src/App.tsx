@@ -6,9 +6,9 @@ import { UserLayout } from '@/components/layout/user-layout'
 import { LandingPage } from '@/pages/public/landing-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
+import { UserLoginPage } from '@/pages/public/user-login-page'
 
 const publicRoutes = [
-  { path: 'login', title: 'User login' },
   { path: 'register', title: 'Create your account' },
   { path: 'adminLogin', title: 'Admin login' },
 ]
@@ -42,6 +42,7 @@ function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<LandingPage />} />
+        <Route path="login" element={<UserLoginPage />} />
         {publicRoutes.map(({ path, title }) => (
           <Route
             key={path}

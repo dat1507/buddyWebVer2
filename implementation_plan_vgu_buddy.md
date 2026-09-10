@@ -1722,12 +1722,25 @@ src/
 - Kept the MP4 out of the initial DOM and network lifecycle until the User explicitly activates the trigger; no route or external navigation was added.
 - Added CTA integration coverage for lazy media mounting, dialog opening, expanded state, closing, and focus return to the trigger.
 
-#### AUTH-001 through AUTH-003 — UI-only Auth Pages
+#### AUTH-001 — UI-only User Login Page
 
-- AUTH-001: accessible User Login form at `/login`, with a link to `/register` and no Admin Login link.
+**Status**: Completed (✅)
+
+- Provide an accessible User Login form at `/login`, with a link to `/register` and no Admin Login link.
+- The UI-only page must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
+
+**Implementation Notes**:
+- Replaced the `/login` placeholder route with `UserLoginPage` while retaining the existing public layout.
+- Added responsive, localized email and password controls with explicit labels, browser-appropriate autocomplete attributes, inline validation, invalid-state announcements, and focus movement to the first invalid field.
+- A valid UI-only submit displays a neutral backend-pending status in place; it does not call an API, persist credentials or tokens, or navigate away from `/login`.
+- The only auth discovery link on the page points to `/register`; `/adminLogin` is not exposed.
+- Added EN/DE locale resources and route-level tests for accessibility semantics, validation, focus behavior, UI-only submission, localization, and the absence of an Admin Login link.
+
+#### AUTH-002 through AUTH-003 — Remaining UI-only Auth Pages
+
 - AUTH-002: accessible Student Registration form at `/register`, with no role selector and no ability to register an Admin.
 - AUTH-003: visually distinct Admin Login form at `/adminLogin`, reachable by direct URL only.
-- UI-only pages must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
+- These UI-only pages must not fake authentication success, JWT creation, or dashboard redirects before the backend contract is connected.
 
 #### FE-AUTH-ENTRY-001 through FE-AUTH-ENTRY-003 — Public Auth Discovery
 

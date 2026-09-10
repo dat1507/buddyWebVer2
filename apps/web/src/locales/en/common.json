@@ -135,6 +135,26 @@
     "loading": "Loading demo video",
     "error": "The demo video could not be loaded. Please try again later."
   },
+  "auth": {
+    "login": {
+      "eyebrow": "Student access",
+      "title": "Welcome back",
+      "subtitle": "Sign in with your VGU Buddy account.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "student@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign in",
+      "noAccount": "New to VGU Buddy?",
+      "createAccount": "Create an account",
+      "backendPending": "Sign-in will be connected when the authentication backend is available.",
+      "validation": {
+        "emailRequired": "Enter your email address.",
+        "emailInvalid": "Enter a valid email address.",
+        "passwordRequired": "Enter your password."
+      }
+    }
+  },
   "footer": {
     "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",
     "quickLinks": "Quick Links",
