@@ -1648,8 +1648,15 @@ src/
 
 #### FE-FIX-003 — Language Flag SVG IDs
 
+**Status**: Completed (✅)
+
 - Ensure multiple flag instances cannot create duplicate DOM IDs.
 - Preserve the current flag appearance in desktop and mobile variants.
+
+**Implementation Notes**:
+- Removed the fixed `uk-flag-clip` definition and its URL reference from `UkFlag`, eliminating the collision rather than introducing runtime-generated IDs.
+- The SVG now clips through its existing rounded, `overflow-hidden` outer element while retaining the same viewBox and flag geometry.
+- Added a regression test that renders multiple UK flags and verifies that they introduce no IDs or clip paths.
 
 #### FE-FIX-004 — Landing Integration Coverage
 

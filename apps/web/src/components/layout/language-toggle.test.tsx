@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { LanguageToggle } from '@/components/layout/language-toggle'
+import { LanguageToggle, UkFlag } from '@/components/layout/language-toggle'
 import i18n from '@/i18n'
 
 describe('LanguageToggle (FE-020)', () => {
@@ -18,6 +18,19 @@ describe('LanguageToggle (FE-020)', () => {
     expect(button).toHaveTextContent('EN')
     expect(button).toHaveAttribute('aria-label', 'Current language: EN. Switch to German')
     expect(button).toHaveAttribute('title', 'Switch to German')
+  })
+
+  it('renders multiple UK flags without duplicate SVG ids', () => {
+    const { container } = render(
+      <>
+        <UkFlag />
+        <UkFlag />
+      </>,
+    )
+
+    expect(container.querySelectorAll('svg')).toHaveLength(2)
+    expect(container.querySelectorAll('[id]')).toHaveLength(0)
+    expect(container.querySelectorAll('clipPath')).toHaveLength(0)
   })
 
   it('toggles language from EN to DE on click and persists to localStorage', async () => {

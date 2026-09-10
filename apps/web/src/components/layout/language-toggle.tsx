@@ -8,20 +8,15 @@ function UkFlag(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox="0 0 60 30"
-      className={cn('h-3.5 w-5 shrink-0 rounded-[2px] shadow-sm', props.className)}
+      className={cn('h-3.5 w-5 shrink-0 overflow-hidden rounded-[2px] shadow-sm', props.className)}
       aria-hidden="true"
       {...props}
     >
-      <clipPath id="uk-flag-clip">
-        <rect width="60" height="30" />
-      </clipPath>
-      <g clipPath="url(#uk-flag-clip)">
-        <rect width="60" height="30" fill="#012169" />
-        <path d="M0 0 L60 30 M60 0 L0 30" stroke="#ffffff" strokeWidth="6" />
-        <path d="M0 0 L60 30 M60 0 L0 30" stroke="#C8102E" strokeWidth="2" />
-        <path d="M30 0 v30 M0 15 h60" stroke="#ffffff" strokeWidth="10" />
-        <path d="M30 0 v30 M0 15 h60" stroke="#C8102E" strokeWidth="6" />
-      </g>
+      <rect width="60" height="30" fill="#012169" />
+      <path d="M0 0 L60 30 M60 0 L0 30" stroke="#ffffff" strokeWidth="6" />
+      <path d="M0 0 L60 30 M60 0 L0 30" stroke="#C8102E" strokeWidth="2" />
+      <path d="M30 0 v30 M0 15 h60" stroke="#ffffff" strokeWidth="10" />
+      <path d="M30 0 v30 M0 15 h60" stroke="#C8102E" strokeWidth="6" />
     </svg>
   )
 }
