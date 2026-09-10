@@ -1696,10 +1696,23 @@ src/
 - Kept both assets in Vite's public directory so FE-DEMO-002 can reference stable `/media/...` URLs without adding the MP4 to the JavaScript module graph.
 - No dialog, route, or Landing Page trigger was added in this asset-only task.
 
-#### FE-DEMO-002 through FE-DEMO-003 — Demo Video Dialog and Trigger
+#### FE-DEMO-002 — Accessible Demo Video Dialog
 
-- Implement the dialog as an isolated Landing component and connect it to `Watch Demo` without creating a new route.
+**Status**: Completed (✅)
+
+- Implement the dialog as an isolated Landing component without creating a new route.
 - Mount/load video only after an explicit User action; use native controls and `playsInline`; pause and reset on every close.
+
+**Implementation Notes**:
+- Added a portal-based `DemoVideoDialog` controlled through `open` and `onOpenChange`, leaving trigger ownership to FE-DEMO-003.
+- The MP4 is mounted only while the dialog is open, uses native controls, `playsInline`, metadata-only preload, the approved WebP poster, and no autoplay or captions track.
+- Added localized EN/DE dialog title, description, media label, close action, loading status, and error fallback.
+- Implemented close button, backdrop click, Escape, keyboard focus containment and return, body scroll locking, responsive viewport-constrained sizing, and cleanup that pauses and resets playback to the beginning.
+- Added seven component tests covering lazy media mounting, playback attributes, every close path, focus management, scroll restoration, media cleanup, loading/error states, and German accessibility copy.
+
+#### FE-DEMO-003 — Connect Watch Demo Trigger
+
+- Connect the existing `Watch Demo` CTA button to `DemoVideoDialog` without creating a new route.
 
 #### AUTH-001 through AUTH-003 — UI-only Auth Pages
 

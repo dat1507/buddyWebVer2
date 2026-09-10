@@ -127,6 +127,14 @@
     "join": "Community beitreten",
     "demo": "Demo ansehen"
   },
+  "demoDialog": {
+    "title": "VGU Buddy Program Demo",
+    "description": "Erfahre, wie das Buddy-Programm die VGU-Community zusammenbringt.",
+    "videoLabel": "Demo-Video des VGU Buddy Programms",
+    "close": "Demo-Video schließen",
+    "loading": "Demo-Video wird geladen",
+    "error": "Das Demo-Video konnte nicht geladen werden. Bitte versuche es später erneut."
+  },
   "footer": {
     "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
     "quickLinks": "Schnellzugriff",
