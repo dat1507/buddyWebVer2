@@ -5,13 +5,31 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 
 const TESTIMONIAL_COUNT = 12
-const SCROLL_SPEED = 0.5 // pixels per frame at 60 fps
+const SCROLL_SPEED_PX_PER_SECOND = 30
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
 const testimonialKeys = Array.from({ length: TESTIMONIAL_COUNT }, (_, i) => `testimonial${i + 1}`)
 
 /** Split testimonials into two rows for the two-row marquee layout. */
 const topRowKeys = testimonialKeys.filter((_, i) => i % 2 === 0)
 const bottomRowKeys = testimonialKeys.filter((_, i) => i % 2 !== 0)
+
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    typeof window === 'undefined' ? false : window.matchMedia(REDUCED_MOTION_QUERY).matches,
+  )
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY)
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches)
+
+    handleChange()
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  return prefersReducedMotion
+}
 
 /**
  * A single marquee row.
@@ -33,63 +51,70 @@ function MarqueeRow({
   const trackRef = useRef<HTMLDivElement>(null)
   const offsetRef = useRef(0)
   const rafRef = useRef(0)
+  const previousTimestampRef = useRef<number | null>(null)
   const pausedRef = useRef(false)
-  const [, setPaused] = useState(false)
-
-  const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
-    if (prefersReducedMotion) return
+    const track = trackRef.current
+    if (!track || prefersReducedMotion) return
 
     // Initialise offset for right-scrolling rows so they start from the
     // "far" end and scroll toward 0.
-    if (direction === 'right' && trackRef.current) {
-      offsetRef.current = -(trackRef.current.scrollWidth / 2)
+    if (direction === 'right') {
+      offsetRef.current = -(track.scrollWidth / 2)
+      track.style.transform = `translateX(${offsetRef.current}px)`
     }
 
-    function step() {
-      const track = trackRef.current
-      if (!track) return
+    previousTimestampRef.current = null
 
-      if (!pausedRef.current) {
-        const halfWidth = track.scrollWidth / 2
+    function step(timestamp: number) {
+      const currentTrack = trackRef.current
+      if (!currentTrack) return
+
+      const previousTimestamp = previousTimestampRef.current
+      previousTimestampRef.current = timestamp
+
+      if (!pausedRef.current && previousTimestamp !== null) {
+        const halfWidth = currentTrack.scrollWidth / 2
         if (halfWidth > 0) {
           const sign = direction === 'left' ? -1 : 1
-          offsetRef.current += SCROLL_SPEED * sign
+          const elapsedSeconds = Math.max(0, timestamp - previousTimestamp) / 1_000
+          offsetRef.current += SCROLL_SPEED_PX_PER_SECOND * elapsedSeconds * sign
 
           // Reset when one full copy has scrolled past
           if (direction === 'left' && offsetRef.current <= -halfWidth) {
-            offsetRef.current += halfWidth
+            offsetRef.current %= halfWidth
           } else if (direction === 'right' && offsetRef.current >= 0) {
-            offsetRef.current -= halfWidth
+            offsetRef.current = (offsetRef.current % halfWidth) - halfWidth
           }
 
-          track.style.transform = `translateX(${offsetRef.current}px)`
+          currentTrack.style.transform = `translateX(${offsetRef.current}px)`
         }
       }
 
-      rafRef.current = requestAnimationFrame(step)
+      rafRef.current = window.requestAnimationFrame(step)
     }
 
-    rafRef.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(rafRef.current)
+    rafRef.current = window.requestAnimationFrame(step)
+    return () => {
+      window.cancelAnimationFrame(rafRef.current)
+      previousTimestampRef.current = null
+    }
   }, [prefersReducedMotion, direction])
 
   return (
     <div
       className="overflow-hidden"
+      data-marquee-row={direction}
       onPointerEnter={() => {
         pausedRef.current = true
-        setPaused(true)
       }}
       onPointerLeave={() => {
         pausedRef.current = false
-        setPaused(false)
       }}
     >
-      <div ref={trackRef} className="flex w-max gap-5">
+      <div ref={trackRef} className="flex w-max gap-5" data-marquee-track={direction}>
         {/* Original + clone for seamless loop */}
         {[...keys, ...keys].map((key, i) => {
           const isVisualClone = i >= keys.length
