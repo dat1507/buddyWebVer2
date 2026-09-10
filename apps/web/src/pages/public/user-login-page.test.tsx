@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -24,7 +24,7 @@ describe('UserLoginPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Welcome back' })).toBeVisible()
     expect(screen.getByLabelText('Email address')).toHaveAttribute('autocomplete', 'email')
     expect(screen.getByLabelText('Password')).toHaveAttribute('autocomplete', 'current-password')
-    expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled()
+    expect(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' })).toBeEnabled()
     expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
       'href',
       '/register',
@@ -36,7 +36,7 @@ describe('UserLoginPage', () => {
   it('validates required fields and focuses the first invalid input', () => {
     renderLoginRoute()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
     expect(screen.getByText('Enter your email address.')).toBeVisible()
     expect(screen.getByText('Enter your password.')).toBeVisible()
@@ -51,7 +51,7 @@ describe('UserLoginPage', () => {
       target: { value: 'not-an-email' },
     })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
     expect(screen.getByText('Enter a valid email address.')).toBeVisible()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
@@ -65,7 +65,7 @@ describe('UserLoginPage', () => {
       target: { value: 'student@example.com' },
     })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
     expect(screen.getByRole('status')).toHaveTextContent(
       'Sign-in will be connected when the authentication backend is available.',
@@ -82,7 +82,7 @@ describe('UserLoginPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Willkommen zurück' })).toBeVisible()
     expect(screen.getByLabelText('E-Mail-Adresse')).toBeVisible()
     expect(screen.getByLabelText('Passwort')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Anmelden' })).toBeVisible()
+    expect(within(screen.getByRole('main')).getByRole('button', { name: 'Anmelden' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Konto erstellen' })).toHaveAttribute(
       'href',
       '/register',

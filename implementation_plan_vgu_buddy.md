@@ -1766,10 +1766,22 @@ src/
 - A valid UI-only submit displays a neutral backend-pending status without calling an API, persisting tokens, checking a fake role, or navigating to an Admin route.
 - Added EN/DE resources and route-level tests for the distinct Admin surface, validation, focus, localization, UI-only behavior, and public-discovery boundary.
 
-#### FE-AUTH-ENTRY-001 through FE-AUTH-ENTRY-003 — Public Auth Discovery
+#### FE-AUTH-ENTRY-001 — Desktop User Auth Discovery
+
+**Status**: Completed (✅)
 
 - Desktop uses one compact `Sign in` trigger so the header is not overloaded.
 - Its menu contains only User Login and Create Student Account.
+
+**Implementation Notes**:
+- Added a desktop-only localized `Sign in` disclosure to the existing Navbar action area, adjacent to the language toggle.
+- The disclosure exposes exactly two internal routes: User Login (`/login`) and Create Student Account (`/register`). It contains no Admin Login entry.
+- Added `aria-expanded`, `aria-controls`, a localized navigation label, Escape-to-close with focus return, outside-click dismissal, visible focus states, and close-on-selection behavior.
+- Left the mobile drawer unchanged for FE-AUTH-ENTRY-002.
+- Added Navbar tests for the closed/open contract, exact route boundary, Escape/focus behavior, outside-click dismissal, and EN/DE localization.
+
+#### FE-AUTH-ENTRY-002 through FE-AUTH-ENTRY-003 — Remaining Public Auth Discovery
+
 - Mobile exposes those two actions directly in the existing drawer.
 - `Join the Community` becomes an internal navigation action to `/register` only after AUTH-002 exists.
 

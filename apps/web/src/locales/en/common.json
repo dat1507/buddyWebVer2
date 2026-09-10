@@ -15,7 +15,11 @@
     "switchToLanguage": "Switch to {{language}}",
     "languageEnglish": "English",
     "languageGerman": "German",
-    "languageComingSoon": "Language switching will be available soon"
+    "languageComingSoon": "Language switching will be available soon",
+    "signIn": "Sign in",
+    "accountNavigation": "Account navigation",
+    "userLogin": "User login",
+    "createStudentAccount": "Create student account"
   },
   "hero": {
     "title1": "Connect with",

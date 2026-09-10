@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, Menu, X } from 'lucide-react'
+import { ChevronDown, ExternalLink, Menu, UserRound, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
@@ -19,9 +20,12 @@ const survivalBookPath = '/documents/vgu-buddy-survival-book.pdf'
 function Navbar() {
   const { t } = useTranslation()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSignInMenuOpen, setIsSignInMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
+  const signInButtonRef = useRef<HTMLButtonElement>(null)
+  const signInMenuRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (!isMenuOpen) return
@@ -68,6 +72,33 @@ function Navbar() {
     }
   }, [isMenuOpen])
 
+  useEffect(() => {
+    if (!isSignInMenuOpen) return
+
+    const handleMouseDown = (event: MouseEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (signInButtonRef.current?.contains(target) || signInMenuRef.current?.contains(target)) {
+        return
+      }
+      setIsSignInMenuOpen(false)
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setIsSignInMenuOpen(false)
+      signInButtonRef.current?.focus()
+    }
+
+    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isSignInMenuOpen])
+
   const closeMenu = () => setIsMenuOpen(false)
 
   return (
@@ -108,6 +139,50 @@ function Navbar() {
         <div className="flex items-center gap-2">
           <div className="hidden sm:inline-flex">
             <LanguageToggle />
+          </div>
+
+          <div className="relative hidden lg:block">
+            <Button
+              ref={signInButtonRef}
+              type="button"
+              variant="outline"
+              className="gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300"
+              aria-haspopup="true"
+              aria-expanded={isSignInMenuOpen}
+              aria-controls="desktop-sign-in-menu"
+              onClick={() => setIsSignInMenuOpen((isOpen) => !isOpen)}
+            >
+              <UserRound aria-hidden="true" className="size-4" />
+              {t('nav.signIn')}
+              <ChevronDown
+                aria-hidden="true"
+                className={`size-4 transition-transform ${isSignInMenuOpen ? 'rotate-180' : ''}`}
+              />
+            </Button>
+
+            {isSignInMenuOpen ? (
+              <nav
+                ref={signInMenuRef}
+                id="desktop-sign-in-menu"
+                aria-label={t('nav.accountNavigation')}
+                className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-xl border border-white/10 bg-zinc-950 p-2 shadow-2xl shadow-black/50"
+              >
+                <Link
+                  to="/login"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  onClick={() => setIsSignInMenuOpen(false)}
+                >
+                  {t('nav.userLogin')}
+                </Link>
+                <Link
+                  to="/register"
+                  className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  onClick={() => setIsSignInMenuOpen(false)}
+                >
+                  {t('nav.createStudentAccount')}
+                </Link>
+              </nav>
+            ) : null}
           </div>
 
           <Button

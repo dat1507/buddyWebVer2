@@ -1,8 +1,17 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Navbar } from '@/components/layout/navbar'
 import i18n from '@/i18n'
+
+function renderNavbar() {
+  return render(
+    <MemoryRouter>
+      <Navbar />
+    </MemoryRouter>,
+  )
+}
 
 describe('Navbar with LanguageToggle (FE-020)', () => {
   beforeEach(async () => {
@@ -11,7 +20,7 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
   })
 
   it('renders primary navigation items and language toggle', () => {
-    render(<Navbar />)
+    renderNavbar()
 
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'About' })).toBeVisible()
@@ -25,7 +34,7 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
   })
 
   it('switches navigation labels when language toggle is clicked', async () => {
-    render(<Navbar />)
+    renderNavbar()
 
     const toggleBtns = screen.getAllByRole('button', { name: /Current language: EN/i })
     fireEvent.click(toggleBtns[0])
@@ -37,7 +46,7 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
   })
 
   it('toggles language from mobile drawer and closes drawer', async () => {
-    render(<Navbar />)
+    renderNavbar()
 
     // Open mobile menu
     const menuBtn = screen.getByRole('button', { name: 'Open navigation menu' })
@@ -60,5 +69,65 @@ describe('Navbar with LanguageToggle (FE-020)', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
     })
+  })
+
+  it('opens a desktop Sign in menu with User actions only', () => {
+    renderNavbar()
+
+    const trigger = screen.getByRole('button', { name: 'Sign in' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('navigation', { name: 'Account navigation' })).toBeNull()
+
+    fireEvent.click(trigger)
+
+    const accountNavigation = screen.getByRole('navigation', { name: 'Account navigation' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(within(accountNavigation).getByRole('link', { name: 'User login' })).toHaveAttribute(
+      'href',
+      '/login',
+    )
+    expect(
+      within(accountNavigation).getByRole('link', { name: 'Create student account' }),
+    ).toHaveAttribute('href', '/register')
+    expect(accountNavigation.querySelector('a[href="/adminLogin"]')).not.toBeInTheDocument()
+  })
+
+  it('closes the desktop Sign in menu with Escape and returns focus to its trigger', () => {
+    renderNavbar()
+
+    const trigger = screen.getByRole('button', { name: 'Sign in' })
+    fireEvent.click(trigger)
+    screen.getByRole('link', { name: 'User login' }).focus()
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('navigation', { name: 'Account navigation' })).toBeNull()
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(trigger).toHaveFocus()
+  })
+
+  it('closes the desktop Sign in menu after an outside click', () => {
+    renderNavbar()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(screen.getByRole('navigation', { name: 'Account navigation' })).toBeVisible()
+
+    fireEvent.mouseDown(document.body)
+
+    expect(screen.queryByRole('navigation', { name: 'Account navigation' })).toBeNull()
+  })
+
+  it('localizes the desktop Sign in menu in German', async () => {
+    await i18n.changeLanguage('de')
+    renderNavbar()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }))
+
+    const accountNavigation = screen.getByRole('navigation', { name: 'Kontonavigation' })
+    expect(
+      within(accountNavigation).getByRole('link', { name: 'Benutzeranmeldung' }),
+    ).toHaveAttribute('href', '/login')
+    expect(
+      within(accountNavigation).getByRole('link', { name: 'Studierendenkonto erstellen' }),
+    ).toHaveAttribute('href', '/register')
   })
 })

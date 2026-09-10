@@ -15,7 +15,11 @@
     "switchToLanguage": "Zu {{language}} wechseln",
     "languageEnglish": "Englisch",
     "languageGerman": "Deutsch",
-    "languageComingSoon": "Der Sprachwechsel wird bald verfügbar sein"
+    "languageComingSoon": "Der Sprachwechsel wird bald verfügbar sein",
+    "signIn": "Anmelden",
+    "accountNavigation": "Kontonavigation",
+    "userLogin": "Benutzeranmeldung",
+    "createStudentAccount": "Studierendenkonto erstellen"
   },
   "hero": {
     "title1": "Verbinde dich mit",
