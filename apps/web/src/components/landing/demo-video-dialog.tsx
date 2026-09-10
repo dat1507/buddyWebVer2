@@ -99,6 +99,7 @@ function DemoVideoDialogContent({ onClose }: DemoVideoDialogContentProps) {
     >
       <div
         ref={dialogRef}
+        id="demo-video-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="demo-video-title"

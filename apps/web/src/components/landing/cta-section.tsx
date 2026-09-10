@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { DemoVideoDialog } from '@/components/landing/demo-video-dialog'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 
@@ -9,11 +11,12 @@ import { Typography } from '@/components/ui/typography'
  * Prompts students to take action ("Ready to Transform Your University Experience?")
  * with "Join the Community" (primary) and "Watch Demo" (secondary) action buttons.
  *
- * Navigation to registration or media modal is deferred to Auth Phase (AUTH-002)
- * to avoid speculative routing before the feature contracts exist.
+ * Registration navigation remains deferred to AUTH-002. The demo action opens
+ * the local media dialog without introducing a route.
  */
 function CtaSection() {
   const { t } = useTranslation()
+  const [isDemoOpen, setIsDemoOpen] = useState(false)
 
   return (
     <section
@@ -28,7 +31,11 @@ function CtaSection() {
       />
 
       <div className="relative mx-auto max-w-4xl text-center">
-        <Typography id="cta-title" variant="h2" className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+        <Typography
+          id="cta-title"
+          variant="h2"
+          className="text-3xl font-bold sm:text-4xl lg:text-5xl"
+        >
           {t('cta.title')}
         </Typography>
 
@@ -37,11 +44,7 @@ function CtaSection() {
         </Typography>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
-          <Button
-            type="button"
-            size="lg"
-            className="w-full sm:w-auto"
-          >
+          <Button type="button" size="lg" className="w-full sm:w-auto">
             {t('cta.join')}
           </Button>
 
@@ -50,11 +53,17 @@ function CtaSection() {
             variant="outline"
             size="lg"
             className="w-full sm:w-auto"
+            aria-haspopup="dialog"
+            aria-expanded={isDemoOpen}
+            aria-controls="demo-video-dialog"
+            onClick={() => setIsDemoOpen(true)}
           >
             {t('cta.demo')}
           </Button>
         </div>
       </div>
+
+      <DemoVideoDialog open={isDemoOpen} onOpenChange={setIsDemoOpen} />
     </section>
   )
 }

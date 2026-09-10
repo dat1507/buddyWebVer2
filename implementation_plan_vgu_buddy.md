@@ -1712,7 +1712,15 @@ src/
 
 #### FE-DEMO-003 — Connect Watch Demo Trigger
 
+**Status**: Completed (✅)
+
 - Connect the existing `Watch Demo` CTA button to `DemoVideoDialog` without creating a new route.
+
+**Implementation Notes**:
+- `CtaSection` now owns the dialog's open state and opens it only from the existing localized `Watch Demo` / `Demo ansehen` button.
+- Added `aria-haspopup`, `aria-expanded`, and `aria-controls` to expose the trigger-dialog relationship while preserving the existing responsive CTA layout.
+- Kept the MP4 out of the initial DOM and network lifecycle until the User explicitly activates the trigger; no route or external navigation was added.
+- Added CTA integration coverage for lazy media mounting, dialog opening, expanded state, closing, and focus return to the trigger.
 
 #### AUTH-001 through AUTH-003 — UI-only Auth Pages
 

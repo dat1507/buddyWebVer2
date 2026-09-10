@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CtaSection } from '@/components/landing/cta-section'
 import i18n from '@/i18n'
@@ -47,12 +47,8 @@ describe('CtaSection', () => {
         'Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.',
       ),
     ).toBeVisible()
-    expect(
-      screen.getByRole('button', { name: 'Community beitreten' }),
-    ).toBeVisible()
-    expect(
-      screen.getByRole('button', { name: 'Demo ansehen' }),
-    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Community beitreten' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Demo ansehen' })).toBeVisible()
   })
 
   it('buttons are keyboard focusable', () => {
@@ -66,6 +62,29 @@ describe('CtaSection', () => {
 
     demoBtn.focus()
     expect(document.activeElement).toBe(demoBtn)
+  })
+
+  it('opens the demo dialog on demand and returns focus when it closes', () => {
+    const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
+    render(<CtaSection />)
+    const demoButton = screen.getByRole('button', { name: 'Watch Demo' })
+
+    expect(document.querySelector('video')).not.toBeInTheDocument()
+    expect(demoButton).toHaveAttribute('aria-expanded', 'false')
+
+    demoButton.focus()
+    fireEvent.click(demoButton)
+
+    expect(screen.getByRole('dialog', { name: 'VGU Buddy Program Demo' })).toBeVisible()
+    expect(screen.getByLabelText('VGU Buddy Program demo video')).toBeInTheDocument()
+    expect(demoButton).toHaveAttribute('aria-expanded', 'true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close demo video' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(demoButton).toHaveAttribute('aria-expanded', 'false')
+    expect(demoButton).toHaveFocus()
+    pause.mockRestore()
   })
 
   it('does not contain unverified links or external navigation', () => {
