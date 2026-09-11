@@ -1835,6 +1835,20 @@ src/
 - Confirmed the full Frontend quality suite: Prettier check, ESLint, strict type-check, all 76 tests, and production build pass.
 - Existing scroll-to-top test-environment warnings and the remaining accessibility closeout findings stay outside this task and remain pending.
 
+#### FE-CLOSEOUT-002 — Isolate Modal Background Content
+
+**Status**: Completed (✅)
+
+- Prevent content outside the mobile navigation drawer and Demo Video dialog from remaining available to keyboard or assistive-technology navigation while either modal is open.
+- Preserve the existing Escape handling, focus containment and return, backdrop behavior, body scroll locking, localization, and responsive presentation.
+
+**Implementation Notes**:
+- Added reusable `useModalIsolation` behavior that applies both `inert` and `aria-hidden="true"` to content outside the active modal and restores each element's previous attributes during cleanup.
+- Applied the shared behavior to the inline mobile navigation overlay and the portal-based Demo Video dialog without changing their public component contracts.
+- Extended Navbar and Demo dialog tests to prevent background-isolation and cleanup regressions.
+- Browser verification confirmed the Landing content is isolated while each modal is open, attributes are removed on close, and focus returns to the original trigger.
+- Prettier, ESLint, strict type-check, all 76 tests, and production build pass; scroll-to-top test-environment warnings remain assigned to the next closeout task.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2212,6 +2226,7 @@ Next:    FE-AUTH-ENTRY-003  Route Join the Community to /register
 Next:    FE-TECH-001        Assess TypeScript strict mode
 Next:    FE-VERIFY-001      Run Frontend completion gate
 Next:    FE-CLOSEOUT-001    Restore formatting and type-check gates
+Next:    FE-CLOSEOUT-002    Isolate modal background content
                  ── Frontend UI complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure

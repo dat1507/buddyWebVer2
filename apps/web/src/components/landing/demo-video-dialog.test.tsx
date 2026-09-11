@@ -33,8 +33,10 @@ describe('DemoVideoDialog', () => {
   it('mounts media only after opening and uses the approved playback attributes', () => {
     render(<DialogHarness />)
 
+    const trigger = screen.getByRole('button', { name: 'Open demo' })
+    const appContainer = trigger.parentElement
     expect(document.querySelector('video')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Open demo' }))
+    fireEvent.click(trigger)
 
     const dialog = screen.getByRole('dialog', { name: 'VGU Buddy Program Demo' })
     const video = screen.getByLabelText('VGU Buddy Program demo video')
@@ -48,6 +50,8 @@ describe('DemoVideoDialog', () => {
     expect(video).not.toHaveAttribute('autoplay')
     expect(document.body).toHaveStyle({ overflow: 'hidden' })
     expect(screen.getByRole('button', { name: 'Close demo video' })).toHaveFocus()
+    expect(appContainer).toHaveAttribute('aria-hidden', 'true')
+    expect(appContainer).toHaveAttribute('inert')
   })
 
   it('closes on Escape, resets playback, unlocks scrolling, and returns focus', () => {
@@ -66,6 +70,8 @@ describe('DemoVideoDialog', () => {
     expect(video.currentTime).toBe(0)
     expect(document.body).not.toHaveStyle({ overflow: 'hidden' })
     expect(trigger).toHaveFocus()
+    expect(trigger.parentElement).not.toHaveAttribute('aria-hidden')
+    expect(trigger.parentElement).not.toHaveAttribute('inert')
   })
 
   it('closes only when the backdrop itself is clicked', () => {

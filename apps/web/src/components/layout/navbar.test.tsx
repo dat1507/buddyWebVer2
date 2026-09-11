@@ -50,11 +50,14 @@ describe('Navbar', () => {
 
     // Open mobile menu
     const menuBtn = screen.getByRole('button', { name: 'Open navigation menu' })
+    const navbarContent = menuBtn.closest('header')?.firstElementChild
     fireEvent.click(menuBtn)
 
     // Verify drawer dialog is open
     const dialog = screen.getByRole('dialog', { name: 'Primary navigation' })
     expect(dialog).toBeVisible()
+    expect(navbarContent).toHaveAttribute('aria-hidden', 'true')
+    expect(navbarContent).toHaveAttribute('inert')
 
     // Find and click mobile language toggle inside drawer
     const mobileToggle = within(dialog).getByRole('button', {
@@ -69,6 +72,8 @@ describe('Navbar', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).toBeNull()
     })
+    expect(navbarContent).not.toHaveAttribute('aria-hidden')
+    expect(navbarContent).not.toHaveAttribute('inert')
   })
 
   it('opens a desktop Sign in menu with User actions only', () => {

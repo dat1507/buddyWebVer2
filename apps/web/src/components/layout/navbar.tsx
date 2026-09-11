@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
+import { useModalIsolation } from '@/hooks/use-modal-isolation'
 
 const navItems = [
   { href: '/#home', translationKey: 'nav.home' },
@@ -24,8 +25,11 @@ function Navbar() {
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
+  const drawerOverlayRef = useRef<HTMLDivElement>(null)
   const signInButtonRef = useRef<HTMLButtonElement>(null)
   const signInMenuRef = useRef<HTMLElement>(null)
+
+  useModalIsolation(drawerOverlayRef, isMenuOpen)
 
   useEffect(() => {
     if (!isMenuOpen) return
@@ -202,7 +206,7 @@ function Navbar() {
       </div>
 
       {isMenuOpen ? (
-        <div className="fixed inset-0 top-0 z-50 lg:hidden">
+        <div ref={drawerOverlayRef} className="fixed inset-0 top-0 z-50 lg:hidden">
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default bg-black/70 backdrop-blur-sm"

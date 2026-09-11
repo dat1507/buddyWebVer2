@@ -4,6 +4,7 @@ import { CircleAlert, LoaderCircle, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { useModalIsolation } from '@/hooks/use-modal-isolation'
 
 const demoVideoPath = '/media/vgu-buddy-demo.mp4'
 const demoPosterPath = '/media/vgu-buddy-demo-poster.webp'
@@ -26,11 +27,14 @@ function resetVideo(video: HTMLVideoElement | null) {
 
 function DemoVideoDialogContent({ onClose }: DemoVideoDialogContentProps) {
   const { t } = useTranslation()
+  const backdropRef = useRef<HTMLDivElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+
+  useModalIsolation(backdropRef)
 
   useEffect(() => {
     const previouslyFocusedElement =
@@ -91,6 +95,7 @@ function DemoVideoDialogContent({ onClose }: DemoVideoDialogContentProps) {
 
   return (
     <div
+      ref={backdropRef}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 backdrop-blur-sm sm:p-6"
       data-testid="demo-video-backdrop"
       onClick={(event) => {
