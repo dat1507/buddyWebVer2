@@ -39,13 +39,7 @@ function usePrefersReducedMotion() {
  * jank-free scrolling. Scrolling pauses when the pointer hovers
  * over the row or when `prefers-reduced-motion: reduce` is active.
  */
-function MarqueeRow({
-  keys,
-  direction,
-}: {
-  keys: readonly string[]
-  direction: 'left' | 'right'
-}) {
+function MarqueeRow({ keys, direction }: { keys: readonly string[]; direction: 'left' | 'right' }) {
   const { t } = useTranslation()
 
   const trackRef = useRef<HTMLDivElement>(null)

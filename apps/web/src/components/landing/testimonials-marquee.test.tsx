@@ -91,7 +91,8 @@ describe('TestimonialsMarquee', () => {
     // Each testimonial appears once in the original set and once in the clone.
     // We check that the first and last testimonial text is present.
     const first = screen.getAllByText(
-      (_, el) => el?.textContent?.includes('VGU Buddy transformed my university experience') ?? false,
+      (_, el) =>
+        el?.textContent?.includes('VGU Buddy transformed my university experience') ?? false,
     )
     // Original + clone = at least 2
     expect(first.length).toBeGreaterThanOrEqual(2)
@@ -126,8 +127,7 @@ describe('TestimonialsMarquee', () => {
     expect(screen.getByRole('heading', { name: 'Was Studierende sagen' })).toBeVisible()
 
     const germanQuote = screen.getAllByText(
-      (_, el) =>
-        el?.textContent?.includes('VGU Buddy hat mein Unileben verändert') ?? false,
+      (_, el) => el?.textContent?.includes('VGU Buddy hat mein Unileben verändert') ?? false,
     )
     expect(germanQuote.length).toBeGreaterThanOrEqual(2)
   })

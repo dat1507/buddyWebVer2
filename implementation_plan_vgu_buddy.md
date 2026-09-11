@@ -1822,6 +1822,19 @@ src/
 - Final verification includes lint, type-check, all tests, production build, browser console, EN/DE, mobile/tablet/desktop, keyboard focus, accessibility tree, auth entry points, and Demo dialog behavior.
 - Backend Foundation may begin only after selected Frontend completion tasks pass this gate and deferred work is explicitly recorded.
 
+#### FE-CLOSEOUT-001 — Restore Formatting and Type-check Gates
+
+**Status**: Completed (✅)
+
+- Restore Prettier compliance for the Testimonials Marquee implementation and its component tests without changing runtime behavior.
+- Add a dedicated `typecheck` package script so the strict TypeScript gate can run independently from the production build.
+
+**Implementation Notes**:
+- Applied Prettier-only formatting changes to `apps/web/src/components/landing/testimonials-marquee.tsx` and `apps/web/src/components/landing/testimonials-marquee.test.tsx`; no marquee logic or test assertions changed.
+- Added `"typecheck": "tsc -b"` to `apps/web/package.json`.
+- Confirmed the full Frontend quality suite: Prettier check, ESLint, strict type-check, all 76 tests, and production build pass.
+- Existing scroll-to-top test-environment warnings and the remaining accessibility closeout findings stay outside this task and remain pending.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2198,6 +2211,7 @@ Next:    FE-AUTH-ENTRY-002  Add mobile User auth actions
 Next:    FE-AUTH-ENTRY-003  Route Join the Community to /register
 Next:    FE-TECH-001        Assess TypeScript strict mode
 Next:    FE-VERIFY-001      Run Frontend completion gate
+Next:    FE-CLOSEOUT-001    Restore formatting and type-check gates
                  ── Frontend UI complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure
