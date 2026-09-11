@@ -1849,6 +1849,22 @@ src/
 - Browser verification confirmed the Landing content is isolated while each modal is open, attributes are removed on close, and focus returns to the original trigger.
 - Prettier, ESLint, strict type-check, all 76 tests, and production build pass; scroll-to-top test-environment warnings remain assigned to the next closeout task.
 
+#### FE-CLOSEOUT-003 — Finalize Public Route Scroll Restoration
+
+**Status**: Completed (✅)
+
+- Reset the browser scroll position to the top whenever the public route pathname changes, including `/login`, `/register`, and `/adminLogin`.
+- Preserve hash-only navigation within the same pathname so Landing page anchor links continue to control their own scroll behavior.
+- Add deterministic regression coverage without relying on jsdom's unimplemented native `window.scrollTo` behavior.
+
+**Implementation Notes**:
+- Added the reusable `useScrollToTop` hook and mounted it once in `PublicLayout`, covering every current and future public child route through the shared router boundary.
+- Scoped the effect to `location.pathname`; query-string or hash-only changes do not cause an unintended jump to the top.
+- Added four regression tests covering all three auth path transitions and the same-path hash-navigation exception.
+- Added a test-environment `window.scrollTo` mock, removing the previous jsdom warning while keeping calls directly assertable.
+- Browser verification confirmed `/ → /register → /login` route transitions reset `scrollY` to `0`, `/adminLogin` opens at the top, and no console error is emitted.
+- Prettier, ESLint, strict type-check, all 80 tests, and production build pass. The existing Vite chunk-size advisory remains deferred and is unrelated to scroll restoration.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2227,6 +2243,7 @@ Next:    FE-TECH-001        Assess TypeScript strict mode
 Next:    FE-VERIFY-001      Run Frontend completion gate
 Next:    FE-CLOSEOUT-001    Restore formatting and type-check gates
 Next:    FE-CLOSEOUT-002    Isolate modal background content
+Next:    FE-CLOSEOUT-003    Finalize public route scroll restoration
                  ── Frontend UI complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure
