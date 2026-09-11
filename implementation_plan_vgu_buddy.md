@@ -155,7 +155,7 @@ graph LR
 | **shadcn/ui** | Copy-paste components, highly customizable | MUI/Chakra add heavy bundle |
 | **React Router v6** | Client-side routing, nested layouts | Standard choice for React SPAs |
 | **TanStack Query v5** | Server state management, caching | SWR lacks mutation support |
-| **Zustand** | Lightweight client state (auth, UI) | Redux excessive boilerplate |
+| **Zustand** | Lightweight non-sensitive client state (session status, user, role, UI); never stores JWTs | Redux excessive boilerplate |
 | **React Hook Form + Zod** | Performant forms + runtime validation | Formik heavier; Yup lacks TS inference |
 | **react-i18next** | i18n with JSON locale files (EN/DE) | Custom solution can't handle plurals |
 
@@ -227,7 +227,7 @@ graph TB
         LLM[Gemini API]
     end
 
-    WEB -->|REST API + JWT| API
+    WEB -->|Credentialed REST API; JWTs stay in HttpOnly cookies| API
     USER_API --> PG
     ADMIN_API --> PG
     MATCH --> PG
@@ -239,7 +239,7 @@ graph TB
 
 ```mermaid
 graph LR
-    ADMIN_UI[Admin Event Slider UI] -->|ADMIN JWT + validated mutation| ADMIN_SLIDER_API[Admin Event Slider API]
+    ADMIN_UI[Admin Event Slider UI] -->|ADMIN session + CSRF-protected mutation| ADMIN_SLIDER_API[Admin Event Slider API]
     ADMIN_UI -->|multipart image| UPLOAD_API[Admin Image Upload API]
     UPLOAD_API --> STORAGE[(Supabase Storage)]
     ADMIN_SLIDER_API --> SLIDER_DB[(event_sliders)]
@@ -264,21 +264,21 @@ graph TB
     subgraph "Backend Auth"
         AUTH[Authentication Service]
         JWT_GEN[JWT Token Generator]
-        ROLE_CHECK[Role Verification]
+        SESSION[HttpOnly Cookie Session]
     end
 
     UL -->|email + password| AUTH
     AL -->|email + password| AUTH
     AUTH -->|verify credentials| DB[(Database)]
     AUTH -->|valid| JWT_GEN
-    JWT_GEN -->|token with role claim| ROLE_CHECK
+    JWT_GEN -->|Set access + refresh cookies| SESSION
 
-    ROLE_CHECK -->|role=USER from /login| U_DASH[User Dashboard]
-    ROLE_CHECK -->|role=ADMIN from /adminLogin| A_DASH[Admin Dashboard]
-    ROLE_CHECK -->|role=USER from /adminLogin| REJECT[403 Forbidden]
+    SESSION -->|response user.role=USER from /login| U_DASH[User Dashboard]
+    SESSION -->|response user.role=ADMIN from /adminLogin| A_DASH[Admin Dashboard]
+    SESSION -->|response user.role=USER from /adminLogin| REJECT[Not authorized; clear session]
 
     subgraph "API Protection"
-        API_REQ[API Request]
+        API_REQ[Credentialed API Request]
         VERIFY[Verify JWT]
         EXTRACT[Extract Role]
         PERM[Check Permission]
@@ -286,7 +286,7 @@ graph TB
         DENY[Deny 403]
     end
 
-    API_REQ --> VERIFY --> EXTRACT --> PERM
+    API_REQ -->|access cookie| VERIFY --> EXTRACT --> PERM
     PERM -->|authorized| ALLOW
     PERM -->|unauthorized| DENY
 ```
@@ -776,14 +776,15 @@ User Question → Embedding → pgvector Search (top-5) → Context Assembly →
    POST /api/auth/login    POST /api/auth/login
           │                     │
           ↓                     ↓
-   JWT with role=USER      JWT with role=ADMIN
+   HttpOnly JWT cookies    HttpOnly JWT cookies
+   + user.role=USER        + user.role=ADMIN
           │                     │
           ↓                     ↓
    → /user/dashboard       → /admin/dashboard
 ```
 
 > [!IMPORTANT]
-> Both `/login` and `/adminLogin` call the **same backend endpoint** (`POST /api/auth/login`). The backend returns a JWT with the user's role. The frontend then routes to the appropriate dashboard. If a USER logs in at `/adminLogin`, the frontend sees `role=USER` and redirects to `/` with a "not authorized" message.
+> Both `/login` and `/adminLogin` call the **same backend endpoint** (`POST /api/auth/login`). The backend sets access and refresh JWTs only as HttpOnly cookies and returns a sanitized `user` object containing the role; it never returns either token in the JSON body. The frontend routes from `user.role`, while backend authorization independently verifies the access cookie on every protected request. If a USER logs in at `/adminLogin`, the frontend calls logout to clear the newly issued session, shows "not authorized", and redirects to `/`.
 
 ### Three Layers of Protection
 
@@ -810,17 +811,29 @@ Layer 3: Database Constraints
 | Concern | Implementation |
 |---------|---------------|
 | Password hashing | bcrypt (12 rounds) |
-| JWT access token | 15-minute expiry, httpOnly cookie |
-| JWT refresh token | 7-day expiry, httpOnly cookie, rotate on use |
+| JWT access token | 15-minute expiry; `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/` cookie in production |
+| JWT refresh token | 7-day expiry; `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/` cookie; rotate on every use and reject reuse |
 | RBAC | `require_role("ADMIN")` FastAPI dependency |
 | IDOR prevention | Always filter queries by `current_user.id` for user routes |
 | Privilege escalation | Role can only be set via DB seed/CLI, never via API |
 | Rate limiting | slowapi: 60 req/min for users, 120 req/min for admins |
 | SQL injection | SQLAlchemy parameterized queries |
 | XSS | React auto-escaping + CSP headers |
-| CSRF | SameSite cookie attribute |
+| CSRF | Signed session-bound double-submit token in `X-CSRF-Token`, plus exact Origin/Referer validation; SameSite is defense in depth |
 | Prompt injection | Input sanitization, system prompt isolation |
 | Admin login brute force | 5 failed attempts → 15-minute lockout |
+
+### Approved Authentication Transport Contract (`AUTH-ARCH-001`)
+
+- **Transport**: JWT access and refresh tokens are stored only in backend-set HttpOnly cookies. The API never returns tokens in JSON, and frontend JavaScript never reads, persists, or sends bearer tokens.
+- **Cookie policy**: Production uses `Secure`, `HttpOnly`, `SameSite=Lax`, and `Path=/`; omit `Domain` and use a `__Host-` cookie prefix when the final deployment host supports it. Local HTTP development may use explicitly named non-`__Host-`, non-`Secure` development cookies only.
+- **Frontend state**: Zustand holds only `status: unknown | loading | authenticated | unauthenticated`, a sanitized `user`, and `role`. It has no `token` or `refreshToken` field and is not persisted to Web Storage. `/api/auth/me` restores the session after reload.
+- **Route guards**: `ProtectedRoute` and `RoleGuard` show a neutral pending state while session status is `unknown` or `loading`; they redirect only after `/api/auth/me` resolves, preventing reload-time redirect flicker.
+- **API client**: All API calls use a single client configured with `credentials: "include"`. A 401 may trigger one single-flight refresh attempt and one request retry; refresh failure clears in-memory session state and redirects through the normal unauthenticated flow.
+- **CSRF**: `GET /api/auth/csrf` establishes a pre-auth CSRF context and returns a signed double-submit value; successful login rotates it and binds the replacement to the refresh session. The readable CSRF value is held in memory and sent as `X-CSRF-Token` on every state-changing request, including register, login, refresh, logout, uploads, and Admin mutations. The backend also validates `Origin`/`Referer`; safe methods never change state.
+- **CORS/deployment**: Production must expose the API on the same site as the frontend, preferably through a Vercel `/api` reverse proxy to Render or an equivalent first-party API host. Credentialed CORS uses an explicit origin allowlist and explicit methods/headers—never `*`. Frontend environment configuration points to the same-site API boundary.
+- **RBAC boundary**: Frontend `RoleGuard` is UX only. Every protected backend route derives identity and role solely from the verified access-cookie JWT and enforces `require_auth`/`require_role`; no role value supplied by the client is trusted.
+- **Cache/logout**: Auth responses use `Cache-Control: no-store`. Logout revokes/invalidates the refresh session, clears both auth cookies and the CSRF cookie, and clears the frontend session state.
 
 ### Admin Account Creation
 
@@ -867,16 +880,21 @@ The app checks on startup: if no ADMIN exists and env vars are set, create one. 
 ### Critical Auth Test Cases
 
 ```
-✅ User can login at /login → gets USER role JWT
+✅ User can login at /login → auth cookies set; response and /auth/me report USER
 ✅ User cannot access /admin/* routes → 403
 ✅ User cannot call POST /api/admin/* → 403
-✅ Admin can login at /adminLogin → gets ADMIN role JWT
+✅ Admin can login at /adminLogin → auth cookies set; response and /auth/me report ADMIN
 ✅ Admin can access /admin/* routes
 ✅ User at /adminLogin → redirected with "not authorized"
 ✅ Expired JWT → 401
 ✅ Tampered JWT → 401
 ✅ Missing JWT → 401
 ✅ Role claim cannot be modified by client
+✅ Login/refresh JSON never exposes access or refresh JWT
+✅ Zustand/localStorage/sessionStorage never contains access or refresh JWT
+✅ Missing/invalid CSRF header on state-changing request → 403
+✅ Credentialed CORS accepts allowlisted frontend origin and rejects unknown origins
+✅ Refresh token rotation rejects reuse; logout clears cookies and invalidates refresh session
 ```
 
 ---
@@ -1055,7 +1073,7 @@ graph TD
 | BE-004 | Setup Supabase PostgreSQL connection + env config | 2 | BE-003 | P0 |
 | BE-005 | Create Docker Compose for local dev (PostgreSQL + pgvector) | 2 | BE-001 | P0 |
 | BE-006 | Create base model class with audit fields (id, created_at, updated_at, deleted_at) | 1 | BE-003 | P0 |
-| BE-007 | Configure CORS middleware for frontend origin | 1 | BE-001 | P0 |
+| BE-007 | Configure credentialed CORS with explicit frontend origins, methods, and headers | 1 | BE-001, AUTH-ARCH-001 | P0 |
 
 ### Phase 3: UI Migration (Landing Page)
 
@@ -1095,7 +1113,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-001 | Create User Login page (/login) | 2 | FE-005, FE-006 | P0 |
 | AUTH-002 | Create User Registration page (/register) | 3 | FE-005, FE-006 | P0 |
 | AUTH-003 | Create Admin Login page (/adminLogin) — distinct visual | 2 | FE-005, FE-006 | P0 |
-| AUTH-004 | Create Zustand auth store (token, user, role) | 2 | FE-001 | P0 |
+| AUTH-004 | Create non-persisted Zustand session store (status, user, role; no tokens) | 2 | FE-001, AUTH-ARCH-001 | P0 |
 | AUTH-005 | Create ProtectedRoute component (requires auth) | 2 | AUTH-004, FE-006 | P0 |
 | AUTH-006 | Create RoleGuard component (requires specific role) | 2 | AUTH-005 | P0 |
 
@@ -1127,17 +1145,18 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-008 | Create User database model with role field | 2 | AUTH-007 | P0 |
 | AUTH-009 | Create Alembic migration for users table | 1 | AUTH-008 | P0 |
 | AUTH-010 | Create password hashing service (bcrypt) | 2 | BE-001 | P0 |
-| AUTH-011 | Create JWT service (create/verify access + refresh tokens) | 3 | BE-001 | P0 |
+| AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) | 3 | BE-001, AUTH-ARCH-001 | P0 |
+| AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint | 2 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-012 | Create auth service (register, login, verify role) | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
-| AUTH-013 | Create `POST /api/auth/register` endpoint (role=USER always) | 2 | AUTH-012 | P0 |
-| AUTH-014 | Create `POST /api/auth/login` endpoint (returns JWT with role) | 2 | AUTH-012 | P0 |
-| AUTH-015 | Create `POST /api/auth/refresh` endpoint | 2 | AUTH-011 | P0 |
+| AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) | 2 | AUTH-012, AUTH-011A | P0 |
+| AUTH-014 | Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) | 2 | AUTH-012, AUTH-011A | P0 |
+| AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection | 2 | AUTH-011, AUTH-011A | P0 |
 | AUTH-016 | Create `GET /api/auth/me` endpoint (return current user) | 1 | AUTH-011 | P0 |
 | AUTH-017 | Create `require_auth` FastAPI dependency (verify JWT) | 2 | AUTH-011 | P0 |
 | AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) | 2 | AUTH-017 | P0 |
 | AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) | 2 | AUTH-008, AUTH-010 | P0 |
 | AUTH-020 | Create rate limiting middleware (slowapi) | 2 | BE-001 | P0 |
-| AUTH-021 | Connect frontend auth store to backend login API | 2 | AUTH-004, AUTH-014 | P0 |
+| AUTH-021 | Connect credentialed API client and `/auth/me` bootstrap to session store | 2 | AUTH-004, AUTH-014, AUTH-015, AUTH-016 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 
@@ -1886,6 +1905,34 @@ src/
 - Removed the empty untracked lockfiles at the repository root and `apps/`; `apps/web/package-lock.json` remains the single canonical npm lockfile.
 - Prettier, ESLint, strict type-check, all 80 tests, and production build pass. The existing Vite chunk-size advisory remains deferred.
 
+#### AUTH-ARCH-001 — Finalize JWT Transport and Frontend Session Boundary
+
+**Status**: Completed (✅)
+
+- Choose exactly one browser authentication transport before Backend Foundation and remove the conflict between the existing HttpOnly-cookie security table and the token-bearing Zustand task.
+- Define cookie, CSRF, credentialed-request, refresh, logout, RBAC, CORS/deployment, and frontend bootstrap contracts precisely enough for backend and frontend auth tasks to share one implementation target.
+- Do not add runtime authentication code during this architecture-only gate.
+
+**Decision**: Use HttpOnly access/refresh JWT cookies. Do not use a frontend-managed bearer token and do not persist auth tokens in Zustand, localStorage, sessionStorage, or IndexedDB.
+
+**Implementation Notes**:
+- Updated architecture diagrams, security controls, API permissions, test cases, task descriptions, dependencies, and the Part 22 assessment to use one cookie-based session contract.
+- Defined Zustand as a non-persisted view of sanitized session state, restored from `/api/auth/me`; the backend remains the sole authorization authority.
+- Added the signed, session-bound double-submit CSRF contract and explicit Origin/Referer validation because SameSite alone is defense in depth, not the complete CSRF control.
+- Required a same-site production API boundary, preferably a Vercel `/api` reverse proxy to Render, plus exact credentialed CORS configuration for any cross-origin development or deployment topology.
+- Added `AUTH-011A` so CSRF service and endpoint work is independently testable before register/login/refresh mutations are implemented.
+- Decision basis: OWASP advises against storing session identifiers in Web Storage and recommends HttpOnly cookies; OWASP also recommends CSRF tokens in addition to SameSite for general deployments. MDN documents cookie credential behavior and secure cookie attributes, while FastAPI requires explicit origins/methods/headers when credentialed CORS is enabled.
+- No runtime source or dependency was changed in this architecture-only task. Prettier, ESLint, strict type-check, all 80 Frontend tests, and production build pass; the existing Vite chunk-size advisory remains non-blocking.
+- The Frontend completion and authentication architecture gates are satisfied. Backend Foundation may begin with `BE-001`; the literal production hostname/proxy target remains environment-specific deployment configuration, while the required first-party/same-site topology is fixed by this contract.
+
+**Authoritative References**:
+- [OWASP HTML5 Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html)
+- [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+- [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)
+- [MDN Fetch credentials](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials)
+- [FastAPI CORS](https://fastapi.tiangolo.com/tutorial/cors/)
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2045,12 +2092,15 @@ Admin read/write schemas expose both EN/DE variants, status, visibility, display
 
 | Endpoint | Method | User | Admin | Auth Required |
 |----------|--------|------|-------|---------------|
-| `/api/auth/register` | POST | ✅ (creates USER) | ❌ | No |
-| `/api/auth/login` | POST | ✅ | ✅ | No |
+| `/api/auth/csrf` | GET | ✅ | ✅ | No |
+| `/api/auth/register` | POST | ✅ (creates USER) | ❌ | No; CSRF required |
+| `/api/auth/login` | POST | ✅ | ✅ | No; CSRF required |
 | `/api/auth/refresh` | POST | ✅ | ✅ | Yes (refresh token) |
 | `/api/auth/me` | GET | ✅ | ✅ | Yes |
-| `/api/auth/change-password` | POST | ✅ | ✅ | Yes |
-| `/api/auth/logout` | POST | ✅ | ✅ | Yes |
+| `/api/auth/change-password` | POST | ✅ | ✅ | Yes; CSRF required |
+| `/api/auth/logout` | POST | ✅ | ✅ | Yes; CSRF required |
+
+All authenticated requests rely on HttpOnly cookies and `credentials: "include"`; state-changing endpoints additionally require the approved CSRF header. No endpoint accepts a frontend-managed bearer token as the browser session contract.
 
 ### Profile
 
@@ -2079,15 +2129,15 @@ Admin read/write schemas expose both EN/DE variants, status, visibility, display
 | Endpoint | Method | Public/User | Admin | Auth Required |
 |----------|--------|-------------|-------|---------------|
 | `/api/event-sliders?locale=en\|de` | GET | ✅ (active published only) | ✅ | No |
-| `/api/admin/event-sliders` | GET | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders` | POST | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/:id` | GET | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/:id` | PUT | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/:id` | DELETE | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/:id/status` | PATCH | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/:id/visibility` | PATCH | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/reorder` | PATCH | ❌ | ✅ | ADMIN JWT |
-| `/api/admin/event-sliders/images` | POST | ❌ | ✅ | ADMIN JWT |
+| `/api/admin/event-sliders` | GET | ❌ | ✅ | ADMIN session |
+| `/api/admin/event-sliders` | POST | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/:id` | GET | ❌ | ✅ | ADMIN session |
+| `/api/admin/event-sliders/:id` | PUT | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/:id` | DELETE | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/:id/status` | PATCH | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/:id/visibility` | PATCH | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/reorder` | PATCH | ❌ | ✅ | ADMIN session + CSRF |
+| `/api/admin/event-sliders/images` | POST | ❌ | ✅ | ADMIN session + CSRF |
 
 ### Matching
 
@@ -2152,20 +2202,21 @@ Admin read/write schemas expose both EN/DE variants, status, visibility, display
 ### Design: Same Backend, Different Frontend Entry Points
 
 ```
-/login              →  POST /api/auth/login  →  JWT(role=USER)   →  /user/dashboard
-/adminLogin         →  POST /api/auth/login  →  JWT(role=ADMIN)  →  /admin/dashboard
+/login              →  POST /api/auth/login  →  Set HttpOnly cookies + user.role=USER   →  /user/dashboard
+/adminLogin         →  POST /api/auth/login  →  Set HttpOnly cookies + user.role=ADMIN  →  /admin/dashboard
 
 If USER tries /adminLogin:
-/adminLogin         →  POST /api/auth/login  →  JWT(role=USER)   →  ❌ Frontend shows "Not authorized as admin"  →  redirect to /
+/adminLogin         →  POST /api/auth/login  →  user.role=USER  →  logout/clear cookies  →  ❌ "Not authorized as admin"  →  redirect to /
 ```
 
 > [!IMPORTANT]
 > **This is secure because:**
-> 1. The backend doesn't care which page the login request came from — it returns the real role
+> 1. The backend doesn't care which page the login request came from — it sets HttpOnly auth cookies and returns the real role in a sanitized user object, never a token
 > 2. Frontend checks if `role === "ADMIN"` when on `/adminLogin` — if not, redirects
 > 3. Even if user manually navigates to `/admin/*`, the `RoleGuard` blocks rendering
 > 4. Even if user calls admin APIs directly, `require_role("ADMIN")` dependency rejects with 403
 > 5. `/adminLogin` is NOT a security boundary — it's a UX convenience
+> 6. Zustand contains only non-sensitive session state; reload recovery comes from `/api/auth/me`, and backend authorization never trusts the client-side role
 
 ---
 
@@ -2267,23 +2318,24 @@ Next:    FE-CLOSEOUT-002    Isolate modal background content
 Next:    FE-CLOSEOUT-003    Finalize public route scroll restoration
 Next:    FE-HYGIENE-002     Verify auth layouts and restore repository hygiene
 Next:    AUTH-ARCH-001      Decide JWT transport and frontend auth-state boundary
-                 ── Frontend UI complete ──
+                 ── Frontend UI and auth architecture complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure
 Task 23: BE-003  Configure SQLAlchemy + Alembic
 Task 24: BE-004  Setup Supabase PostgreSQL connection
 Task 25: BE-005  Create Docker Compose for local dev
 Task 26: BE-006  Create base model class (audit fields)
-Task 27: BE-007  Configure CORS middleware
+Task 27: BE-007  Configure explicit credentialed CORS middleware
                  ── Backend foundation complete ──
 Task 28: AUTH-007 Define UserRole enum (USER, ADMIN)
 Task 29: AUTH-008 Create User model with role
 Task 30: AUTH-009 Create Alembic migration (users table)
 Task 31: AUTH-010 Create password hashing service (bcrypt)
-Task 32: AUTH-011 Create JWT service (access + refresh tokens)
+Task 32: AUTH-011 Create JWT HttpOnly-cookie service (access + rotating refresh tokens)
+Task 32A: AUTH-011A Create signed CSRF service and GET /api/auth/csrf
 Task 33: AUTH-012 Create auth service (register, login, verify)
 Task 34: AUTH-013 Create POST /api/auth/register (role=USER)
-Task 35: AUTH-014 Create POST /api/auth/login (returns JWT+role)
+Task 35: AUTH-014 Create POST /api/auth/login (sets cookies; returns sanitized user)
 Task 36: AUTH-015 Create POST /api/auth/refresh
 Task 37: AUTH-016 Create GET /api/auth/me
 Task 38: AUTH-017 Create require_auth dependency
@@ -2291,10 +2343,10 @@ Task 39: AUTH-018 Create require_role(role) dependency
 Task 40: AUTH-019 Create admin seed CLI command
 Task 41: AUTH-020 Create rate limiting middleware
                  ── Auth backend complete; AUTH-001..AUTH-003 already completed UI-only ──
-Task 45: AUTH-004 Create Zustand auth store
+Task 45: AUTH-004 Create non-persisted Zustand session store (no tokens)
 Task 46: AUTH-005 Create ProtectedRoute component
 Task 47: AUTH-006 Create RoleGuard component
-Task 48: AUTH-021 Connect auth store to backend API
+Task 48: AUTH-021 Connect credentialed API client and /auth/me bootstrap
 Task 49: AUTH-022 Implement user login flow
 Task 50: AUTH-023 Implement admin login flow
                  ── Auth UI complete ──
