@@ -64,7 +64,7 @@ function AdminLoginPage() {
 
   return (
     <main
-      className="relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden bg-zinc-950 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+      className="relative isolate flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden bg-zinc-950 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
       data-auth-surface="admin"
     >
       <div
@@ -76,8 +76,8 @@ function AdminLoginPage() {
         aria-hidden="true"
       />
 
-      <Card className="grid w-full max-w-4xl overflow-hidden border-amber-300/20 bg-black/90 shadow-2xl shadow-amber-950/30 md:grid-cols-[0.9fr_1.1fr]">
-        <section className="flex flex-col justify-between border-b border-amber-300/15 bg-amber-400/[0.06] p-6 md:border-b-0 md:border-r md:p-8">
+      <Card className="grid w-full max-w-5xl overflow-hidden border-amber-300/20 bg-black/90 shadow-2xl shadow-amber-950/30 md:grid-cols-2">
+        <section className="flex min-w-0 flex-col justify-between overflow-hidden border-b border-amber-300/15 bg-amber-400/[0.06] p-6 md:border-b-0 md:border-r md:p-8">
           <div>
             <div className="flex size-12 items-center justify-center rounded-xl border border-amber-300/25 bg-amber-400/10 text-amber-300">
               <ShieldCheck aria-hidden="true" className="size-6" />
@@ -85,7 +85,7 @@ function AdminLoginPage() {
             <Typography variant="small" className="mt-6 uppercase tracking-[0.2em] text-amber-300">
               {t('auth.adminLogin.eyebrow')}
             </Typography>
-            <Typography variant="h1" className="mt-3 text-3xl sm:text-4xl">
+            <Typography variant="h1" className="mt-3 text-2xl sm:text-3xl lg:text-4xl">
               {t('auth.adminLogin.title')}
             </Typography>
             <Typography variant="muted" className="mt-4 text-base leading-7 text-zinc-400">
@@ -98,7 +98,7 @@ function AdminLoginPage() {
           </p>
         </section>
 
-        <div>
+        <div className="min-w-0">
           <CardHeader className="space-y-2 px-5 pb-4 pt-7 sm:px-8 sm:pt-8">
             <Typography variant="h2" className="text-2xl">
               {t('auth.adminLogin.formTitle')}

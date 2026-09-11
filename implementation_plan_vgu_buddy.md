@@ -1113,6 +1113,11 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | FE-AUTH-ENTRY-003 | Route Join the Community to `/register` | AUTH-002 | P1 |
 | FE-TECH-001 | Assess and enable TypeScript strict mode without introducing `any` | Frontend functional fixes | P2 |
 | FE-VERIFY-001 | Run the final Frontend completion gate | All selected Frontend completion tasks | P0 |
+| FE-CLOSEOUT-001 | Restore formatting and type-check quality gates | FE-VERIFY-001 | P0 |
+| FE-CLOSEOUT-002 | Isolate modal background content from assistive technology | FE-CLOSEOUT-001 | P0 |
+| FE-CLOSEOUT-003 | Finalize public route scroll restoration | FE-CLOSEOUT-002 | P0 |
+| FE-HYGIENE-002 | Verify pending auth layout changes and restore a clean working tree | FE-CLOSEOUT-003 | P0 |
+| AUTH-ARCH-001 | Decide JWT transport and frontend auth-state boundary before Auth Backend | FE-HYGIENE-002 | P0 |
 
 ### Phase 5: Auth Backend + RBAC
 
@@ -1865,6 +1870,22 @@ src/
 - Browser verification confirmed `/ → /register → /login` route transitions reset `scrollY` to `0`, `/adminLogin` opens at the top, and no console error is emitted.
 - Prettier, ESLint, strict type-check, all 80 tests, and production build pass. The existing Vite chunk-size advisory remains deferred and is unrelated to scroll restoration.
 
+#### FE-HYGIENE-002 — Verify Auth Layout Changes and Restore Repository Hygiene
+
+**Status**: Completed (✅)
+
+- Review the pending User Login, Student Registration, and Admin Login layout changes before accepting them into the baseline.
+- Keep only changes that improve centering, responsive sizing, and overflow containment without altering the UI-only authentication behavior or public Admin discovery policy.
+- Remove the two empty, untracked `package-lock.json` files generated outside the actual Frontend package while retaining the canonical tracked `apps/web/package-lock.json`.
+- Finish with a clean, recoverable Git working tree and a dedicated scoped commit.
+
+**Implementation Notes**:
+- Added horizontal centering to the shared flex layout pattern used by `/login`, `/register`, and `/adminLogin`.
+- Balanced the Admin Login desktop grid, increased its bounded maximum width, added shrink-safe `min-w-0` containment to both columns, and made the administration heading scale across breakpoints.
+- Browser verification in German at 375, 768, 1280, and 1440 px confirmed centered auth surfaces, the intended one-column/two-column Admin layout, no document-level horizontal overflow, no clipped form content, and no console warnings or errors.
+- Removed the empty untracked lockfiles at the repository root and `apps/`; `apps/web/package-lock.json` remains the single canonical npm lockfile.
+- Prettier, ESLint, strict type-check, all 80 tests, and production build pass. The existing Vite chunk-size advisory remains deferred.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2244,6 +2265,8 @@ Next:    FE-VERIFY-001      Run Frontend completion gate
 Next:    FE-CLOSEOUT-001    Restore formatting and type-check gates
 Next:    FE-CLOSEOUT-002    Isolate modal background content
 Next:    FE-CLOSEOUT-003    Finalize public route scroll restoration
+Next:    FE-HYGIENE-002     Verify auth layouts and restore repository hygiene
+Next:    AUTH-ARCH-001      Decide JWT transport and frontend auth-state boundary
                  ── Frontend UI complete ──
 Task 21: BE-001  Initialize FastAPI project
 Task 22: BE-002  Create backend project structure

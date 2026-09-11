@@ -64,7 +64,7 @@ function UserLoginPage() {
   }
 
   return (
-    <main className="relative isolate flex min-h-[calc(100svh-4rem)] items-center overflow-hidden bg-black px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+    <main className="relative isolate flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden bg-black px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div
         className="pointer-events-none absolute left-1/2 top-0 -z-10 h-80 w-80 -translate-x-1/2 rounded-full bg-vgu-orange/20 blur-3xl sm:h-[30rem] sm:w-[30rem]"
         aria-hidden="true"
