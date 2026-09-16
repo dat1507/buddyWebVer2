@@ -1,32 +1,48 @@
-# React + TypeScript + Vite
+# VGU Buddy frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React and TypeScript single-page application for the VGU Buddy Program rebuild.
 
-Currently, two official plugins are available:
+See the [root README](../../README.md) for product context, screenshots, architecture, configuration, and implementation status. The current package contains the public website, UI-only authentication pages, and placeholder student/admin routes.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run locally
 
-## React Compiler
+Use Node.js 22.12+ and npm. From this directory (`apps/web`):
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm ci
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The landing page uses development event fixtures by default. No backend or environment file is required for this mode. For custom settings, copy `.env.example` to `.env.local`; see the [environment reference](../../README.md#environment-variables).
+
+## Commands
+
+| Command                                   | Purpose                                        |
+| ----------------------------------------- | ---------------------------------------------- |
+| `npm run dev`                             | Start the Vite development server              |
+| `npm run typecheck`                       | Run TypeScript project checks                  |
+| `npm run lint` / `npm run lint:fix`       | Check ESLint rules / apply supported fixes     |
+| `npm run format:check` / `npm run format` | Check formatting / format package files        |
+| `npm test`                                | Run Vitest once with jsdom and Testing Library |
+| `npm run build`                           | Type-check and generate `dist`                 |
+| `npm run preview`                         | Serve the existing production build locally    |
+
+Production builds do not use the event fixtures, even with `VITE_EVENT_SLIDER_USE_MOCKS=true`. Without a working event API configured at build time, the carousel displays its error state in preview. Authentication remains UI-only in both modes.
+
+## Source entry points
+
+| Path                             | Responsibility                                                       |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `src/main.tsx`                   | React mount, router, query provider, and localization initialization |
+| `src/App.tsx`                    | Public, student, and administrator route definitions                 |
+| `src/components/layout/`         | Navbar, footer, language toggle, and layout wrappers                 |
+| `src/components/landing/`        | Landing sections, carousel, and demo dialog                          |
+| `src/pages/public/`              | Landing and authentication forms                                     |
+| `src/features/events/`           | Event schema, API/mock repositories, and query hook                  |
+| `src/lib/api.ts`                 | Public GET client using `VITE_API_URL`                               |
+| `src/i18n.ts` and `src/locales/` | English/German localization                                          |
+| `src/test/setup.ts`              | Test environment setup; test files are colocated with source         |
+
+The `@/` alias resolves to `src/`. Tests run through `vitest.config.ts`; the build uses `vite.config.ts`. ESLint and Prettier are the configured lint/format tools.
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) before submitting changes.

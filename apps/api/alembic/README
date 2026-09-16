@@ -1,0 +1,8 @@
+This directory contains the Alembic migration environment for the VGU Buddy API.
+
+BE-003 configures the migration tool only. BE-004 will provide the database URL and connection
+boundary, BE-006 will provide model metadata, and domain tasks will create migration revisions.
+
+Inspect the currently empty revision history without a database connection:
+
+    python -m alembic -c pyproject.toml history

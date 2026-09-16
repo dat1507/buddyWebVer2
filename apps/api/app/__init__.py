@@ -1,0 +1,2 @@
+"""VGU Buddy API package."""
+

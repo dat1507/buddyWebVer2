@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm@sha256:cf134a767f474095eeba57e0117be8e568e011a63f33fbf252f14c9b760f8e6f
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vgu_buddy}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in apps/api/.env}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    stop_grace_period: 30s
+    shm_size: 256mb
+
+volumes:
+  postgres_data:
