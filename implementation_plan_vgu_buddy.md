@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-010 are recorded complete; AUTH-011 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-011 are recorded complete; AUTH-011A is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1274,7 +1274,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-008 | Create User database model with role field — ✅ Completed | 2 | AUTH-007 | P0 |
 | AUTH-009 | Create Alembic migration for users table — ✅ Completed | 1 | AUTH-008 | P0 |
 | AUTH-010 | Create password hashing service (bcrypt) — ✅ Completed | 2 | BE-001 | P0 |
-| AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) | 3 | BE-001, AUTH-ARCH-001 | P0 |
+| AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) — ✅ Completed | 3 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint | 2 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-012 | Create auth service (register, login, verify role) | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
 | AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) | 2 | AUTH-012, AUTH-011A | P0 |
@@ -2804,6 +2804,100 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication foundation work.
 **Next Task**: `AUTH-011 — Create JWT cookie service (create/verify access + rotating refresh tokens)`.
 
+### AUTH-011 — Create JWT cookie service (create/verify access + rotating refresh tokens)
+
+**Status**: Completed (✅) on 2026-09-16
+**Objective**: Provide hardened JWT creation/verification, cookie transport, and the cryptographic
+half of one-use refresh rotation without implementing auth endpoints or pretending stateless JWTs
+can detect replay.
+
+The registry and AUTH-ARCH-001 fixed the browser transport and lifetimes but did not specify a JWT
+algorithm, claim schema, signing-key contract, token-confusion controls, cookie names or the
+stateful boundary required for refresh reuse detection. The operational acceptance criteria below
+make those security decisions explicit for dependent auth tasks.
+
+**Operational Acceptance Criteria**:
+
+- [x] Access and refresh JWTs use pinned HS256 with a dedicated URL-safe-base64 signing secret that
+  decodes to at least 32 bytes; configuration is server-only, lazy-loaded, redacted and secure by
+  default.
+- [x] Access tokens expire after 15 minutes and refresh tokens after seven days. Both require
+  `iss`, `aud`, `sub`, `sid`, `jti`, `token_type`, `iat`, `nbf` and `exp`; access additionally
+  requires a valid `USER`/`ADMIN` role.
+- [x] Verification hardcodes the algorithm and validates JOSE `typ`, issuer, strict single
+  audience, signature, temporal claims, exact lifetime, UUID identifiers, role and expected token
+  type. Malformed, expired, future, wrong-key and untrusted-claim inputs return one sanitized error.
+- [x] Every pair has fresh access/refresh `jti` values; a new login may generate a fresh `sid` and a
+  prepared rotation preserves that `sid` while returning the consumed refresh `jti` and two new
+  token identifiers.
+- [x] Token strings are excluded from dataclass representations and are never returned through a
+  business API in this task.
+- [x] Production cookies are host-only `__Host-` cookies with `Secure`, `HttpOnly`, `SameSite=Lax`,
+  `Path=/`, no `Domain`, fixed Max-Age/Expires and no-store response headers. Explicit local HTTP
+  mode uses distinct non-`__Host-` `_dev` names and omits only `Secure`.
+- [x] Cookie clearing uses matching names/scope/security attributes so production and local
+  sessions are expired reliably.
+- [x] Rotation does not claim stateless replay protection. AUTH-015 must atomically compare/consume
+  the persisted refresh `jti` before sending replacements and revoke the session family on reuse.
+- [x] No auth/CSRF endpoint, refresh-session table, persistent revocation state, frontend token
+  storage, account mutation or database change is introduced.
+
+**Files Created**:
+
+- `apps/api/app/services/tokens.py`
+- `apps/api/tests/test_auth_tokens.py`
+
+**Files Modified**:
+
+- `apps/api/app/core/config.py`
+- `apps/api/app/services/__init__.py`
+- `apps/api/.env.example`
+- `apps/api/pyproject.toml`
+- `apps/api/requirements.lock`
+- `apps/api/requirements-dev.lock`
+- `apps/api/README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Selected HS256 because the monolithic FastAPI backend is both the only issuer and the only
+  verifier. A fixed algorithm allowlist plus a dedicated 256-bit-or-larger random secret avoids
+  algorithm/key confusion without adding unnecessary public-key infrastructure.
+- Locked `PyJWT==2.14.0`. Decode never derives the algorithm or verification key from attacker-
+  controlled header fields and does not accept `none` or alternate token types.
+- The refresh token intentionally omits role. Rotation accepts the current database role so role
+  changes are reflected when AUTH-015 issues a new access token; AUTH-017 must still reload active,
+  non-deleted user state and authoritative role on protected requests.
+- A 30-second clock-skew allowance covers normal host drift, while exact signed lifetimes prevent a
+  mistakenly extended token from being accepted.
+- Added `AUTH_JWT_SECRET` and `AUTH_COOKIE_SECURE`. The latter defaults to production-safe `true`;
+  `false` is an explicit local HTTP development exception only.
+
+**Verification Results**:
+
+- Focused JWT/config/cookie suite — PASS, 28 tests.
+- Full backend suite — PASS, 97 tests.
+- `ruff check .` — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 29 source files.
+- Python 3.12 clean locked dependency install and `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel include the token service.
+- Alembic `history` / `heads` — PASS; `0002_users` remains the only head.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern repository scan — PASS, no credential-shaped matches.
+
+**Database Changes**: None; AUTH-011 is a pure token/cookie service and did not require Docker or a
+live database acceptance run. Persistent refresh-session state remains explicitly owned by
+AUTH-015.
+**Environment Variables Added**: `AUTH_JWT_SECRET`, `AUTH_COOKIE_SECURE`.
+**Business API Changes**: None.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-011 and does not
+block unrelated authentication foundation work.
+**Next Task**: `AUTH-011A — Create signed CSRF service and GET /api/auth/csrf endpoint`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3223,7 +3317,7 @@ Done: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; 
 Done: AUTH-008                Create User database model with role field [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-009                Create Alembic migration for users table [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5; completed 2026-09-16]
-Next: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5]
+Done: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5; completed 2026-09-16]
 Next: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf` endpoint [P0; Phase 5]
 Next: AUTH-012                Create auth service (register, login, verify role) [P0; Phase 5]
 Next: AUTH-013                Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) [P0; Phase 5]
@@ -3346,7 +3440,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-011 — Create JWT cookie service (create/verify access + rotating refresh tokens). BE-001 through BE-007 and AUTH-007 through AUTH-010 are complete; stop before executing AUTH-011 unless it is explicitly requested.**
+**Next implementation task: AUTH-011A — Create signed CSRF service and `GET /api/auth/csrf` endpoint. BE-001 through BE-007 and AUTH-007 through AUTH-011 are complete; stop before executing AUTH-011A unless it is explicitly requested.**
 
 ---
 

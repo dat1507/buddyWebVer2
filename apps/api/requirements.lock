@@ -40,6 +40,8 @@ pydantic==2.13.5
     #   vgu-buddy-api (pyproject.toml)
 pydantic-core==2.46.5
     # via pydantic
+pyjwt==2.14.0
+    # via vgu-buddy-api (pyproject.toml)
 python-dotenv==1.2.3
     # via uvicorn
 pyyaml==6.0.3

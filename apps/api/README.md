@@ -104,7 +104,7 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-Authentication endpoints, sanitized response schemas, cookie/session handling, and route
+Authentication endpoints, refresh-session persistence, CSRF, sanitized response schemas, and route
 authorization remain in their later tasks.
 
 ## Password hashing
@@ -119,6 +119,34 @@ bytes, and rejects longer values instead of truncating them. Hash creation raise
 for those candidates and for malformed stored hashes. Product password-strength and minimum-length
 rules belong to the future registration/password-change schemas and must remain within this shared
 technical maximum.
+
+## JWT and auth cookies
+
+`app.services.create_token_pair` issues HS256 access and refresh JWTs for the same session. Access
+tokens expire after 15 minutes and include the signed role; refresh tokens expire after seven days
+and omit the role so rotation must use the current database role. Both token types have independent
+`jti` values and share a `sid`. Verification pins the algorithm, issuer and audience, distinguishes
+the token type, requires all temporal and identifier claims, and returns one sanitized error for
+untrusted input.
+
+Configure `AUTH_JWT_SECRET` with URL-safe base64 representing at least 32 random bytes. Generate a
+dedicated value with `python -c "import secrets; print(secrets.token_urlsafe(48))"`; never reuse a
+database password, API key or another application's signing key. The setting is lazy-loaded,
+server-only and excluded from representations. It must never have a `VITE_` prefix.
+
+Production defaults to `AUTH_COOKIE_SECURE=true` and uses host-only `__Host-` access/refresh cookie
+names with `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`, explicit lifetimes and no `Domain`.
+Local HTTP development must explicitly set `AUTH_COOKIE_SECURE=false`; this switches to clearly
+named `_dev` cookies and is not valid for production. Cookie-setting and clearing responses use
+`Cache-Control: no-store`.
+
+`prepare_refresh_rotation` verifies a refresh JWT and returns the consumed `jti` plus a replacement
+pair with the same session ID and fresh access/refresh `jti` values. This is intentionally only the
+cryptographic half of rotation. AUTH-015 must atomically compare and consume the persisted refresh
+`jti` before setting replacement cookies; a mismatch is reuse and must revoke the session family.
+JWT signature validity alone does not provide logout, revocation, or replay detection. AUTH-017
+must reload the active user and role from the database rather than treating the access-token role
+as the final authorization source.
 
 ## Local PostgreSQL + pgvector
 

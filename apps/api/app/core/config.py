@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import os
 from functools import lru_cache
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretBytes, SecretStr, field_validator
 
 RUNTIME_URL_VARIABLE = "DATABASE_URL"
 MIGRATION_URL_VARIABLE = "DATABASE_MIGRATION_URL"
 CORS_ORIGINS_VARIABLE = "CORS_ALLOWED_ORIGINS"
+AUTH_JWT_SECRET_VARIABLE = "AUTH_JWT_SECRET"
+AUTH_COOKIE_SECURE_VARIABLE = "AUTH_COOKIE_SECURE"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -23,6 +27,10 @@ class DatabaseConfigurationError(RuntimeError):
 
 class CorsConfigurationError(RuntimeError):
     """Raised when the credentialed CORS origin allowlist is unsafe or invalid."""
+
+
+class AuthConfigurationError(RuntimeError):
+    """Raised when server-only authentication configuration is unsafe or invalid."""
 
 
 class RuntimeDatabaseSettings(BaseModel):
@@ -47,6 +55,23 @@ class CorsSettings(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     allowed_origins: tuple[str, ...]
+
+
+class AuthTokenSettings(BaseModel):
+    """JWT signing key and environment-specific cookie transport policy."""
+
+    model_config = ConfigDict(frozen=True)
+
+    signing_key: SecretBytes = Field(repr=False)
+    secure_cookies: bool = True
+
+    @field_validator("signing_key")
+    @classmethod
+    def validate_signing_key_length(cls, value: SecretBytes) -> SecretBytes:
+        """Keep direct construction as safe as environment-backed construction."""
+        if len(value.get_secret_value()) < 32:
+            raise ValueError("JWT signing key must contain at least 32 bytes.")
+        return value
 
 
 def _read_required_secret(variable_name: str) -> SecretStr:
@@ -99,6 +124,48 @@ def _read_cors_origins() -> tuple[str, ...]:
     return tuple(dict.fromkeys(normalized_origins))
 
 
+def _read_auth_signing_key() -> SecretBytes:
+    raw_value = os.getenv(AUTH_JWT_SECRET_VARIABLE)
+    if raw_value is None or not raw_value:
+        raise AuthConfigurationError(
+            f"Required server-only environment variable {AUTH_JWT_SECRET_VARIABLE} "
+            "is not configured."
+        )
+
+    try:
+        urlsafe_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
+        if any(character not in urlsafe_characters for character in raw_value):
+            raise ValueError
+        encoded = raw_value.encode("ascii")
+        padded = encoded + (b"=" * (-len(encoded) % 4))
+        signing_key = base64.b64decode(padded, altchars=b"-_", validate=True)
+    except (UnicodeEncodeError, binascii.Error, ValueError) as error:
+        raise AuthConfigurationError(
+            f"{AUTH_JWT_SECRET_VARIABLE} must be a URL-safe base64 value."
+        ) from error
+
+    if len(signing_key) < 32:
+        raise AuthConfigurationError(
+            f"{AUTH_JWT_SECRET_VARIABLE} must decode to at least 32 random bytes."
+        )
+    return SecretBytes(signing_key)
+
+
+def _read_secure_cookie_policy() -> bool:
+    raw_value = os.getenv(AUTH_COOKIE_SECURE_VARIABLE)
+    if raw_value is None:
+        return True
+
+    normalized = raw_value.casefold()
+    if normalized == "true":
+        return True
+    if normalized == "false":
+        return False
+    raise AuthConfigurationError(
+        f"{AUTH_COOKIE_SECURE_VARIABLE} must be exactly true or false."
+    )
+
+
 @lru_cache(maxsize=1)
 def get_runtime_database_settings() -> RuntimeDatabaseSettings:
     """Load the application credential without reading migration credentials."""
@@ -115,3 +182,12 @@ def get_migration_database_settings() -> MigrationDatabaseSettings:
 def get_cors_settings() -> CorsSettings:
     """Load and validate the exact browser origins allowed to send credentials."""
     return CorsSettings(allowed_origins=_read_cors_origins())
+
+
+@lru_cache(maxsize=1)
+def get_auth_token_settings() -> AuthTokenSettings:
+    """Load the dedicated JWT secret and production-safe cookie policy."""
+    return AuthTokenSettings(
+        signing_key=_read_auth_signing_key(),
+        secure_cookies=_read_secure_cookie_policy(),
+    )
