@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-009 are recorded complete; AUTH-010 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-010 are recorded complete; AUTH-011 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1273,7 +1273,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-007 | Define UserRole enum (USER, ADMIN) in models — ✅ Completed | 1 | BE-006 | P0 |
 | AUTH-008 | Create User database model with role field — ✅ Completed | 2 | AUTH-007 | P0 |
 | AUTH-009 | Create Alembic migration for users table — ✅ Completed | 1 | AUTH-008 | P0 |
-| AUTH-010 | Create password hashing service (bcrypt) | 2 | BE-001 | P0 |
+| AUTH-010 | Create password hashing service (bcrypt) — ✅ Completed | 2 | BE-001 | P0 |
 | AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) | 3 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint | 2 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-012 | Create auth service (register, login, verify role) | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
@@ -2724,6 +2724,86 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication foundation work.
 **Next Task**: `AUTH-010 — Create password hashing service (bcrypt)`.
 
+### AUTH-010 — Create password hashing service (bcrypt)
+
+**Status**: Completed (✅) on 2026-09-16
+**Objective**: Provide the shared application-owned password hashing and verification primitives
+needed by registration, login, admin seeding and future password changes.
+
+The registry specified bcrypt with 12 rounds but did not define a dedicated password-service
+contract. The operational acceptance criteria below establish the technical security boundary;
+product password-strength and minimum-length policy remains owned by the future input schemas.
+
+**Operational Acceptance Criteria**:
+
+- [x] The service hashes UTF-8 passwords directly with bcrypt `2b`, cost 12 and a fresh
+  cryptographically secure salt for every hash.
+- [x] Only the encoded bcrypt hash is returned. The service does not trim, Unicode-normalize, log,
+  persist or otherwise expose plaintext passwords.
+- [x] Empty passwords and values longer than bcrypt's 72-byte limit are rejected during hash
+  creation; length is measured after UTF-8 encoding and no silent truncation occurs.
+- [x] Verification delegates comparison to `bcrypt.checkpw` and returns `False` for wrong,
+  empty or overlong candidates and malformed/non-ASCII stored hashes instead of surfacing an
+  authentication error.
+- [x] Boundary coverage includes random salts, correct and wrong candidates, exact whitespace,
+  Unicode normalization differences, exactly 72 bytes, multibyte input, overlong input and corrupt
+  stored hashes.
+- [x] Bcrypt is a pinned runtime dependency in both reproducible Python 3.12 lockfiles; clean
+  install, package build, dependency consistency and vulnerability audit pass.
+- [x] No account, database, API route, password-strength rule, JWT/cookie or persistent session
+  behavior is introduced.
+
+**Files Created**:
+
+- `apps/api/app/services/passwords.py`
+- `apps/api/tests/test_passwords.py`
+
+**Files Modified**:
+
+- `apps/api/app/services/__init__.py`
+- `apps/api/pyproject.toml`
+- `apps/api/requirements.lock`
+- `apps/api/requirements-dev.lock`
+- `apps/api/README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Used `bcrypt` directly rather than an additional password-framework abstraction. The locked
+  runtime version is `bcrypt==5.0.0` and the service explicitly requests prefix `2b` and cost 12.
+- Centralized the algorithm constraints as `BCRYPT_ROUNDS` and `BCRYPT_MAX_PASSWORD_BYTES` so
+  later registration/password-change schemas can enforce the same byte boundary.
+- Hash creation raises a domain-specific `PasswordHashingError` for invalid technical input;
+  verification intentionally fails closed to avoid converting malformed attacker-controlled data
+  into a server error.
+- Did not pre-hash, trim or normalize input because doing so would alter the user's secret and
+  expand the contract beyond the implementation plan. A future algorithm migration can be handled
+  explicitly with versioned hashes if required.
+
+**Verification Results**:
+
+- Focused password-service suite — PASS, 11 tests.
+- Full backend suite — PASS, 69 tests.
+- `ruff check .` — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 27 source files.
+- Python 3.12 clean locked dependency install and `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel include the password service.
+- Alembic `history` / `heads` — PASS; `0002_users` remains the only head.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern repository scan — PASS, no credential-shaped matches.
+
+**Database Changes**: None; AUTH-010 is a pure application service and did not require Docker or a
+live database acceptance run.
+**Environment Variables Added**: None.
+**Business API Changes**: None.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-010 and does not
+block unrelated authentication foundation work.
+**Next Task**: `AUTH-011 — Create JWT cookie service (create/verify access + rotating refresh tokens)`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3142,7 +3222,7 @@ Done: BE-007                  Configure credentialed CORS with explicit frontend
 Done: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-008                Create User database model with role field [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-009                Create Alembic migration for users table [P0; Phase 5; completed 2026-09-16]
-Next: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5]
+Done: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5; completed 2026-09-16]
 Next: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5]
 Next: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf` endpoint [P0; Phase 5]
 Next: AUTH-012                Create auth service (register, login, verify role) [P0; Phase 5]
@@ -3266,7 +3346,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-010 — Create password hashing service (bcrypt). BE-001 through BE-007 and AUTH-007 through AUTH-009 are complete; stop before executing AUTH-010 unless it is explicitly requested.**
+**Next implementation task: AUTH-011 — Create JWT cookie service (create/verify access + rotating refresh tokens). BE-001 through BE-007 and AUTH-007 through AUTH-010 are complete; stop before executing AUTH-011 unless it is explicitly requested.**
 
 ---
 

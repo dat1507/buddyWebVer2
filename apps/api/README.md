@@ -104,8 +104,21 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-Authentication, password hashing, sanitized response schemas, cookie/session handling, and route
+Authentication endpoints, sanitized response schemas, cookie/session handling, and route
 authorization remain in their later tasks.
+
+## Password hashing
+
+`app.services.hash_password` creates a fresh bcrypt `2b` hash with cost 12, and
+`app.services.verify_password` verifies a candidate using bcrypt's constant-time comparison. The
+service preserves the password exactly: it does not trim, normalize, log, or store plaintext.
+
+Bcrypt accepts at most 72 bytes. The service measures the UTF-8 encoded value, accepts exactly 72
+bytes, and rejects longer values instead of truncating them. Hash creation raises
+`PasswordHashingError` for an empty or overlong password; verification fails closed with `False`
+for those candidates and for malformed stored hashes. Product password-strength and minimum-length
+rules belong to the future registration/password-change schemas and must remain within this shared
+technical maximum.
 
 ## Local PostgreSQL + pgvector
 
