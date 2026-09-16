@@ -5,10 +5,14 @@ FastAPI backend for the VGU Student Companion Platform.
 ## Local setup
 
 ```bash
-python -m venv .venv
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python3.12 -m venv .venv
+python -m pip install -r requirements-dev.lock
+python -m pip install --no-deps -e .
 ```
+
+On Windows, use `py -3.12 -m venv .venv` for the first command. `requirements.lock` contains the
+runtime-only dependency set; `requirements-dev.lock` adds the checked development, build, and audit
+tools. Both files are generated from `pyproject.toml` with Python 3.12 and pin transitive versions.
 
 Activate the virtual environment, then run:
 
@@ -35,11 +39,22 @@ an accidental cross-origin topology change does not broaden access.
 ## Quality checks
 
 ```bash
+python -m pip check
 pytest
 ruff check .
 mypy app tests
-python -m build
+python -m build --no-isolation
 python -m alembic -c pyproject.toml history
+python -m alembic -c pyproject.toml heads
+python -m pip_audit --strict -r requirements.lock
+```
+
+After an intentional dependency change, regenerate both lockfiles with the `pip-tools` version in
+the development dependency set:
+
+```bash
+python -m piptools compile --allow-unsafe --strip-extras --output-file requirements.lock pyproject.toml
+python -m piptools compile --allow-unsafe --extra dev --strip-extras --output-file requirements-dev.lock pyproject.toml
 ```
 
 ## Database configuration
@@ -73,6 +88,11 @@ non-exposed `app_private` schema, gives Alembic deterministic constraint names, 
 must apply the appropriate active/deleted predicate explicitly, and direct SQL writers must maintain
 `updated_at` themselves. Domain tables and their migrations remain owned by their corresponding
 implementation tasks.
+
+`app.models.UserRole` defines the only supported application roles: `USER` and `ADMIN`. It is a
+string enum so future persistence and API schemas can share the exact uppercase contract. The enum
+does not create a table, grant permissions, authenticate a request, or authorize an endpoint; those
+responsibilities remain in later authentication tasks.
 
 ## Local PostgreSQL + pgvector
 

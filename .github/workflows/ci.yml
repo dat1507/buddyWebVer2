@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/api/requirements-dev.lock
+
+      - name: Install locked dependencies
+        working-directory: apps/api
+        run: |
+          python -m pip install -r requirements-dev.lock
+          python -m pip install --no-deps -e .
+
+      - name: Check dependency consistency
+        working-directory: apps/api
+        run: python -m pip check
+
+      - name: Lint
+        working-directory: apps/api
+        run: ruff check .
+
+      - name: Type-check
+        working-directory: apps/api
+        run: mypy app tests
+
+      - name: Run tests
+        working-directory: apps/api
+        run: pytest
+
+      - name: Check Alembic graph
+        working-directory: apps/api
+        run: |
+          python -m alembic -c pyproject.toml history
+          python -m alembic -c pyproject.toml heads
+
+      - name: Build package
+        working-directory: apps/api
+        run: python -m build --no-isolation
+
+      - name: Audit runtime dependencies
+        working-directory: apps/api
+        run: python -m pip_audit --strict -r requirements.lock
+
+      - name: Validate Docker Compose
+        env:
+          POSTGRES_PASSWORD: ci-compose-validation-only
+        run: docker compose -f docker-compose.yml config --quiet

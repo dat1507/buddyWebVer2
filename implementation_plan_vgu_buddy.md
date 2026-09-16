@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates plus BE-001 through BE-007 are recorded complete; AUTH-007 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 are recorded complete; AUTH-008 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1270,7 +1270,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
-| AUTH-007 | Define UserRole enum (USER, ADMIN) in models | 1 | BE-006 | P0 |
+| AUTH-007 | Define UserRole enum (USER, ADMIN) in models — ✅ Completed | 1 | BE-006 | P0 |
 | AUTH-008 | Create User database model with role field | 2 | AUTH-007 | P0 |
 | AUTH-009 | Create Alembic migration for users table | 1 | AUTH-008 | P0 |
 | AUTH-010 | Create password hashing service (bcrypt) | 2 | BE-001 | P0 |
@@ -2489,6 +2489,71 @@ The original registry supplied the task title and its BE-001/AUTH-ARCH-001 depen
 **Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must be revoked before any future Gemini/chatbot integration. It was not used by BE-007 and does not block unrelated backend foundation work.  
 **Next Task**: `AUTH-007 — Define UserRole enum (USER, ADMIN) in models`.
 
+### AUTH-007 — Define UserRole enum (USER, ADMIN) in models
+
+**Status**: Completed (✅) on 2026-09-16
+**Objective**: Establish one shared, string-compatible application role contract for the future User
+model, API schemas and authorization dependencies without creating persistence or authentication
+behavior ahead of AUTH-008 and later tasks.
+
+The registry supplied the task title, priority and BE-006 dependency but no dedicated task contract.
+The operational acceptance criteria below keep the implementation deliberately limited to the role
+primitive required by the next authentication tasks.
+
+**Operational Acceptance Criteria**:
+
+- [x] `UserRole` is defined in the model layer with exactly `USER` and `ADMIN` members and exact
+  uppercase string values.
+- [x] The enum is string- and JSON-compatible for future SQLAlchemy, Pydantic and API reuse.
+- [x] `UserRole` is exported from `app.models` as the canonical import path.
+- [x] Unknown, lowercase, empty and expanded role values are rejected rather than normalized.
+- [x] No User table, migration, password/session/token logic, route guard, permission grant or RLS
+  policy is introduced ahead of its owning task.
+- [x] Focused tests cover membership, values, serialization and invalid inputs; all backend quality
+  gates remain green.
+
+**Files Created**:
+
+- `apps/api/app/models/user.py`
+- `apps/api/tests/test_user_role.py`
+
+**Files Modified**:
+
+- `apps/api/app/models/__init__.py`
+- `apps/api/README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Used Python 3.12 `StrEnum`, so role members behave as strings while retaining an explicit enum
+  type. The member names and stored/API values are both uppercase to match the approved auth flow.
+- Kept the enum in `models/user.py`, the planned home of the AUTH-008 User model, and re-exported it
+  through `app.models` to avoid competing definitions in services or schemas.
+- Role labels are data, not authorization. Later endpoints must derive roles from verified server
+  state; public registration must always assign `USER`, and admin APIs must still enforce the
+  server-side `require_role(ADMIN)` dependency.
+
+**Verification Results**:
+
+- Focused `UserRole` tests — PASS; exact members/values, string and JSON serialization, and four
+  invalid-value classes are covered.
+- `python -m pytest` — PASS, 50 tests.
+- `ruff check .` — PASS.
+- `mypy app tests` — PASS, strict mode over 21 source files.
+- Alembic `history` / `heads` — PASS; no migration was added and the existing baseline remains the
+  single head.
+- `python -m build --no-isolation` — PASS on a clean Python 3.12 dependency installation.
+- `python -m pip_audit --strict -r requirements.lock` — PASS, no known vulnerabilities found.
+- Frontend format, lint, type-check, 80 tests and production build — PASS.
+
+**Database Changes**: None.
+**Environment Variables Added**: None.
+**Business API Changes**: None.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-007 and does not
+block unrelated authentication foundation work.
+**Next Task**: `AUTH-008 — Create User database model with role field`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2904,7 +2969,7 @@ Done: BE-004                  Configure Supabase PostgreSQL connection and datab
 Done: BE-005                  Create Docker Compose for local dev (PostgreSQL + pgvector) [P0; Phase 2; completed 2026-09-13]
 Done: BE-006                  Create base model class with audit fields (id, created_at, updated_at, deleted_at) [P0; Phase 2; completed 2026-09-16]
 Done: BE-007                  Configure credentialed CORS with explicit frontend origins, methods, and headers [P0; Phase 2; completed 2026-09-16]
-Next: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; Phase 5]
+Done: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; Phase 5; completed 2026-09-16]
 Next: AUTH-008                Create User database model with role field [P0; Phase 5]
 Next: AUTH-009                Create Alembic migration for users table [P0; Phase 5]
 Next: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5]
@@ -3031,7 +3096,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-007 — Define UserRole enum (USER, ADMIN) in models. BE-001 through BE-007 are complete; stop before executing AUTH-007 in this session.**
+**Next implementation task: AUTH-008 — Create User database model with role field. BE-001 through BE-007 and AUTH-007 are complete; stop before executing AUTH-008 unless it is explicitly requested.**
 
 ---
 
