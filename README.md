@@ -24,10 +24,12 @@ Implemented:
 - Docker Compose service for local PostgreSQL 17 with the pgvector package.
 - Shared SQLAlchemy base model and the `USER`/`ADMIN` role contract.
 - Exact-origin credentialed CORS configuration.
+- Persisted User model/migration, bcrypt password service, hardened JWT cookie primitives, and a
+  signed double-submit CSRF bootstrap endpoint.
 
 Not implemented yet:
 
-- User persistence, password hashing, JWT cookies, CSRF protection, or authenticated sessions.
+- Registration/login/refresh/logout endpoints and persistent authenticated sessions.
 - Protected User/Admin routes backed by server authorization.
 - Profile, event-management, matching, notification, or AI business APIs.
 - A provisioned production Supabase project or production deployment configuration.
@@ -146,7 +148,7 @@ Committed templates:
 - [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
   development event-fixture flag.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
-  URLs, and the exact CORS origin allowlist.
+  URLs, auth/CSRF signing keys, cookie policy, and the exact CORS origin allowlist.
 
 Populated `.env` files are ignored. Database passwords and URLs are server-only and must never use a
 `VITE_` prefix or be committed.
@@ -192,8 +194,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and the AUTH-007 role contract are complete. The next
-planned backend authentication task is AUTH-008, which adds the persisted User model.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-011A
+are complete. The next planned backend authentication task is AUTH-012, which adds the register,
+login, and role-verification service boundary.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

@@ -14,6 +14,7 @@ RUNTIME_URL_VARIABLE = "DATABASE_URL"
 MIGRATION_URL_VARIABLE = "DATABASE_MIGRATION_URL"
 CORS_ORIGINS_VARIABLE = "CORS_ALLOWED_ORIGINS"
 AUTH_JWT_SECRET_VARIABLE = "AUTH_JWT_SECRET"
+AUTH_CSRF_SECRET_VARIABLE = "AUTH_CSRF_SECRET"
 AUTH_COOKIE_SECURE_VARIABLE = "AUTH_COOKIE_SECURE"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
@@ -74,6 +75,36 @@ class AuthTokenSettings(BaseModel):
         return value
 
 
+class CsrfSettings(BaseModel):
+    """Signed CSRF token, cookie, and exact browser-origin policy."""
+
+    model_config = ConfigDict(frozen=True)
+
+    signing_key: SecretBytes = Field(repr=False)
+    secure_cookies: bool = True
+    trusted_origins: tuple[str, ...]
+
+    @field_validator("signing_key")
+    @classmethod
+    def validate_signing_key_length(cls, value: SecretBytes) -> SecretBytes:
+        """Reject weak secrets even when settings are constructed directly."""
+        if len(value.get_secret_value()) < 32:
+            raise ValueError("CSRF signing key must contain at least 32 bytes.")
+        return value
+
+    @field_validator("trusted_origins")
+    @classmethod
+    def validate_trusted_origins(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        """Keep direct construction as strict as environment-backed construction."""
+        if not value:
+            raise ValueError("At least one trusted CSRF origin is required.")
+        try:
+            normalized = tuple(normalize_http_origin(origin) for origin in value)
+        except CorsConfigurationError as error:
+            raise ValueError("Trusted CSRF origins must be exact HTTP origins.") from error
+        return tuple(dict.fromkeys(normalized))
+
+
 def _read_required_secret(variable_name: str) -> SecretStr:
     raw_value = os.getenv(variable_name)
     if raw_value is None or not raw_value.strip():
@@ -83,7 +114,8 @@ def _read_required_secret(variable_name: str) -> SecretStr:
     return SecretStr(raw_value)
 
 
-def _normalize_cors_origin(origin: str) -> str:
+def normalize_http_origin(origin: str) -> str:
+    """Return one canonical HTTP origin or reject unsafe origin syntax."""
     if "*" in origin:
         raise CorsConfigurationError("CORS origins must not contain wildcards.")
 
@@ -120,16 +152,15 @@ def _read_cors_origins() -> tuple[str, ...]:
             f"{CORS_ORIGINS_VARIABLE} must be a comma-separated list of origins."
         )
 
-    normalized_origins = tuple(_normalize_cors_origin(origin) for origin in configured_origins)
+    normalized_origins = tuple(normalize_http_origin(origin) for origin in configured_origins)
     return tuple(dict.fromkeys(normalized_origins))
 
 
-def _read_auth_signing_key() -> SecretBytes:
-    raw_value = os.getenv(AUTH_JWT_SECRET_VARIABLE)
+def _read_urlsafe_signing_key(variable_name: str) -> SecretBytes:
+    raw_value = os.getenv(variable_name)
     if raw_value is None or not raw_value:
         raise AuthConfigurationError(
-            f"Required server-only environment variable {AUTH_JWT_SECRET_VARIABLE} "
-            "is not configured."
+            f"Required server-only environment variable {variable_name} is not configured."
         )
 
     try:
@@ -140,14 +171,10 @@ def _read_auth_signing_key() -> SecretBytes:
         padded = encoded + (b"=" * (-len(encoded) % 4))
         signing_key = base64.b64decode(padded, altchars=b"-_", validate=True)
     except (UnicodeEncodeError, binascii.Error, ValueError) as error:
-        raise AuthConfigurationError(
-            f"{AUTH_JWT_SECRET_VARIABLE} must be a URL-safe base64 value."
-        ) from error
+        raise AuthConfigurationError(f"{variable_name} must be a URL-safe base64 value.") from error
 
     if len(signing_key) < 32:
-        raise AuthConfigurationError(
-            f"{AUTH_JWT_SECRET_VARIABLE} must decode to at least 32 random bytes."
-        )
+        raise AuthConfigurationError(f"{variable_name} must decode to at least 32 random bytes.")
     return SecretBytes(signing_key)
 
 
@@ -161,9 +188,7 @@ def _read_secure_cookie_policy() -> bool:
         return True
     if normalized == "false":
         return False
-    raise AuthConfigurationError(
-        f"{AUTH_COOKIE_SECURE_VARIABLE} must be exactly true or false."
-    )
+    raise AuthConfigurationError(f"{AUTH_COOKIE_SECURE_VARIABLE} must be exactly true or false.")
 
 
 @lru_cache(maxsize=1)
@@ -188,6 +213,16 @@ def get_cors_settings() -> CorsSettings:
 def get_auth_token_settings() -> AuthTokenSettings:
     """Load the dedicated JWT secret and production-safe cookie policy."""
     return AuthTokenSettings(
-        signing_key=_read_auth_signing_key(),
+        signing_key=_read_urlsafe_signing_key(AUTH_JWT_SECRET_VARIABLE),
         secure_cookies=_read_secure_cookie_policy(),
+    )
+
+
+@lru_cache(maxsize=1)
+def get_csrf_settings() -> CsrfSettings:
+    """Load the dedicated CSRF secret and exact browser request policy."""
+    return CsrfSettings(
+        signing_key=_read_urlsafe_signing_key(AUTH_CSRF_SECRET_VARIABLE),
+        secure_cookies=_read_secure_cookie_policy(),
+        trusted_origins=_read_cors_origins(),
     )

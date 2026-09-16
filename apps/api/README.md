@@ -104,8 +104,8 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-Authentication endpoints, refresh-session persistence, CSRF, sanitized response schemas, and route
-authorization remain in their later tasks.
+Registration/login endpoints, refresh-session persistence, sanitized user response schemas, and
+route authorization remain in their later tasks.
 
 ## Password hashing
 
@@ -147,6 +147,26 @@ cryptographic half of rotation. AUTH-015 must atomically compare and consume the
 JWT signature validity alone does not provide logout, revocation, or replay detection. AUTH-017
 must reload the active user and role from the database rather than treating the access-token role
 as the final authorization source.
+
+## CSRF protection
+
+`GET /api/auth/csrf` creates a fresh one-hour pre-auth CSRF context. It returns the signed token as
+`csrf_token` in a no-store JSON response and sets the same value in an HttpOnly cookie. The frontend
+keeps the JSON value only in memory and sends it in `X-CSRF-Token` on registration, login, and every
+other state-changing request. It must not copy this value into localStorage or sessionStorage.
+
+Configure `AUTH_CSRF_SECRET` with a separate URL-safe-base64 value representing at least 32 random
+bytes. Do not reuse `AUTH_JWT_SECRET`. Production uses the host-only
+`__Host-vgu_buddy_csrf` cookie with `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`, and no `Domain`;
+the explicit local HTTP policy uses `vgu_buddy_csrf_dev` without `Secure`.
+
+`app.services.verify_csrf_request` accepts only unsafe methods with exactly one matching signed
+cookie/header pair and an exact allowlisted `Origin`. It falls back to the origin portion of
+`Referer` only when `Origin` is absent. Pre-auth and authenticated tokens have separate scopes;
+authenticated tokens are HMAC-bound to the refresh-session UUID and share its seven-day lifetime.
+Successful login and session rotation endpoints must issue the session-bound form, while logout
+must clear it. SameSite remains defense in depth and does not replace the signed token or source-
+origin checks.
 
 ## Local PostgreSQL + pgvector
 

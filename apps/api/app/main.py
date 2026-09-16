@@ -7,8 +7,13 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.auth import router as auth_router
 from app.api.health import router as health_router
-from app.core.config import DatabaseConfigurationError, get_cors_settings
+from app.core.config import (
+    AuthConfigurationError,
+    DatabaseConfigurationError,
+    get_cors_settings,
+)
 from app.core.database import dispose_database_engine
 
 CORS_ALLOWED_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
@@ -20,6 +25,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Release database resources when the API process stops."""
     yield
     await dispose_database_engine()
+
 
 app = FastAPI(
     title="VGU Buddy API",
@@ -38,6 +44,7 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(auth_router)
 
 
 @app.exception_handler(DatabaseConfigurationError)
@@ -48,4 +55,15 @@ async def handle_database_configuration_error(
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={"detail": "Database is not configured."},
+    )
+
+
+@app.exception_handler(AuthConfigurationError)
+async def handle_auth_configuration_error(
+    _request: Request, _error: AuthConfigurationError
+) -> JSONResponse:
+    """Fail closed without returning authentication configuration details."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Authentication is not configured."},
     )
