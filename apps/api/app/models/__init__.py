@@ -1,6 +1,6 @@
 """Persistence model package."""
 
 from app.models.base import Base
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 
-__all__ = ("Base", "UserRole")
+__all__ = ("Base", "User", "UserRole")

@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 are recorded complete; AUTH-008 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-008 are recorded complete; AUTH-009 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -2554,6 +2554,89 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication foundation work.
 **Next Task**: `AUTH-008 — Create User database model with role field`.
 
+### AUTH-008 — Create User database model with role field
+
+**Status**: Completed (✅) on 2026-09-16
+**Objective**: Define the backend-owned account model and its PostgreSQL metadata contract without
+creating the physical table ahead of AUTH-009.
+
+The registry supplied the task title, priority and AUTH-007 dependency but no dedicated task
+contract. The operational acceptance criteria below align the ERD, private-schema boundary and
+least-privilege authentication design.
+
+**Operational Acceptance Criteria**:
+
+- [x] `User` maps `app_private.users`, inherits the UUID/audit/soft-delete fields from `Base`, and is
+  exported from `app.models`.
+- [x] The model persists a required unique email and a required `password_hash`; it has no plaintext
+  password column, relationship, response schema or logging behavior.
+- [x] `role` uses the private native PostgreSQL `user_role` enum with exact `USER`/`ADMIN` labels,
+  validates strings and defaults to least-privilege `USER` in both ORM and database writes.
+- [x] `is_active` defaults to true, `email_verified` defaults to false, and nullable `last_login`
+  uses a timezone-aware timestamp.
+- [x] Blank email and password-hash values are rejected by named database constraints.
+- [x] Role and active-state indexes are declared; the email unique constraint supplies the email
+  index so a redundant second B-tree is not created.
+- [x] Unit, strict typing, PostgreSQL DDL and isolated PostgreSQL 17 live checks pass, including
+  defaults, negative cases and least-privilege runtime-role grants.
+- [x] No Alembic revision, auth endpoint, password hashing, cookie/JWT logic, admin provisioning or
+  persistent database change is introduced ahead of its owning task.
+
+**Files Created**:
+
+- `apps/api/tests/test_user_model.py`
+
+**Files Modified**:
+
+- `apps/api/app/models/user.py`
+- `apps/api/app/models/__init__.py`
+- `apps/api/README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Used PostgreSQL `TEXT` for email and password hashes, avoiding storage-equivalent artificial
+  `varchar(n)` limits; request-level length and email syntax validation remain owned by later auth
+  schemas/services.
+- Kept email uniqueness across soft deletion so an old account identity cannot be silently reused.
+  AUTH-012 must trim and canonicalize email before persistence; the model does not mutate input.
+- Declared ORM and server defaults together so SQLAlchemy inserts and direct/runtime-role inserts
+  share the same least-privilege behavior.
+- Kept `password_hash` as the only credential field. Sanitized API DTOs must continue to use an
+  allowlist and never serialize the ORM object directly.
+- AUTH-009 remains responsible for reviewing and committing the generated enum/table migration,
+  including upgrade/downgrade behavior and production rollout considerations.
+
+**Verification Results**:
+
+- Focused User/UserRole suite — PASS, 14 tests.
+- Full backend suite — PASS, 57 tests.
+- `ruff check .` — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 24 source files.
+- `python -m build` — PASS; isolated build contains the User model in both sdist and wheel.
+- Alembic `history` / `heads` — PASS; no revision was added and the baseline remains the single
+  head.
+- Docker Desktop 4.91.0 / Linux Engine 29.8.0 — PASS using `desktop-linux`.
+- Isolated PostgreSQL 17.11 live probe — PASS; native enum labels, four named constraints, role and
+  active indexes, ORM/server defaults, invalid-role rejection and blank-email rejection verified.
+- Runtime-role live insert — PASS with only `SELECT`, `INSERT`, `UPDATE`, `DELETE` table grants; the
+  raw insert received `USER`, active and unverified defaults.
+- Acceptance cleanup — PASS; the probe table/enum and isolated container, network and volume were
+  removed, while the baseline migration remained intact until the disposable volume was removed.
+- `pip-audit --strict -r requirements.lock` and `npm audit` — PASS, no known vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+
+**Database Changes**: No persistent schema change. The disposable acceptance database received the
+baseline migration and temporary metadata-created `app_private.users`/`user_role` objects; all
+acceptance resources were removed afterward.
+**Environment Variables Added**: None.
+**Business API Changes**: None.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-008 and does not
+block unrelated authentication foundation work.
+**Next Task**: `AUTH-009 — Create Alembic migration for users table`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -2970,7 +3053,7 @@ Done: BE-005                  Create Docker Compose for local dev (PostgreSQL + 
 Done: BE-006                  Create base model class with audit fields (id, created_at, updated_at, deleted_at) [P0; Phase 2; completed 2026-09-16]
 Done: BE-007                  Configure credentialed CORS with explicit frontend origins, methods, and headers [P0; Phase 2; completed 2026-09-16]
 Done: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; Phase 5; completed 2026-09-16]
-Next: AUTH-008                Create User database model with role field [P0; Phase 5]
+Done: AUTH-008                Create User database model with role field [P0; Phase 5; completed 2026-09-16]
 Next: AUTH-009                Create Alembic migration for users table [P0; Phase 5]
 Next: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5]
 Next: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5]
@@ -3096,7 +3179,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-008 — Create User database model with role field. BE-001 through BE-007 and AUTH-007 are complete; stop before executing AUTH-008 unless it is explicitly requested.**
+**Next implementation task: AUTH-009 — Create Alembic migration for users table. BE-001 through BE-007 and AUTH-007 through AUTH-008 are complete; stop before executing AUTH-009 unless it is explicitly requested.**
 
 ---
 

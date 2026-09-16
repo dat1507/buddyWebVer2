@@ -90,9 +90,17 @@ must apply the appropriate active/deleted predicate explicitly, and direct SQL w
 implementation tasks.
 
 `app.models.UserRole` defines the only supported application roles: `USER` and `ADMIN`. It is a
-string enum so future persistence and API schemas can share the exact uppercase contract. The enum
-does not create a table, grant permissions, authenticate a request, or authorize an endpoint; those
-responsibilities remain in later authentication tasks.
+string enum so persistence and future API schemas share the exact uppercase contract.
+
+`app.models.User` maps the backend-owned account record in `app_private.users`. Email is required
+and unique, only `password_hash` is persisted, and the native `app_private.user_role` value defaults
+to least-privilege `USER`. New rows default to active and unverified; `last_login` remains nullable
+until a successful login. Role and active-state lookup indexes are declared in metadata, while the
+email unique constraint supplies its own PostgreSQL index instead of creating a duplicate.
+
+The model declaration alone does not change a database. AUTH-009 owns creation of the enum and
+table through a reviewed Alembic migration. Authentication, password hashing, sanitized response
+schemas, cookie/session handling, and route authorization remain in their later tasks.
 
 ## Local PostgreSQL + pgvector
 
