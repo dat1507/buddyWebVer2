@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-008 are recorded complete; AUTH-009 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-009 are recorded complete; AUTH-010 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1271,8 +1271,8 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
 | AUTH-007 | Define UserRole enum (USER, ADMIN) in models — ✅ Completed | 1 | BE-006 | P0 |
-| AUTH-008 | Create User database model with role field | 2 | AUTH-007 | P0 |
-| AUTH-009 | Create Alembic migration for users table | 1 | AUTH-008 | P0 |
+| AUTH-008 | Create User database model with role field — ✅ Completed | 2 | AUTH-007 | P0 |
+| AUTH-009 | Create Alembic migration for users table — ✅ Completed | 1 | AUTH-008 | P0 |
 | AUTH-010 | Create password hashing service (bcrypt) | 2 | BE-001 | P0 |
 | AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) | 3 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint | 2 | BE-001, AUTH-ARCH-001 | P0 |
@@ -2637,6 +2637,93 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication foundation work.
 **Next Task**: `AUTH-009 — Create Alembic migration for users table`.
 
+### AUTH-009 — Create Alembic migration for users table
+
+**Status**: Completed (✅) on 2026-09-16
+**Objective**: Persist the AUTH-008 User metadata through one reversible Alembic revision while
+preserving the private-schema, least-privilege and FastAPI-owned authentication boundaries.
+
+The registry supplied the task title, priority and AUTH-008 dependency but no dedicated task
+contract. The operational acceptance criteria below define the migration and security behavior
+required before password/authentication services can depend on the users table.
+
+**Operational Acceptance Criteria**:
+
+- [x] One linear revision after `0001_private_app_schema` creates the private `user_role` enum and
+  `users` table with all AUTH-008 columns, defaults, constraints and indexes.
+- [x] The migration creates exactly `USER` and `ADMIN`, defaults role to `USER`, active to true and
+  email verification to false, and keeps `last_login`/`deleted_at` nullable and timestamps
+  timezone-aware.
+- [x] Email uniqueness, non-blank email/hash checks, UUID primary key and deterministic object names
+  match SQLAlchemy metadata; the unique constraint supplies the email index without duplication.
+- [x] `PUBLIC`, `anon`, `authenticated` and `service_role` receive no users-table or enum access;
+  `vgu_buddy_runtime` receives only table CRUD and enum usage.
+- [x] RLS is enabled as defense in depth with one permissive all-row policy scoped only to the
+  backend runtime role. No Supabase JWT/`auth.uid()` assumption is introduced.
+- [x] Alembic reflection is limited to the owned `app_private` schema/tables so drift checks do not
+  inspect or propose deletion of Supabase-managed schemas.
+- [x] Offline SQL, live upgrade, runtime CRUD, negative constraints, downgrade to the previous
+  revision, re-upgrade and live metadata drift checks all pass on PostgreSQL 17.
+- [x] No password hashing, auth endpoint, session/JWT behavior, seeded account or persistent
+  production/development data is introduced.
+
+**Files Created**:
+
+- `apps/api/alembic/versions/0002_users_create_users_table.py`
+
+**Files Modified**:
+
+- `apps/api/alembic/env.py`
+- `apps/api/tests/test_migrations.py`
+- `apps/api/README.md`
+- `.github/workflows/ci.yml`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Generated the revision from SQLAlchemy metadata against a baseline-only acceptance database,
+  then reviewed and hardened it with explicit enum lifecycle, grants, revocations and RLS policy.
+- Kept Alembic as the sole migration history. No parallel Supabase CLI migration was introduced.
+- The runtime policy intentionally permits all rows only to `vgu_buddy_runtime`; FastAPI will derive
+  identity/role from verified application sessions in later tasks. Data API roles remain unable to
+  reach the schema, table or enum.
+- Did not force RLS on the table owner so the privileged Alembic connection can perform controlled
+  migrations. The non-owner runtime role remains subject to the backend-only policy.
+- Added schema-aware, allowlisted reflection. This fixed a real false-positive drift condition where
+  Alembic recorded `0002_users` but `alembic check` could not see the non-default-schema table.
+
+**Verification Results**:
+
+- Focused migration/model/role suite — PASS, 20 tests.
+- Full backend suite — PASS, 58 tests.
+- `ruff check .` — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 25 source files.
+- `python -m build` — PASS; isolated sdist and wheel build completed.
+- Alembic `history` / `heads` — PASS; `0002_users` is the only head in a linear graph.
+- Offline upgrade/downgrade SQL — PASS for enum/table/index creation, security statements and clean
+  table/type removal.
+- Docker Desktop 4.91.0 / Linux Engine 29.8.0 — PASS using `desktop-linux`.
+- PostgreSQL 17.11 live upgrade — PASS; 10 columns, two enum labels, four named constraints and four
+  physical indexes verified.
+- Live security probe — PASS; RLS/policy verified, runtime CRUD and type usage succeeded, while
+  `anon`, `authenticated` and `service_role` had no schema/table/type privileges.
+- Live negative cases — PASS; unknown role and blank hash were rejected.
+- Live downgrade/re-upgrade — PASS; downgrade removed only users/table enum objects and retained the
+  baseline schema/runtime role; re-upgrade restored head and `alembic check` reported no drift.
+- `pip-audit --strict -r requirements.lock` and `npm audit` — PASS, no known vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+
+**Database Changes**: No persistent database was changed. Revision `0002_users` is ready to create
+the private users table when deployed; all live acceptance changes occurred in a disposable Docker
+database and were removed with its isolated volume.
+**Environment Variables Added**: None.
+**Business API Changes**: None.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-009 and does not
+block unrelated authentication foundation work.
+**Next Task**: `AUTH-010 — Create password hashing service (bcrypt)`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3054,7 +3141,7 @@ Done: BE-006                  Create base model class with audit fields (id, cre
 Done: BE-007                  Configure credentialed CORS with explicit frontend origins, methods, and headers [P0; Phase 2; completed 2026-09-16]
 Done: AUTH-007                Define UserRole enum (USER, ADMIN) in models [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-008                Create User database model with role field [P0; Phase 5; completed 2026-09-16]
-Next: AUTH-009                Create Alembic migration for users table [P0; Phase 5]
+Done: AUTH-009                Create Alembic migration for users table [P0; Phase 5; completed 2026-09-16]
 Next: AUTH-010                Create password hashing service (bcrypt) [P0; Phase 5]
 Next: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5]
 Next: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf` endpoint [P0; Phase 5]
@@ -3179,7 +3266,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-009 — Create Alembic migration for users table. BE-001 through BE-007 and AUTH-007 through AUTH-008 are complete; stop before executing AUTH-009 unless it is explicitly requested.**
+**Next implementation task: AUTH-010 — Create password hashing service (bcrypt). BE-001 through BE-007 and AUTH-007 through AUTH-009 are complete; stop before executing AUTH-010 unless it is explicitly requested.**
 
 ---
 

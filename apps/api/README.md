@@ -42,7 +42,7 @@ an accidental cross-origin topology change does not broaden access.
 python -m pip check
 pytest
 ruff check .
-mypy app tests
+mypy app alembic tests
 python -m build --no-isolation
 python -m alembic -c pyproject.toml history
 python -m alembic -c pyproject.toml heads
@@ -98,9 +98,14 @@ to least-privilege `USER`. New rows default to active and unverified; `last_logi
 until a successful login. Role and active-state lookup indexes are declared in metadata, while the
 email unique constraint supplies its own PostgreSQL index instead of creating a duplicate.
 
-The model declaration alone does not change a database. AUTH-009 owns creation of the enum and
-table through a reviewed Alembic migration. Authentication, password hashing, sanitized response
-schemas, cookie/session handling, and route authorization remain in their later tasks.
+Alembic revision `0002_users` creates the enum, table, constraints and indexes. It explicitly keeps
+`PUBLIC` and Supabase Data API roles out, grants the backend runtime role only table CRUD and enum
+usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. The policy is broad
+inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
+no policy or database privileges.
+
+Authentication, password hashing, sanitized response schemas, cookie/session handling, and route
+authorization remain in their later tasks.
 
 ## Local PostgreSQL + pgvector
 
@@ -159,10 +164,17 @@ Run the schema boundary migration with:
 python -m alembic -c pyproject.toml upgrade head
 ```
 
-It creates the non-exposed `app_private` schema, the least-privilege runtime role, and default
-revocations for `PUBLIC`, `anon`, `authenticated`, and `service_role`. Future table migrations must
-keep tables in this schema, explicitly enable appropriate RLS as defense in depth, and test their
-grants. Neither database value may use a `VITE_` prefix or appear in frontend code.
+After applying migrations, verify that the live database matches SQLAlchemy metadata:
+
+```bash
+python -m alembic -c pyproject.toml check
+```
+
+The baseline creates the non-exposed `app_private` schema, the least-privilege runtime role, and
+default revocations for `PUBLIC`, `anon`, `authenticated`, and `service_role`. The users migration
+adds explicit object revocations and RLS as defense in depth. Future table migrations must preserve
+the same private-schema, grant and policy boundary. Neither database value may use a `VITE_` prefix
+or appear in frontend code.
 
 `GET /api/health/database` performs `SELECT 1`, returning `200 {"status":"ok"}` only after a real
 round trip. Missing or unreachable configuration returns a sanitized 503 response.

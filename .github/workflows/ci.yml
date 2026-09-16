@@ -82,7 +82,7 @@ jobs:
 
       - name: Type-check
         working-directory: apps/api
-        run: mypy app tests
+        run: mypy app alembic tests
 
       - name: Run tests
         working-directory: apps/api

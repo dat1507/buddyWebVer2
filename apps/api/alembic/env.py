@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import MutableMapping
+from typing import Literal
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -16,6 +18,35 @@ from app.models import Base
 config = context.config
 
 target_metadata = Base.metadata
+
+type ObjectType = Literal[
+    "schema",
+    "table",
+    "column",
+    "index",
+    "unique_constraint",
+    "foreign_key_constraint",
+    "check_constraint",
+]
+type ParentNameKey = Literal[
+    "schema_name",
+    "table_name",
+    "schema_qualified_table_name",
+]
+
+
+def _include_name(
+    name: str | None,
+    type_: ObjectType,
+    parent_names: MutableMapping[ParentNameKey, str | None],
+) -> bool:
+    """Limit autogenerate reflection to the owned application schema."""
+    if type_ == "schema":
+        return name in {None, target_metadata.schema}
+    if type_ == "table":
+        qualified_name = parent_names.get("schema_qualified_table_name")
+        return name == "alembic_version" or qualified_name in target_metadata.tables
+    return True
 
 
 def _database_url() -> str:
@@ -35,6 +66,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        include_name=_include_name,
     )
 
     with context.begin_transaction():
@@ -43,7 +76,12 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     """Configure and run migrations on a synchronous connection facade."""
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        include_name=_include_name,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
