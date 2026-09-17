@@ -936,7 +936,7 @@ Layer 3: Database Constraints
 | RBAC | `require_role("ADMIN")` FastAPI dependency |
 | IDOR prevention | Always filter queries by `current_user.id` for user routes |
 | Privilege escalation | Role can only be set via DB seed/CLI, never via API |
-| Rate limiting | slowapi: 60 req/min for users, 120 req/min for admins |
+| Rate limiting | slowapi: 120 req/min for USER, 60 req/min for ADMIN (approved quota reversal); shared Redis in production |
 | SQL injection | SQLAlchemy parameterized queries |
 | XSS | React auto-escaping + CSP headers |
 | CSRF | Signed session-bound double-submit token in `X-CSRF-Token`, plus exact Origin/Referer validation; SameSite is defense in depth |
@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending, and AUTH-024 is the next development task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1286,7 +1286,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-017 | Create verified-current-user authentication dependency — ✅ Completed | 2 | AUTH-011, AUTH-009 | P0 |
 | AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) — ✅ Completed | 2 | AUTH-017 | P0 |
 | AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) — ✅ Completed | 2 | AUTH-008, AUTH-010 | P0 |
-| AUTH-020 | Create rate limiting middleware (slowapi) | 2 | BE-001 | P0 |
+| AUTH-020 | Create rate limiting middleware (slowapi) — Implemented; local/live acceptance PASS; production operator gate pending | 2 | BE-001 | P0 |
 | AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
@@ -3712,6 +3712,28 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication core work.
 **Next Task**: `AUTH-020 — Create rate limiting middleware (slowapi)`.
 
+### AUTH-020 — Rate limiting middleware (SlowAPI)
+
+**Status**: Implemented; local/live acceptance PASS; production acceptance pending operator
+configuration (2026-09-17). See PART 25 for the approved detailed contract and acceptance checklist.
+
+- User-approved quotas: USER 120/minute, ADMIN 60/minute, fixed 60-second windows.
+- Explicit ASGI IP gate and persisted-user quota checks cover the five current auth endpoints;
+  safe generic 429/Retry-After, credentialed CORS and uniform 5-failure/15-minute account lockout.
+- Shared TLS Redis is required in production; memory is explicitly local/test only. Missing/unsafe
+  configuration and storage failure produce sanitized 503 with no fallback. No migration/compose
+  change, new public recovery endpoint, production secret generation or external provisioning.
+- Regression security hardening: reject noncanonical base64 CSRF encodings. Original tampering
+  test remains enabled; deterministic pad-bit regression added. Generated valid tokens are unchanged.
+- Full backend 324 tests PASS on Python 3.14 and CI-compatible Python 3.12 (43 AUTH-020 checks plus canonical-CSRF regression); Redis/process/
+  concurrency and real least-privilege PostgreSQL auth/database-health acceptance PASS. Backend
+  lint/format/strict typecheck/build/dependency audit and frontend 80 tests/quality gates PASS.
+- Production Redis URI, real TLS/network access, trusted-proxy allowlist and deployed smoke remain
+  **not verified**. Configure secrets on the server, not in source or chat, before release acceptance.
+- Legacy Gemini: **⚠️ Still pending — revoke before any future Gemini/chatbot integration.**
+
+**Next development task**: `AUTH-024 — Implement session logout endpoint`; not executed by AUTH-020.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -4114,7 +4136,7 @@ Done: AUTH-017                Create verified-current-user authentication depend
 Done: AUTH-016                Create sanitized current-session endpoint [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-020                Create rate limiting middleware (slowapi) [P0; Phase 5]
+Gate: AUTH-020                Implemented; local/live acceptance PASS; production Redis/TLS/ingress smoke pending [P0; Phase 5]
 Next: AUTH-024                Implement session logout endpoint [P0; Phase 5]
 Next: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4]
 Next: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5]
@@ -4227,7 +4249,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-020 — Create rate limiting middleware (slowapi). BE-001 through BE-007 and AUTH-007 through AUTH-019 are complete; stop before executing AUTH-020 unless it is explicitly requested.**
+**Next development task: AUTH-024 — Implement session logout endpoint. AUTH-020 implementation and local/live acceptance are verified; production acceptance remains pending operator-provided Redis/TLS/ingress configuration. Do not execute AUTH-024 unless explicitly requested.**
 
 ---
 
@@ -4389,6 +4411,78 @@ Tasks in this section remain **PLANNED / NOT IMPLEMENTED** unless their own stat
 - [x] Profile absence does not prevent authentication; onboarding readiness is fetched separately by FE-038.
 
 **Out of Scope:** Returning whole profile or modifying AUTH-ARCH-001.
+
+### AUTH-020 — Rate limiting middleware (SlowAPI)
+
+**Task ID:** `AUTH-020`
+
+**Change:** Detailed contract approved during execution; **Status:** Implemented; local/live acceptance PASS; production operator gate pending; **Priority:** P0; **Phase:** 5
+**Dependencies:** BE-001; current AUTH-013/014/015/016 identity and transaction contracts.
+
+**Approved Contract:**
+
+- The user explicitly reversed the historical quotas: **USER = 120 requests/minute; ADMIN = 60
+  requests/minute**. Fixed 60-second windows start on the first counted request; request N passes,
+  N+1 is rejected. Fixed-window boundary bursts are a documented limitation, not a rolling guarantee.
+- Scope: the five implemented auth endpoints (`csrf`, `me`, `register`, `login`, `refresh`), including
+  trailing-slash/mount-prefix forms. Health/docs/unknown routes/OPTIONS are not limited by this task.
+  Password reset is not implemented. Later protected routes must explicitly join the scope.
+- All scoped traffic shares a 120/minute canonical transport-IP gate before validation/CSRF/database.
+  Login after credential verification, `me`, and refresh after current-user reload additionally share
+  the role quota by persisted user UUID. Never use caller-provided role, stale JWT role, session UUID,
+  new login cookie or IP rotation to grant a fresh user quota. No extra identity query on public routes.
+- Only use `request.client.host`; the limiter does not parse arbitrary forwarded headers. Uvicorn's
+  trusted-proxy peer allowlist and real ingress path require deployment verification; no wildcard
+  trust or guessed provider IP ranges. Normalize IPv6 aliases and IPv4-mapped IPv6. Distinct real IPs
+  can distribute anonymous traffic, and shared NAT clients share the IP gate.
+- Five credential failures in a fixed 15-minute failure window trigger a separate 15-minute lockout
+  from the fifth failure. First five responses remain generic 401; subsequent attempts return generic
+  429 before opening the database. Successful login resets failures but never clears an active lock.
+  Apply the same policy to USER/ADMIN/unknown login identifiers to avoid role/account disclosure;
+  invalid CSRF/shape/config/database errors do not count as wrong credentials. Existing admitted
+  concurrent attempts can finish; targeted account denial of service is a known lockout tradeoff.
+- Generic `429 {"detail":"Too many requests. Please try again later."}` plus positive integer
+  `Retry-After`, no-store/no-cache; expose Retry-After via credentialed CORS. No new schema/migration.
+- SlowAPI's public `limiter`/limits backend with an explicit pure-ASGI adapter avoids included-router
+  discovery bypasses on current FastAPI. Redis I/O uses the thread pool with bounded socket timeouts.
+- Shared Redis is required for production; memory is explicitly local/test only. Missing/invalid
+  configuration or storage outage returns sanitized 503 without silent memory fallback. Production
+  defaults to `APP_ENV=production` and requires a server-only TLS `rediss://` URL; Vercel environment
+  markers prohibit memory. All instances must share URI/prefix; separate environments use separate
+  storage/prefixes. Redis needs Lua support, retained TTL counters, sufficient capacity/no eviction.
+- Keep the existing Vercel frontend + separate FastAPI backend architecture. Final Redis credentials,
+  network/TLS, audited proxy allowlist and deployed smoke acceptance are operator-provided release
+  gates. No production secret is generated/guessed or external infrastructure provisioned here.
+
+**Acceptance Criteria:**
+
+- [x] Exact USER 120 / ADMIN 60 quotas derive from current database role, not JWT/input.
+- [x] All current auth routers are actually guarded; unrelated routes/OPTIONS remain unaffected.
+- [x] Generic 429, Retry-After, safe cache/CORS headers; reset and identifier isolation pass.
+- [x] Five wrong/unknown/Admin logins cause uniform 15-minute lockout, with no IP/instance bypass.
+- [x] Valid login/register/me/refresh and cookie/CSRF/transaction regression remain correct.
+- [x] Shared live Redis counters survive worker reconstruction and concurrent admission is atomic.
+- [x] Missing/unsafe config and storage outages fail closed, without credential disclosure/fallback.
+- [x] Full backend/frontend quality gates and dependency/secret review pass.
+- [ ] Operator configures production Redis/TLS/ingress and deployed multi-instance/proxy smoke passes.
+
+**Out of Scope:** Production provisioning/secrets, logout, recovery/unlock, Gemini/chatbot integration.
+
+**Verification evidence (2026-09-17):** Full backend 324 tests PASS on Python 3.14 and 3.12, including 43 AUTH-020
+memory/live Redis/database checks and a deterministic canonical-CSRF regression. Live Redis 8.10.1
+acceptance proves exact role quotas across independent limiter instances and a separate OS process,
+worker reconstruction, 140 concurrent requests admitting exactly 120, and shared account lockout.
+Disposable PostgreSQL 17 acceptance passed Alembic upgrade/check and least-privilege runtime
+registration/login/me/refresh/database health. Ruff lint/format, strict mypy (53 source files), pip
+check, backend sdist/wheel build, pip-audit and frontend format/lint/typecheck/80 tests/build/npm audit
+PASS. Only the existing frontend chunk-size warning remains. No schema/compose/production secret
+change; populated .env files are not committed. Deployed production TLS/proxy/multi-instance smoke
+is **not verified** and remains the sole operator acceptance gate.
+
+**Regression hardening:** A full-suite run exposed an existing intermittent CSRF tampering-test
+failure: noncanonical base64 pad bits could decode to the same signature. Canonical round-trip
+validation now rejects those variants without changing generated valid tokens or the HMAC/CSRF
+architecture; the original test is retained and a deterministic pad-bit test was added.
 
 ### AUTH-024 — Implement session logout endpoint
 

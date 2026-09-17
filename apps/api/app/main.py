@@ -16,6 +16,7 @@ from app.core.config import (
     get_cors_settings,
 )
 from app.core.database import dispose_database_engine
+from app.core.rate_limits import AuthRateLimitMiddleware, close_auth_rate_limiter
 from app.services.csrf import CsrfValidationError
 
 CORS_ALLOWED_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
@@ -27,6 +28,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Release database resources when the API process stops."""
     yield
     await dispose_database_engine()
+    close_auth_rate_limiter()
 
 
 app = FastAPI(
@@ -37,12 +39,14 @@ app = FastAPI(
 )
 
 cors_settings = get_cors_settings()
+app.add_middleware(AuthRateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(cors_settings.allowed_origins),
     allow_credentials=True,
     allow_methods=list(CORS_ALLOWED_METHODS),
     allow_headers=list(CORS_ALLOWED_HEADERS),
+    expose_headers=["Retry-After"],
 )
 
 app.include_router(health_router)

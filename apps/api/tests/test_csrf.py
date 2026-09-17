@@ -258,6 +258,16 @@ def test_verification_rejects_tampered_wrong_key_expired_and_future_tokens() -> 
             verify_csrf_token(token, settings, expected_scope="preauth", now=now)
 
 
+def test_noncanonical_signature_pad_bits_are_always_rejected() -> None:
+    token = create_preauth_csrf_token(_settings(), now=_now())
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    final_index = alphabet.index(token.value[-1])
+    assert final_index % 4 == 0  # A 32-byte SHA-256 signature has two unused base64 pad bits.
+    noncanonical = token.value[:-1] + alphabet[final_index + 1]
+    with pytest.raises(CsrfValidationError, match="^CSRF validation failed\\.$"):
+        verify_csrf_token(noncanonical, _settings(), expected_scope="preauth", now=_now())
+
+
 def test_request_verification_accepts_exact_origin_and_referer_fallback() -> None:
     token = create_preauth_csrf_token(_settings())
 

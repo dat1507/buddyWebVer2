@@ -78,7 +78,11 @@ def _base64url_decode(value: str) -> bytes:
     try:
         encoded = value.encode("ascii")
         padded = encoded + (b"=" * (-len(encoded) % 4))
-        return base64.b64decode(padded, altchars=b"-_", validate=True)
+        decoded = base64.b64decode(padded, altchars=b"-_", validate=True)
+        # validate=True checks the alphabet, not unused pad bits. Reject alternate encodings.
+        if _base64url_encode(decoded) != value:
+            raise CsrfValidationError
+        return decoded
     except (UnicodeEncodeError, binascii.Error, ValueError):
         raise CsrfValidationError from None
 
