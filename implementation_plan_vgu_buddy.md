@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live acceptance PASS; its cross-task frontend cache acceptance awaits AUTH-004/AUTH-021, and AUTH-004 is the next development task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019 and AUTH-004 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live acceptance PASS; its cross-task frontend/cache acceptance awaits AUTH-021, the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1244,7 +1244,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-001 | Create User Login page (/login) | 2 | FE-005, FE-006 | P0 |
 | AUTH-002 | Create User Registration page (/register) | 3 | FE-005, FE-006 | P0 |
 | AUTH-003 | Create Admin Login page (/adminLogin) — distinct visual | 2 | FE-005, FE-006 | P0 |
-| AUTH-004 | Create non-persisted Zustand session store (status, user, role; no tokens) | 2 | FE-001, AUTH-ARCH-001 | P0 |
+| AUTH-004 | Create non-persisted Zustand session store (status, user, role; no tokens) — ✅ COMPLETED | 2 | FE-001, AUTH-ARCH-001 | P0 |
 | AUTH-005 | Create ProtectedRoute component (requires auth) | 2 | AUTH-004, FE-006 | P0 |
 | AUTH-006 | Create RoleGuard component (requires specific role) | 2 | AUTH-005 | P0 |
 
@@ -1290,7 +1290,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
-| AUTH-024 | Implement session logout endpoint — Backend/live acceptance PASS; frontend cache acceptance pending AUTH-004/AUTH-021 | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
+| AUTH-024 | Implement session logout endpoint — Backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021 | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
 | AUTH-025 | Implement authenticated password change endpoint | 2 | AUTH-024, AUTH-010 | P1 |
 
 ### Phase 6: User Dashboard Shell
@@ -2091,6 +2091,49 @@ src/
 - [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)
 - [MDN Fetch credentials](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials)
 - [FastAPI CORS](https://fastapi.tiangolo.com/tutorial/cors/)
+
+### AUTH-004 — Non-persisted Zustand session store
+
+**Status**: COMPLETED (2026-09-17). Contract derived from Phase 4 registry and approved
+AUTH-ARCH-001; detailed operational acceptance is recorded in PART 25. No auth UI wiring performed.
+
+**Implemented**:
+
+- `src/stores/auth-store.ts`: typed status/user/role union, initial neutral `unknown`, atomic
+  `startLoading`, `setAuthenticated`, repeat-safe `clearSession` and neutral `resetSession` actions.
+  Non-authenticated states always clear user/role; role comes only from the validated User DTO.
+- `src/features/auth/session-user.ts`: strict UUID, non-empty email string, USER/ADMIN role and
+  boolean `email_verified`; projects only four scalar fields, copies/freezes User and exposes no
+  raw payload/Zod diagnostics on failure. Invalid input clears the previous identity (fail closed).
+- Zustand **5.0.15** added explicitly, compatible with current React 19.2.8. No persistence/devtools
+  middleware, JWT/CSRF fields, storage/cookie/network side effects, backend/schema/env changes.
+- Colocated validation/store tests use actual Zustand, React hook selectors, all-state transitions,
+  account switching, payload extras, reference mutation, invalid-input sanitization, storage/cookie/
+  IndexedDB/network spies and fresh-module reload with stale Web Storage.
+
+**Verification (2026-09-17)**: 41 AUTH-004 tests; full frontend **121/121 PASS**. Prettier, ESLint,
+strict TypeScript, production build and npm audit (runtime + dev) PASS; existing 513.01 kB chunk
+warning remains. `npm ci` PASS with unchanged lockfile hash. It also reports baseline ESLint 9.39.5
+deprecation: ESLint v9 reached EOL on 2026-08-06 ([official support status](https://eslint.org/version-support/)).
+Track a separate compatible tooling upgrade; no major lint-stack change in AUTH-004, no detected
+npm vulnerabilities. Backend regression **355 PASS, 10 opt-in live checks explicitly skipped** (no DB/Redis
+started for frontend-only work); backend Ruff/strict mypy PASS. No live browser/bootstrap/logout
+acceptance or deployed production verification claimed.
+
+**Boundaries**: This is client presentation, not authorization; backend role/cookie checks remain
+authoritative. Use actions, not native `setState`, for payload mutation. `clearSession` clears only
+the store, not server cookies/session or private query caches. AUTH-021 still owns `/api/auth/me`,
+credentialed transport, single-flight refresh, late-response coordination and integrated logout/
+cache invalidation. AUTH-024's combined frontend AC remains unchecked. Existing access JWT residual
+TTL and AUTH-020 production operator gate are unchanged. Gemini remains
+**⚠️ Still pending — revoke before any future Gemini/chatbot integration.**
+
+**Files**: Created the schema/store and two colocated test files; modified web package/lockfile,
+frontend/API/root READMEs and this plan. Zustand is the only added dependency; no .env/production
+secret change.
+
+**Next development task**: `AUTH-021 — Connect session client, registration, and auth bootstrap`;
+not implemented by AUTH-004.
 
 ---
 
@@ -4182,8 +4225,8 @@ Done: AUTH-016                Create sanitized current-session endpoint [P0; Pha
 Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5; completed 2026-09-17]
 Gate: AUTH-020                Implemented; local/live acceptance PASS; production Redis/TLS/ingress smoke pending [P0; Phase 5]
-Gate: AUTH-024                Backend/live acceptance PASS; frontend cache acceptance pending AUTH-004/AUTH-021 [P0; Phase 5; backend dependency satisfied]
-Next: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4]
+Gate: AUTH-024                Backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021 [P0; Phase 5; backend dependency satisfied]
+Done: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4; completed 2026-09-17]
 Next: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5]
 Next: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4]
 Next: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4]
@@ -4294,7 +4337,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-004 — Create non-persisted Zustand session store. AUTH-024 backend/live acceptance PASS; frontend session/private-cache acceptance remains pending AUTH-004/AUTH-021. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. These release/integration gates do not block AUTH-004 development. Do not execute AUTH-004 unless explicitly requested.**
+**Next development task: AUTH-021 — Connect session client, registration, and auth bootstrap. AUTH-004 is completed. AUTH-024 backend/live acceptance PASS; frontend logout/private-cache integration acceptance remains pending AUTH-021. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. These release/integration gates do not block AUTH-021 development. Do not execute AUTH-021 unless explicitly requested.**
 
 ---
 
@@ -4457,6 +4500,28 @@ Tasks in this section remain **PLANNED / NOT IMPLEMENTED** unless their own stat
 
 **Out of Scope:** Returning whole profile or modifying AUTH-ARCH-001.
 
+### AUTH-004 — Create non-persisted Zustand session store
+
+**Task ID:** `AUTH-004`
+**Status:** COMPLETED (✅) on 2026-09-17; **Priority:** P0; **Phase:** 4
+**Dependencies:** FE-001, AUTH-ARCH-001 (both completed).
+**Goal:** Provide an in-memory presentation of the backend-owned session without token storage.
+**Scope:** Zustand store and shared sanitized User types/validation, ready for AUTH-021 integration.
+
+**Operational Acceptance Criteria** (derived from the registry and AUTH-ARCH-001 before coding):
+
+- [x] Fresh store starts `unknown` with null user/role; explicit loading/authenticated/unauthenticated/reset transitions work. — All-state transition and fresh-module tests PASS.
+- [x] Authenticated state retains only sanitized User fields and role; role updates atomically with User and cannot retain a previous account through supported actions. — USER/ADMIN, switching and subscription tests PASS; malformed data clears previous identity.
+- [x] No JWT, refresh token, password/hash, CSRF or private-profile fields retained; no persistence/storage, cookie or network access. — Payload projection/immutability and storage/cookie/IndexedDB/network checks PASS.
+- [x] React selectors update; clear/reset preserve reusable actions; reload ignores stale Web Storage and requires later `/api/auth/me` bootstrap. — Actual Zustand + React hook and isolated fresh-module tests PASS.
+- [x] Existing UI-only auth/public routes and quality gates remain healthy. — Full frontend 121 tests, format/lint/strict typecheck/build/npm audit PASS; backend regression 355 PASS/10 explicit opt-in skips.
+
+**Out of Scope:** API/client bootstrap, refresh/retry, actual logout/cache invalidation, login wiring,
+route guards, production deployment, Gemini. These remain AUTH-021/022/023/005/006 or existing gates.
+**Evidence:** See PART 18A AUTH-004 record and `apps/web/README.md`; 41 dedicated tests, Zustand
+5.0.15 pinned with lockfile. Store is a client-only SPA singleton, never a backend authorization
+source. No live browser/deployed auth claim. AUTH-024 frontend/cache AC remains pending AUTH-021.
+
 ### AUTH-020 — Rate limiting middleware (SlowAPI)
 
 **Task ID:** `AUTH-020`
@@ -4532,7 +4597,7 @@ architecture; the original test is retained and a deterministic pad-bit test was
 ### AUTH-024 — Implement session logout endpoint
 
 **Task ID:** `AUTH-024`  
-**Change:** New; **Status:** Implemented; backend/live acceptance PASS; frontend acceptance pending AUTH-004/AUTH-021; **Priority:** P0; **Phase:** 5
+**Change:** New; **Status:** Implemented; backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021; **Priority:** P0; **Phase:** 5
 **Goal:** Make the approved logout and wrong-role admin-login flows executable.  
 **Dependencies:** AUTH-015, AUTH-017, AUTH-011A  
 **Scope:** POST /api/auth/logout; revoke refresh session and clear cookies.
@@ -4540,7 +4605,7 @@ architecture; the original test is retained and a deterministic pad-bit test was
 **Acceptance Criteria:**
 
 - [x] CSRF-protected logout revokes the current refresh session and clears auth/CSRF cookies; repeated logout safely clears cookies. — Unit/security and real PostgreSQL/Redis API acceptance PASS.
-- [ ] A revoked refresh token cannot mint another session; frontend clears session and private query caches. — Backend replay rejection PASS for stale and latest tokens, including both race orders. **Frontend portion NOT IMPLEMENTED/NOT VERIFIED**, tracked in AUTH-004/AUTH-021; retain this combined AC unchecked until integrated acceptance passes.
+- [ ] A revoked refresh token cannot mint another session; frontend clears session and private query caches. — Backend replay rejection PASS for stale and latest tokens, including both race orders. AUTH-004's in-memory clear action PASS; **actual logout/client/private-cache integration NOT IMPLEMENTED/NOT VERIFIED**, tracked in AUTH-021. Retain this combined AC unchecked until integrated acceptance passes.
 
 **Out of Scope:** New authentication transport, logout UI redesign.
 

@@ -111,7 +111,7 @@ roles receive no table access or policy.
 
 The public registration, login, refresh, current-session and logout endpoints are implemented below,
 together with verified-current-user and explicit role dependencies for protected routes. Frontend
-session-store/client integration remains owned by AUTH-004/AUTH-021.
+session store is implemented in AUTH-004; client/bootstrap/cache integration remains owned by AUTH-021.
 
 ## Password hashing
 
@@ -293,8 +293,10 @@ access JWT can remain usable until its 15-minute TTL plus 30-second verifier ske
 does not provide immediate access-token denylisting. An in-flight refresh response can also arrive
 after logout and set cookies, although its refresh family is revoked. AUTH-021 must coordinate
 refresh/logout/account switches and clear private query caches; browser end-to-end acceptance and
-the wrong-role admin-login UI flow are **not implemented/verified by this backend task**. No new
-transport, schema migration, runtime environment variable or dependency was added.
+the wrong-role admin-login UI flow are **not implemented/verified by this backend task**. AUTH-004
+now supplies the tested in-memory clear action; actual logout/client/private-cache integration
+remains pending AUTH-021. No new transport, schema migration, runtime environment variable or
+backend dependency was added by logout.
 
 Opt-in live acceptance requires **disposable** PostgreSQL (migrated to head with runtime-only
 credentials) and Redis. Never use development/production data: these tests commit test accounts.

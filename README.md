@@ -70,7 +70,7 @@ the repository does not contain a Supabase Local stack.
 
 ## Tech Stack
 
-- Frontend: React 19, TypeScript, Vite, React Router, TanStack Query, Tailwind CSS, i18next.
+- Frontend: React 19, TypeScript, Vite, React Router, TanStack Query, Zustand, Tailwind CSS, i18next.
 - Backend: Python 3.12+, FastAPI, SQLAlchemy 2, asyncpg, Alembic, Pydantic.
 - Database: PostgreSQL 17; the local image includes pgvector 0.8.6.
 - Testing and quality: Vitest, Testing Library, ESLint, Prettier, pytest, Ruff, mypy, pip-audit.
@@ -204,9 +204,10 @@ resources must be provisioned and verified before they can be documented as live
 
 Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-019
 are complete. AUTH-020 rate limiting and AUTH-024 backend logout have passed local/live acceptance.
-Production Redis/TLS/ingress smoke remains pending for AUTH-020; frontend logout/session/private-cache
-acceptance remains pending AUTH-004/AUTH-021. The next development task is AUTH-004, the non-persisted
-frontend session store. No deployed production or browser end-to-end authentication is claimed.
+AUTH-004's non-persisted frontend session store is complete (41 dedicated checks; frontend 121 tests
+PASS). Production Redis/TLS/ingress smoke remains pending for AUTH-020; frontend logout/bootstrap/
+private-cache acceptance remains pending AUTH-021, the next development task. No deployed production
+or browser end-to-end authentication is claimed.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.
