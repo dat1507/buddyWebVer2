@@ -104,8 +104,13 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-The public registration and login endpoints are implemented below. Refresh-session persistence,
-sanitized current-user responses, and route authorization remain in their later tasks.
+Revision `0003_refresh_sessions` adds backend-only `app_private.refresh_sessions`. Each row represents
+one session family and stores its current refresh `jti`, owning User, expiry, and nullable revocation
+time. The migration applies the same runtime-only privileges and RLS boundary; browser/Data API
+roles receive no table access or policy.
+
+The public registration, login, and refresh endpoints are implemented below. Sanitized
+current-user responses, logout, and protected-route authorization remain in their later tasks.
 
 ## Password hashing
 
@@ -134,10 +139,10 @@ unknown accounts, rejects inactive and soft-deleted users with the same generic
 cost-12 dummy hash keeps unknown-account failures on the expensive bcrypt path. It returns the
 database User and its actual role; it neither accepts an expected login-page role nor creates JWTs.
 
-Both registration and authentication services flush but deliberately do not commit. AUTH-013 and
-AUTH-014 own their request transactions; AUTH-015 owns the new refresh-session persistence needed
-for atomic rotation and reuse detection. `verify_user_role` checks the current persisted
-active/deleted state and exact `USER` or `ADMIN` role, returning only the generic
+Registration and authentication services flush but deliberately do not commit. AUTH-013 and
+AUTH-014 own their request transactions, while login now stages its initial refresh-session row in
+the same transaction. `verify_user_role` checks the current persisted active/deleted state and exact
+`USER` or `ADMIN` role, returning only the generic
 `Insufficient permissions.` failure. AUTH-017/AUTH-018
 remain responsible for loading the current User from a verified access-cookie session on protected
 requests.
@@ -163,12 +168,12 @@ named `_dev` cookies and is not valid for production. Cookie-setting and clearin
 `Cache-Control: no-store`.
 
 `prepare_refresh_rotation` verifies a refresh JWT and returns the consumed `jti` plus a replacement
-pair with the same session ID and fresh access/refresh `jti` values. This is intentionally only the
-cryptographic half of rotation. AUTH-015 must atomically compare and consume the persisted refresh
-`jti` before setting replacement cookies; a mismatch is reuse and must revoke the session family.
-JWT signature validity alone does not provide logout, revocation, or replay detection. AUTH-017
-must reload the active user and role from the database rather than treating the access-token role
-as the final authorization source.
+pair with the same session ID and fresh access/refresh `jti` values. `rotate_refresh_session` adds
+the stateful half: it row-locks the session family, compares the presented `jti`, and atomically
+replaces it on success. A mismatch is reuse and permanently timestamps the family as revoked. It
+also reloads the active, non-deleted User and current database role before issuing a replacement,
+so role changes are reflected without trusting the old access-token role. AUTH-017 must still load
+authoritative User state on every protected request.
 
 ## CSRF protection
 
@@ -223,9 +228,29 @@ are set only as HttpOnly cookies and never appear in JSON. The response contains
 `id`, canonical `email`, `role`, and `email_verified` fields plus a new readable CSRF value; the
 matching CSRF cookie is rotated from pre-auth scope to an HMAC session-bound scope.
 
-AUTH-014 deliberately does not claim durable logout, revocation, or refresh-token reuse detection.
-AUTH-015 must add and atomically maintain the refresh-session record before the refresh endpoint is
-usable, and AUTH-017/AUTH-016 must verify the access cookie and expose the current-session endpoint.
+Login persists the initial refresh-session family in the same transaction as `last_login`; cookies
+are attached only after that commit. AUTH-017/AUTH-016 must still verify the access cookie and expose
+the current-session endpoint, while AUTH-024 owns explicit logout and cookie clearing.
+
+## Refresh rotation
+
+`POST /api/auth/refresh` has no request body. It reads the environment-specific HttpOnly refresh
+cookie and requires the matching session-scoped CSRF header/cookie plus exact trusted source-origin
+evidence. Missing, malformed, expired, revoked, wrong-user, and reused refresh credentials all fail
+with the same no-store `401 {"detail":"Session is invalid or expired."}` response. Invalid CSRF fails with
+the shared sanitized `403` before a database session is opened.
+
+After cryptographic verification, the endpoint row-locks the persisted session family. Only the
+currently stored refresh `jti` may rotate it; success replaces that value and expiry atomically,
+commits, then sets fresh access/refresh cookies and a fresh session-bound CSRF context. The JSON
+response contains only the current sanitized User and readable CSRF value. JWTs remain cookie-only.
+Presenting an older valid refresh token records `revoked_at` and commits family-wide revocation, so
+even the newest token from that family is rejected afterward.
+
+Clients must single-flight refresh requests. Two concurrent requests with the same token are not
+both legitimate rotations: after one consumes the `jti`, the second is treated as reuse and revokes
+the family. AUTH-021 owns that frontend coordination. AUTH-024 later adds explicit logout and cookie
+clearing; a failed refresh does not claim logout behavior.
 
 ## Local PostgreSQL + pgvector
 

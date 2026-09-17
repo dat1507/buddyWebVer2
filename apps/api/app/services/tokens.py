@@ -309,6 +309,11 @@ def _cookie_names(settings: AuthTokenSettings) -> tuple[str, str]:
     return DEVELOPMENT_ACCESS_COOKIE_NAME, DEVELOPMENT_REFRESH_COOKIE_NAME
 
 
+def refresh_cookie_name(settings: AuthTokenSettings) -> str:
+    """Return the environment-appropriate HttpOnly refresh-cookie name."""
+    return _cookie_names(settings)[1]
+
+
 def _mark_auth_response_private(response: Response) -> None:
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"

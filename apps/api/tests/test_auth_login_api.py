@@ -23,7 +23,7 @@ from app.core.config import (
 )
 from app.core.database import get_database_session
 from app.main import app
-from app.models import User, UserRole
+from app.models import RefreshSession, User, UserRole
 from app.schemas.auth import LoginRequest
 from app.services.csrf import (
     CSRF_HEADER_NAME,
@@ -181,7 +181,13 @@ async def test_login_sets_cookie_only_tokens_and_returns_a_sanitized_real_user(
     assert TEST_PASSWORD_HASH not in response.text
     assert user.last_login is not None
     assert user.last_login.tzinfo is not None
-    mock.flush.assert_awaited_once_with()
+    assert mock.flush.await_count == 2
+    persisted_session = cast(RefreshSession, mock.add.call_args.args[0])
+    assert persisted_session.id == access_claims.session_id
+    assert persisted_session.user_id == TEST_USER_ID
+    assert persisted_session.refresh_token_id == refresh_claims.token_id
+    assert persisted_session.expires_at == refresh_claims.expires_at
+    assert persisted_session.revoked_at is None
     mock.commit.assert_awaited_once_with()
     mock.rollback.assert_not_awaited()
 

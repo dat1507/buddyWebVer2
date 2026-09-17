@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-014 are recorded complete; AUTH-015 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-015 are recorded complete; AUTH-017 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1279,7 +1279,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-012 | Create auth service (register, login, verify role) — ✅ Completed | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
 | AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) — ✅ Completed | 2 | AUTH-012, AUTH-011A | P0 |
 | AUTH-014 | Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) — ✅ Completed | 2 | AUTH-012, AUTH-011A | P0 |
-| AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection | 2 | AUTH-011, AUTH-011A | P0 |
+| AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection — ✅ Completed | 2 | AUTH-011, AUTH-011A | P0 |
 | AUTH-016 | Create sanitized current-session endpoint | 1 | AUTH-017 | P0 |
 | AUTH-017 | Create verified-current-user authentication dependency | 2 | AUTH-011, AUTH-009 | P0 |
 | AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) | 2 | AUTH-017 | P0 |
@@ -3270,6 +3270,114 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication core work.
 **Next Task**: `AUTH-015 — Create CSRF-protected POST /api/auth/refresh endpoint with rotation/reuse detection`.
 
+### AUTH-015 — Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection
+
+**Status**: Completed (✅) on 2026-09-17
+**Objective**: Make refresh credentials one-use and server-authoritative by persisting each session
+family's current refresh identifier, rotating it atomically, and revoking the family when an older
+valid token is presented again.
+
+The registry supplied the task title, dependencies and AUTH-ARCH-001 cookie transport contract. The
+operational criteria below make transaction ownership, concurrency, authoritative role reload,
+generic failure behavior and the boundary with logout explicit.
+
+**Operational Acceptance Criteria**:
+
+- [x] Login persists one `app_private.refresh_sessions` row in the same transaction as `last_login`.
+  The row uses JWT `sid` as its family ID and stores the owning User, current refresh `jti`, expiry,
+  and nullable revocation timestamp; no raw token is persisted.
+- [x] `POST /api/auth/refresh` accepts no body and reads only the environment-specific HttpOnly
+  refresh cookie. It verifies the refresh JWT before opening the database dependency, then requires
+  a matching session-scoped CSRF cookie/header and exact trusted Origin/Referer.
+- [x] Rotation row-locks the session family, accepts only its current `jti`, reloads the active,
+  non-deleted User and current database role, and atomically replaces the `jti` and expiry while
+  preserving the `sid`.
+- [x] Presenting an older valid refresh token is reuse: the endpoint commits `revoked_at` for the
+  entire family and returns the same no-store generic `401` as missing, malformed, expired,
+  already-revoked, wrong-user, inactive-user and deleted-user session failures.
+- [x] Successful rotation commits before setting a fresh 15-minute access cookie, seven-day refresh
+  cookie, and new HMAC session-bound CSRF context. JSON contains only the sanitized current User and
+  readable CSRF value; no JWT or password material is exposed.
+- [x] Commit failures roll back and set no replacement cookies. Duplicate concurrent refreshes are
+  intentionally not both accepted: clients must single-flight refresh, which remains AUTH-021.
+- [x] Alembic revision `0003_refresh_sessions` creates the foreign key, unique current-`jti`
+  constraint and lookup indexes, revokes `PUBLIC`/Data API access, and grants only the backend
+  runtime role through RLS. Upgrade/downgrade/re-upgrade succeeds on PostgreSQL 17.
+- [x] Focused unit/API/migration tests, full regression and disposable live PostgreSQL acceptance
+  prove initial persistence, successful rotation, role refresh, old-token reuse revocation, and
+  rejection of the newest token after family revocation.
+
+**Files Created**:
+
+- `apps/api/alembic/versions/0003_refresh_sessions.py`
+- `apps/api/app/models/refresh_session.py`
+- `apps/api/app/services/refresh_sessions.py`
+- `apps/api/tests/test_auth_refresh_api.py`
+- `apps/api/tests/test_refresh_session_model.py`
+- `apps/api/tests/test_refresh_sessions.py`
+
+**Files Modified**:
+
+- `apps/api/app/api/auth.py`
+- `apps/api/app/models/__init__.py`
+- `apps/api/app/schemas/auth.py`
+- `apps/api/app/schemas/__init__.py`
+- `apps/api/app/services/tokens.py`
+- `apps/api/app/services/__init__.py`
+- `apps/api/tests/test_auth_login_api.py`
+- `apps/api/tests/test_migrations.py`
+- `apps/api/README.md`
+- `README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- The database row is the replay authority; JWT signature validity alone does not prove freshness.
+  `SELECT ... FOR UPDATE` serializes one family so a consumed `jti` cannot be rotated twice.
+- Reuse revocation is deliberately committed rather than rolled back with the `401`. Once reuse is
+  detected, every token in that family remains invalid, including a newer token already returned by
+  a concurrent request.
+- Refresh tokens omit role. Rotation reloads the User under lock and supplies the persisted role to
+  the replacement access token. AUTH-017 will still reload User state on protected requests rather
+  than treating that access claim as final authorization.
+- Failed refresh does not claim logout or clear cookies. AUTH-024 owns explicit family revocation
+  and matching cookie clearing; AUTH-021 owns frontend single-flight and private-cache handling.
+
+**Verification Results**:
+
+- Focused login/refresh/model/service/migration suite — PASS, 58 tests.
+- Full backend suite — PASS, 234 tests.
+- `ruff check .` and Ruff format checks for all AUTH-015 Python files — PASS. The repository-wide
+  format-only check still reports seven historical out-of-scope files; none was modified.
+- `mypy app alembic tests` — PASS, strict mode over 43 source files.
+- Locked dependency consistency and `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel contain the refresh model, service,
+  endpoint and tests.
+- Alembic `history` / `heads` — PASS; `0003_refresh_sessions` is the only head in a linear graph.
+- Docker Desktop 4.91.0 / Linux Engine 29.8.0 / Compose 5.5.1 — PASS on `desktop-linux`; current
+  Compose configuration validates successfully.
+- Disposable PostgreSQL 17 live acceptance — PASS: healthy container, upgrade to `0003`, runtime
+  connection, login family persistence, successful rotation with the same `sid` and new `jti`/CSRF,
+  old-token reuse `401` with persisted revocation, newest-token rejection, downgrade to `0002`,
+  re-upgrade to head, and complete isolated container/network/volume cleanup.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern and AUTH-015 temporary-file scans — PASS.
+
+**Database Changes**: Added Alembic revision `0003_refresh_sessions` and the backend-only
+`app_private.refresh_sessions` table. No persistent development database was changed; live checks
+used and removed an isolated Compose volume.
+**Environment Variables Added**: None; existing database, JWT, CSRF, cookie and CORS contracts are
+reused.
+**Business API Changes**: Added CSRF-protected `POST /api/auth/refresh`; success returns a sanitized
+User/session-CSRF payload and rotates cookie-only JWTs.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-015 and does not
+block unrelated authentication core work.
+**Next Task**: `AUTH-017 — Create verified-current-user authentication dependency`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3694,7 +3802,7 @@ Done: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf
 Done: AUTH-012                Create auth service (register, login, verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-013                Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-014                Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection [P0; Phase 5]
+Done: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection [P0; Phase 5; completed 2026-09-17]
 Next: AUTH-017                Create verified-current-user authentication dependency [P0; Phase 5]
 Next: AUTH-016                Create sanitized current-session endpoint [P0; Phase 5]
 Next: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5]
@@ -3812,7 +3920,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-015 — Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection. BE-001 through BE-007 and AUTH-007 through AUTH-014 are complete; stop before executing AUTH-015 unless it is explicitly requested.**
+**Next implementation task: AUTH-017 — Create verified-current-user authentication dependency. BE-001 through BE-007 and AUTH-007 through AUTH-015 are complete; stop before executing AUTH-017 unless it is explicitly requested.**
 
 ---
 

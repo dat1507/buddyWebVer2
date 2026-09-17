@@ -1,5 +1,6 @@
 """Public authentication transport endpoints."""
 
+from dataclasses import dataclass, field
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -16,6 +17,7 @@ from app.schemas.auth import (
     CsrfTokenResponse,
     LoginRequest,
     LoginResponse,
+    RefreshResponse,
     RegistrationRequest,
     RegistrationResponse,
     SanitizedUserResponse,
@@ -33,9 +35,30 @@ from app.services.csrf import (
     set_csrf_cookie,
     verify_csrf_request,
 )
-from app.services.tokens import create_token_pair, set_auth_cookies
+from app.services.refresh_sessions import (
+    RefreshSessionError,
+    RefreshSessionRevokedError,
+    create_refresh_session,
+    rotate_refresh_session,
+)
+from app.services.tokens import (
+    RefreshTokenClaims,
+    TokenValidationError,
+    create_token_pair,
+    refresh_cookie_name,
+    set_auth_cookies,
+    verify_refresh_token,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+
+@dataclass(frozen=True, slots=True)
+class RefreshRequestContext:
+    """Cryptographically trusted refresh JWT and its session-bound CSRF context."""
+
+    refresh_token: str = field(repr=False)
+    claims: RefreshTokenClaims
 
 
 def require_preauth_csrf(
@@ -44,6 +67,33 @@ def require_preauth_csrf(
 ) -> CsrfTokenClaims:
     """Require a trusted origin and matching signed pre-auth cookie/header token."""
     return verify_csrf_request(request, settings, expected_scope="preauth")
+
+
+def require_refresh_context(
+    request: Request,
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+) -> RefreshRequestContext:
+    """Require one valid refresh cookie and matching session-bound CSRF evidence."""
+    refresh_token = request.cookies.get(refresh_cookie_name(token_settings))
+    try:
+        if refresh_token is None:
+            raise TokenValidationError
+        claims = verify_refresh_token(refresh_token, token_settings)
+    except TokenValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from None
+
+    verify_csrf_request(
+        request,
+        csrf_settings,
+        expected_scope="session",
+        session_id=claims.session_id,
+    )
+    return RefreshRequestContext(refresh_token=refresh_token, claims=claims)
 
 
 @router.get("/csrf", response_model=CsrfTokenResponse)
@@ -101,6 +151,7 @@ async def login_account(
         user = await authenticate_user(session, payload.email, payload.password)
         token_pair = create_token_pair(user.id, user.role, token_settings)
         session_csrf = create_session_csrf_token(token_pair.session_id, csrf_settings)
+        await create_refresh_session(session, user, token_pair)
         await session.commit()
     except AuthenticationError as error:
         await session.rollback()
@@ -117,5 +168,56 @@ async def login_account(
     set_csrf_cookie(response, session_csrf, csrf_settings)
     return LoginResponse(
         user=SanitizedUserResponse.model_validate(user),
+        csrf_token=session_csrf.value,
+    )
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+async def refresh_session(
+    response: Response,
+    context: Annotated[RefreshRequestContext, Depends(require_refresh_context)],
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> RefreshResponse:
+    """Atomically rotate one refresh token and reject reuse of an older family member."""
+    try:
+        rotation = await rotate_refresh_session(
+            session,
+            context.refresh_token,
+            context.claims,
+            token_settings,
+        )
+        session_csrf = create_session_csrf_token(
+            rotation.token_pair.session_id,
+            csrf_settings,
+        )
+        await session.commit()
+    except RefreshSessionRevokedError as error:
+        try:
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except RefreshSessionError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    set_auth_cookies(response, rotation.token_pair, token_settings)
+    set_csrf_cookie(response, session_csrf, csrf_settings)
+    return RefreshResponse(
+        user=SanitizedUserResponse.model_validate(rotation.user),
         csrf_token=session_csrf.value,
     )

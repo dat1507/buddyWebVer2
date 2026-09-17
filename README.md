@@ -28,10 +28,12 @@ Implemented:
   primitives, and a signed double-submit CSRF bootstrap endpoint.
 - CSRF-protected registration and login endpoints. Login returns a sanitized User and establishes
   access/refresh JWTs only in HttpOnly cookies with a session-bound CSRF context.
+- Persistent refresh-session state plus a CSRF-protected refresh endpoint with atomic token
+  rotation and session-family revocation when an old refresh token is reused.
 
 Not implemented yet:
 
-- Refresh/logout/current-session endpoints and persistent refresh-session rotation/revocation.
+- Logout/current-session endpoints and frontend session integration.
 - Frontend registration/login integration and authenticated session bootstrap.
 - Protected User/Admin routes backed by server authorization.
 - Profile, event-management, matching, notification, or AI business APIs.
@@ -197,9 +199,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-014
-are complete. The next planned backend authentication task is AUTH-015, which adds persisted
-refresh-session rotation and reuse detection.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-015
+are complete. The next planned backend authentication task is AUTH-017, which establishes the
+verified-current-user dependency for protected APIs.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

@@ -39,11 +39,14 @@ def test_sqlalchemy_major_version_is_two() -> None:
 def test_alembic_script_directory_is_loadable() -> None:
     script_directory = ScriptDirectory.from_config(migration_config())
     user_revision = script_directory.get_revision("0002_users")
+    refresh_revision = script_directory.get_revision("0003_refresh_sessions")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0002_users"]
+    assert script_directory.get_heads() == ["0003_refresh_sessions"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
+    assert refresh_revision is not None
+    assert refresh_revision.down_revision == "0002_users"
 
 
 def test_database_configuration_is_deferred() -> None:
@@ -75,26 +78,41 @@ def test_offline_upgrade_renders_private_schema_boundary(
     assert "constraint ck_users_email_not_blank" in rendered_sql
     assert "constraint ck_users_password_hash_not_empty" in rendered_sql
     assert "create index ix_users_role on app_private.users (role)" in rendered_sql
-    assert (
-        "create index ix_users_is_active on app_private.users (is_active)"
-        in rendered_sql
-    )
+    assert "create index ix_users_is_active on app_private.users (is_active)" in rendered_sql
     assert "revoke all on table app_private.users from public" in rendered_sql
     assert "revoke all on type app_private.user_role from public" in rendered_sql
     assert (
         "grant select, insert, update, delete on table app_private.users "
-        "to vgu_buddy_runtime"
-        in rendered_sql
+        "to vgu_buddy_runtime" in rendered_sql
     )
-    assert (
-        "grant usage on type app_private.user_role to vgu_buddy_runtime"
-        in rendered_sql
-    )
+    assert "grant usage on type app_private.user_role to vgu_buddy_runtime" in rendered_sql
     assert "alter table app_private.users enable row level security" in rendered_sql
     assert "create policy users_backend_access" in rendered_sql
     assert "to vgu_buddy_runtime" in rendered_sql
     assert "using (true)" in rendered_sql
     assert "with check (true)" in rendered_sql
+    assert "create table app_private.refresh_sessions" in rendered_sql
+    assert "constraint pk_refresh_sessions primary key (id)" in rendered_sql
+    assert (
+        "constraint uq_refresh_sessions_refresh_token_id unique (refresh_token_id)" in rendered_sql
+    )
+    assert "constraint fk_refresh_sessions_user_id_users" in rendered_sql
+    assert "references app_private.users (id) on delete cascade" in rendered_sql
+    assert (
+        "create index ix_refresh_sessions_user_id "
+        "on app_private.refresh_sessions (user_id)" in rendered_sql
+    )
+    assert (
+        "create index ix_refresh_sessions_expires_at "
+        "on app_private.refresh_sessions (expires_at)" in rendered_sql
+    )
+    assert "revoke all on table app_private.refresh_sessions from public" in rendered_sql
+    assert (
+        "grant select, insert, update, delete on table app_private.refresh_sessions "
+        "to vgu_buddy_runtime" in rendered_sql
+    )
+    assert "alter table app_private.refresh_sessions enable row level security" in rendered_sql
+    assert "create policy refresh_sessions_backend_access" in rendered_sql
 
 
 def test_offline_user_downgrade_removes_table_and_enum(
@@ -118,6 +136,31 @@ def test_offline_user_downgrade_removes_table_and_enum(
     assert "drop index app_private.ix_users_is_active" in rendered_sql
     assert "drop table app_private.users" in rendered_sql
     assert "drop type app_private.user_role" in rendered_sql
+
+
+def test_offline_refresh_session_downgrade_removes_policy_indexes_and_table(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, migration_test_url())
+    get_migration_database_settings.cache_clear()
+
+    try:
+        command.downgrade(
+            migration_config(),
+            "0003_refresh_sessions:0002_users",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    rendered_sql = capsys.readouterr().out.lower()
+    assert (
+        "drop policy refresh_sessions_backend_access on app_private.refresh_sessions"
+        in rendered_sql
+    )
+    assert "drop index app_private.ix_refresh_sessions_expires_at" in rendered_sql
+    assert "drop index app_private.ix_refresh_sessions_user_id" in rendered_sql
+    assert "drop table app_private.refresh_sessions" in rendered_sql
 
 
 def test_alembic_cli_reads_pyproject_configuration() -> None:

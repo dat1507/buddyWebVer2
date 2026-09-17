@@ -85,3 +85,10 @@ class LoginResponse(BaseModel):
 
     user: SanitizedUserResponse
     csrf_token: str = Field(repr=False)
+
+
+class RefreshResponse(BaseModel):
+    """Successful rotation payload with current user state and no JWT material."""
+
+    user: SanitizedUserResponse
+    csrf_token: str = Field(repr=False)
