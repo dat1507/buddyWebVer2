@@ -280,6 +280,31 @@ current User with the wrong role receives the separate generic no-store
 `403 Insufficient permissions.` response without exposing either role. A database role change is
 effective on the next protected request even while the access token still contains an older role.
 
+## Admin seed CLI
+
+Admin accounts cannot self-register and no public API accepts a role. After migrations are applied,
+run the operational CLI from `apps/api` with the least-privilege `DATABASE_URL` configured:
+
+```bash
+# Recommended for an operator: hidden prompt plus confirmation.
+python -m app.cli create-admin --email admin@vgu.edu.vn
+
+# Recommended for non-interactive deployment: one password line on standard input.
+printf '%s\n' "$ADMIN_SEED_PASSWORD" | python -m app.cli create-admin \
+  --email admin@vgu.edu.vn --password-stdin
+```
+
+`--password <value>` remains supported for the documented deployment contract, but a hidden prompt
+or standard input is safer because command-line arguments may appear in shell history and process
+listings. The password must contain at least 15 characters and at most 72 UTF-8 bytes. It is hashed
+with bcrypt cost 12; the CLI never logs it.
+
+The command canonicalizes the email and creates exactly one active, email-verified `ADMIN` in a
+single transaction. Duplicate addresses fail without changing, promoting, reactivating, or
+resetting an existing account. Database failures are rolled back and reported without connection
+details. Automatic `INITIAL_ADMIN_*` startup seeding is not implemented by AUTH-019 and the
+application never creates an Admin during API startup.
+
 ## Current session
 
 `GET /api/auth/me` restores browser session state through `require_auth`. It is a safe, read-only

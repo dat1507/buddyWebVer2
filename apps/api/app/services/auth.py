@@ -11,10 +11,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User, UserRole
-from app.services.passwords import hash_password, verify_password
+from app.services.passwords import PasswordHashingError, hash_password, verify_password
 
 MAX_EMAIL_LENGTH: Final = 254
 MAX_EMAIL_LOCAL_PART_LENGTH: Final = 64
+MIN_ADMIN_PASSWORD_CHARACTERS: Final = 15
 POSTGRES_UNIQUE_VIOLATION: Final = "23505"
 
 _EMAIL_LOCAL_PART_PATTERN: Final = re.compile(r"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$")
@@ -31,6 +32,10 @@ class EmailValidationError(ValueError):
 
 class AccountRegistrationError(ValueError):
     """Raised generically when a new account cannot be registered."""
+
+
+class AdminCreationError(ValueError):
+    """Raised without reflecting credentials when an Admin cannot be created."""
 
 
 class AuthenticationError(ValueError):
@@ -105,6 +110,38 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
         await session.rollback()
         if _postgres_sqlstate(error) == POSTGRES_UNIQUE_VIOLATION:
             raise AccountRegistrationError("Account registration failed.") from None
+        raise
+    return user
+
+
+async def create_admin(session: AsyncSession, email: str, password: str) -> User:
+    """Stage one verified ADMIN for a trusted CLI transaction without committing it."""
+    try:
+        canonical_email = canonicalize_email(email)
+        if len(password) < MIN_ADMIN_PASSWORD_CHARACTERS:
+            raise AdminCreationError(
+                f"Admin password must contain at least {MIN_ADMIN_PASSWORD_CHARACTERS} characters."
+            )
+        password_hash = hash_password(password)
+    except EmailValidationError as error:
+        raise AdminCreationError(str(error)) from None
+    except PasswordHashingError as error:
+        raise AdminCreationError(str(error)) from None
+
+    user = User(
+        email=canonical_email,
+        password_hash=password_hash,
+        role=UserRole.ADMIN,
+        is_active=True,
+        email_verified=True,
+    )
+    session.add(user)
+    try:
+        await session.flush()
+    except IntegrityError as error:
+        await session.rollback()
+        if _postgres_sqlstate(error) == POSTGRES_UNIQUE_VIOLATION:
+            raise AdminCreationError("Admin account could not be created.") from None
         raise
     return user
 

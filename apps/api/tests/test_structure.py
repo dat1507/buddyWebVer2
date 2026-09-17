@@ -9,6 +9,7 @@ import pytest
 @pytest.mark.parametrize(
     "module_name",
     (
+        "app.cli",
         "app.api",
         "app.core",
         "app.models",

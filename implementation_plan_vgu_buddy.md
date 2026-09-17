@@ -963,15 +963,17 @@ Layer 3: Database Constraints
 **Recommended approach**: CLI seed command during deployment.
 
 ```bash
-# Create initial admin (run once during deployment)
-python -m app.cli create-admin --email admin@vgu.edu.vn --password <secure>
+# Recommended hidden prompt (run once during deployment)
+python -m app.cli create-admin --email admin@vgu.edu.vn
 
-# Or via environment variable for first boot
-INITIAL_ADMIN_EMAIL=admin@vgu.edu.vn
-INITIAL_ADMIN_PASSWORD=<secure>
+# Non-interactive deployment
+printf '%s\n' "$ADMIN_SEED_PASSWORD" | python -m app.cli create-admin \
+  --email admin@vgu.edu.vn --password-stdin
 ```
 
-The app checks on startup: if no ADMIN exists and env vars are set, create one. This is simple, secure, and appropriate for a student project. Future expansion can add admin invitation flows.
+AUTH-019 implements only this explicit operator command. The API does not auto-create an Admin at
+startup and does not read `INITIAL_ADMIN_*`; any future first-boot bootstrap or invitation flow
+requires its own security contract and task.
 
 ### GDPR Compliance
 
@@ -1082,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-018 are recorded complete; AUTH-019 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1283,7 +1285,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-016 | Create sanitized current-session endpoint — ✅ Completed | 1 | AUTH-017 | P0 |
 | AUTH-017 | Create verified-current-user authentication dependency — ✅ Completed | 2 | AUTH-011, AUTH-009 | P0 |
 | AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) — ✅ Completed | 2 | AUTH-017 | P0 |
-| AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) | 2 | AUTH-008, AUTH-010 | P0 |
+| AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) — ✅ Completed | 2 | AUTH-008, AUTH-010 | P0 |
 | AUTH-020 | Create rate limiting middleware (slowapi) | 2 | BE-001 | P0 |
 | AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
@@ -3626,6 +3628,90 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication core work.
 **Next Task**: `AUTH-019 — Create admin seed CLI command (python -m app.cli create-admin)`.
 
+### AUTH-019 — Create admin seed CLI command (`python -m app.cli create-admin`)
+
+**Status**: Completed (✅) on 2026-09-17
+**Objective**: Provide a trusted, explicit deployment command that creates an initial Admin without
+exposing any public role-assignment API or silently modifying an existing account.
+
+**Operational Acceptance Criteria**:
+
+- [x] `python -m app.cli create-admin --email <email>` uses a hidden password prompt plus
+  confirmation. `--password-stdin` supports non-interactive secret delivery; the planned
+  `--password` form remains compatible but is documented as less safe for shell history/processes.
+- [x] The command uses only server-side `DATABASE_URL`, canonicalizes the email, requires at least
+  15 characters and at most 72 UTF-8 bytes, then hashes the exact password with bcrypt cost 12.
+- [x] A successful transaction creates one `ADMIN` with `is_active=true`,
+  `email_verified=true`, no deletion timestamp and no login/session/token side effect.
+- [x] The service flushes but does not commit; the CLI owns the transaction, commits once on
+  success, rolls back commit failures and disposes the process engine in all outcomes.
+- [x] Duplicate addresses fail closed with a sanitized non-zero exit. Existing USER or ADMIN rows
+  are not promoted, reactivated, password-reset, or otherwise changed.
+- [x] Invalid email, weak/overlong password, database configuration and database availability
+  failures never reflect a password, URL, credential or internal diagnostic in terminal output.
+- [x] No API endpoint, startup hook, `INITIAL_ADMIN_*` environment contract, migration or external
+  dependency is introduced. Future automatic bootstrap/invitation behavior remains separate work.
+- [x] Unit/CLI transaction tests, full regression and disposable PostgreSQL acceptance prove
+  persistence, hashing, authentication, duplicate/no-promotion behavior and sanitized errors.
+
+**Files Created**:
+
+- `apps/api/app/cli.py`
+- `apps/api/tests/test_admin_cli.py`
+
+**Files Modified**:
+
+- `apps/api/app/services/auth.py`
+- `apps/api/app/services/__init__.py`
+- `apps/api/tests/test_structure.py`
+- `apps/api/README.md`
+- `README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Standard-library `argparse` and `getpass` satisfy the small CLI contract without adding Click or
+  another production dependency. Hidden prompting is the operator default; stdin is the preferred
+  automation channel.
+- `create_admin` reuses canonical email and password primitives but exposes no role argument. Its
+  role, active state and verified state are fixed server-side.
+- Unique enforcement remains race-safe in PostgreSQL. The CLI never upgrades an account just
+  because its email matches the requested Admin address.
+- The skill-guided change preserves the existing auth and database transaction boundaries while
+  adding the smallest testable operational adapter; no API startup behavior was broadened.
+
+**Verification Results**:
+
+- AUTH-019 Admin service/CLI suite — PASS, 17 tests; combined Admin/auth/password focused suite —
+  PASS, 64 tests.
+- Full backend suite — PASS, 280 tests.
+- `ruff check .` and Ruff format checks for all five modified AUTH-019 Python files — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 49 source files; `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel contain `app/cli.py` and its tests.
+- CLI top-level/create-admin help smoke tests — PASS; argument surface is email plus mutually
+  exclusive password, password-stdin or hidden-prompt input.
+- Alembic `history` / `heads` — PASS; existing `0003_refresh_sessions` remains the only head.
+- Docker Linux Engine 29.8.0 / Compose 5.5.1 — PASS on `desktop-linux`.
+- Disposable PostgreSQL 17 + pgvector 0.8.6 acceptance — PASS: healthy isolated container,
+  migrations at `0003`, `alembic check` with no drift, vector distance query, real runtime-role CLI
+  commit, canonical active/verified ADMIN, bcrypt verification and login, duplicate/weak-password
+  non-zero exits, existing USER preserved, and API database health `200`. Its container, network
+  and volume were removed afterward.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern and AUTH-019 temporary-file/resource scans — PASS.
+
+**Database Changes**: None; the CLI writes the existing `app_private.users` model. Live acceptance
+created rows only inside a removed disposable Compose volume.
+**Environment Variables Added**: None; the existing server-only `DATABASE_URL` is reused.
+**Business API Changes**: None; Admin privilege creation remains outside HTTP routes.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-019 and does not
+block unrelated authentication core work.
+**Next Task**: `AUTH-020 — Create rate limiting middleware (slowapi)`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3937,47 +4023,20 @@ If USER tries /adminLogin:
 
 ## PART 23 — ADMIN ACCOUNT CREATION
 
-### Recommended: CLI Seed + Environment Bootstrap
+### Operator CLI Seed — Implemented by AUTH-019
 
-```python
-# app/cli.py
-@click.command()
-@click.option("--email", required=True)
-@click.option("--password", prompt=True, hide_input=True)
-def create_admin(email: str, password: str):
-    """Create an admin account."""
-    user = User(
-        email=email,
-        password_hash=hash_password(password),
-        role=UserRole.ADMIN,
-        is_active=True,
-        email_verified=True,
-    )
-    db.add(user)
-    db.commit()
-    print(f"✅ Admin created: {email}")
-```
+Run `python -m app.cli create-admin --email admin@vgu.edu.vn` for a hidden password prompt and
+confirmation. Non-interactive deployment can pass one password line with `--password-stdin`.
+`--password` is retained for compatibility but is not recommended because process listings and
+shell history may expose command-line arguments.
 
-```python
-# app/core/startup.py — runs on app boot
-async def seed_initial_admin():
-    """Create admin from env vars if no admin exists."""
-    admin_exists = await db.scalar(select(User).where(User.role == UserRole.ADMIN))
-    if not admin_exists:
-        email = os.getenv("INITIAL_ADMIN_EMAIL")
-        password = os.getenv("INITIAL_ADMIN_PASSWORD")
-        if email and password:
-            user = User(
-                email=email,
-                password_hash=hash_password(password),
-                role=UserRole.ADMIN,
-                is_active=True,
-                email_verified=True,
-            )
-            db.add(user)
-            await db.commit()
-            logger.info(f"Initial admin created: {email}")
-```
+The command uses the configured least-privilege `DATABASE_URL`, canonicalizes the email, applies
+the shared bcrypt boundary, and commits one active, verified `ADMIN`. Duplicate email and weak or
+invalid credentials exit non-zero. Existing USER/ADMIN rows are never promoted, reactivated,
+reset, or otherwise modified, and database failures roll back with sanitized terminal output.
+
+No startup hook or `INITIAL_ADMIN_*` environment contract is implemented. An automatic bootstrap
+would need a separate task to define concurrency, rotation, secret delivery and idempotency.
 
 > [!NOTE]
 > **Future expansion**: Add admin invitation flow where existing ADMIN can invite new admins via email. Not needed at MVP.
@@ -4054,7 +4113,7 @@ Done: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` end
 Done: AUTH-017                Create verified-current-user authentication dependency [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-016                Create sanitized current-session endpoint [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5]
+Done: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5; completed 2026-09-17]
 Next: AUTH-020                Create rate limiting middleware (slowapi) [P0; Phase 5]
 Next: AUTH-024                Implement session logout endpoint [P0; Phase 5]
 Next: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4]
@@ -4168,7 +4227,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-019 — Create admin seed CLI command (`python -m app.cli create-admin`). BE-001 through BE-007 and AUTH-007 through AUTH-018 are complete; stop before executing AUTH-019 unless it is explicitly requested.**
+**Next implementation task: AUTH-020 — Create rate limiting middleware (slowapi). BE-001 through BE-007 and AUTH-007 through AUTH-019 are complete; stop before executing AUTH-020 unless it is explicitly requested.**
 
 ---
 

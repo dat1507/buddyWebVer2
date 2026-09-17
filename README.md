@@ -202,9 +202,8 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-018
-are complete. The next planned backend authentication task is AUTH-019, which adds the controlled
-Admin seed CLI.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-019
+are complete. The next planned backend authentication task is AUTH-020, which adds rate limiting.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.
