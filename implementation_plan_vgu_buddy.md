@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-013 are recorded complete; AUTH-014 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-014 are recorded complete; AUTH-015 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1278,7 +1278,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint — ✅ Completed | 2 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-012 | Create auth service (register, login, verify role) — ✅ Completed | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
 | AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) — ✅ Completed | 2 | AUTH-012, AUTH-011A | P0 |
-| AUTH-014 | Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) | 2 | AUTH-012, AUTH-011A | P0 |
+| AUTH-014 | Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) — ✅ Completed | 2 | AUTH-012, AUTH-011A | P0 |
 | AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection | 2 | AUTH-011, AUTH-011A | P0 |
 | AUTH-016 | Create sanitized current-session endpoint | 1 | AUTH-017 | P0 |
 | AUTH-017 | Create verified-current-user authentication dependency | 2 | AUTH-011, AUTH-009 | P0 |
@@ -3179,6 +3179,97 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication core work.
 **Next Task**: `AUTH-014 — Create CSRF-protected POST /api/auth/login endpoint (sets cookies; returns sanitized user)`.
 
+### AUTH-014 — Create CSRF-protected `POST /api/auth/login` endpoint
+
+**Status**: Completed (✅) on 2026-09-17
+**Objective**: Expose the AUTH-012 credential service through the shared public login endpoint,
+establish cookie-only JWT credentials, rotate pre-auth CSRF evidence into a session-bound context,
+and return only the sanitized database identity required for later frontend role routing.
+
+The registry supplied the task title, dependencies and AUTH-ARCH-001 transport contract. The
+operational criteria below make failure uniformity, transaction ordering, cookie/CSRF rotation and
+the boundary with AUTH-015 explicit.
+
+**Operational Acceptance Criteria**:
+
+- [x] `POST /api/auth/login` accepts only strict string `email` and `password` fields and requires
+  the signed pre-auth CSRF cookie/header pair plus an exact trusted Origin/Referer. Invalid CSRF is
+  rejected with the generic `403` before the database dependency opens.
+- [x] The endpoint never accepts a requested role or login-page identity. It authenticates the
+  canonical email and returns the actual persisted `USER`/`ADMIN` role.
+- [x] Unknown email, malformed email, wrong/empty/overlong password, inactive account and
+  soft-deleted account return the same no-store `401 Invalid email or password.` without reflecting
+  submitted values or setting auth cookies.
+- [x] Successful login stages a timezone-aware `last_login`, creates a fresh access/refresh JWT
+  pair, commits the database transaction, then sets both credentials only as hardened HttpOnly
+  cookies. Neither JWT, the password nor its hash appears in JSON or object representations.
+- [x] The response returns only a sanitized User DTO (`id`, canonical `email`, persisted `role`,
+  `email_verified`) plus the readable session CSRF token. The matching CSRF cookie replaces the
+  pre-auth token and is HMAC-bound to the JWT session identifier.
+- [x] Token/CSRF configuration failures fail closed with a sanitized no-store `503`; unexpected
+  database/commit failures roll back and expose neither internal diagnostics nor partial cookies.
+- [x] AUTH-014 introduces no client token storage, role trust, database migration or claim of
+  refresh replay protection. Persisted refresh-session rotation/reuse detection remains AUTH-015.
+- [x] Focused API/security tests, full regression and disposable PostgreSQL 17 live acceptance
+  prove successful login, real `last_login` persistence, wrong-password and missing-user denial.
+
+**Files Created**:
+
+- `apps/api/tests/test_auth_login_api.py`
+
+**Files Modified**:
+
+- `apps/api/app/api/auth.py`
+- `apps/api/app/main.py`
+- `apps/api/app/schemas/auth.py`
+- `apps/api/app/schemas/__init__.py`
+- `apps/api/README.md`
+- `README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- Both `/login` and `/adminLogin` must later call this one endpoint. The backend does not accept an
+  expected role; AUTH-022/AUTH-023 route from the returned persisted role, while future protected
+  APIs independently reload authorization state through AUTH-017/AUTH-018.
+- Auth and session-CSRF credentials are prepared before commit but attached to the response only
+  after commit succeeds. This prevents a failed database transaction from returning a usable
+  partial cookie session.
+- Login rotates the readable/cookie CSRF pair into `session` scope using the token pair's fresh
+  `sid`. AUTH-015 remains responsible for persisting and atomically consuming refresh `jti` state;
+  AUTH-024 later revokes that state and clears all cookies.
+- Login credentials intentionally use generic authentication failure rather than request-level
+  email/password policy disclosure. Registration and future password change retain ownership of
+  password-strength validation.
+
+**Verification Results**:
+
+- Focused login endpoint/security suite — PASS, 19 tests.
+- Full backend suite — PASS, 201 tests.
+- `ruff check .` — PASS; changed Python files pass Ruff formatting.
+- `mypy app alembic tests` — PASS, strict mode over 37 source files.
+- Locked dependency consistency and backend package build — PASS.
+- Alembic `history` / `heads` — PASS; `0002_users` remains the only head.
+- Disposable PostgreSQL 17 Compose acceptance — PASS: healthy container, migrations at
+  `0002_users`, real registration/login through the runtime role, persisted `last_login`, actual
+  `USER` role, generic wrong-password/missing-user `401`, and complete isolated resource cleanup.
+- Backend runtime dependency audit — PASS, no known vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Frontend production dependency audit — PASS, no known vulnerabilities.
+
+**Database Changes**: None; AUTH-014 uses the existing `app_private.users` schema and does not yet
+create persisted refresh-session state. The live test database and its isolated volume were
+removed after acceptance.
+**Environment Variables Added**: None; the existing `AUTH_JWT_SECRET`, `AUTH_CSRF_SECRET`,
+`AUTH_COOKIE_SECURE`, `CORS_ALLOWED_ORIGINS` and `DATABASE_URL` contracts are reused.
+**Business API Changes**: Added `POST /api/auth/login`, protected by pre-auth CSRF and exact source
+origin validation; success returns a sanitized User/session-CSRF payload and cookie-only JWTs.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-014 and does not
+block unrelated authentication core work.
+**Next Task**: `AUTH-015 — Create CSRF-protected POST /api/auth/refresh endpoint with rotation/reuse detection`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3602,7 +3693,7 @@ Done: AUTH-011                Create JWT cookie service (create/verify access + 
 Done: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf` endpoint [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-012                Create auth service (register, login, verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-013                Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-014                Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) [P0; Phase 5]
+Done: AUTH-014                Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) [P0; Phase 5; completed 2026-09-17]
 Next: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection [P0; Phase 5]
 Next: AUTH-017                Create verified-current-user authentication dependency [P0; Phase 5]
 Next: AUTH-016                Create sanitized current-session endpoint [P0; Phase 5]
@@ -3721,7 +3812,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-014 — Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user). BE-001 through BE-007 and AUTH-007 through AUTH-013 are complete; stop before executing AUTH-014 unless it is explicitly requested.**
+**Next implementation task: AUTH-015 — Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection. BE-001 through BE-007 and AUTH-007 through AUTH-014 are complete; stop before executing AUTH-015 unless it is explicitly requested.**
 
 ---
 

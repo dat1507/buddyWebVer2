@@ -5,16 +5,35 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import CsrfSettings, get_csrf_settings
+from app.core.config import (
+    AuthTokenSettings,
+    CsrfSettings,
+    get_auth_token_settings,
+    get_csrf_settings,
+)
 from app.core.database import get_database_session
-from app.schemas.auth import CsrfTokenResponse, RegistrationRequest, RegistrationResponse
-from app.services.auth import AccountRegistrationError, register_user
+from app.schemas.auth import (
+    CsrfTokenResponse,
+    LoginRequest,
+    LoginResponse,
+    RegistrationRequest,
+    RegistrationResponse,
+    SanitizedUserResponse,
+)
+from app.services.auth import (
+    AccountRegistrationError,
+    AuthenticationError,
+    authenticate_user,
+    register_user,
+)
 from app.services.csrf import (
     CsrfTokenClaims,
     create_preauth_csrf_token,
+    create_session_csrf_token,
     set_csrf_cookie,
     verify_csrf_request,
 )
+from app.services.tokens import create_token_pair, set_auth_cookies
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -66,3 +85,37 @@ async def register_account(
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return RegistrationResponse()
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login_account(
+    payload: LoginRequest,
+    response: Response,
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_preauth_csrf)],
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> LoginResponse:
+    """Authenticate one account and establish its cookie-only browser session."""
+    try:
+        user = await authenticate_user(session, payload.email, payload.password)
+        token_pair = create_token_pair(user.id, user.role, token_settings)
+        session_csrf = create_session_csrf_token(token_pair.session_id, csrf_settings)
+        await session.commit()
+    except AuthenticationError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    set_auth_cookies(response, token_pair, token_settings)
+    set_csrf_cookie(response, session_csrf, csrf_settings)
+    return LoginResponse(
+        user=SanitizedUserResponse.model_validate(user),
+        csrf_token=session_csrf.value,
+    )

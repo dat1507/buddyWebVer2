@@ -26,10 +26,13 @@ Implemented:
 - Exact-origin credentialed CORS configuration.
 - Persisted User model/migration, bcrypt and registration/login/role services, hardened JWT cookie
   primitives, and a signed double-submit CSRF bootstrap endpoint.
+- CSRF-protected registration and login endpoints. Login returns a sanitized User and establishes
+  access/refresh JWTs only in HttpOnly cookies with a session-bound CSRF context.
 
 Not implemented yet:
 
-- Registration/login/refresh/logout endpoints and persistent authenticated sessions.
+- Refresh/logout/current-session endpoints and persistent refresh-session rotation/revocation.
+- Frontend registration/login integration and authenticated session bootstrap.
 - Protected User/Admin routes backed by server authorization.
 - Profile, event-management, matching, notification, or AI business APIs.
 - A provisioned production Supabase project or production deployment configuration.
@@ -194,9 +197,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-013
-are complete. The next planned backend authentication task is AUTH-014, which adds the
-CSRF-protected login endpoint and issues the established auth cookies.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-014
+are complete. The next planned backend authentication task is AUTH-015, which adds persisted
+refresh-session rotation and reuse detection.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

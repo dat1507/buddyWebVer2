@@ -1,9 +1,11 @@
 """Authentication transport request and response schemas."""
 
 from typing import Final, Literal
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, field_validator
 
+from app.models import UserRole
 from app.services.auth import EmailValidationError, canonicalize_email
 from app.services.passwords import BCRYPT_MAX_PASSWORD_BYTES
 
@@ -56,3 +58,30 @@ class RegistrationResponse(BaseModel):
     """Minimal response that discloses no account or authentication material."""
 
     status: Literal["registered"] = "registered"
+
+
+class LoginRequest(BaseModel):
+    """Untrusted credentials for both student and administrator login pages."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: StrictStr
+    password: StrictStr = Field(repr=False)
+
+
+class SanitizedUserResponse(BaseModel):
+    """Account fields safe for browser routing and session presentation."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    email: str
+    role: UserRole
+    email_verified: bool
+
+
+class LoginResponse(BaseModel):
+    """Successful login payload with no access or refresh credential material."""
+
+    user: SanitizedUserResponse
+    csrf_token: str = Field(repr=False)

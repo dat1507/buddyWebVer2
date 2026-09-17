@@ -96,4 +96,5 @@ async def handle_auth_configuration_error(
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={"detail": "Authentication is not configured."},
+        headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
     )

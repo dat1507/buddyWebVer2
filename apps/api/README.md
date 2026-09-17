@@ -104,7 +104,7 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-The public registration endpoint is implemented below. Login, refresh-session persistence,
+The public registration and login endpoints are implemented below. Refresh-session persistence,
 sanitized current-user responses, and route authorization remain in their later tasks.
 
 ## Password hashing
@@ -134,10 +134,11 @@ unknown accounts, rejects inactive and soft-deleted users with the same generic
 cost-12 dummy hash keeps unknown-account failures on the expensive bcrypt path. It returns the
 database User and its actual role; it neither accepts an expected login-page role nor creates JWTs.
 
-Both registration and authentication flush but deliberately do not commit. AUTH-013/AUTH-014 own
-the request transaction, while future refresh-session persistence can be committed atomically with
-login. `verify_user_role` checks the current persisted active/deleted state and exact `USER` or
-`ADMIN` role, returning only the generic `Insufficient permissions.` failure. AUTH-017/AUTH-018
+Both registration and authentication services flush but deliberately do not commit. AUTH-013 and
+AUTH-014 own their request transactions; AUTH-015 owns the new refresh-session persistence needed
+for atomic rotation and reuse detection. `verify_user_role` checks the current persisted
+active/deleted state and exact `USER` or `ADMIN` role, returning only the generic
+`Insufficient permissions.` failure. AUTH-017/AUTH-018
 remain responsible for loading the current User from a verified access-cookie session on protected
 requests.
 
@@ -207,6 +208,24 @@ no user record, JWT, auth cookie, or authenticated session. An existing canonica
 generic `409 {"detail":"Account registration failed."}`. The mandatory consent flag is a request
 gate; if the product later requires durable legal-consent evidence, that ledger needs an explicit
 model and migration rather than overloading the User row.
+
+## Public login
+
+`POST /api/auth/login` accepts only strict string `email` and `password` fields and requires the
+same pre-auth CSRF cookie/header and exact trusted source-origin evidence as registration. Both the
+student and Admin login pages use this endpoint; no page name or expected role is accepted from the
+client. Unknown email, wrong password, malformed credentials, inactive accounts and soft-deleted
+accounts all return the same no-store `401 {"detail":"Invalid email or password."}` response.
+
+Successful authentication stages `last_login`, reads the authoritative database role, creates one
+15-minute access JWT and one seven-day refresh JWT, and commits before exposing a session. The JWTs
+are set only as HttpOnly cookies and never appear in JSON. The response contains the sanitized
+`id`, canonical `email`, `role`, and `email_verified` fields plus a new readable CSRF value; the
+matching CSRF cookie is rotated from pre-auth scope to an HMAC session-bound scope.
+
+AUTH-014 deliberately does not claim durable logout, revocation, or refresh-token reuse detection.
+AUTH-015 must add and atomically maintain the refresh-session record before the refresh endpoint is
+usable, and AUTH-017/AUTH-016 must verify the access cookie and expose the current-session endpoint.
 
 ## Local PostgreSQL + pgvector
 
