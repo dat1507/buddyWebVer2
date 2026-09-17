@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-017 are recorded complete; AUTH-018 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-018 are recorded complete; AUTH-019 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1282,7 +1282,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection — ✅ Completed | 2 | AUTH-011, AUTH-011A | P0 |
 | AUTH-016 | Create sanitized current-session endpoint — ✅ Completed | 1 | AUTH-017 | P0 |
 | AUTH-017 | Create verified-current-user authentication dependency — ✅ Completed | 2 | AUTH-011, AUTH-009 | P0 |
-| AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) | 2 | AUTH-017 | P0 |
+| AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) — ✅ Completed | 2 | AUTH-017 | P0 |
 | AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) | 2 | AUTH-008, AUTH-010 | P0 |
 | AUTH-020 | Create rate limiting middleware (slowapi) | 2 | BE-001 | P0 |
 | AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
@@ -3546,6 +3546,86 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication core work.
 **Next Task**: `AUTH-018 — Create require_role(role) FastAPI dependency (verify role)`.
 
+### AUTH-018 — Create `require_role(role)` FastAPI dependency (verify role)
+
+**Status**: Completed (✅) on 2026-09-17
+**Objective**: Provide one reusable server-declared exact-role dependency that composes verified
+authentication with current database authorization for every protected USER or ADMIN route.
+
+**Operational Acceptance Criteria**:
+
+- [x] `require_role(required_role)` accepts a server-owned `UserRole` enum member and fails fast on
+  an invalid dependency configuration; no request field, query value or frontend role can choose
+  the required role.
+- [x] The role dependency composes `require_auth`, so the access-cookie signature and subject plus
+  the current active, non-deleted database User are verified before authorization runs.
+- [x] Authorization uses exact current persisted role semantics. The signed access-token role is
+  never an authority: a current database `ADMIN` passes despite a stale `USER` claim, while a
+  database downgrade to `USER` immediately defeats a stale `ADMIN` claim.
+- [x] Missing/invalid credentials and missing, inactive or deleted Users retain the shared generic
+  no-store `401 Authentication required.` contract. An authenticated wrong-role User receives a
+  separate generic no-store `403 Insufficient permissions.` response with neither role disclosed.
+- [x] Success returns the same persisted `User` produced by `require_auth` for downstream ownership
+  and audit decisions; the dependency does not mutate cookies, tokens, sessions or database state.
+- [x] Exact `USER` and `ADMIN` gates, stale-claim cases, client-supplied role attempts, response
+  sanitization, inactive/anonymous denial, full regression and disposable PostgreSQL acceptance
+  are covered.
+- [x] No product endpoint, migration, environment variable or new dependency is introduced ahead
+  of its owning task. Later admin and user APIs can now apply this completed boundary.
+
+**Files Created**:
+
+- `apps/api/tests/test_role_dependency.py`
+
+**Files Modified**:
+
+- `apps/api/app/api/dependencies.py`
+- `apps/api/README.md`
+- `README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- The factory closes over a typed `UserRole` selected in route source code and delegates the actual
+  active/deleted/exact-role decision to the completed `verify_user_role` service.
+- The dependency translates only `RoleVerificationError` into HTTP 403. Authentication errors from
+  `require_auth` remain HTTP 401, preserving an explicit authentication/authorization boundary.
+- The generic authorization response is marked `Cache-Control: no-store` and `Pragma: no-cache`;
+  it does not reflect expected or actual roles and never sets a cookie.
+- The skill-guided change preserves the existing auth service and current-user dependency instead
+  of duplicating token or database logic; AUTH-018 is only the smallest authorization adapter.
+
+**Verification Results**:
+
+- AUTH-018 dependency/security suite — PASS, 10 tests; combined role/current-user/auth-service
+  focused suite — PASS, 56 tests.
+- Full backend suite — PASS, 262 tests.
+- `ruff check .` — PASS; Ruff format check for both AUTH-018 Python files — PASS. The optional
+  repository-wide format-only check still identifies seven untouched legacy files with pre-existing
+  formatting/line-ending differences; no AUTH-018 file is affected.
+- `mypy app alembic tests` — PASS, strict mode over 47 source files; `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel contain the role dependency and tests.
+- Alembic `history` / `heads` — PASS; existing `0003_refresh_sessions` remains the only head.
+- Docker Desktop 4.91.0 / Linux Engine 29.8.0 / Compose 5.5.1 — PASS on `desktop-linux`.
+- Disposable PostgreSQL 17 + pgvector 0.8.6 acceptance — PASS: healthy isolated container,
+  migrations at `0003`, `alembic check` with no drift, vector distance query, runtime database
+  health `200`, DB-authoritative promotion/demotion over stale claims, exact USER gate, generic
+  wrong-role `403`, and inactive/anonymous `401`. Its container, network and volume were removed.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern and AUTH-018 temporary-file/resource scans — PASS.
+
+**Database Changes**: None; AUTH-018 reads the existing `app_private.users` authorization state
+through AUTH-017. Live acceptance used and removed an isolated Compose volume.
+**Environment Variables Added**: None.
+**Business API Changes**: None; this task adds the reusable dependency for later protected routes.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-018 and does not
+block unrelated authentication core work.
+**Next Task**: `AUTH-019 — Create admin seed CLI command (python -m app.cli create-admin)`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3973,7 +4053,7 @@ Done: AUTH-014                Create CSRF-protected `POST /api/auth/login` endpo
 Done: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-017                Create verified-current-user authentication dependency [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-016                Create sanitized current-session endpoint [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5]
+Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
 Next: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5]
 Next: AUTH-020                Create rate limiting middleware (slowapi) [P0; Phase 5]
 Next: AUTH-024                Implement session logout endpoint [P0; Phase 5]
@@ -4088,7 +4168,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-018 — Create `require_role(role)` FastAPI dependency (verify role). BE-001 through BE-007 and AUTH-007 through AUTH-017 are complete; stop before executing AUTH-018 unless it is explicitly requested.**
+**Next implementation task: AUTH-019 — Create admin seed CLI command (`python -m app.cli create-admin`). BE-001 through BE-007 and AUTH-007 through AUTH-018 are complete; stop before executing AUTH-019 unless it is explicitly requested.**
 
 ---
 

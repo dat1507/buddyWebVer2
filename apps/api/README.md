@@ -145,8 +145,8 @@ AUTH-014 own their request transactions, while login now stages its initial refr
 the same transaction. `verify_user_role` checks the current persisted active/deleted state and exact
 `USER` or `ADMIN` role, returning only the generic
 `Insufficient permissions.` failure. `app.api.dependencies.require_auth` now loads the current User
-from a verified access-cookie session; AUTH-018 will compose that identity with exact database-role
-authorization.
+from a verified access-cookie session. `app.api.dependencies.require_role(UserRole.ADMIN)` (or the
+exact `USER` equivalent) composes that identity with current database-role authorization.
 
 ## JWT and auth cookies
 
@@ -266,8 +266,19 @@ malformed, expired, or wrong-token-type credentials return the same no-store
 non-deleted database User. Body fields, query parameters, and frontend state cannot select or
 replace that identity. The signed access-token role is not an authorization source: downstream
 code receives the current persisted role, so an old `ADMIN` claim cannot restore removed
-privileges. `GET /api/auth/me` is the first product endpoint using this dependency; AUTH-018 will
-add the reusable exact-role gate.
+privileges. `GET /api/auth/me` is the first product endpoint using this authentication dependency;
+the reusable exact-role gate is now available for later protected USER and ADMIN routes.
+
+`app.api.dependencies.require_role(required_role)` is that reusable gate. A route supplies a
+server-owned `UserRole` enum member when declaring the dependency; strings, request bodies, query
+parameters, frontend state, and the signed JWT role cannot select or elevate the required role.
+It performs exact-role authorization against the persisted User returned by `require_auth` and
+returns that same User for downstream ownership and audit decisions.
+
+Authentication failures remain generic no-store `401 Authentication required.` responses. A valid
+current User with the wrong role receives the separate generic no-store
+`403 Insufficient permissions.` response without exposing either role. A database role change is
+effective on the next protected request even while the access token still contains an older role.
 
 ## Current session
 

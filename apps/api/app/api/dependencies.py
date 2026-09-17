@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from typing import Annotated, Final
 
 from fastapi import Depends, HTTPException, Request, status
@@ -10,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import AuthTokenSettings, get_auth_token_settings
 from app.core.database import get_database_session
-from app.models import User
+from app.models import User, UserRole
+from app.services.auth import RoleVerificationError, verify_user_role
 from app.services.tokens import (
     AccessTokenClaims,
     TokenValidationError,
@@ -19,6 +21,7 @@ from app.services.tokens import (
 )
 
 AUTHENTICATION_REQUIRED_MESSAGE: Final = "Authentication required."
+AUTHORIZATION_REQUIRED_MESSAGE: Final = "Insufficient permissions."
 _NO_STORE_HEADERS: Final[dict[str, str]] = {
     "Cache-Control": "no-store",
     "Pragma": "no-cache",
@@ -29,6 +32,14 @@ def _authentication_required() -> HTTPException:
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=AUTHENTICATION_REQUIRED_MESSAGE,
+        headers=_NO_STORE_HEADERS,
+    )
+
+
+def _authorization_required() -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=AUTHORIZATION_REQUIRED_MESSAGE,
         headers=_NO_STORE_HEADERS,
     )
 
@@ -66,3 +77,23 @@ async def require_auth(
     if user is None or not user.is_active or user.deleted_at is not None:
         raise _authentication_required()
     return user
+
+
+def require_role(required_role: UserRole) -> Callable[..., Awaitable[User]]:
+    """Build an exact-role dependency on top of the verified persisted identity.
+
+    Routes choose ``required_role`` in server code. The role claim in the access token and any
+    client-supplied role fields are deliberately excluded from this authorization decision.
+    """
+    if not isinstance(required_role, UserRole):
+        raise TypeError("required_role must be a UserRole.")
+
+    async def verify_required_role(
+        current_user: Annotated[User, Depends(require_auth)],
+    ) -> User:
+        try:
+            return verify_user_role(current_user, required_role)
+        except RoleVerificationError:
+            raise _authorization_required() from None
+
+    return verify_required_role
