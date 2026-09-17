@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import require_auth
@@ -33,6 +34,7 @@ from app.services.auth import (
 )
 from app.services.csrf import (
     CsrfTokenClaims,
+    clear_csrf_cookie,
     create_preauth_csrf_token,
     create_session_csrf_token,
     set_csrf_cookie,
@@ -42,14 +44,19 @@ from app.services.refresh_sessions import (
     RefreshSessionError,
     RefreshSessionRevokedError,
     create_refresh_session,
+    revoke_refresh_session,
     rotate_refresh_session,
 )
 from app.services.tokens import (
+    AccessTokenClaims,
     RefreshTokenClaims,
     TokenValidationError,
+    access_cookie_name,
+    clear_auth_cookies,
     create_token_pair,
     refresh_cookie_name,
     set_auth_cookies,
+    verify_access_token,
     verify_refresh_token,
 )
 
@@ -116,6 +123,41 @@ def require_refresh_context(
         session_id=claims.session_id,
     )
     return RefreshRequestContext(refresh_token=refresh_token, claims=claims)
+
+
+def require_logout_context(
+    request: Request,
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+) -> AccessTokenClaims | RefreshTokenClaims | None:
+    """Authenticate the family, or require pre-auth CSRF for anonymous cookie cleanup.
+
+    Prefer refresh credentials so an expired access token never prevents logout. A valid access
+    cookie can identify the family when refresh is missing/invalid. Never use unverified claims.
+    Valid credentials always require session-bound CSRF; pre-auth cannot log out a live family.
+    """
+    claims: AccessTokenClaims | RefreshTokenClaims | None = None
+    refresh_token = request.cookies.get(refresh_cookie_name(token_settings))
+    if refresh_token is not None:
+        try:
+            claims = verify_refresh_token(refresh_token, token_settings)
+        except TokenValidationError:
+            pass
+    if claims is None:
+        access_token = request.cookies.get(access_cookie_name(token_settings))
+        if access_token is not None:
+            try:
+                claims = verify_access_token(access_token, token_settings)
+            except TokenValidationError:
+                pass
+
+    verify_csrf_request(
+        request,
+        csrf_settings,
+        expected_scope="session" if claims is not None else "preauth",
+        session_id=claims.session_id if claims is not None else None,
+    )
+    return claims
 
 
 @router.get("/me", response_model=SanitizedUserResponse)
@@ -263,3 +305,43 @@ async def refresh_session(
         user=SanitizedUserResponse.model_validate(rotation.user),
         csrf_token=session_csrf.value,
     )
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    responses={403: {"description": "Trusted-origin, signed CSRF validation failed."}},
+)
+async def logout_session(
+    response: Response,
+    context: Annotated[
+        AccessTokenClaims | RefreshTokenClaims | None, Depends(require_logout_context)
+    ],
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> None:
+    """Revoke only this refresh family, commit, then expire all session cookies.
+
+    Logout deliberately has no active-user, verification, role or per-user quota gate. The shared
+    transport-IP rate limit still applies; exhausting a role quota must not trap a user in session.
+    Anonymous cleanup performs no database query or commit and still requires trusted-origin CSRF.
+    """
+    if context is not None:
+        try:
+            await revoke_refresh_session(session, context.session_id, context.user_id)
+            await session.commit()
+        except SQLAlchemyError as error:
+            await session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Session logout is unavailable.",
+                headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+            ) from error
+        except Exception:
+            await session.rollback()
+            raise
+
+    clear_auth_cookies(response, token_settings)
+    clear_csrf_cookie(response, csrf_settings)

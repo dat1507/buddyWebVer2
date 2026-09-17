@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending, and AUTH-024 is the next development task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-019 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live acceptance PASS; its cross-task frontend cache acceptance awaits AUTH-004/AUTH-021, and AUTH-004 is the next development task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1290,7 +1290,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
-| AUTH-024 | Implement session logout endpoint | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
+| AUTH-024 | Implement session logout endpoint — Backend/live acceptance PASS; frontend cache acceptance pending AUTH-004/AUTH-021 | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
 | AUTH-025 | Implement authenticated password change endpoint | 2 | AUTH-024, AUTH-010 | P1 |
 
 ### Phase 6: User Dashboard Shell
@@ -3734,6 +3734,51 @@ configuration (2026-09-17). See PART 25 for the approved detailed contract and a
 
 **Next development task**: `AUTH-024 — Implement session logout endpoint`; not executed by AUTH-020.
 
+### AUTH-024 — Session logout endpoint
+
+**Status**: Implemented; backend/local/live acceptance PASS (2026-09-17). Overall cross-task
+acceptance remains **PARTIAL**: frontend session/private-cache clearing is owned by
+AUTH-004/AUTH-021 and is not implemented or claimed verified here. Backend dependency is satisfied,
+so this outstanding frontend acceptance does not block development of AUTH-004.
+
+- Added cookie-only `POST /api/auth/logout`, empty `204`; exact trusted origin and signed
+  session-bound CSRF are mandatory when either cookie identifies a valid family. Valid refresh is
+  preferred, so expired access does not trap users. Verified access is a fallback when refresh is
+  missing/invalid; no User/verification/role gate prevents wrong-role or inactive-account cleanup.
+- Owner-bound `sid`/`sub` selection and the refresh service's `FOR UPDATE` lock serialize logout
+  against rotation. Stale JTI logout revokes the latest family member. Other families are unaffected.
+  Missing/deleted/revoked rows are indistinguishable idempotent no-ops. Commit precedes clearing all
+  three host-only cookies; SQLAlchemy failures roll back with generic no-store `503` and no cookies.
+- Anonymous/invalid-credential cleanup requires a fresh signed pre-auth CSRF context and trusted
+  origin; it has no database query/commit and does not claim server revocation. An unprotected repeat
+  still gets `403`. The configured database session factory remains required (no connection used).
+- Added logout to the existing 120/minute transport-IP gate. No role quota is applied to logout;
+  USER 120/minute and ADMIN 60/minute quotas elsewhere remain unchanged. IP quota/storage errors
+  still fail closed (`429`/Retry-After or `503`); production operator gate is unchanged.
+- 35 logout unit/security checks + 5 opt-in PostgreSQL/Redis live cases PASS. Full backend **365
+  tests PASS on Python 3.14 and 3.12**, including AUTH-020 shared Redis regression. Real row-lock
+  wait observed in both race orders; login/logout/replay/isolation/runtime DB health PASS.
+- Ruff lint/changed-file format, strict mypy (55 files), pip check, sdist/wheel build and pip-audit
+  PASS; frontend format/lint/typecheck/**80 tests**/build/npm audit PASS. Existing 513.01 kB frontend
+  chunk warning only. Alembic upgrade to `0003_refresh_sessions` and schema-drift check PASS against
+  a disposable database; no schema/compose/dependency/runtime config change, so no new downgrade
+  migration is required. Docker Desktop 4.91.0/Engine 29.8.0, `desktop-linux`, verified running.
+- Acceptance isolation: project `vgu_auth024_acceptance` (PostgreSQL port 55441/database
+  `vgu_buddy_auth024`) and task-labelled Redis on 56381. Ownership labels were checked before
+  removing only these test containers/network/database volume. Post-cleanup inventory empty;
+  disposable test data removed, reproducible by migrations/tests. Existing images/dev data untouched.
+- Files: modified root README, API README, `app/api/auth.py`, `app/core/rate_limits.py`,
+  `app/services/refresh_sessions.py` and this plan; created `tests/test_auth_logout.py` and
+  `tests/test_auth_logout_live.py`. No secret/actual .env change; only public synthetic fixtures.
+- **Access-token limitation:** existing AUTH-017 does not consult refresh-family revocation. A
+  copied access JWT may work until its 15-minute TTL + 30-second skew. In-flight refresh may also
+  deliver cookies after logout; its family still cannot refresh. No immediate access denylist is
+  claimed. AUTH-021 must coordinate these frontend requests and invalidate private query caches.
+- Production Redis/TLS/trusted-ingress/deployed smoke remains **not verified** (AUTH-020). Gemini
+  remains **⚠️ Still pending — revoke before any future Gemini/chatbot integration.**
+
+**Next development task**: `AUTH-004 — Create non-persisted Zustand session store`; not executed here.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -4137,7 +4182,7 @@ Done: AUTH-016                Create sanitized current-session endpoint [P0; Pha
 Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5; completed 2026-09-17]
 Gate: AUTH-020                Implemented; local/live acceptance PASS; production Redis/TLS/ingress smoke pending [P0; Phase 5]
-Next: AUTH-024                Implement session logout endpoint [P0; Phase 5]
+Gate: AUTH-024                Backend/live acceptance PASS; frontend cache acceptance pending AUTH-004/AUTH-021 [P0; Phase 5; backend dependency satisfied]
 Next: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4]
 Next: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5]
 Next: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4]
@@ -4249,7 +4294,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-024 — Implement session logout endpoint. AUTH-020 implementation and local/live acceptance are verified; production acceptance remains pending operator-provided Redis/TLS/ingress configuration. Do not execute AUTH-024 unless explicitly requested.**
+**Next development task: AUTH-004 — Create non-persisted Zustand session store. AUTH-024 backend/live acceptance PASS; frontend session/private-cache acceptance remains pending AUTH-004/AUTH-021. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. These release/integration gates do not block AUTH-004 development. Do not execute AUTH-004 unless explicitly requested.**
 
 ---
 
@@ -4487,17 +4532,25 @@ architecture; the original test is retained and a deterministic pad-bit test was
 ### AUTH-024 — Implement session logout endpoint
 
 **Task ID:** `AUTH-024`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 5  
+**Change:** New; **Status:** Implemented; backend/live acceptance PASS; frontend acceptance pending AUTH-004/AUTH-021; **Priority:** P0; **Phase:** 5
 **Goal:** Make the approved logout and wrong-role admin-login flows executable.  
 **Dependencies:** AUTH-015, AUTH-017, AUTH-011A  
 **Scope:** POST /api/auth/logout; revoke refresh session and clear cookies.
 
 **Acceptance Criteria:**
 
-- [ ] CSRF-protected logout revokes the current refresh session and clears auth/CSRF cookies; repeated logout safely clears cookies.
-- [ ] A revoked refresh token cannot mint another session; frontend clears session and private query caches.
+- [x] CSRF-protected logout revokes the current refresh session and clears auth/CSRF cookies; repeated logout safely clears cookies. — Unit/security and real PostgreSQL/Redis API acceptance PASS.
+- [ ] A revoked refresh token cannot mint another session; frontend clears session and private query caches. — Backend replay rejection PASS for stale and latest tokens, including both race orders. **Frontend portion NOT IMPLEMENTED/NOT VERIFIED**, tracked in AUTH-004/AUTH-021; retain this combined AC unchecked until integrated acceptance passes.
 
 **Out of Scope:** New authentication transport, logout UI redesign.
+
+**Verified contract/evidence (2026-09-17):** Empty no-store `204`; trusted-origin signed session
+CSRF with verified cookie identity, or fresh pre-auth CSRF for anonymous cookie cleanup only. Commit
+owner-bound family revocation before expiring all three cookies. See PART 18B AUTH-024 execution
+record and `apps/api/README.md` for repeat/error flows, IP-only quota, test commands and access-token
+residual TTL. 35 unit/security + 5 live tests PASS; full backend 365 PASS (Python 3.14/3.12), frontend
+80 regression tests/quality gates PASS. No browser session-client/cache/logout UI acceptance claim.
+Production release still requires AUTH-020 operator configuration/smoke; Gemini remediation pending.
 
 ### AUTH-021 — Connect session client, registration, and auth bootstrap
 

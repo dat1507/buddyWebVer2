@@ -109,9 +109,9 @@ one session family and stores its current refresh `jti`, owning User, expiry, an
 time. The migration applies the same runtime-only privileges and RLS boundary; browser/Data API
 roles receive no table access or policy.
 
-The public registration, login, refresh, and current-session endpoints are implemented below,
-together with the verified-current-user dependency for protected routes. Explicit role gates and
-logout remain in their later tasks.
+The public registration, login, refresh, current-session and logout endpoints are implemented below,
+together with verified-current-user and explicit role dependencies for protected routes. Frontend
+session-store/client integration remains owned by AUTH-004/AUTH-021.
 
 ## Password hashing
 
@@ -251,8 +251,65 @@ even the newest token from that family is rejected afterward.
 
 Clients must single-flight refresh requests. Two concurrent requests with the same token are not
 both legitimate rotations: after one consumes the `jti`, the second is treated as reuse and revokes
-the family. AUTH-021 owns that frontend coordination. AUTH-024 later adds explicit logout and cookie
-clearing; a failed refresh does not claim logout behavior.
+the family. AUTH-021 owns that frontend coordination. AUTH-024 implements explicit logout and cookie
+clearing separately; a failed refresh does not claim logout behavior.
+
+## Session logout (AUTH-024)
+
+`POST /api/auth/logout` returns `204` with an empty body. It accepts identity only through auth
+cookies, never a body, session ID or Authorization header. A valid refresh cookie is preferred so
+expired access does not prevent logout. If refresh is missing/invalid, a valid access cookie may
+identify the family. Either path requires the signed **session-bound** CSRF cookie/header and exact
+trusted Origin/Referer, using the readable CSRF value from login/refresh. Missing, tampered,
+wrong-session or pre-auth CSRF in an authenticated request returns generic no-store `403` before
+opening a database session, without changing session state or cookies.
+
+The service selects only the verified `sid` **and owning `sub`**, with the same PostgreSQL `FOR UPDATE`
+lock used by rotation. Logout revokes the family even if the presented refresh JTI has rotated;
+refresh-first and logout-first races both leave it revoked. Other session families remain valid.
+Missing/deleted/already-revoked rows are idempotent no-ops with the same `204`. Revocation is committed
+before expiring access, refresh and CSRF cookies with their original host-only Path/security scope.
+No JWT/identity is returned; successful responses have `Cache-Control: no-store`, `Pragma: no-cache`.
+Database operation errors roll back and return sanitized no-store `503` without clearing cookies or
+claiming success. Unexpected internal errors remain generic `500`; no failure claims logout success.
+
+When **neither auth cookie is cryptographically valid**, first obtain a new pre-auth context from
+`GET /api/auth/csrf`, then submit logout with its header/cookie and trusted origin. This only cleans
+cookies: it performs no database query/commit, does not use unverified JWT claims, and does not claim
+server-side revocation. This is also the safe repeat flow after the browser removed all cookies.
+Repeating a captured valid session request is safe too. An unprotected repeat request still fails
+`403`. A configured database session factory is required even for anonymous cleanup, but it acquires
+no database connection. Do not fetch pre-auth CSRF to replace session CSRF while valid auth cookies
+remain: authenticated logout must use the login/refresh session token.
+
+Logout has no active-account, email-verification, USER/ADMIN role or per-user quota gate. This permits
+wrong-role admin-login cleanup and inactive-account logout. It shares the existing 120/minute IP
+gate; exhausted IP quota returns `429`/Retry-After and unavailable limiter storage fails closed
+`503`. Existing USER 120/minute and ADMIN 60/minute identity quotas on other routes are unchanged.
+
+**Access-token limitation:** AUTH-017 checks access JWT + current User, not refresh-family state.
+Clearing browser cookies ends the browser session and prevents refresh, but a previously copied
+access JWT can remain usable until its 15-minute TTL plus 30-second verifier skew expires. Logout
+does not provide immediate access-token denylisting. An in-flight refresh response can also arrive
+after logout and set cookies, although its refresh family is revoked. AUTH-021 must coordinate
+refresh/logout/account switches and clear private query caches; browser end-to-end acceptance and
+the wrong-role admin-login UI flow are **not implemented/verified by this backend task**. No new
+transport, schema migration, runtime environment variable or dependency was added.
+
+Opt-in live acceptance requires **disposable** PostgreSQL (migrated to head with runtime-only
+credentials) and Redis. Never use development/production data: these tests commit test accounts.
+Set `AUTH024_TEST_DATABASE_URL` and `AUTH024_TEST_REDIS_URI` only for the test process, then run:
+
+```sh
+python -m pytest tests/test_auth_logout.py tests/test_auth_logout_live.py -q
+```
+
+Without both variables the five live cases skip explicitly; ordinary unit/security checks remain
+enabled. Live tests cover USER/ADMIN cookie login, stale/current-token replay, inactive/unverified
+cleanup, another family, owner mismatch, database health, and both lock orders. Race checks observe
+`pg_stat_activity.wait_event_type = 'Lock'`, rather than assuming a mock represents database locking.
+Security review references: [OWASP session management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+and [PostgreSQL row locks](https://www.postgresql.org/docs/17/explicit-locking.html#LOCKING-ROWS).
 
 ## Protected-route authentication
 
@@ -403,7 +460,7 @@ Exactly N requests are allowed; request N+1 returns `429` with
 Fixed windows can allow bursts at boundaries; these quotas are not a rolling-window guarantee.
 
 The current scope is GET `/api/auth/csrf`, GET `/api/auth/me`, POST `/api/auth/register`,
-POST `/api/auth/login`, and POST `/api/auth/refresh` (including trailing-slash redirects).
+POST `/api/auth/login`, POST `/api/auth/refresh`, and POST `/api/auth/logout` (including trailing-slash redirects).
 All share a 120/minute transport-IP gate before body validation, CSRF, bcrypt and database work.
 Successful credential authentication, current-user and refresh additionally share a per-user-ID
 quota selected from the **current database role**, not JWT role claims, page URLs or input fields.

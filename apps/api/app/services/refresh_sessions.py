@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,6 +70,34 @@ async def _stage_family_revocation(
 ) -> None:
     refresh_session.revoked_at = revoked_at
     await session.flush()
+
+
+async def revoke_refresh_session(
+    session: AsyncSession,
+    session_id: UUID,
+    user_id: UUID,
+    *,
+    now: datetime | None = None,
+) -> None:
+    """Stage an idempotent, owner-bound family revocation; caller commits before clearing cookies.
+
+    Identifiers must come from verified cookie claims and matching session CSRF. Use the same row
+    lock as rotation, but deliberately do not compare JTI: logout using a rotated token must still
+    revoke the latest family member. Missing/deleted/revoked rows are indistinguishable no-ops.
+    """
+    current_time = _utc_now(now)
+    refresh_session = await session.scalar(
+        select(RefreshSession)
+        .where(RefreshSession.id == session_id, RefreshSession.user_id == user_id)
+        .with_for_update()
+    )
+    if (
+        refresh_session is None
+        or refresh_session.deleted_at is not None
+        or refresh_session.revoked_at is not None
+    ):
+        return
+    await _stage_family_revocation(session, refresh_session, current_time)
 
 
 async def rotate_refresh_session(

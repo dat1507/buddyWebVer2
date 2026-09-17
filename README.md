@@ -203,7 +203,10 @@ resources must be provisioned and verified before they can be documented as live
 ## Development Status and Roadmap
 
 Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-019
-are complete. The next planned backend authentication task is AUTH-020, which adds rate limiting.
+are complete. AUTH-020 rate limiting and AUTH-024 backend logout have passed local/live acceptance.
+Production Redis/TLS/ingress smoke remains pending for AUTH-020; frontend logout/session/private-cache
+acceptance remains pending AUTH-004/AUTH-021. The next development task is AUTH-004, the non-persisted
+frontend session store. No deployed production or browser end-to-end authentication is claimed.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.
