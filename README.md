@@ -194,9 +194,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-012
-are complete. The next planned backend authentication task is AUTH-013, which adds the
-CSRF-protected public registration endpoint.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-013
+are complete. The next planned backend authentication task is AUTH-014, which adds the
+CSRF-protected login endpoint and issues the established auth cookies.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

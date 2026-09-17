@@ -104,8 +104,8 @@ usage, and enables RLS with one all-row policy scoped to `vgu_buddy_runtime`. Th
 inside that backend role because FastAPI is the only auth authority; browser/Data API roles receive
 no policy or database privileges.
 
-Registration/login endpoints, refresh-session persistence, sanitized user response schemas, and
-route authorization remain in their later tasks.
+The public registration endpoint is implemented below. Login, refresh-session persistence,
+sanitized current-user responses, and route authorization remain in their later tasks.
 
 ## Password hashing
 
@@ -116,9 +116,9 @@ service preserves the password exactly: it does not trim, normalize, log, or sto
 Bcrypt accepts at most 72 bytes. The service measures the UTF-8 encoded value, accepts exactly 72
 bytes, and rejects longer values instead of truncating them. Hash creation raises
 `PasswordHashingError` for an empty or overlong password; verification fails closed with `False`
-for those candidates and for malformed stored hashes. Product password-strength and minimum-length
-rules belong to the future registration/password-change schemas and must remain within this shared
-technical maximum.
+for those candidates and for malformed stored hashes. The registration schema adds the product
+minimum of 15 characters while preserving this shared technical maximum; future password-change
+schemas must enforce the same boundary.
 
 ## Authentication service
 
@@ -188,6 +188,25 @@ authenticated tokens are HMAC-bound to the refresh-session UUID and share its se
 Successful login and session rotation endpoints must issue the session-bound form, while logout
 must clear it. SameSite remains defense in depth and does not replace the signed token or source-
 origin checks.
+
+## Public registration
+
+`POST /api/auth/register` accepts only `email`, `password`, and the strict JSON boolean
+`consent: true`. It requires the pre-auth CSRF cookie/header pair from `GET /api/auth/csrf` and an
+exact trusted `Origin` (or the existing safe Referer fallback). Invalid CSRF evidence returns the
+same sanitized `403` before a database session is opened.
+
+Passwords must contain at least 15 characters and no more than 72 UTF-8 bytes. Unicode and
+whitespace are preserved; the API does not trim, normalize, silently truncate, or impose
+composition rules. Request-validation responses omit raw input values so a rejected password is
+not reflected in the response.
+
+The server rejects unknown fields such as `role`, always persists an active, unverified `USER`, and
+commits only after the service flush succeeds. Success returns `201 {"status":"registered"}` with
+no user record, JWT, auth cookie, or authenticated session. An existing canonical email returns the
+generic `409 {"detail":"Account registration failed."}`. The mandatory consent flag is a request
+gate; if the product later requires durable legal-consent evidence, that ledger needs an explicit
+model and migration rather than overloading the User row.
 
 ## Local PostgreSQL + pgvector
 

@@ -1082,7 +1082,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-012 are recorded complete; AUTH-013 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, and AUTH-007 through AUTH-013 are recorded complete; AUTH-014 is the next implementation task. Parts 18/18A remain historical evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1277,7 +1277,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-011 | Create JWT cookie service (create/verify access + rotating refresh tokens) — ✅ Completed | 3 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-011A | Create signed CSRF service and `GET /api/auth/csrf` endpoint — ✅ Completed | 2 | BE-001, AUTH-ARCH-001 | P0 |
 | AUTH-012 | Create auth service (register, login, verify role) — ✅ Completed | 3 | AUTH-008, AUTH-010, AUTH-011 | P0 |
-| AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) | 2 | AUTH-012, AUTH-011A | P0 |
+| AUTH-013 | Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) — ✅ Completed | 2 | AUTH-012, AUTH-011A | P0 |
 | AUTH-014 | Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) | 2 | AUTH-012, AUTH-011A | P0 |
 | AUTH-015 | Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection | 2 | AUTH-011, AUTH-011A | P0 |
 | AUTH-016 | Create sanitized current-session endpoint | 1 | AUTH-017 | P0 |
@@ -3085,6 +3085,100 @@ be revoked before any future Gemini/chatbot integration. It was not used by AUTH
 block unrelated authentication foundation work.
 **Next Task**: `AUTH-013 — Create CSRF-protected POST /api/auth/register endpoint (role=USER always)`.
 
+### AUTH-013 — Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always)
+
+**Status**: Completed (✅) on 2026-09-17
+**Objective**: Expose the AUTH-012 registration service through a narrow public HTTP boundary that
+requires pre-auth CSRF evidence, accepts explicit consent, always creates role `USER`, owns the
+request transaction, and returns no authentication or account material.
+
+The registry supplied only the task title and dependencies. The operational criteria below make
+the request schema, password boundary, validation disclosure, transaction, and response behavior
+explicit for frontend integration in AUTH-021.
+
+**Operational Acceptance Criteria**:
+
+- [x] `POST /api/auth/register` requires the signed pre-auth CSRF cookie/header pair and exact
+  trusted source origin. Every invalid, mismatched, missing, wrong-scope or wrong-origin condition
+  returns the same generic `403` before the database dependency is opened.
+- [x] The strict request schema accepts only `email`, `password`, and JSON boolean `consent: true`;
+  missing/false/string consent and extra fields such as `role` fail validation before mutation.
+- [x] Email uses the shared canonical identity contract. Passwords require at least 15 characters,
+  permit Unicode/whitespace without trimming or normalization, and reject values over bcrypt's
+  72-byte UTF-8 limit rather than truncating them.
+- [x] Validation responses retain field/type/message diagnostics but omit raw `input` and validator
+  context, preventing rejected passwords and other submitted values from being reflected. Password
+  is also excluded from the Pydantic request representation.
+- [x] The endpoint delegates hashing and least-privilege construction to AUTH-012, commits only
+  after a successful flush, and rolls back unexpected commit failures. Client input cannot choose
+  a role; persisted accounts are active, unverified `USER` records.
+- [x] Success returns only `201 {"status":"registered"}` with no user identifiers, password/hash,
+  JWT, access/refresh cookie, or authenticated session. Responses are `no-store`/`no-cache`.
+- [x] PostgreSQL unique-email conflicts return generic `409 Account registration failed.` without
+  reflecting the canonical address; unexpected infrastructure failures remain generic `500`s.
+- [x] Focused security tests, full regression, and disposable PostgreSQL 17 runtime-role acceptance
+  prove real health, persistence, duplicate conflict, cleanup, and migration round-trip behavior.
+
+**Files Created**:
+
+- `apps/api/tests/test_auth_registration_api.py`
+
+**Files Modified**:
+
+- `apps/api/app/api/auth.py`
+- `apps/api/app/main.py`
+- `apps/api/app/schemas/auth.py`
+- `apps/api/app/schemas/__init__.py`
+- `apps/api/README.md`
+- `README.md`
+- `implementation_plan_vgu_buddy.md`
+
+**Implementation Notes**:
+
+- The endpoint deliberately does not log a user in. AUTH-014 owns login and AUTH-015 owns persisted
+  refresh-session rotation/reuse detection; issuing partial session state during registration would
+  cross those transaction and security boundaries.
+- OWASP's no-MFA baseline informed the 15-character minimum. The existing bcrypt architecture
+  requires the stricter technical ceiling of 72 UTF-8 bytes; all character classes, including
+  Unicode and whitespace, otherwise remain allowed without composition rules.
+- The mandatory consent boolean is a registration gate, not a claimed legal audit ledger. Durable
+  consent version/time/source evidence requires a dedicated product contract and migration if the
+  applicable privacy policy later requires it.
+- Request-validation sanitization is application-wide so future secret-bearing endpoints cannot
+  accidentally inherit FastAPI's raw invalid-input reflection. The response keeps the established
+  `detail` envelope and non-sensitive error location/message/type fields.
+
+**Verification Results**:
+
+- Focused registration endpoint/security suite — PASS, 20 tests.
+- Full backend suite — PASS, 182 tests.
+- `ruff check app alembic tests` — PASS.
+- `mypy app alembic tests` — PASS, strict mode over 36 source files.
+- Locked development environment synchronization and `pip check` — PASS.
+- `python -m build --no-isolation` — PASS; sdist and wheel include the endpoint, schemas and tests.
+- Docker Desktop 4.91.0 / Linux Engine 29.8.0 — PASS on `desktop-linux` after moving only stale
+  AF_UNIX runtime-socket directories to recoverable AUTH-013 backups; no image, existing volume or
+  development database was removed.
+- Disposable PostgreSQL 17 Compose acceptance — PASS: healthy container, Alembic at `0002_users`,
+  least-privilege API database health `200`, real registration/persisted `USER`, duplicate `409`,
+  test-row cleanup, and downgrade/base/re-upgrade/head. Its isolated container, network and volume
+  were removed afterward.
+- `pip-audit --strict -r requirements.lock` and `npm audit --omit=dev` — PASS, no known
+  vulnerabilities.
+- Frontend format, lint, type-check, 80 tests and production build — PASS; only the existing
+  non-blocking chunk-size warning remains.
+- Credential-pattern repository scan — PASS, no credential-shaped matches.
+
+**Database Changes**: None; AUTH-013 uses the existing `app_private.users` schema. Live acceptance
+inserted and removed one disposable account before deleting its project-specific test volume.
+**Environment Variables Added**: None.
+**Business API Changes**: Added public state-changing `POST /api/auth/register`, protected by the
+existing pre-auth CSRF contract; it never creates an authenticated session.
+**Security Remediation TODO**: The exposed legacy Gemini API key remains pending revocation and must
+be revoked before any future Gemini/chatbot integration. It was not used by AUTH-013 and does not
+block unrelated authentication core work.
+**Next Task**: `AUTH-014 — Create CSRF-protected POST /api/auth/login endpoint (sets cookies; returns sanitized user)`.
+
 ---
 
 ## PART 19 — EVENT MANAGEMENT SYSTEM
@@ -3507,7 +3601,7 @@ Done: AUTH-010                Create password hashing service (bcrypt) [P0; Phas
 Done: AUTH-011                Create JWT cookie service (create/verify access + rotating refresh tokens) [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-011A               Create signed CSRF service and `GET /api/auth/csrf` endpoint [P0; Phase 5; completed 2026-09-16]
 Done: AUTH-012                Create auth service (register, login, verify role) [P0; Phase 5; completed 2026-09-17]
-Next: AUTH-013                Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) [P0; Phase 5]
+Done: AUTH-013                Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always) [P0; Phase 5; completed 2026-09-17]
 Next: AUTH-014                Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user) [P0; Phase 5]
 Next: AUTH-015                Create CSRF-protected `POST /api/auth/refresh` endpoint with rotation/reuse detection [P0; Phase 5]
 Next: AUTH-017                Create verified-current-user authentication dependency [P0; Phase 5]
@@ -3627,7 +3721,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next implementation task: AUTH-013 — Create CSRF-protected `POST /api/auth/register` endpoint (role=USER always). BE-001 through BE-007 and AUTH-007 through AUTH-012 are complete; stop before executing AUTH-013 unless it is explicitly requested.**
+**Next implementation task: AUTH-014 — Create CSRF-protected `POST /api/auth/login` endpoint (sets cookies; returns sanitized user). BE-001 through BE-007 and AUTH-007 through AUTH-013 are complete; stop before executing AUTH-014 unless it is explicitly requested.**
 
 ---
 

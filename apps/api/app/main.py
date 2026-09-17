@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -15,6 +16,7 @@ from app.core.config import (
     get_cors_settings,
 )
 from app.core.database import dispose_database_engine
+from app.services.csrf import CsrfValidationError
 
 CORS_ALLOWED_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
 CORS_ALLOWED_HEADERS = ("Accept", "Content-Type", "X-CSRF-Token")
@@ -45,6 +47,34 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(auth_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_request_validation_error(
+    _request: Request, error: RequestValidationError
+) -> JSONResponse:
+    """Return field diagnostics without reflecting submitted secrets or other raw inputs."""
+    safe_errors = [
+        {key: value for key, value in item.items() if key in {"type", "loc", "msg"}}
+        for item in error.errors()
+    ]
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={"detail": safe_errors},
+        headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+    )
+
+
+@app.exception_handler(CsrfValidationError)
+async def handle_csrf_validation_error(
+    _request: Request, _error: CsrfValidationError
+) -> JSONResponse:
+    """Return one generic authorization failure for every invalid CSRF condition."""
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": "CSRF validation failed."},
+        headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+    )
 
 
 @app.exception_handler(DatabaseConfigurationError)
