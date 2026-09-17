@@ -109,9 +109,9 @@ one session family and stores its current refresh `jti`, owning User, expiry, an
 time. The migration applies the same runtime-only privileges and RLS boundary; browser/Data API
 roles receive no table access or policy.
 
-The public registration, login, and refresh endpoints are implemented below, together with the
-verified-current-user dependency for protected routes. Sanitized current-session responses,
-explicit role gates, and logout remain in their later tasks.
+The public registration, login, refresh, and current-session endpoints are implemented below,
+together with the verified-current-user dependency for protected routes. Explicit role gates and
+logout remain in their later tasks.
 
 ## Password hashing
 
@@ -230,8 +230,9 @@ are set only as HttpOnly cookies and never appear in JSON. The response contains
 matching CSRF cookie is rotated from pre-auth scope to an HMAC session-bound scope.
 
 Login persists the initial refresh-session family in the same transaction as `last_login`; cookies
-are attached only after that commit. AUTH-016 will expose the current-session endpoint through the
-implemented access-cookie dependency, while AUTH-024 owns explicit logout and cookie clearing.
+are attached only after that commit. `/api/auth/me` now exposes the sanitized current session
+through the implemented access-cookie dependency, while AUTH-024 owns explicit logout and cookie
+clearing.
 
 ## Refresh rotation
 
@@ -265,8 +266,21 @@ malformed, expired, or wrong-token-type credentials return the same no-store
 non-deleted database User. Body fields, query parameters, and frontend state cannot select or
 replace that identity. The signed access-token role is not an authorization source: downstream
 code receives the current persisted role, so an old `ADMIN` claim cannot restore removed
-privileges. AUTH-018 will add the reusable exact-role gate; AUTH-016 will be the first product
-endpoint to expose this dependency through `GET /api/auth/me`.
+privileges. `GET /api/auth/me` is the first product endpoint using this dependency; AUTH-018 will
+add the reusable exact-role gate.
+
+## Current session
+
+`GET /api/auth/me` restores browser session state through `require_auth`. It is a safe, read-only
+endpoint and therefore does not require CSRF or mutate cookies/database state. Every success is
+marked `Cache-Control: no-store` and returns exactly `id`, canonical `email`, current persisted
+`role`, and `email_verified`.
+
+The endpoint never returns JWTs, password/hash data, session identifiers, refresh state, CSRF data,
+or profile fields. A missing profile does not prevent authentication: profile/readiness loading is
+a separate later request. Missing, malformed, expired, or wrong-type access credentials and
+inactive/deleted/missing Users retain the generic `401 Authentication required.` dependency
+contract.
 
 ## Local PostgreSQL + pgvector
 

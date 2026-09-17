@@ -32,10 +32,11 @@ Implemented:
   rotation and session-family revocation when an old refresh token is reused.
 - A reusable verified-current-user dependency that authenticates the access cookie and reloads
   active User identity and role from PostgreSQL for protected backend routes.
+- A no-store `GET /api/auth/me` endpoint that restores only the sanitized current User session.
 
 Not implemented yet:
 
-- Logout/current-session endpoints and frontend session integration.
+- Logout endpoint and frontend session integration.
 - Frontend registration/login integration and authenticated session bootstrap.
 - Protected User/Admin routes backed by server authorization.
 - Profile, event-management, matching, notification, or AI business APIs.
@@ -201,9 +202,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-015
-plus AUTH-017 are complete. The next planned backend authentication task is AUTH-016, which exposes
-the sanitized current-session endpoint through the verified dependency.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-017
+are complete. The next planned backend authentication task is AUTH-018, which adds reusable exact
+database-role enforcement for protected APIs.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

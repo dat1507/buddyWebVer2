@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.dependencies import require_auth
 from app.core.config import (
     AuthTokenSettings,
     CsrfSettings,
@@ -13,6 +14,7 @@ from app.core.config import (
     get_csrf_settings,
 )
 from app.core.database import get_database_session
+from app.models import User
 from app.schemas.auth import (
     CsrfTokenResponse,
     LoginRequest,
@@ -94,6 +96,17 @@ def require_refresh_context(
         session_id=claims.session_id,
     )
     return RefreshRequestContext(refresh_token=refresh_token, claims=claims)
+
+
+@router.get("/me", response_model=SanitizedUserResponse)
+async def read_current_session(
+    response: Response,
+    current_user: Annotated[User, Depends(require_auth)],
+) -> SanitizedUserResponse:
+    """Return the current persisted identity without credentials or profile data."""
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    return SanitizedUserResponse.model_validate(current_user)
 
 
 @router.get("/csrf", response_model=CsrfTokenResponse)
