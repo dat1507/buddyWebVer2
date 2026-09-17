@@ -109,8 +109,9 @@ one session family and stores its current refresh `jti`, owning User, expiry, an
 time. The migration applies the same runtime-only privileges and RLS boundary; browser/Data API
 roles receive no table access or policy.
 
-The public registration, login, and refresh endpoints are implemented below. Sanitized
-current-user responses, logout, and protected-route authorization remain in their later tasks.
+The public registration, login, and refresh endpoints are implemented below, together with the
+verified-current-user dependency for protected routes. Sanitized current-session responses,
+explicit role gates, and logout remain in their later tasks.
 
 ## Password hashing
 
@@ -143,9 +144,9 @@ Registration and authentication services flush but deliberately do not commit. A
 AUTH-014 own their request transactions, while login now stages its initial refresh-session row in
 the same transaction. `verify_user_role` checks the current persisted active/deleted state and exact
 `USER` or `ADMIN` role, returning only the generic
-`Insufficient permissions.` failure. AUTH-017/AUTH-018
-remain responsible for loading the current User from a verified access-cookie session on protected
-requests.
+`Insufficient permissions.` failure. `app.api.dependencies.require_auth` now loads the current User
+from a verified access-cookie session; AUTH-018 will compose that identity with exact database-role
+authorization.
 
 ## JWT and auth cookies
 
@@ -172,8 +173,8 @@ pair with the same session ID and fresh access/refresh `jti` values. `rotate_ref
 the stateful half: it row-locks the session family, compares the presented `jti`, and atomically
 replaces it on success. A mismatch is reuse and permanently timestamps the family as revoked. It
 also reloads the active, non-deleted User and current database role before issuing a replacement,
-so role changes are reflected without trusting the old access-token role. AUTH-017 must still load
-authoritative User state on every protected request.
+so role changes are reflected without trusting the old access-token role. Protected requests also
+reload authoritative User state through `require_auth` rather than authorizing from that claim.
 
 ## CSRF protection
 
@@ -229,16 +230,16 @@ are set only as HttpOnly cookies and never appear in JSON. The response contains
 matching CSRF cookie is rotated from pre-auth scope to an HMAC session-bound scope.
 
 Login persists the initial refresh-session family in the same transaction as `last_login`; cookies
-are attached only after that commit. AUTH-017/AUTH-016 must still verify the access cookie and expose
-the current-session endpoint, while AUTH-024 owns explicit logout and cookie clearing.
+are attached only after that commit. AUTH-016 will expose the current-session endpoint through the
+implemented access-cookie dependency, while AUTH-024 owns explicit logout and cookie clearing.
 
 ## Refresh rotation
 
 `POST /api/auth/refresh` has no request body. It reads the environment-specific HttpOnly refresh
 cookie and requires the matching session-scoped CSRF header/cookie plus exact trusted source-origin
 evidence. Missing, malformed, expired, revoked, wrong-user, and reused refresh credentials all fail
-with the same no-store `401 {"detail":"Session is invalid or expired."}` response. Invalid CSRF fails with
-the shared sanitized `403` before a database session is opened.
+with the same no-store `401 {"detail":"Session is invalid or expired."}` response. Invalid CSRF
+fails with the shared sanitized `403` before a database session is opened.
 
 After cryptographic verification, the endpoint row-locks the persisted session family. Only the
 currently stored refresh `jti` may rotate it; success replaces that value and expiry atomically,
@@ -251,6 +252,21 @@ Clients must single-flight refresh requests. Two concurrent requests with the sa
 both legitimate rotations: after one consumes the `jti`, the second is treated as reuse and revokes
 the family. AUTH-021 owns that frontend coordination. AUTH-024 later adds explicit logout and cookie
 clearing; a failed refresh does not claim logout behavior.
+
+## Protected-route authentication
+
+`app.api.dependencies.require_access_claims` reads only the environment-specific HttpOnly access
+cookie and verifies its signature, algorithm, issuer, audience, type, subject, session identifier,
+token identifier, role shape, and exact lifetime before the database dependency opens. Missing,
+malformed, expired, or wrong-token-type credentials return the same no-store
+`401 {"detail":"Authentication required."}` response.
+
+`app.api.dependencies.require_auth` then queries only the signed subject and returns an active,
+non-deleted database User. Body fields, query parameters, and frontend state cannot select or
+replace that identity. The signed access-token role is not an authorization source: downstream
+code receives the current persisted role, so an old `ADMIN` claim cannot restore removed
+privileges. AUTH-018 will add the reusable exact-role gate; AUTH-016 will be the first product
+endpoint to expose this dependency through `GET /api/auth/me`.
 
 ## Local PostgreSQL + pgvector
 

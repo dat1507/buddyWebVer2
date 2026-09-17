@@ -314,6 +314,11 @@ def refresh_cookie_name(settings: AuthTokenSettings) -> str:
     return _cookie_names(settings)[1]
 
 
+def access_cookie_name(settings: AuthTokenSettings) -> str:
+    """Return the environment-appropriate HttpOnly access-cookie name."""
+    return _cookie_names(settings)[0]
+
+
 def _mark_auth_response_private(response: Response) -> None:
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
