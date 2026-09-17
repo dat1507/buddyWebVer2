@@ -120,6 +120,27 @@ for those candidates and for malformed stored hashes. Product password-strength 
 rules belong to the future registration/password-change schemas and must remain within this shared
 technical maximum.
 
+## Authentication service
+
+`app.services.register_user` trims, validates and case-folds ASCII email identities before storage,
+hashes the password without modifying it, and always stages a least-privilege `USER`. It has no role
+parameter, so public registration cannot create an Admin. PostgreSQL remains the race-safe authority
+for unique email enforcement; a unique violation is rolled back and becomes the generic
+`Account registration failed.` error without reflecting the address.
+
+`app.services.authenticate_user` queries the canonical email, verifies bcrypt for both known and
+unknown accounts, rejects inactive and soft-deleted users with the same generic
+`Invalid email or password.` error, and stages the timezone-aware `last_login`. A fixed non-secret
+cost-12 dummy hash keeps unknown-account failures on the expensive bcrypt path. It returns the
+database User and its actual role; it neither accepts an expected login-page role nor creates JWTs.
+
+Both registration and authentication flush but deliberately do not commit. AUTH-013/AUTH-014 own
+the request transaction, while future refresh-session persistence can be committed atomically with
+login. `verify_user_role` checks the current persisted active/deleted state and exact `USER` or
+`ADMIN` role, returning only the generic `Insufficient permissions.` failure. AUTH-017/AUTH-018
+remain responsible for loading the current User from a verified access-cookie session on protected
+requests.
+
 ## JWT and auth cookies
 
 `app.services.create_token_pair` issues HS256 access and refresh JWTs for the same session. Access

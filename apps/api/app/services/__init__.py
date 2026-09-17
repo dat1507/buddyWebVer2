@@ -1,5 +1,17 @@
 """Application service package for business use cases."""
 
+from app.services.auth import (
+    MAX_EMAIL_LENGTH,
+    MAX_EMAIL_LOCAL_PART_LENGTH,
+    AccountRegistrationError,
+    AuthenticationError,
+    EmailValidationError,
+    RoleVerificationError,
+    authenticate_user,
+    canonicalize_email,
+    register_user,
+    verify_user_role,
+)
 from app.services.csrf import (
     CSRF_HEADER_NAME,
     PREAUTH_CSRF_TTL,
@@ -38,6 +50,8 @@ from app.services.tokens import (
 )
 
 __all__ = [
+    "MAX_EMAIL_LOCAL_PART_LENGTH",
+    "MAX_EMAIL_LENGTH",
     "CSRF_HEADER_NAME",
     "PREAUTH_CSRF_TTL",
     "SESSION_CSRF_TTL",
@@ -46,12 +60,16 @@ __all__ = [
     "ACCESS_TOKEN_TTL",
     "REFRESH_TOKEN_TTL",
     "AccessTokenClaims",
+    "AccountRegistrationError",
+    "AuthenticationError",
     "CsrfToken",
     "CsrfTokenClaims",
     "CsrfValidationError",
+    "EmailValidationError",
     "PasswordHashingError",
     "RefreshTokenClaims",
     "RefreshTokenRotation",
+    "RoleVerificationError",
     "TokenPair",
     "TokenValidationError",
     "clear_auth_cookies",
@@ -59,8 +77,11 @@ __all__ = [
     "create_preauth_csrf_token",
     "create_session_csrf_token",
     "create_token_pair",
+    "authenticate_user",
+    "canonicalize_email",
     "hash_password",
     "prepare_refresh_rotation",
+    "register_user",
     "set_auth_cookies",
     "set_csrf_cookie",
     "verify_csrf_request",
@@ -68,4 +89,5 @@ __all__ = [
     "verify_access_token",
     "verify_password",
     "verify_refresh_token",
+    "verify_user_role",
 ]

@@ -24,8 +24,8 @@ Implemented:
 - Docker Compose service for local PostgreSQL 17 with the pgvector package.
 - Shared SQLAlchemy base model and the `USER`/`ADMIN` role contract.
 - Exact-origin credentialed CORS configuration.
-- Persisted User model/migration, bcrypt password service, hardened JWT cookie primitives, and a
-  signed double-submit CSRF bootstrap endpoint.
+- Persisted User model/migration, bcrypt and registration/login/role services, hardened JWT cookie
+  primitives, and a signed double-submit CSRF bootstrap endpoint.
 
 Not implemented yet:
 
@@ -194,9 +194,9 @@ resources must be provisioned and verified before they can be documented as live
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-011A
-are complete. The next planned backend authentication task is AUTH-012, which adds the register,
-login, and role-verification service boundary.
+Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-012
+are complete. The next planned backend authentication task is AUTH-013, which adds the
+CSRF-protected public registration endpoint.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.
