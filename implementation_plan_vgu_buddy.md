@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-005 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-006 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1245,7 +1245,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-002 | Create User Registration page (/register) | 3 | FE-005, FE-006 | P0 |
 | AUTH-003 | Create Admin Login page (/adminLogin) — distinct visual | 2 | FE-005, FE-006 | P0 |
 | AUTH-004 | Create non-persisted Zustand session store (status, user, role; no tokens) — ✅ COMPLETED | 2 | FE-001, AUTH-ARCH-001 | P0 |
-| AUTH-005 | Create ProtectedRoute component (requires auth) | 2 | AUTH-004, FE-006 | P0 |
+| AUTH-005 | Create ProtectedRoute component (requires auth) — ✅ Completed | 2 | AUTH-004, FE-006 | P0 |
 | AUTH-006 | Create RoleGuard component (requires specific role) | 2 | AUTH-005 | P0 |
 
 > [!IMPORTANT]
@@ -4228,7 +4228,7 @@ Gate: AUTH-020                Implemented; local/live acceptance PASS; productio
 Done: AUTH-024                Backend/live and frontend/cache integration acceptance PASS [P0; Phase 5; integration completed 2026-09-18]
 Done: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4; completed 2026-09-17]
 Done: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5; completed 2026-09-18]
-Next: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4]
+Done: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4; completed 2026-09-18]
 Next: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4]
 Next: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5]
 Next: AUTH-023                Implement admin login flow: Admin login → role=ADMIN check → redirect [P0; Phase 5]
@@ -4337,7 +4337,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-005 — ProtectedRoute. AUTH-004 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-005 development. Do not execute AUTH-005 unless explicitly requested.**
+**Next development task: AUTH-006 — RoleGuard. AUTH-004, AUTH-005 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-006 development. Do not execute AUTH-006 unless explicitly requested.**
 
 ---
 
@@ -4521,6 +4521,44 @@ route guards, production deployment, Gemini. These remain AUTH-021/022/023/005/0
 **Evidence:** See PART 18A AUTH-004 record and `apps/web/README.md`; 41 dedicated tests, Zustand
 5.0.15 pinned with lockfile. Store is a client-only SPA singleton, never a backend authorization
 source. No live browser/deployed auth claim. AUTH-024 frontend/cache AC remains pending AUTH-021.
+
+### AUTH-005 — Create ProtectedRoute component (requires auth)
+
+**Task ID:** `AUTH-005`
+**Status:** COMPLETED (✅) on 2026-09-18; **Priority:** P0; **Phase:** 4
+**Dependencies:** AUTH-004, FE-006; current AUTH-021 bootstrap integration is reused.
+**Goal:** Gate private route rendering on verified session state without reload redirect flicker.
+**Scope:** Reusable outlet guard, User/Admin route integration and neutral localized pending UI.
+
+The Phase 4 registry provides title/dependencies only. These operational acceptance checks derive
+from that registry and the approved AUTH-ARCH-001 guard contract, rather than a new role policy:
+
+- [x] `unknown`/`loading` show accessible neutral EN/DE pending; private children/layouts do not mount and the requested URL remains intact. — All-state tests, child mount/unmount checks and unknown base-route tests PASS.
+- [x] Confirmed `unauthenticated` redirects with history replacement to the fixed internal login surface; public routes stay reachable. — User/Admin direct/deep-link, Back-history, path/search/hash state and public route integration tests PASS.
+- [x] Validated `authenticated` renders the nested outlet and existing index routes; store clear/re-verification removes private content immediately. — Actual Zustand/router selector transitions, USER/ADMIN outlet and logout/account-loading checks PASS.
+- [x] AUTH-021 reload/refresh remains bounded without early private UI; existing auth/public/cache regressions and required gates pass. — StrictMode bootstrap, held final `/me` 200/401, rejected refresh, 503 feedback and pending logout/private-public cache tests PASS; real local browser cookies/database reload/logout acceptance PASS.
+
+**Implementation:** Added `features/auth/protected-route.tsx` and two colocated test files; wrapped
+all declared `/user` and `/admin` descendants in App. Anonymous login paths are `/login` and
+`/adminLogin`; router state preserves only pathname/search/hash and is not consumed as a redirect.
+No network/storage/cookie side effects in the guard. EN/DE copy added. A focused test exposed
+AUTH-021 installing refreshed identity before bootstrap's final `/me`; bootstrap now validates
+refresh User but keeps loading until `/me` succeeds. Ordinary private-request refresh is unchanged.
+
+**Verification:** **31 focused tests PASS; full frontend 206 PASS**, Prettier/ESLint/strict
+TypeScript/production build PASS. Full backend **384 PASS / 10 existing Redis live SKIP** with
+3 isolated PostgreSQL live cases enabled; backend Ruff/strict mypy (57 files)/pip check PASS.
+Production npm audit and strict pip-audit PASS; Git diff/credential signature review PASS with
+no .env/config/dependency change or generated/lab file in Git scope.
+Real browser verifies anonymous User/Admin redirects, authenticated profile deep-link reload
+retaining query/hash, immediate logout redirect and denied re-entry, EN/DE surfaces, empty error
+console. No source backend, dependencies, runtime .env, migrations or secrets changed.
+
+**Out of Scope:** AUTH-006 role isolation, AUTH-022/023 login role checks/redirects, layout/profile
+features, immediate access denylisting, cross-tab locking and production deployment. Authentication
+guard alone permits either valid role; backend authorization remains authoritative. Existing
+frontend chunk advisory, AUTH-020 production operator gate and Gemini remediation remain pending.
+**Next development task:** AUTH-006 — RoleGuard; not started by AUTH-005.
 
 ### AUTH-020 — Rate limiting middleware (SlowAPI)
 

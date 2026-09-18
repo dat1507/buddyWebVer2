@@ -10,6 +10,7 @@ import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 import { SessionControls } from '@/features/auth/session-controls'
+import { ProtectedRoute } from '@/features/auth/protected-route'
 
 const userRoutes = [
   { path: 'dashboard', title: 'Dashboard' },
@@ -47,26 +48,30 @@ function App() {
           <Route path="register" element={<UserRegistrationPage />} />
         </Route>
 
-        <Route path="user" element={<UserLayout />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          {userRoutes.map(({ path, title }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<RoutePlaceholder area="User" title={title} />}
-            />
-          ))}
+        <Route element={<ProtectedRoute />}>
+          <Route path="user" element={<UserLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            {userRoutes.map(({ path, title }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<RoutePlaceholder area="User" title={title} />}
+              />
+            ))}
+          </Route>
         </Route>
 
-        <Route path="admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          {adminRoutes.map(({ path, title }) => (
-            <Route
-              key={path}
-              path={path}
-              element={<RoutePlaceholder area="Admin" title={title} />}
-            />
-          ))}
+        <Route element={<ProtectedRoute loginPath="/adminLogin" />}>
+          <Route path="admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            {adminRoutes.map(({ path, title }) => (
+              <Route
+                key={path}
+                path={path}
+                element={<RoutePlaceholder area="Admin" title={title} />}
+              />
+            ))}
+          </Route>
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

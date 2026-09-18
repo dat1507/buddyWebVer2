@@ -33,7 +33,8 @@ Production builds do not use the event fixtures, even with `VITE_EVENT_SLIDER_US
 
 `useAuthStore` in `src/stores/auth-store.ts` is a typed Zustand 5.0.15 singleton for this browser SPA.
 It starts with `status: 'unknown'`, `user: null`, `role: null`. AUTH-021 connects it to the credentialed
-client, `/api/auth/me` bootstrap, login and logout. AUTH-005/AUTH-006 still own route guards.
+client, `/api/auth/me` bootstrap, login and logout. AUTH-005 supplies authentication route guards;
+AUTH-006 still owns role guards.
 
 | Action                      | Result                                                                      |
 | --------------------------- | --------------------------------------------------------------------------- |
@@ -121,23 +122,57 @@ dependency audit PASS. Real local browser + isolated PostgreSQL registration/log
 PASS; backend live tests also cover expired-access refresh and persisted USER/ADMIN roles. Public
 slider transport/cache regression and EN/DE rendering PASS. No production deployment is claimed.
 
+## Protected routes (AUTH-005)
+
+`src/features/auth/protected-route.tsx` is a reusable React Router outlet guard backed by the
+actual AUTH-004 status selector. The AUTH-ARCH-001 contract requires neutral pending while status
+is `unknown` or `loading`: private children/layouts never mount and the requested URL stays intact.
+Confirmed `unauthenticated` state redirects with history replacement to a fixed internal login
+path: `/user` descendants use `/login`, `/admin` descendants use `/adminLogin`. Router state keeps
+only the requested pathname/search/hash for later login-flow work; the guard does not follow it.
+Public landing, login, registration, direct Admin login and 404 routes remain outside the guard.
+
+Validated `authenticated` state renders the nested outlet and existing dashboard index navigation.
+Logout immediately unmounts private content; account re-verification returns to neutral pending.
+The guard never fetches, inspects cookies, reads storage or restores an identity itself. AUTH-021
+alone owns bootstrap/refresh. A focused integration check exposed early identity installation
+after bootstrap refresh; bootstrap now validates that response without installing identity until
+the final `/me` succeeds. Normal private-request refresh still installs the verified updated User.
+
+This is authentication presentation only. AUTH-006 role authorization and AUTH-022/023 login
+redirects/denial are pending; authenticated identities are not yet separated by role in the router.
+Backend `require_auth`/`require_role` remain authoritative. Existing placeholder pages stay
+placeholders, not delivered profile/admin features. No API/cookie/CSRF/dependency/env change.
+
+```sh
+npm test -- src/features/auth/protected-route.test.tsx src/features/auth/protected-route-integration.test.tsx
+```
+
+Verification (2026-09-18): **31 focused PASS; full frontend 206 PASS**; Prettier, ESLint, strict
+TypeScript, production build and production dependency audit PASS. Full backend regression **384 PASS / 10 existing Redis live
+SKIP**, including the isolated PostgreSQL live suite. Real local browser + backend/database cookies
+verify anonymous User/Admin redirects, authenticated deep-link reload without login redirect,
+and logout followed by denied re-entry. EN/DE checks PASS; browser error console empty. Existing
+chunk-size advisory, access JWT residual TTL and production AUTH-020 operator gate remain.
+
 ## Source entry points
 
-| Path                                  | Responsibility                                                       |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| `src/main.tsx`                        | React mount, router, query provider, and localization initialization |
-| `src/App.tsx`                         | Public, student, and administrator route definitions                 |
-| `src/components/layout/`              | Navbar, footer, language toggle, and layout wrappers                 |
-| `src/components/landing/`             | Landing sections, carousel, and demo dialog                          |
-| `src/pages/public/`                   | Landing and authentication forms                                     |
-| `src/features/events/`                | Event schema, API/mock repositories, and query hook                  |
-| `src/features/auth/session-user.ts`   | Sanitized session User validation and readonly DTO types             |
-| `src/stores/auth-store.ts`            | Non-persisted status/user/role state and atomic actions              |
-| `src/features/auth/session-client.ts` | CSRF, bootstrap, refresh, login/logout and account coordination      |
-| `src/features/auth/private-cache.ts`  | Targeted private-query cancellation/removal                          |
-| `src/lib/api.ts`                      | Credentialed JSON/CSRF client using `VITE_API_URL`                   |
-| `src/i18n.ts` and `src/locales/`      | English/German localization                                          |
-| `src/test/setup.ts`                   | Test environment setup; test files are colocated with source         |
+| Path                                    | Responsibility                                                       |
+| --------------------------------------- | -------------------------------------------------------------------- |
+| `src/main.tsx`                          | React mount, router, query provider, and localization initialization |
+| `src/App.tsx`                           | Public, student, and administrator route definitions                 |
+| `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                 |
+| `src/components/landing/`               | Landing sections, carousel, and demo dialog                          |
+| `src/pages/public/`                     | Landing and authentication forms                                     |
+| `src/features/events/`                  | Event schema, API/mock repositories, and query hook                  |
+| `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types             |
+| `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions              |
+| `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination      |
+| `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                          |
+| `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                      |
+| `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                   |
+| `src/i18n.ts` and `src/locales/`        | English/German localization                                          |
+| `src/test/setup.ts`                     | Test environment setup; test files are colocated with source         |
 
 The `@/` alias resolves to `src/`. Tests run through `vitest.config.ts`; the build uses `vite.config.ts`. ESLint and Prettier are the configured lint/format tools.
 

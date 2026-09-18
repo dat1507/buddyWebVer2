@@ -140,6 +140,9 @@
     "error": "The demo video could not be loaded. Please try again later."
   },
   "auth": {
+    "guard": {
+      "pending": "Checking your session…"
+    },
     "session": {
       "label": "Session",
       "pending": "Please wait…",

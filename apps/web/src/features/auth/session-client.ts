@@ -88,11 +88,16 @@ function createSessionClient(cache: QueryClient) {
     useAuthStore.getState().setAuthenticated(user)
     return user
   }
-  const refreshInternal = async (generation: number) => {
+  const refreshInternal = async (generation: number, options: { deferIdentity?: boolean } = {}) => {
     const result = sessionSchema.safeParse(await sessionMutation('/auth/refresh'))
     if (!result.success) throw new ApiError(200, 'invalidResponse')
     csrfToken = result.data.csrf_token
-    await installUser(result.data.user, generation)
+    if (options.deferIdentity) {
+      checkEpoch(generation)
+      parseSessionUser(result.data.user)
+    } else {
+      await installUser(result.data.user, generation)
+    }
     refreshVersion += 1
   }
   const withFeedback = <T>(action: SessionAction, generation: number, work: () => Promise<T>) => {
@@ -128,7 +133,8 @@ function createSessionClient(cache: QueryClient) {
           user = await requestJson('/auth/me')
         } catch (error) {
           if (!(error instanceof ApiError) || error.status !== 401) throw error
-          await refreshInternal(generation)
+          // Keep loading until /me resolves; route guards must not mount private UI early.
+          await refreshInternal(generation, { deferIdentity: true })
           user = await requestJson('/auth/me') // One refresh and one /me retry only.
         }
         await installUser(user, generation)

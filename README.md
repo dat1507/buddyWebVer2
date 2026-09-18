@@ -210,8 +210,13 @@ targeted logout/account-switch cache clearing are verified (frontend 175 PASS; b
 10 existing Redis live skips). Real local browser + disposable PostgreSQL registration/login/
 reload/logout PASS; AUTH-024's combined frontend/cache acceptance is satisfied. Production
 Redis/TLS/ingress smoke remains pending for AUTH-020; no deployed production authentication is
-claimed. The next development task is AUTH-005 (ProtectedRoute), not started here; AUTH-006 and
-role-specific login routing in AUTH-022/023 remain planned.
+claimed. AUTH-005 ProtectedRoute is complete: unknown/loading sessions show neutral pending;
+confirmed anonymous User/Admin routes redirect to their login pages and authenticated sessions
+render nested routes. Bootstrap defers refreshed identity until `/me` finishes. Current frontend
+**206 tests PASS**, including 31 guard/integration checks; local browser deep-link reload/logout
+acceptance PASS. The next task is AUTH-006 (RoleGuard), not started here. Role-based frontend
+authorization and complete login routing in AUTH-022/023 remain planned; backend authorization
+continues to be authoritative.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

@@ -140,6 +140,9 @@
     "error": "Das Demo-Video konnte nicht geladen werden. Bitte versuche es später erneut."
   },
   "auth": {
+    "guard": {
+      "pending": "Deine Sitzung wird überprüft…"
+    },
     "session": {
       "label": "Sitzung",
       "pending": "Bitte warten…",
