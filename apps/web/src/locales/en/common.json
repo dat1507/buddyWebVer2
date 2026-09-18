@@ -221,6 +221,12 @@
       }
     }
   },
+  "adminLayout": {
+    "sidebarLabel": "Administrator workspace",
+    "contentLabel": "Administrator content",
+    "skipToContent": "Skip to content",
+    "badge": "Admin"
+  },
   "userLayout": {
     "sidebarLabel": "Student workspace",
     "contentLabel": "Student content",

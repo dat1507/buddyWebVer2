@@ -221,6 +221,12 @@
       }
     }
   },
+  "adminLayout": {
+    "sidebarLabel": "Administrationsbereich",
+    "contentLabel": "Inhalte der Administration",
+    "skipToContent": "Zum Inhalt springen",
+    "badge": "Admin"
+  },
   "userLayout": {
     "sidebarLabel": "Studierendenbereich",
     "contentLabel": "Inhalte des Studierendenbereichs",

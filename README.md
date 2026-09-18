@@ -235,7 +235,11 @@ logout acceptance and actual desktop/mobile browser checks PASS. FE-022 adds sco
 navigation with current-route semantics. Current business pages remain placeholders, so all seven
 items are unavailable without href or keyboard tab stops; Edit Profile has no invented URL.
 The router and navigation share page-delivery metadata. USER readiness/onboarding remains FE-038;
-backend authorization remains authoritative. The next task is ADMIN-001 (AdminLayout).
+backend authorization remains authoritative. ADMIN-001 completes the AdminLayout shell with a
+distinct dark sidebar, Admin badge, responsive content region, nested Outlet and EN/DE landmarks.
+One main and keyboard skip-to-content are verified with guarded reload/logout acceptance. Admin
+module navigation and overview data remain later tasks. The next task is ADMIN-002 (Admin Sidebar
+navigation).
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
 repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).

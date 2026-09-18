@@ -11,14 +11,14 @@ interface RoutePlaceholderProps {
 }
 
 function RoutePlaceholder({ area, title }: RoutePlaceholderProps) {
-  // UserLayout owns its main landmark; other layouts retain their existing page main.
-  const Container = area === 'User' ? 'div' : 'main'
+  // Private layouts own the main landmark; a standalone public page keeps its own.
+  const Container = area === 'Public' ? 'main' : 'div'
 
   return (
     <Container
       className={cn(
         'flex items-center justify-center',
-        area === 'User' ? 'py-6' : 'min-h-screen px-6 py-16',
+        area === 'Public' ? 'min-h-screen px-6 py-16' : 'py-6',
       )}
     >
       <Card className="w-full max-w-xl">

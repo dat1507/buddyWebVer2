@@ -326,9 +326,41 @@ Compose validation PASS. Actual local browser/API/PostgreSQL checks verify deep-
 desktop/320px layout, EN/DE, keyboard skip/focus without unavailable tab stops, logout and denied
 re-entry. Private/public mobile content has no horizontal overflow; browser error console empty.
 
-Direct-to-main workflow applies from FE-022 onward. Next task: **ADMIN-001 — Create AdminLayout
-component (sidebar + content)**; not implemented here. FE-023 still awaits profile/readiness/
+Direct-to-main workflow applies from FE-022 onward. Next task after FE-022: **ADMIN-001 — Create AdminLayout
+component (sidebar + content)**; not implemented by FE-022. FE-023 still awaits profile/readiness/
 onboarding dependencies. Existing bundle-size advisory and AUTH-020 production operator gate remain.
+
+## Administrator layout shell (ADMIN-001)
+
+`AdminLayout` owns a compact sidebar/content grid for existing `/admin/*` routes. The 14rem dark
+sidebar uses the shared Card/Typography primitives, existing brand asset, localized Admin badge
+and LanguageToggle. A 96rem maximum content width leaves room for future data tables; at `md` the
+sidebar and content sit side by side, with a sticky sidebar. Narrow screens stack the regions and
+allow controls/text to wrap. Module navigation belongs to ADMIN-002 and overview stats to ADMIN-003.
+
+The layout provides named aside/main landmarks, a unique skip-link target and keyboard-focusable
+main. Private RoutePlaceholder content uses a div, preventing nested mains; standalone Public
+placeholders retain their main. USER sidebar behavior is preserved. App routes, RoleGuard,
+ProtectedRoute, SessionControls, bootstrap/CSRF and session persistence are unchanged.
+
+```sh
+npm test -- src/components/layout/admin-layout.test.tsx src/components/layout/admin-layout-integration.test.tsx
+```
+
+Verification (2026-09-18): **14 dedicated ADMIN-001 PASS; FE-021/FE-022 regression 33 PASS; full
+frontend 368 PASS**. Format/lint/typecheck/build PASS; production dependency audit reports zero
+vulnerabilities. Backend full suite: 381 PASS / 13 opt-in SKIP, with three PostgreSQL live cases
+additionally PASS. Ruff, strict mypy, pip check, Alembic graph, package build, strict lockfile
+pip-audit and Compose validation PASS. Actual local browser/API/PostgreSQL Admin login, query/hash
+deep-link reload, EN/DE, desktop 1280px/tablet 768px/mobile 320px, keyboard skip/toggle, logout and
+denied re-entry PASS. Document width fits available viewport width and browser error console is
+empty. Lab configuration initially required URL-safe base64 signing keys; corrected outside Git.
+No domain API, dependency, environment file or account data is added to source.
+
+Next task: **ADMIN-002 — Create Admin Sidebar navigation (all 11 modules)**, P0; ADMIN-001 is DONE.
+ADMIN-002 and ADMIN-003 remain unimplemented here. Continue direct-to-main workflow without deploying.
+Existing bundle advisory, ten unconfigured Redis live cases and AUTH-020 production operator gate
+remain.
 
 ## Source entry points
 

@@ -63,11 +63,11 @@ describe('FE-021 UserLayout shell', () => {
     expect(within(main).getByRole('heading', { name: 'Nested content' })).toBeVisible()
   })
 
-  it.each(['Public', 'Admin'] as const)('preserves the existing %s page main landmark', (area) => {
+  it.each(['Public', 'Admin'] as const)('preserves one main landmark for a %s route', (area) => {
     render(
       <MemoryRouter>
         <Routes>
-          <Route element={<AdminLayout />}>
+          <Route element={area === 'Admin' ? <AdminLayout /> : undefined}>
             <Route index element={<RoutePlaceholder area={area} title="Existing page" />} />
           </Route>
         </Routes>
@@ -77,6 +77,10 @@ describe('FE-021 UserLayout shell', () => {
     expect(
       within(screen.getByRole('main')).getByRole('heading', { name: 'Existing page' }),
     ).toBeVisible()
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+    if (area === 'Admin') {
+      expect(screen.getByRole('complementary', { name: 'Administrator workspace' })).toBeVisible()
+    } else {
+      expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+    }
   })
 })
