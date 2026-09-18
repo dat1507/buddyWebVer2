@@ -123,7 +123,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     async (path, dashboard, role, title) => {
       useAuthStore.getState().setAuthenticated({ ...user, role })
       renderApp(path)
-      expect(await screen.findByText(title)).toBeVisible()
+      expect(await screen.findByRole('heading', { name: title })).toBeVisible()
       expect(location()).toBe(dashboard)
       expect(fetch).not.toHaveBeenCalled()
     },
@@ -167,7 +167,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
         await act(async () => me.resolve(json(user, meStatus)))
       }
       if (meStatus === 200) {
-        expect(await screen.findByText('Settings')).toBeVisible()
+        expect(await screen.findByRole('heading', { name: 'Settings' })).toBeVisible()
         expect(location()).toBe('/user/settings')
       } else {
         expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()

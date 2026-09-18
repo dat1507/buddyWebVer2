@@ -292,12 +292,52 @@ Next development task: **FE-022 — User Sidebar navigation**; not implemented h
 profile/onboarding and Admin business pages remain scaffolding. Existing bundle-size advisory,
 copied-access TTL and AUTH-020 production Redis/TLS/ingress operator gate remain.
 
+## Student sidebar navigation (FE-022)
+
+`UserSidebarNavigation` adds a named navigation landmark and seven localized items: Dashboard,
+My Profile, Edit Profile, Buddy Matching, My Buddy, Events and Settings. Calendar/Notifications
+appear only after delivery; assistant/campus/Admin links are outside this sidebar's scope.
+
+`src/routes/user-routes.ts` is the shared route registry. A `placeholder` route renders the existing
+scaffolding and cannot produce an actionable sidebar link. A delivered `page` must supply its actual
+component; routing and navigation use that same descriptor. All current student pages remain
+placeholders. Their sidebar entries are `aria-disabled` spans without href or tab stops, with a
+localized explanation and status. Edit Profile has no existing route, so it has no destination URL.
+
+Current locations use `aria-current="page"`, including requested scaffold routes. Delivered-page
+inputs render native NavLinks with focus-visible styles, exact profile/dashboard matching and
+nested matching/buddy/events/settings support. Search/hash do not select a different destination.
+Unit fixtures exercise this released-page branch without claiming business features are delivered.
+
+Navigation stacks at narrow widths, uses two columns at `sm` and returns to one desktop sidebar
+column at `lg`. Labels/status wrap independently. Removing the body's fixed 320px minimum width
+allows a 320px viewport with a vertical scrollbar to fit its actual available content width.
+Existing FE-021 skip-link/main behavior, language toggle, guards and session/client flow remain.
+
+```sh
+npm test -- src/components/layout/user-sidebar-navigation.test.tsx src/components/layout/user-sidebar-navigation-integration.test.tsx
+```
+
+Verification (2026-09-18): **21 dedicated FE-022 PASS; FE-021 regression 12 PASS; full frontend
+354 PASS**. Format/lint/typecheck/build and production dependency audit PASS. Backend full suite:
+381 PASS / 13 opt-in live SKIP; three PostgreSQL opt-in cases additionally PASS, leaving ten Redis
+live cases unconfigured. Ruff/mypy/pip check/Alembic/package build, strict lockfile pip-audit and
+Compose validation PASS. Actual local browser/API/PostgreSQL checks verify deep-link reload,
+desktop/320px layout, EN/DE, keyboard skip/focus without unavailable tab stops, logout and denied
+re-entry. Private/public mobile content has no horizontal overflow; browser error console empty.
+
+Direct-to-main workflow applies from FE-022 onward. Next task: **ADMIN-001 — Create AdminLayout
+component (sidebar + content)**; not implemented here. FE-023 still awaits profile/readiness/
+onboarding dependencies. Existing bundle-size advisory and AUTH-020 production operator gate remain.
+
 ## Source entry points
 
 | Path                                    | Responsibility                                                       |
 | --------------------------------------- | -------------------------------------------------------------------- |
 | `src/main.tsx`                          | React mount, router, query provider, and localization initialization |
 | `src/App.tsx`                           | Public, student, and administrator route definitions                 |
+| `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata   |
+| `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery    |
 | `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                 |
 | `src/components/landing/`               | Landing sections, carousel, and demo dialog                          |
 | `src/pages/public/`                     | Landing and authentication forms                                     |

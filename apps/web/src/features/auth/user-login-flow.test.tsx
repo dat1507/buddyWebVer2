@@ -147,7 +147,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
         )
       }
       expect(
-        await screen.findByText(role === 'USER' ? 'Dashboard' : 'Admin overview'),
+        await screen.findByRole('heading', {
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+        }),
       ).toBeVisible()
       expect(location()).toEqual({
         pathname: role === 'USER' ? '/user/dashboard' : '/admin/dashboard',
@@ -177,7 +179,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       useAuthStore.getState().setAuthenticated({ ...user, role })
       renderApp()
       expect(
-        await screen.findByText(role === 'USER' ? 'Dashboard' : 'Admin overview'),
+        await screen.findByRole('heading', {
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+        }),
       ).toBeVisible()
       expect(fetch).not.toHaveBeenCalled()
     },
@@ -212,7 +216,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       })
       expectNoPrivate()
       submit()
-      expect(await screen.findByText('Dashboard')).toBeVisible()
+      expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
       expect(location()).toEqual({ pathname: '/user/dashboard', search: '', hash: '', state: null })
       sessionStorage.removeItem('auth')
     },
@@ -279,7 +283,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     submit()
     expect(await screen.findByRole('alert')).toBeVisible()
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByText('Dashboard')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(fetch.mock.calls[5][1]).toMatchObject({ headers: { 'X-CSRF-Token': 'retry' } })
     expect(fetch).toHaveBeenCalledTimes(6)
   })
@@ -365,7 +369,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
         await act(async () => logout.resolve(new Response(null, { status: 204 })))
       }
       expect(
-        await screen.findByText(role === 'USER' ? 'Dashboard' : 'Admin overview'),
+        await screen.findByRole('heading', {
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+        }),
       ).toBeVisible()
       expect(useAuthStore.getState().user?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
       expect(queryClient.getQueryData(['profile', user.id])).toBeUndefined()
@@ -394,7 +400,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
         await act(async () => me.resolve(json({ ...user, role })))
       }
       expect(
-        await screen.findByText(role === 'USER' ? 'Dashboard' : 'Admin overview'),
+        await screen.findByRole('heading', {
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+        }),
       ).toBeVisible()
       expect(fetch).toHaveBeenCalledTimes(2)
     },
@@ -416,7 +424,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     } finally {
       await act(async () => me.resolve(json(user)))
     }
-    expect(await screen.findByText('Dashboard')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(document.querySelector('[data-layout="admin"]')).toBeNull()
     expect(fetch).toHaveBeenCalledTimes(4)
   })

@@ -41,8 +41,6 @@ describe('FE-021 UserLayout shell', () => {
       expect(skip).toHaveAttribute('href', `#${main.id}`)
       expect(main).toHaveAttribute('tabindex', '-1')
       expect(document.getElementById(main.id)).toBe(main)
-      // FE-022 owns business navigation, not this shell.
-      expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
     },
   )
 

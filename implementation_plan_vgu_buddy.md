@@ -1027,15 +1027,15 @@ These are planned privacy controls, not a verified legal-compliance claim. Full 
 
 ### Git Workflow (Solo Developer)
 
-```
-main (production)
-  └── feature branches
-        ├── feat/foundation
-        ├── feat/auth-rbac
-        ├── feat/admin-dashboard
-        ├── feat/matching
-        └── feat/rag
-```
+**Approved workflow from FE-022 onward:** Implement, commit and push directly on `main` unless
+actual repository protection prevents it. Fetch and safely synchronize with `origin/main` from a
+clean working tree, implement one task, pass required gates, review diff/secrets, commit on main,
+check concurrent incoming commits and push normally. Verify the live SHA, CI and clean/synced state.
+Do not create task branches, force push or bypass failed gates/protection. If a real remote rejection
+requires a PR, report the evidence without changing repository rules. See CONTRIBUTING.md.
+
+FE-021 was integrated on main by fast-forward to `70fce5c` before FE-022 implementation. Existing
+historical task branches/history remain intact; they are not the workflow for subsequent tasks.
 
 ### CI/CD Pipeline (GitHub Actions)
 
@@ -1046,10 +1046,12 @@ main (production)
 - Unit tests (Vitest + pytest)
 - Build check
 
-# On merge to main:
-- All above + E2E tests
-- Deploy frontend to Vercel
-- Deploy backend to Render
+# Current main pushes:
+- The repository's Frontend and Backend CI jobs run; there is no deployment job
+
+# Future release pipeline, only with explicit deployment authorization:
+- Deployed E2E/smoke acceptance
+- Frontend/backend deployment configuration and release gates
 ```
 
 ### Hosting: $0/month Strategy
@@ -1084,7 +1086,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021 is complete; FE-022 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021 and FE-022 are complete; ADMIN-001 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1298,7 +1300,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
 | FE-021 | Create UserLayout component (sidebar + content area) — ✅ Completed | 3 | FE-005, AUTH-006 | P0 |
-| FE-022 | Create User Sidebar navigation | 2 | FE-021 | P0 |
+| FE-022 | Create User Sidebar navigation — ✅ Completed | 2 | FE-021 | P0 |
 | FE-023 | Create profile-aware User Dashboard home | 2 | FE-021, FE-022, BE-012, BE-016, FE-038 | P0 |
 | FE-024 | Create User Settings page with real session actions | 2 | FE-021, AUTH-021, AUTH-025 | P1 |
 
@@ -4233,7 +4235,7 @@ Done: AUTH-006                Create RoleGuard component (requires specific role
 Done: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5; completed 2026-09-18]
 Done: AUTH-023                Implement admin login flow: Admin login → role=ADMIN check → redirect [P0; Phase 5; completed 2026-09-18]
 Done: FE-021                  Create UserLayout component (sidebar + content area) [P0; Phase 6; completed 2026-09-18]
-Next: FE-022                  Create User Sidebar navigation [P0; Phase 6]
+Done: FE-022                  Create User Sidebar navigation [P0; Phase 6; completed 2026-09-18]
 Next: ADMIN-001               Create AdminLayout component (sidebar + content) — clean, data-dense [P0; Phase 7]
 Next: ADMIN-002               Create Admin Sidebar navigation (all 11 modules) [P0; Phase 7]
 Next: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7]
@@ -4337,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: FE-022 — User Sidebar navigation. FE-021, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block FE-022 development. Do not execute FE-022 unless explicitly requested.**
+**Next development task: ADMIN-001 — Create AdminLayout component (sidebar + content). FE-021, FE-022, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-001 development. Continue direct-to-main workflow; do not execute ADMIN-001 unless explicitly requested.**
 
 ---
 
@@ -4859,7 +4861,7 @@ API, auth architecture, backend contract, role model or persistence/token behavi
   cannot bypass USER RoleGuard. Final `/auth/me` after bounded refresh controls reload rendering;
   logout unmounts the shell and denies subsequent private re-entry.
 - No business sidebar links, readiness/onboarding, profile/dashboard logic or fabricated domain
-  API are supplied. FE-022 remains Planned and is the next task in Part 24.
+  API are supplied. At FE-021 completion, FE-022 remained Planned and was the next task in Part 24.
 
 **Verification evidence (2026-09-18):** Two colocated FE-021 suites contain 12 passing rendering,
 Outlet/locale/landmark/guard/bootstrap/refresh/logout cases. Full frontend: 333 PASS; format, lint,
@@ -4870,20 +4872,49 @@ pip-audit and Compose config validation PASS. Actual local browser/API/PostgreSQ
 desktop/320px layout, EN/DE, keyboard focus, recovered session, logout and denied re-entry;
 browser error console empty. Existing bundle advisory and AUTH-020 production operator gate remain.
 
-**Next development task:** FE-022 — User Sidebar navigation; not started by FE-021.
+**Next development task after FE-021 completion:** FE-022 — User Sidebar navigation; not started by FE-021.
 
 ### FE-022 — Create User Sidebar navigation
 
-**Task ID:** `FE-022`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 6  
-**Goal:** Keep a coherent student area while features arrive incrementally.  
-**Dependencies:** FE-021  
+- **Task ID:** `FE-022`
+- **Change:** Updated existing; **Status:** Completed — 2026-09-18; **Priority:** P0; **Phase:** 6
+- **Goal:** Keep a coherent student area while features arrive incrementally.
+- **Dependencies:** FE-021
 **Scope:** Dashboard, My Profile, Edit Profile, Buddy Matching, My Buddy, Events and Settings; Calendar and Notifications only when delivered.
 
 **Acceptance Criteria:**
 
-- [ ] Active-route and keyboard behavior work in EN/DE; no link points at an undelivered page.
-- [ ] Sidebar uses existing /user route names; no admin link is exposed to USER.
+- [x] Active-route and keyboard behavior work in EN/DE; no link points at an undelivered page. — Current scaffold locations use aria-current; unavailable entries have no href/tab stop. Released-page component inputs verify native NavLink clicks, focus, nested active states and segment boundaries. Actual browser keyboard/mobile checks PASS.
+- [x] Sidebar uses existing /user route names; no admin link is exposed to USER. — Route descriptors are shared with App; all current USER pages remain placeholders. Edit Profile has no existing route, so no destination is invented. Calendar/Notifications and assistant/campus are omitted.
+
+**Definition of Done / delivered scope:** The seven localized sidebar items and named navigation
+landmark are integrated into FE-021 without changing guards/session/CSRF. Route descriptors
+distinguish placeholders from delivered page components; only the latter create actionable links.
+Unavailable entries remain informative and identify the current requested scaffold route. This
+completes navigation infrastructure, not FE-023/profile/onboarding/matching/events/settings business
+pages. No API, mock domain backend, persistence, environment or dependency changes are supplied.
+
+**Responsive/accessibility evidence:** Desktop sidebar and mobile stacked shell remain intact;
+navigation uses one narrow column, two at sm, and one at lg. EN/DE labels/status wrap independently.
+Remove the body's fixed 320px minimum width so a 320px viewport with vertical scrollbar fits its
+305px available width without horizontal overflow. Named nav/aside/main, one main landmark,
+focus-visible native links and FE-021 keyboard skip-to-content remain. Unavailable destinations are
+aria-disabled spans with a shared localized description and no keyboard trap/tab stop.
+
+**Verification (2026-09-18):** 21 dedicated FE-022 PASS; FE-021 12 PASS; full frontend 354 PASS.
+Format/lint/typecheck/build and production dependency audit PASS. Backend full suite 381 PASS /
+13 opt-in live SKIP; three additional PostgreSQL live cases PASS (ten Redis cases remain opt-in).
+Ruff/mypy/pip check/Alembic/package build, strict lockfile pip-audit and Compose validation PASS.
+Actual browser/API/PostgreSQL checks cover USER/deep-link reload, desktop/320px EN/DE navigation,
+keyboard skip/focus, logout and denied re-entry; private/public mobile width fits, error console
+empty. Existing bundle advisory and AUTH-020 production operator gate remain pending.
+
+**Git workflow:** FE-021 fast-forwarded/pushed to main at 70fce5c with green main CI before FE-022.
+FE-022 is implemented/committed/pushed directly on main; subsequent tasks use this workflow unless
+actual repository protection prevents it. No new task branch or deployment is performed.
+
+**Next development task:** ADMIN-001 — AdminLayout, P0; dependencies FE-005 and AUTH-006 are DONE.
+FE-023 still awaits BE-012, BE-016 and FE-038. ADMIN-001 is not started by FE-022.
 
 **Out of Scope:** New social feed or messaging navigation.
 

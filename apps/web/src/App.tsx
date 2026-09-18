@@ -11,17 +11,7 @@ import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 import { SessionControls } from '@/features/auth/session-controls'
 import { RoleGuard } from '@/features/auth/role-guard'
-
-const userRoutes = [
-  { path: 'dashboard', title: 'Dashboard' },
-  { path: 'profile', title: 'Profile' },
-  { path: 'matching', title: 'Buddy matching' },
-  { path: 'buddy', title: 'My Buddy' },
-  { path: 'assistant', title: 'AI assistant' },
-  { path: 'campus', title: 'Campus' },
-  { path: 'events', title: 'Events' },
-  { path: 'settings', title: 'Settings' },
-]
+import { userRoutes } from '@/routes/user-routes'
 
 const adminRoutes = [
   { path: 'dashboard', title: 'Admin overview' },
@@ -51,11 +41,17 @@ function App() {
         <Route element={<RoleGuard requiredRole="USER" />}>
           <Route path="user" element={<UserLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            {userRoutes.map(({ path, title }) => (
+            {userRoutes.map((route) => (
               <Route
-                key={path}
-                path={path}
-                element={<RoutePlaceholder area="User" title={title} />}
+                key={route.path}
+                path={route.path}
+                element={
+                  route.kind === 'page' ? (
+                    <route.Component />
+                  ) : (
+                    <RoutePlaceholder area="User" title={route.title} />
+                  )
+                }
               />
             ))}
           </Route>

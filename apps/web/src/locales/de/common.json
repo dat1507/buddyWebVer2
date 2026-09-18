@@ -226,6 +226,18 @@
     "contentLabel": "Inhalte des Studierendenbereichs",
     "skipToContent": "Zum Inhalt springen"
   },
+  "userNavigation": {
+    "label": "Studierendennavigation",
+    "dashboard": "Übersicht",
+    "myProfile": "Mein Profil",
+    "editProfile": "Profil bearbeiten",
+    "matching": "Buddy-Matching",
+    "myBuddy": "Mein Buddy",
+    "events": "Veranstaltungen",
+    "settings": "Einstellungen",
+    "comingSoon": "Demnächst",
+    "unavailableHint": "Diese Seiten sind noch nicht verfügbar."
+  },
   "footer": {
     "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
     "quickLinks": "Schnellzugriff",

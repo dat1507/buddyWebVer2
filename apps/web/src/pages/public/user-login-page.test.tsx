@@ -84,7 +84,7 @@ describe('UserLoginPage', () => {
     const password = screen.getByLabelText('Password')
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
-    expect(await screen.findByText('Dashboard')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Welcome back' })).not.toBeInTheDocument()
     expect(login).toHaveBeenCalledWith({ email: 'student@example.com', password: 'secret' })
     expect(password).toHaveValue('')

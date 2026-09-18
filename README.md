@@ -231,9 +231,14 @@ cleared. Existing verified USER entry is denied publicly while preserving its es
 Real local browser/API/database ADMIN and EN/DE USER denial/revocation acceptance PASS.
 FE-021 UserLayout is complete: responsive sidebar/content regions, nested route Outlet, one main
 landmark, keyboard skip link and EN/DE labels reuse the existing design system. Guard/bootstrap/
-logout acceptance and actual desktop/mobile browser checks PASS. The next task is FE-022 (User
-Sidebar navigation). USER readiness/onboarding remains FE-038; current private pages are
-scaffolding. Backend authorization remains authoritative.
+logout acceptance and actual desktop/mobile browser checks PASS. FE-022 adds scoped EN/DE student
+navigation with current-route semantics. Current business pages remain placeholders, so all seven
+items are unavailable without href or keyboard tab stops; Edit Profile has no invented URL.
+The router and navigation share page-delivery metadata. USER readiness/onboarding remains FE-038;
+backend authorization remains authoritative. The next task is ADMIN-001 (AdminLayout).
+
+From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
+repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

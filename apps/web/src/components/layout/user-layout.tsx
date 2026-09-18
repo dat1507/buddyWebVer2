@@ -4,6 +4,7 @@ import { Outlet } from 'react-router'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
+import { UserSidebarNavigation } from '@/components/layout/user-sidebar-navigation'
 import { Card } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 
@@ -21,23 +22,26 @@ function UserLayout() {
       </a>
       <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:px-8">
         <aside aria-label={t('userLayout.sidebarLabel')} className="min-w-0 lg:sticky lg:top-6">
-          <Card className="flex items-center justify-between gap-4 p-4 sm:p-6 lg:flex-col lg:items-start">
-            <div className="flex min-w-0 items-center gap-3">
-              <img
-                src={vguBuddyLogo}
-                alt=""
-                className="h-11 w-11 shrink-0 rounded-full object-cover"
-              />
-              <div className="min-w-0">
-                <Typography as="p" variant="small" className="truncate font-semibold">
-                  VGU Buddy
-                </Typography>
-                <Typography variant="muted" className="mt-1">
-                  {t('userLayout.sidebarLabel')}
-                </Typography>
+          <Card className="space-y-5 p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-4 lg:flex-col lg:items-start">
+              <div className="flex min-w-0 items-center gap-3">
+                <img
+                  src={vguBuddyLogo}
+                  alt=""
+                  className="h-11 w-11 shrink-0 rounded-full object-cover"
+                />
+                <div className="min-w-0">
+                  <Typography as="p" variant="small" className="truncate font-semibold">
+                    VGU Buddy
+                  </Typography>
+                  <Typography variant="muted" className="mt-1">
+                    {t('userLayout.sidebarLabel')}
+                  </Typography>
+                </div>
               </div>
+              <LanguageToggle />
             </div>
-            <LanguageToggle />
+            <UserSidebarNavigation />
           </Card>
         </aside>
         <main

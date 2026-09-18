@@ -226,6 +226,18 @@
     "contentLabel": "Student content",
     "skipToContent": "Skip to content"
   },
+  "userNavigation": {
+    "label": "Student navigation",
+    "dashboard": "Dashboard",
+    "myProfile": "My Profile",
+    "editProfile": "Edit Profile",
+    "matching": "Buddy Matching",
+    "myBuddy": "My Buddy",
+    "events": "Events",
+    "settings": "Settings",
+    "comingSoon": "Coming soon",
+    "unavailableHint": "These pages are not available yet."
+  },
   "footer": {
     "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",
     "quickLinks": "Quick Links",
