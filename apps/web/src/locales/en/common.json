@@ -227,6 +227,19 @@
     "skipToContent": "Skip to content",
     "badge": "Admin"
   },
+  "adminOverview": {
+    "title": "Admin overview",
+    "description": "Statistics are not available yet.",
+    "unavailable": "Not available",
+    "metrics": {
+      "totalUsers": "Total Users",
+      "activeMatches": "Active Matches",
+      "publishedEvents": "Published Events",
+      "aiQueriesToday": "AI Queries Today",
+      "unmatchedStudents": "Unmatched Students",
+      "upcomingEvents": "Upcoming Events"
+    }
+  },
   "adminNavigation": {
     "label": "Administrator navigation",
     "scaffoldHint": "Module pages are under development.",

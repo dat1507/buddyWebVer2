@@ -77,7 +77,7 @@ describe('ADMIN-002 guarded App navigation', () => {
     ).not.toBeInTheDocument()
 
   it.each(modules)(
-    'opens the guarded %s scaffold through the actual sidebar',
+    'opens the guarded %s destination through the actual sidebar',
     (label, path, title) => {
       useAuthStore.getState().setAuthenticated(admin)
       renderApp('/admin/settings')

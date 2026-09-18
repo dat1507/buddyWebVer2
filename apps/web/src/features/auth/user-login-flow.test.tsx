@@ -148,7 +148,12 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name:
+            role === 'USER'
+              ? 'Dashboard'
+              : language === 'en'
+                ? 'Admin overview'
+                : 'Administrationsübersicht',
         }),
       ).toBeVisible()
       expect(location()).toEqual({

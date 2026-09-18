@@ -227,6 +227,19 @@
     "skipToContent": "Zum Inhalt springen",
     "badge": "Admin"
   },
+  "adminOverview": {
+    "title": "Administrationsübersicht",
+    "description": "Statistiken sind noch nicht verfügbar.",
+    "unavailable": "Nicht verfügbar",
+    "metrics": {
+      "totalUsers": "Benutzer insgesamt",
+      "activeMatches": "Aktive Zuordnungen",
+      "publishedEvents": "Veröffentlichte Veranstaltungen",
+      "aiQueriesToday": "KI-Anfragen heute",
+      "unmatchedStudents": "Studierende ohne Zuordnung",
+      "upcomingEvents": "Bevorstehende Veranstaltungen"
+    }
+  },
   "adminNavigation": {
     "label": "Administrationsnavigation",
     "scaffoldHint": "Die Modulseiten befinden sich in Entwicklung.",

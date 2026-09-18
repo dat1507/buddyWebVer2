@@ -240,9 +240,11 @@ distinct dark sidebar, Admin badge, responsive content region, nested Outlet and
 One main and keyboard skip-to-content are verified with guarded reload/logout acceptance. Admin
 module navigation is now complete in ADMIN-002: eleven localized native links share the router's
 canonical module registry, with current-route semantics and responsive keyboard access. The missing
-Event Sliders destination is a guarded scaffold; all module business pages remain under development.
-Frontend verification now totals 394 PASS. The next task is ADMIN-003 (Admin Dashboard overview,
-stats cards placeholder), ready through completed ADMIN-001.
+Event Sliders destination is a guarded scaffold; module business pages remain under development.
+ADMIN-003 delivers the Dashboard overview with six accessible EN/DE stats cards. Values explicitly
+remain unavailable; no operational totals or stats API are supplied by these placeholders.
+Frontend verification now totals 411 PASS. The next task is ADMIN-004 (reusable DataTable with
+sort, filter, search and pagination), ready through completed FE-005.
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
 repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 and ADMIN-002 are complete; ADMIN-003 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001, ADMIN-002 and ADMIN-003 are complete; ADMIN-004 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1310,7 +1310,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 |----|------|----|------|-----|
 | ADMIN-001 | Create AdminLayout component (sidebar + content) — clean, data-dense — ✅ Completed | 3 | FE-005, AUTH-006 | P0 |
 | ADMIN-002 | Create Admin Sidebar navigation (all 11 modules) — ✅ Completed | 2 | ADMIN-001 | P0 |
-| ADMIN-003 | Create Admin Dashboard overview page (stats cards placeholder) | 2 | ADMIN-001 | P0 |
+| ADMIN-003 | Create Admin Dashboard overview page (stats cards placeholder) — ✅ Completed | 2 | ADMIN-001 | P0 |
 | ADMIN-004 | Create reusable DataTable component (sort, filter, search, pagination) | 4 | FE-005 | P0 |
 | ADMIN-005 | Create reusable ConfirmDialog component | 1 | FE-004 | P0 |
 
@@ -4238,7 +4238,7 @@ Done: FE-021                  Create UserLayout component (sidebar + content are
 Done: FE-022                  Create User Sidebar navigation [P0; Phase 6; completed 2026-09-18]
 Done: ADMIN-001               Create AdminLayout component (sidebar + content) — clean, data-dense [P0; Phase 7; completed 2026-09-18]
 Done: ADMIN-002               Create Admin Sidebar navigation (all 11 modules) [P0; Phase 7; verified 2026-09-19]
-Next: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7]
+Done: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7; verified 2026-09-19]
 Next: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7]
 Next: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7]
 Next: EVT-008                 Create audit log model, migration and service [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder). Dependency ADMIN-001 is DONE; READY. FE-021, FE-022, ADMIN-001, ADMIN-002, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-003 development. Continue direct-to-main workflow; do not execute ADMIN-003 unless explicitly requested.**
+**Next development task: ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination). Dependency FE-005 is DONE; READY. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-004 development. Continue direct-to-main workflow; do not execute ADMIN-004 unless explicitly requested.**
 
 ---
 
@@ -4998,11 +4998,66 @@ verify exact live SHA, Frontend/Backend CI and clean/synced working tree. No bra
 as FE-021/FE-022/ADMIN-001. Only ADMIN-002 weight 2 moves NOT STARTED `[0, 0, 0]` to DONE `[1, 1, 1]`.
 No module business, security/integration or deployment credit is added by navigation.
 
-**Next development task:** ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder),
+**Next development task after ADMIN-002:** ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder),
 P0; dependency ADMIN-001 DONE, READY. Do not implement it unless explicitly requested.
 
 **Out of Scope:** ADMIN-003 stats; data tables/dialogs; module CRUD/domain APIs; sliders content,
 profile/readiness/onboarding/matching; AUTH-020 production operator gate; deployment.
+
+### ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder)
+
+- **Task ID:** `ADMIN-003`
+- **Status:** Completed — 2026-09-19; **Priority:** P0; **Phase:** 7; **Cx:** 2
+- **Dependencies:** ADMIN-001 — DONE; guarded shell, tests and accepted Git/CI evidence verified. ADMIN-002 is also already on main but is not a declared dependency.
+- **Goal/scope:** Replace the Dashboard scaffold with the six stats-card placeholders defined in Part 20. Part 16 defines task scope and Part 24 defines execution order; no extended ADMIN-003 contract existed before this acceptance record.
+
+**Definition of Done / acceptance derived from the registry scope and Part 20:**
+
+- [x] Canonical `/admin/dashboard` renders the overview in the existing ADMIN guard/layout; `/admin` redirects there. Other ten module destinations remain scaffolds.
+- [x] Total Users, Active Matches, Published Events, AI Queries Today, Unmatched Students and Upcoming Events have EN/DE labels and explicit unavailable values. No fabricated operational totals, plan illustration values, zero counts, stats requests or fake loading/error states.
+- [x] Shared Card/Typography/icons, semantic definition list, localized page h1/named section and one main. Decorative icons/dashes are hidden from assistive technology; unavailable status remains accessible.
+- [x] Responsive one/two/four-column grid and wrapping fit actual available desktop/tablet/mobile width in EN/DE. Native module links, current Overview selection, language switching and skip-to-main remain keyboard usable.
+- [x] Unknown/loading/anonymous/USER states cannot expose the page. Authoritative final-me bootstrap, query/hash reload, session identity, logout/failed logout and denied re-entry remain intact.
+- [x] Dedicated and regression tests, required CI/security gates, actual browser/API/PostgreSQL, diff/React/credential review pass.
+
+**Implementation:** `AdminOverviewPage` uses static metric descriptors and localization, with no
+session/store/query effects. The Admin route registry gains a page/placeholder union following
+existing USER delivery metadata; App renders the overview component inside the unchanged ADMIN
+boundary. Every value is a decorative em dash plus Not available/Nicht verfügbar, with an honest
+page description. Labels/title wrap; grid columns are one below sm, two at sm and four at xl.
+No auth/session/API/cache/backend implementation, dependencies or environment files change.
+
+**Verification (2026-09-19):** 17 dedicated ADMIN-003 PASS; ADMIN-001/002 regression 40 PASS; full
+frontend 411 PASS in 35 files with two workers. Format/lint/typecheck/production build PASS;
+production npm audit zero vulnerabilities. Backend 381 PASS / 13 opt-in live SKIP plus three
+separate PostgreSQL live PASS. Ruff, strict mypy (57 files), pip check, Alembic graph, package build,
+strict lockfile pip-audit and Compose validation PASS. Ten Redis live cases remain unconfigured.
+Local pytest cache-write, Docker config-read and existing >500kB bundle warnings are non-failing.
+
+Actual browser/API/least-privilege PostgreSQL ADMIN login, six unavailable values, module navigation,
+query/hash deep-link reload, native Enter language switching, 1280px/768px/640px/320px width fit,
+skip-main focus, logout and denied re-entry PASS; console errors empty. German title initially
+overflowed the 320px viewport (321px document vs 305px available); wrapping fixes measured fit to
+305/305px. Two existing DE login assertions expected the former English scaffold title; they now
+assert the localized h1 while retaining session/password/routing/history assertions. Full final
+frontend gates were rerun with a saved log after earlier background handles disappeared. Temporary
+tab/viewport cleaned up; listener inventory confirms zero active lab listeners.
+
+**Git workflow:** Implement/commit/normal push directly on main after gates/diff/secret review;
+verify exact live SHA, Frontend/Backend CI and clean/synced working tree in the external completion
+receipt. No new task branch, force push, history rewrite or deployment.
+
+**Completion accounting:** Same 160 task IDs, fixed weights/partial-credit bounds and release rubric
+as FE-021/FE-022/ADMIN-001/002. Only ADMIN-003 weight 2 moves NOT STARTED `[0, 0, 0]` to DONE
+`[1, 1, 1]`, earning 2 points. No layout/navigation double count or real stats, matching, module CRUD,
+security/integration/deployment credit. ADMIN-014 still awaits MATCH-013.
+
+**Next development task:** ADMIN-004 — Create reusable DataTable component (sort, filter, search,
+pagination), P0 / Phase 7 / Cx 4; dependency FE-005 DONE, READY. Shared primitives and test evidence
+verified; ADMIN-004 is not implemented here. Do not execute it unless explicitly requested.
+
+**Out of Scope:** Real dashboard stats/APIs, module CRUD, data tables/dialogs, matching, profile/
+readiness/onboarding/events/sliders, AUTH-020 production Redis/TLS/ingress operator gate and deployment.
 
 ### EVT-008 — Create audit log model, migration and service
 

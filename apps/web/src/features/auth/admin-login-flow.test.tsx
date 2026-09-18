@@ -160,7 +160,12 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
           ),
         )
       }
-      expect(await screen.findByText('Admin overview')).toBeVisible()
+      expect(
+        await screen.findByRole('heading', {
+          level: 1,
+          name: language === 'en' ? 'Admin overview' : 'Administrationsübersicht',
+        }),
+      ).toBeVisible()
       expect(location()).toEqual({
         pathname: '/admin/dashboard',
         search: '',

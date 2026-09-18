@@ -395,10 +395,56 @@ query/hash deep-link reload, EN/DE, 1280px/768px/640px/320px width fit, two-colu
 Tab/Enter access to Settings with sidebar scrolling at 1280×500, skip-link main focus, CSRF logout
 and denied Event Sliders re-entry. Console errors absent; lab servers stopped and tab/viewport cleaned.
 
-Next task: **ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder)**, P0;
+Next task after ADMIN-002: **ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder)**, P0;
 dependency ADMIN-001 is DONE. Continue direct-to-main workflow; ADMIN-003 is not implemented here.
 Existing 500kB bundle advisory, ten unconfigured Redis live cases and AUTH-020 production operator
 gate remain. No production deployment is claimed.
+
+## Administrator overview (ADMIN-003)
+
+`AdminOverviewPage` replaces the `/admin/dashboard` scaffold inside the existing ADMIN guard and
+AdminLayout. The shared Admin route registry now distinguishes actual pages from placeholders;
+the other ten module destinations retain their scaffolds. The `/admin` index redirect and all
+canonical module paths remain intact.
+
+Part 20 defines six cards: Total Users, Active Matches, Published Events, AI Queries Today,
+Unmatched Students and Upcoming Events. Shared Card/Typography/icons and EN/DE resources render
+each metric as a semantic term/definition pair. Values show a decorative em dash and an accessible
+Not available/Nicht verfügbar status; the page explains that statistics are not available yet.
+No illustrative plan totals, zero counts, fake loading/error states or stats requests are supplied.
+
+The page provides a localized h1 and named section within the layout's single main. Grid columns
+are one on narrow screens, two at `sm` and four at `xl`. Labels and the long German title wrap;
+icons and dashes are hidden from assistive technology. Existing sidebar selection, native keyboard
+links, language toggle, skip-to-content, authoritative bootstrap and logout behavior remain.
+
+```sh
+npm test -- src/pages/admin/admin-overview-page.test.tsx src/pages/admin/admin-overview-integration.test.tsx
+```
+
+Verification (2026-09-19): **17 dedicated ADMIN-003 PASS; ADMIN-001/002 regression 40 PASS; full
+frontend 411 PASS (35 files, two workers)**. Format/lint/typecheck/production build PASS; production
+npm audit reports zero vulnerabilities. Two existing DE login assertions expected the former
+English scaffold title; they now assert the actual localized heading while retaining their
+session, password, routing and history checks. Full frontend gates were rerun with a saved log
+when earlier background command handles disappeared.
+
+Backend 381 PASS / 13 opt-in live SKIP plus three separately passing PostgreSQL live cases.
+Ruff, strict mypy, pip check, Alembic graph, package build, strict lockfile pip-audit and Compose
+validation PASS. Ten Redis live cases remain unconfigured. The existing >500kB bundle advisory,
+local pytest cache-write and Docker config-read warnings are non-failing.
+
+Actual local browser/API/least-privilege PostgreSQL verification covers ADMIN login, all six
+unavailable values, Overview selection, module navigation, query/hash deep-link reload, EN/DE
+keyboard switching, skip-main focus, logout and denied re-entry. Available document width fits
+1280px/768px/640px/320px viewports, including the long German title; console errors absent. Temporary
+tab/viewport cleaned up and lab listener inventory confirms zero active listeners.
+
+No auth/session/API/cache/backend implementation, dependencies or environment files change.
+Next task: **ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination)**,
+P0; dependency FE-005 is DONE, READY. ADMIN-014 still awaits MATCH-013. Continue direct-to-main
+workflow; ADMIN-004 is not implemented here. AUTH-020 production Redis/TLS/ingress acceptance
+remains pending; no production deployment is claimed.
 
 ## Source entry points
 
@@ -412,6 +458,7 @@ gate remain. No production deployment is claimed.
 | `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                 |
 | `src/components/landing/`               | Landing sections, carousel, and demo dialog                          |
 | `src/pages/public/`                     | Landing and authentication forms                                     |
+| `src/pages/admin/`                      | Guarded Admin pages, including overview stats placeholders           |
 | `src/features/events/`                  | Event schema, API/mock repositories, and query hook                  |
 | `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types             |
 | `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions              |

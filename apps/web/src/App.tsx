@@ -48,11 +48,17 @@ function App() {
         <Route element={<RoleGuard requiredRole="ADMIN" loginPath="/adminLogin" />}>
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            {adminRoutes.map(({ path, title }) => (
+            {adminRoutes.map((route) => (
               <Route
-                key={path}
-                path={path}
-                element={<RoutePlaceholder area="Admin" title={title} />}
+                key={route.path}
+                path={route.path}
+                element={
+                  route.kind === 'page' ? (
+                    <route.Component />
+                  ) : (
+                    <RoutePlaceholder area="Admin" title={route.title} />
+                  )
+                }
               />
             ))}
           </Route>
