@@ -213,14 +213,19 @@ Redis/TLS/ingress smoke remains pending for AUTH-020; no deployed production aut
 claimed. AUTH-005 ProtectedRoute is complete: unknown/loading sessions show neutral pending;
 confirmed anonymous User/Admin routes redirect to their login pages and authenticated sessions
 render nested routes. Bootstrap defers refreshed identity until `/me` finishes. Current frontend
-**256 tests PASS**, including 31 authentication and 50 role guard/integration checks. AUTH-006
+**287 tests PASS**, including 31 authentication, 50 role guard and 31 User login flow checks. AUTH-006
 RoleGuard is complete: User routes require USER, Admin routes require ADMIN; wrong-role requests
 replace history with public `/` without private rendering or logout. Final `/me` role governs
 bootstrap, and verified refresh role changes remove incompatible content and private cache.
 Real local browser cookies/database acceptance covers both roles, matching deep-link reload,
 cross-role denial retaining sessions, EN/DE and logout/re-entry; browser error console is empty.
-The next task is AUTH-022 (User login role check and redirect); AUTH-023 Admin-login cleanup and
-routing remain planned. Backend authorization continues to be authoritative.
+AUTH-022 User login role routing is complete: successful login and recovered sessions at `/login`
+replace history with `/user/dashboard` for USER or `/admin/dashboard` for ADMIN, using only verified
+sanitized identity. Pending/failed verification stays on login with safe validation/error/retry;
+query/hash/router state/stale storage never choose the destination. Late and superseded responses,
+logout/account-switch/private-public cache and real local browser EN/DE acceptance PASS.
+The next task is AUTH-023 (Admin login role check, cleanup and redirect). USER readiness/onboarding
+remains FE-038; current private pages are scaffolding. Backend authorization remains authoritative.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

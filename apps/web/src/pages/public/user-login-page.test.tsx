@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import i18n from '@/i18n'
 import { sessionClient } from '@/features/auth/session-client'
+import { useAuthStore } from '@/stores/auth-store'
 
 function renderLoginRoute() {
   return render(
@@ -17,6 +18,11 @@ function renderLoginRoute() {
 describe('UserLoginPage', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
+    useAuthStore.getState().resetSession()
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    useAuthStore.getState().resetSession()
   })
 
   it('renders the real /login route with an accessible user form', () => {
@@ -58,12 +64,16 @@ describe('UserLoginPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('submits credentials through the session client and leaves role routing for AUTH-022', async () => {
-    const login = vi.spyOn(sessionClient, 'login').mockResolvedValue({
+  it('submits credentials and routes the verified session while clearing the password', async () => {
+    const user = {
       id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       email: 'student@example.com',
-      role: 'USER',
+      role: 'USER' as const,
       email_verified: false,
+    }
+    const login = vi.spyOn(sessionClient, 'login').mockImplementation(async () => {
+      useAuthStore.getState().setAuthenticated(user)
+      return user
     })
     renderLoginRoute()
 
@@ -71,12 +81,13 @@ describe('UserLoginPage', () => {
       target: { value: 'student@example.com' },
     })
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+    const password = screen.getByLabelText('Password')
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('You are signed in.')
-    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
+    expect(await screen.findByText('Dashboard')).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Welcome back' })).not.toBeInTheDocument()
     expect(login).toHaveBeenCalledWith({ email: 'student@example.com', password: 'secret' })
-    expect(screen.getByLabelText('Password')).toHaveValue('')
+    expect(password).toHaveValue('')
     login.mockRestore()
   })
 

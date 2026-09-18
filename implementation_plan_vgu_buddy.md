@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-022 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-023 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1288,7 +1288,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) — ✅ Completed | 2 | AUTH-008, AUTH-010 | P0 |
 | AUTH-020 | Create rate limiting middleware (slowapi) — Implemented; local/live acceptance PASS; production operator gate pending | 2 | BE-001 | P0 |
 | AUTH-021 | Connect session client, registration, and auth bootstrap — ✅ Completed | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
-| AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
+| AUTH-022 | Implement login flow: User login → role check → redirect — ✅ Completed | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-024 | Implement session logout endpoint — Backend/live and frontend/cache acceptance PASS | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
 | AUTH-025 | Implement authenticated password change endpoint | 2 | AUTH-024, AUTH-010 | P1 |
@@ -4230,7 +4230,7 @@ Done: AUTH-004                Create non-persisted Zustand session store (status
 Done: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5; completed 2026-09-18]
 Done: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4; completed 2026-09-18]
 Done: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4; completed 2026-09-18]
-Next: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5]
+Done: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5; completed 2026-09-18]
 Next: AUTH-023                Implement admin login flow: Admin login → role=ADMIN check → redirect [P0; Phase 5]
 Next: FE-021                  Create UserLayout component (sidebar + content area) [P0; Phase 6]
 Next: FE-022                  Create User Sidebar navigation [P0; Phase 6]
@@ -4337,7 +4337,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-022 — User login role check and redirect. AUTH-004, AUTH-005, AUTH-006 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-022 development. Do not execute AUTH-022 unless explicitly requested.**
+**Next development task: AUTH-023 — Admin login role check, cleanup and redirect. AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-023 development. Do not execute AUTH-023 unless explicitly requested.**
 
 ---
 
@@ -4601,6 +4601,55 @@ production deployment. The wrong-role destination is public `/`, which avoids lo
 direct navigation denial does not log out an otherwise valid session.
 
 **Next development task:** AUTH-022 — User login role check and redirect; not started by AUTH-006.
+
+### AUTH-022 — Implement login flow: User login → role check → redirect
+
+**Task ID:** `AUTH-022`
+**Status:** COMPLETED (✅) on 2026-09-18; **Priority:** P0; **Phase:** 5
+**Dependencies:** AUTH-021, AUTH-006 (complete on this branch).
+**Scope:** Complete `/login` session-role routing using the existing credentialed CSRF login client.
+
+The registry provides title/dependencies only. These operational checks derive from its role-check
+requirement, AUTH-ARCH-001, the approved sanitized login response and PART 22 role-routing diagram:
+
+- [x] Real login installs only validated sanitized identity; USER routes to `/user/dashboard`, ADMIN to `/admin/dashboard`, with history replacement and correct RoleGuard subtree. — Actual client/store/router EN/DE pending→response tests, payload projection, body/CSRF/credentials and Back checks PASS.
+- [x] Existing verified sessions visiting `/login`, including recovered reload sessions, use the same fixed destinations; unknown/loading/anonymous and malformed/failed verification never trigger premature success routing. — Both roles, all non-authenticated statuses, four malformed identities, held final `/me` and expired-access final-role tests PASS.
+- [x] Existing validation/focus, pending/duplicate-submit protection, safe EN/DE errors and manual retry remain; success clears password even if the form has detached. — Existing form validation/focus and new pending/duplicate/error/retry/EN-DE/attached-detached password checks PASS.
+- [x] Query/hash/router state/stale storage cannot choose a destination or role; unmounted form completion, superseded login/logout and bootstrap responses cannot produce stale navigation or private content. — External/protocol-relative/wrong-subtree inputs, navigation away, logout versus held login, new login versus held bootstrap PASS.
+- [x] Existing account-switch/logout/private-cache behavior, public cache, guards/forms/backend auth regression and quality/security gates pass, with actual local browser cookie/database acceptance. — Both account-switch role destinations/private-public cache tests, 31 dedicated AUTH-022 and full frontend 287 PASS; backend 384 PASS/10 explicit existing Redis live SKIP; local real cookie/database browser PASS.
+
+**Implementation:** `UserLoginPage` uses primitive verified status/role selectors and fixed
+declarative history-replacing redirects. Success no longer remains a notice on the login form.
+The submitted password input is cleared after successful client login even if detached; errors
+retain manual retry. AUTH-021 form integration and User-page tests updated for resulting routing;
+new `features/auth/user-login-flow.test.tsx` covers actual singleton client/store/StrictMode router.
+No change to API/session client/bootstrap/CSRF/cookies/store/backend/layout contracts.
+
+**Workspace/Git preflight:** Default cwd, writable root and Git root are
+`C:\Users\phuoc\Downloads\buddyWebVer2`; initial checkout was clean `main` at `636218a`.
+Prerequisites were verified on pushed `codex/auth-006` at `d15bd58`; created `codex/auth-022` from
+that existing commit without reset/discard/merge. Remote is `https://github.com/dat1507/buddyWebVer2.git`.
+
+**Verification:** Full frontend **287 PASS**, format/ESLint/strict TypeScript/build PASS; the
+existing chunk above 500 kB is advisory. Full backend **384 PASS / 10 opt-in live Redis SKIP**, including
+three isolated PostgreSQL cases; Ruff/strict mypy (57 files)/pip check/Alembic single head PASS.
+Production npm audit reports zero vulnerabilities. Strict runtime pip-audit against
+`requirements.lock` with `--no-deps --disable-pip` (fully pinned transitive input) reports no known
+vulnerabilities; no editable local-source or dependency skip. Git diff/credential signature review
+PASS, with no env/config/dependency/generated/lab file change in Git scope.
+Real browser + isolated PostgreSQL: actual USER login in DE, ADMIN via `/login` in EN, correct
+dashboard roles, recovered sessions visiting `/login`, ignored redirect queries, dashboard reload,
+logout and denied re-entry PASS. Browser error console empty. No fake successful auth/store role,
+production deployment, complete dashboard/business-page or onboarding-readiness claim.
+
+Fixed role destinations follow the current auth diagram; no unapproved return-to URL contract is
+introduced. AUTH-005's `state.from` stays descriptive and is not consumed. USER readiness/onboarding
+is FE-038 after its backend/UI prerequisites; AUTH-022 targets the existing dashboard scaffold.
+ADMIN can use the shared `/login` endpoint and routes from its verified persisted role; no public
+link to `/adminLogin` is added. That surface's role check, logout/denial remains AUTH-023.
+No new API calls, auth transport/storage, backend/schema/env/dependency or production deployment.
+
+**Next development task:** AUTH-023 — Admin login role check, cleanup and redirect; not started by AUTH-022.
 
 ### AUTH-020 — Rate limiting middleware (SlowAPI)
 

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -28,6 +28,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     vi.stubGlobal('fetch', fetch)
   })
   afterEach(async () => {
+    cleanup()
     // End the singleton's cookie/CSRF lifecycle before the next test.
     fetch
       .mockReset()
@@ -136,7 +137,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
   })
 
   it.each(['/login', '/adminLogin'])(
-    'login at %s installs the backend role with no role-specific redirect',
+    'login at %s installs the backend role and preserves its task-specific behavior',
     async (path) => {
       const admin = { ...user, role: 'ADMIN' }
       fetch
@@ -152,15 +153,17 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
         target: { value: 'fixture password' },
       })
       fireEvent.click(mainButton(adminPage ? 'Continue to administration' : 'Sign in'))
-      expect(await screen.findByText('You are signed in.')).toBeVisible()
+      expect(
+        await screen.findByText(adminPage ? 'You are signed in.' : 'Admin overview'),
+      ).toBeVisible()
       expect(useAuthStore.getState()).toMatchObject({
         status: 'authenticated',
         user: admin,
         role: 'ADMIN',
       })
-      expect(
-        screen.getByRole('heading', { name: adminPage ? 'Administration access' : 'Welcome back' }),
-      ).toBeVisible()
+      if (adminPage)
+        expect(screen.getByRole('heading', { name: 'Administration access' })).toBeVisible()
+      else expect(document.querySelector('[data-layout="admin"]')).not.toBeNull()
       expect(JSON.parse(fetch.mock.calls[2][1]!.body as string)).not.toHaveProperty('role')
     },
   )
@@ -180,7 +183,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     expect(await screen.findByRole('alert')).toBeVisible()
     expect(useAuthStore.getState().user).toBeNull()
     fireEvent.click(mainButton('Try again'))
-    expect(await screen.findByText('You are signed in.')).toBeVisible()
+    expect(await screen.findByText('Dashboard')).toBeVisible()
     expect(useAuthStore.getState().role).toBe('USER')
   })
 

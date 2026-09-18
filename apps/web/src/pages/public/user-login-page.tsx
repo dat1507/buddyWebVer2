@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { LockKeyhole, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -9,6 +9,7 @@ import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
 import { sessionClient } from '@/features/auth/session-client'
 import { useAuthSubmission } from '@/features/auth/use-auth-submission'
+import { useAuthStore } from '@/stores/auth-store'
 
 type LoginField = 'email' | 'password'
 type LoginErrors = Partial<Record<LoginField, string>>
@@ -22,6 +23,8 @@ function UserLoginPage() {
   const passwordRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<LoginErrors>({})
   const submission = useAuthSubmission()
+  const status = useAuthStore((state) => state.status)
+  const role = useAuthStore((state) => state.role)
 
   const clearFieldFeedback = (field: LoginField) => {
     setErrors((currentErrors) => {
@@ -63,13 +66,18 @@ function UserLoginPage() {
       return
     }
 
-    void submission.submit(
-      () => sessionClient.login({ email: emailInput!.value, password: passwordInput!.value }),
-      () => {
-        if (passwordRef.current) passwordRef.current.value = ''
-      },
-    )
+    void submission.submit(async () => {
+      await sessionClient.login({ email: emailInput!.value, password: passwordInput!.value })
+      // Clear even a detached input after successful login; navigation may have unmounted the form.
+      passwordInput!.value = ''
+    })
   }
+
+  // Login and reload bootstrap install only verified, sanitized identity. Never follow redirect input.
+  if (status === 'authenticated' && role === 'USER')
+    return <Navigate to="/user/dashboard" replace />
+  if (status === 'authenticated' && role === 'ADMIN')
+    return <Navigate to="/admin/dashboard" replace />
 
   return (
     <main className="relative isolate flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden bg-black px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -176,14 +184,12 @@ function UserLoginPage() {
               )}
             </Button>
 
-            {submission.error || submission.success ? (
+            {submission.error ? (
               <p
                 className="rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm leading-6 text-orange-100"
-                role={submission.error ? 'alert' : 'status'}
+                role="alert"
               >
-                {submission.error
-                  ? t(`auth.errors.${submission.error.code}`)
-                  : t('auth.session.signedIn')}
+                {t(`auth.errors.${submission.error.code}`)}
               </p>
             ) : null}
           </form>
