@@ -229,8 +229,11 @@ USER session at `/adminLogin` is never installed and is logged out with session 
 public denial at `/`. Failed cleanup exposes safe manual logout retry and keeps local identity
 cleared. Existing verified USER entry is denied publicly while preserving its established session.
 Real local browser/API/database ADMIN and EN/DE USER denial/revocation acceptance PASS.
-The next task is FE-021 (UserLayout). USER readiness/onboarding
-remains FE-038; current private pages are scaffolding. Backend authorization remains authoritative.
+FE-021 UserLayout is complete: responsive sidebar/content regions, nested route Outlet, one main
+landmark, keyboard skip link and EN/DE labels reuse the existing design system. Guard/bootstrap/
+logout acceptance and actual desktop/mobile browser checks PASS. The next task is FE-022 (User
+Sidebar navigation). USER readiness/onboarding remains FE-038; current private pages are
+scaffolding. Backend authorization remains authoritative.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

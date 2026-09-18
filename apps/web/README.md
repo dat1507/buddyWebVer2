@@ -2,7 +2,7 @@
 
 React and TypeScript single-page application for the VGU Buddy Program rebuild.
 
-See the [root README](../../README.md) for product context, screenshots, architecture, configuration, and implementation status. The current package contains the public website, API-connected authentication forms, and placeholder student/admin routes.
+See the [root README](../../README.md) for product context, screenshots, architecture, configuration, and implementation status. The current package contains the public website, API-connected authentication forms, a responsive student layout shell, and placeholder student/admin pages.
 
 ## Run locally
 
@@ -261,6 +261,36 @@ private-route re-entry after cleanup, valid User login and existing USER denial/
 Browser error console empty; Git diff/credential review PASS. Existing chunk-size advisory,
 copied-access TTL and AUTH-020 production operator gate remain. Private pages are scaffolding;
 readiness/onboarding remains FE-038. Next development task: FE-021; not started by AUTH-023.
+
+## Student layout shell (FE-021)
+
+`src/components/layout/user-layout.tsx` supplies the USER sidebar and one main content landmark
+around React Router's `Outlet`. Existing App composition keeps it inside `ProtectedRoute` and
+the exact USER `RoleGuard`: unknown/loading, anonymous and ADMIN identities cannot mount it.
+The shell has no API, session, persistence or business-navigation behavior.
+
+The shared Card, Typography, brand asset and LanguageToggle reuse the current design system.
+Below the `lg` breakpoint, sidebar and content stack; desktop uses a 16rem sidebar and a flexible
+content column within `max-w-7xl`. Both regions permit content to shrink. The existing body owns
+the viewport minimum height, avoiding an additional viewport-height shell below session controls.
+EN/DE sidebar/content labels and a focus-visible skip link update with localization. The link
+targets the uniquely identified, programmatically focusable main. User placeholders render a div
+inside that main; Public/Admin placeholders retain their existing main landmark.
+
+```sh
+npm test -- src/components/layout/user-layout.test.tsx src/components/layout/user-layout-integration.test.tsx
+```
+
+Verification (2026-09-18): **12 dedicated FE-021 PASS; full frontend 333 PASS**. Format, ESLint,
+TypeScript, production build and production npm audit PASS. Backend regression **384 PASS /
+10 existing opt-in Redis live SKIP**, Ruff/mypy/pip check/Alembic/package build, strict runtime
+lockfile pip-audit and Compose validation PASS. Actual local browser/API/PostgreSQL verifies
+USER login, deep-link reload, desktop/320px layout without horizontal overflow, EN/DE labels,
+keyboard skip-link focus, logout and denied re-entry. Browser error console empty.
+
+Next development task: **FE-022 — User Sidebar navigation**; not implemented here. Dashboard,
+profile/onboarding and Admin business pages remain scaffolding. Existing bundle-size advisory,
+copied-access TTL and AUTH-020 production Redis/TLS/ingress operator gate remain.
 
 ## Source entry points
 

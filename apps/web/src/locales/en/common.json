@@ -221,6 +221,11 @@
       }
     }
   },
+  "userLayout": {
+    "sidebarLabel": "Student workspace",
+    "contentLabel": "Student content",
+    "skipToContent": "Skip to content"
+  },
   "footer": {
     "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",
     "quickLinks": "Quick Links",

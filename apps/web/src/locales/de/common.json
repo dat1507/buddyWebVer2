@@ -221,6 +221,11 @@
       }
     }
   },
+  "userLayout": {
+    "sidebarLabel": "Studierendenbereich",
+    "contentLabel": "Inhalte des Studierendenbereichs",
+    "skipToContent": "Zum Inhalt springen"
+  },
   "footer": {
     "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
     "quickLinks": "Schnellzugriff",

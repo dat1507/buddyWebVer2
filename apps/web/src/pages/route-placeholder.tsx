@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { cn } from '@/lib/utils'
 
 interface RoutePlaceholderProps {
   area: 'Public' | 'User' | 'Admin'
@@ -10,8 +11,16 @@ interface RoutePlaceholderProps {
 }
 
 function RoutePlaceholder({ area, title }: RoutePlaceholderProps) {
+  // UserLayout owns its main landmark; other layouts retain their existing page main.
+  const Container = area === 'User' ? 'div' : 'main'
+
   return (
-    <main className="flex min-h-screen items-center justify-center px-6 py-16">
+    <Container
+      className={cn(
+        'flex items-center justify-center',
+        area === 'User' ? 'py-6' : 'min-h-screen px-6 py-16',
+      )}
+    >
       <Card className="w-full max-w-xl">
         <CardHeader>
           <Typography variant="small" className="uppercase tracking-[0.2em] text-vgu-orange">
@@ -26,7 +35,7 @@ function RoutePlaceholder({ area, title }: RoutePlaceholderProps) {
           </Button>
         </CardContent>
       </Card>
-    </main>
+    </Container>
   )
 }
 
