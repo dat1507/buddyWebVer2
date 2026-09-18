@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import AuthTokenSettings
 from app.models import RefreshSession, User
 from app.services.tokens import (
+    AccessTokenClaims,
     RefreshTokenClaims,
     TokenPair,
     TokenValidationError,
@@ -61,6 +62,36 @@ async def create_refresh_session(
     session.add(refresh_session)
     await session.flush()
     return refresh_session
+
+
+async def validate_csrf_recovery_session(
+    session: AsyncSession,
+    claims: AccessTokenClaims | RefreshTokenClaims,
+    *,
+    now: datetime | None = None,
+) -> None:
+    """Read an owner-bound live family; a GET never consumes/revokes a refresh token.
+
+    Current refresh JTI is required when refresh identifies the session. Access fallback permits
+    recovery for logout when refresh is missing/invalid. No active-user/role gate is added here:
+    disabled accounts still need CSRF to log out; /me and refresh retain their own identity gates.
+    """
+    current_time = _utc_now(now)
+    stored = await session.scalar(
+        select(RefreshSession).where(
+            RefreshSession.id == claims.session_id, RefreshSession.user_id == claims.user_id
+        )
+    )
+    if (
+        stored is None
+        or stored.id != claims.session_id
+        or stored.user_id != claims.user_id
+        or stored.deleted_at is not None
+        or stored.revoked_at is not None
+        or stored.expires_at <= current_time
+        or (isinstance(claims, RefreshTokenClaims) and stored.refresh_token_id != claims.token_id)
+    ):
+        raise _invalid_session()
 
 
 async def _stage_family_revocation(

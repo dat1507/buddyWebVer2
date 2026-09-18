@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import i18n from '@/i18n'
+import { sessionClient } from '@/features/auth/session-client'
 
 function renderAdminLoginRoute() {
   return render(
@@ -63,8 +64,13 @@ describe('AdminLoginPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('does not call an API or simulate Admin authentication on valid UI-only submit', () => {
-    const fetch = vi.spyOn(globalThis, 'fetch')
+  it('uses the shared session client and leaves role checks/redirects for AUTH-023', async () => {
+    const login = vi.spyOn(sessionClient, 'login').mockResolvedValue({
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      email: 'admin@vgu.edu.vn',
+      role: 'ADMIN',
+      email_verified: false,
+    })
     renderAdminLoginRoute()
 
     fireEvent.change(screen.getByLabelText('Admin email address'), {
@@ -73,12 +79,11 @@ describe('AdminLoginPage', () => {
     fireEvent.change(screen.getByLabelText('Admin password'), { target: { value: 'secret' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue to administration' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Admin authentication will be connected when the authentication backend is available.',
-    )
+    expect(await screen.findByRole('status')).toHaveTextContent('You are signed in.')
     expect(screen.getByRole('heading', { name: 'Administration access' })).toBeVisible()
-    expect(fetch).not.toHaveBeenCalled()
-    fetch.mockRestore()
+    expect(login).toHaveBeenCalledWith({ email: 'admin@vgu.edu.vn', password: 'secret' })
+    expect(screen.getByLabelText('Admin password')).toHaveValue('')
+    login.mockRestore()
   })
 
   it('renders the Admin Login surface in German', async () => {

@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019 and AUTH-004 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live acceptance PASS; its cross-task frontend/cache acceptance awaits AUTH-021, the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-005 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1287,10 +1287,10 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-018 | Create `require_role(role)` FastAPI dependency (verify role) — ✅ Completed | 2 | AUTH-017 | P0 |
 | AUTH-019 | Create admin seed CLI command (`python -m app.cli create-admin`) — ✅ Completed | 2 | AUTH-008, AUTH-010 | P0 |
 | AUTH-020 | Create rate limiting middleware (slowapi) — Implemented; local/live acceptance PASS; production operator gate pending | 2 | BE-001 | P0 |
-| AUTH-021 | Connect session client, registration, and auth bootstrap | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
+| AUTH-021 | Connect session client, registration, and auth bootstrap — ✅ Completed | 2 | AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024 | P0 |
 | AUTH-022 | Implement login flow: User login → role check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
 | AUTH-023 | Implement admin login flow: Admin login → role=ADMIN check → redirect | 2 | AUTH-021, AUTH-006 | P0 |
-| AUTH-024 | Implement session logout endpoint — Backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021 | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
+| AUTH-024 | Implement session logout endpoint — Backend/live and frontend/cache acceptance PASS | 2 | AUTH-015, AUTH-017, AUTH-011A | P0 |
 | AUTH-025 | Implement authenticated password change endpoint | 2 | AUTH-024, AUTH-010 | P1 |
 
 ### Phase 6: User Dashboard Shell
@@ -4225,9 +4225,9 @@ Done: AUTH-016                Create sanitized current-session endpoint [P0; Pha
 Done: AUTH-018                Create `require_role(role)` FastAPI dependency (verify role) [P0; Phase 5; completed 2026-09-17]
 Done: AUTH-019                Create admin seed CLI command (`python -m app.cli create-admin`) [P0; Phase 5; completed 2026-09-17]
 Gate: AUTH-020                Implemented; local/live acceptance PASS; production Redis/TLS/ingress smoke pending [P0; Phase 5]
-Gate: AUTH-024                Backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021 [P0; Phase 5; backend dependency satisfied]
+Done: AUTH-024                Backend/live and frontend/cache integration acceptance PASS [P0; Phase 5; integration completed 2026-09-18]
 Done: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4; completed 2026-09-17]
-Next: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5]
+Done: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5; completed 2026-09-18]
 Next: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4]
 Next: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4]
 Next: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5]
@@ -4337,7 +4337,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-021 — Connect session client, registration, and auth bootstrap. AUTH-004 is completed. AUTH-024 backend/live acceptance PASS; frontend logout/private-cache integration acceptance remains pending AUTH-021. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. These release/integration gates do not block AUTH-021 development. Do not execute AUTH-021 unless explicitly requested.**
+**Next development task: AUTH-005 — ProtectedRoute. AUTH-004 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-005 development. Do not execute AUTH-005 unless explicitly requested.**
 
 ---
 
@@ -4597,7 +4597,7 @@ architecture; the original test is retained and a deterministic pad-bit test was
 ### AUTH-024 — Implement session logout endpoint
 
 **Task ID:** `AUTH-024`  
-**Change:** New; **Status:** Implemented; backend/live acceptance PASS; frontend/cache integration acceptance pending AUTH-021; **Priority:** P0; **Phase:** 5
+**Change:** New; **Status:** Implemented; backend/live and combined frontend/cache acceptance PASS (integration 2026-09-18); **Priority:** P0; **Phase:** 5
 **Goal:** Make the approved logout and wrong-role admin-login flows executable.  
 **Dependencies:** AUTH-015, AUTH-017, AUTH-011A  
 **Scope:** POST /api/auth/logout; revoke refresh session and clear cookies.
@@ -4605,7 +4605,7 @@ architecture; the original test is retained and a deterministic pad-bit test was
 **Acceptance Criteria:**
 
 - [x] CSRF-protected logout revokes the current refresh session and clears auth/CSRF cookies; repeated logout safely clears cookies. — Unit/security and real PostgreSQL/Redis API acceptance PASS.
-- [ ] A revoked refresh token cannot mint another session; frontend clears session and private query caches. — Backend replay rejection PASS for stale and latest tokens, including both race orders. AUTH-004's in-memory clear action PASS; **actual logout/client/private-cache integration NOT IMPLEMENTED/NOT VERIFIED**, tracked in AUTH-021. Retain this combined AC unchecked until integrated acceptance passes.
+- [x] A revoked refresh token cannot mint another session; frontend clears session and private query caches. — Existing backend replay/race acceptance retained; AUTH-021 PostgreSQL live replay/revocation PASS, real browser logout persists family revocation, frontend clears AUTH-004 and cancels/removes private queries while public slider cache survives. Late rotation/private-response and account-switch tests PASS.
 
 **Out of Scope:** New authentication transport, logout UI redesign.
 
@@ -4620,17 +4620,39 @@ Production release still requires AUTH-020 operator configuration/smoke; Gemini 
 ### AUTH-021 — Connect session client, registration, and auth bootstrap
 
 **Task ID:** `AUTH-021`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 5  
+**Change:** Updated existing; **Status:** Completed (2026-09-18); **Priority:** P0; **Phase:** 5
 **Goal:** Connect existing auth forms and session state to real backend responses.  
 **Dependencies:** AUTH-004, AUTH-013, AUTH-014, AUTH-015, AUTH-016, AUTH-024  
 **Scope:** Credentialed client, CSRF, single-flight refresh, registration submission, /auth/me bootstrap, private-cache clearing.
 
 **Acceptance Criteria:**
 
-- [ ] Registration creates USER and returns to /login; valid login restores actual role without local tokens.
-- [ ] Session errors expose retry/pending states; logout or account switch clears profile/match/private-media queries; current public slider GETs continue working.
+- [x] Registration creates USER and returns to /login; valid login restores actual role without local tokens. — Real browser + isolated PostgreSQL registration/login/reload PASS; live database checks confirm USER/unverified and actual USER/ADMIN roles. Integrated forms/client/store tests validate the real request/response contract, success-only navigation and absence of storage/cookie reads.
+- [x] Session errors expose retry/pending states; logout or account switch clears profile/match/private-media queries; current public slider GETs continue working. — Pending/duplicate/error/retry tests (409/422/503/network), serialized old-family logout before account switch, targeted query cancellation/removal, late-response rejection, public GET/cache regressions and post-logout browser slider/EN-DE rendering PASS.
 
 **Out of Scope:** Redesigning completed AUTH-001..003; profile routing is FE-038.
+
+**Approved backend extension:** Reload loses readable memory-only CSRF while HttpOnly JWT/CSRF
+cookies survive. `/me` returns User only, and pre-auth `/csrf` cannot authorize refresh/logout.
+Added `GET /api/auth/csrf/session` using existing trusted-Origin/Referer utility, verified cookie
+identity and owner-bound live family/current refresh JTI. Reuse valid same-session CSRF or issue
+existing session-bound form; no-store/no-cache, no JWT response/rotation/session creation, no CORS
+widening or persistence. Existing pre-auth and unsafe-method CSRF contracts remain unchanged.
+
+**Verification (2026-09-18):** 25 recovery unit/security + 3 isolated PostgreSQL live tests PASS;
+full backend **384 PASS / 10 existing opt-in Redis live SKIP**. Frontend **175 PASS**, including
+transport, controller, real Zustand, integrated forms, cache and existing public UI checks.
+Ruff lint/changed-file format, strict mypy (57 files), pip check/audit, frontend format/lint/strict
+typecheck/build/npm audit PASS. Backend sdist/wheel build PASS. Real local browser registration →
+login → reload recovery → logout PASS; runtime database inspection confirms USER and family
+revocation; landing slider and German rendering work after logout, browser error console empty.
+No new dependencies, runtime configuration, migrations or secrets committed.
+
+**Limits retained:** Coordination is tab-local; copied access JWT residual 15-minute TTL + 30-second
+skew remains AUTH-017's contract. AUTH-020 production Redis/TLS/ingress acceptance and legacy Gemini
+revocation remain separate gates. Existing frontend chunk-size advisory and seven untouched backend
+baseline formatter discrepancies do not fail required CI gates. AUTH-005/006 and role-specific
+redirects/denial in AUTH-022/023 are not implemented here.
 
 ### FE-022 — Create User Sidebar navigation
 

@@ -140,6 +140,26 @@
     "error": "Das Demo-Video konnte nicht geladen werden. Bitte versuche es später erneut."
   },
   "auth": {
+    "session": {
+      "label": "Sitzung",
+      "pending": "Bitte warten…",
+      "retry": "Erneut versuchen",
+      "logout": "Abmelden",
+      "signedIn": "Du bist angemeldet."
+    },
+    "errors": {
+      "unauthorized": "Die Anmeldung ist fehlgeschlagen oder deine Sitzung ist abgelaufen. Prüfe deine Angaben und versuche es erneut.",
+      "forbidden": "Die Anfrage konnte nicht überprüft werden. Bitte versuche es erneut.",
+      "conflict": "Die Registrierung ist fehlgeschlagen. Melde dich an oder versuche es erneut.",
+      "validation": "Prüfe E-Mail-Adresse, Passwort und Zustimmung und versuche es erneut.",
+      "rateLimited": "Zu viele Anfragen. Bitte warte, bevor du es erneut versuchst.",
+      "server": "Der Dienst ist nicht verfügbar. Bitte versuche es erneut.",
+      "network": "Die Anfrage konnte nicht abgeschlossen werden. Prüfe deine Verbindung und versuche es erneut.",
+      "invalidResponse": "Die Sitzung konnte nicht überprüft werden. Bitte versuche es erneut.",
+      "configuration": "Der Dienst ist nicht konfiguriert. Bitte versuche es später erneut.",
+      "cancelled": "Die Sitzung hat sich geändert. Bitte versuche es erneut.",
+      "csrf": "Die Anfrage konnte nicht überprüft werden. Bitte versuche es erneut."
+    },
     "login": {
       "eyebrow": "Zugang für Studierende",
       "title": "Willkommen zurück",
@@ -151,7 +171,6 @@
       "submit": "Anmelden",
       "noAccount": "Neu bei VGU Buddy?",
       "createAccount": "Konto erstellen",
-      "backendPending": "Die Anmeldung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
       "validation": {
         "emailRequired": "Gib deine E-Mail-Adresse ein.",
         "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
@@ -170,11 +189,12 @@
       "submit": "Studierendenkonto erstellen",
       "hasAccount": "Du hast bereits ein Konto?",
       "signIn": "Anmelden",
-      "backendPending": "Die Kontoerstellung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
       "validation": {
         "emailRequired": "Gib deine E-Mail-Adresse ein.",
         "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
         "passwordRequired": "Gib ein Passwort ein.",
+        "passwordMinimum": "Verwende mindestens 15 Zeichen für dein Passwort.",
+        "passwordMaximum": "Dein Passwort darf 72 UTF-8-Bytes nicht überschreiten.",
         "consentRequired": "Für die Kontoerstellung ist deine Zustimmung erforderlich."
       }
     },
@@ -190,7 +210,6 @@
       "passwordLabel": "Admin-Passwort",
       "passwordPlaceholder": "Passwort eingeben",
       "submit": "Zur Verwaltung fortfahren",
-      "backendPending": "Die Admin-Authentifizierung wird verbunden, sobald das Authentifizierungs-Backend verfügbar ist.",
       "validation": {
         "emailRequired": "Gib die Administrator-E-Mail-Adresse ein.",
         "emailInvalid": "Gib eine gültige Administrator-E-Mail-Adresse ein.",

@@ -37,6 +37,7 @@ LOGIN_LOCKOUT_SECONDS = 900
 AUTH_ENDPOINTS = frozenset(
     {
         ("GET", "/api/auth/csrf"),
+        ("GET", "/api/auth/csrf/session"),
         ("GET", "/api/auth/me"),
         ("POST", "/api/auth/register"),
         ("POST", "/api/auth/login"),

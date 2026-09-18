@@ -140,6 +140,26 @@
     "error": "The demo video could not be loaded. Please try again later."
   },
   "auth": {
+    "session": {
+      "label": "Session",
+      "pending": "Please wait…",
+      "retry": "Try again",
+      "logout": "Sign out",
+      "signedIn": "You are signed in."
+    },
+    "errors": {
+      "unauthorized": "Sign-in failed or your session expired. Check your details and try again.",
+      "forbidden": "The request could not be verified. Please try again.",
+      "conflict": "Account registration failed. Please sign in or try again.",
+      "validation": "Check your email, password and consent, then try again.",
+      "rateLimited": "Too many requests. Please wait before trying again.",
+      "server": "The service is unavailable. Please try again.",
+      "network": "The request could not finish. Check your connection and try again.",
+      "invalidResponse": "The session could not be verified. Please try again.",
+      "configuration": "The service is not configured. Please try again later.",
+      "cancelled": "The session changed. Please try again.",
+      "csrf": "The request could not be verified. Please try again."
+    },
     "login": {
       "eyebrow": "Student access",
       "title": "Welcome back",
@@ -151,7 +171,6 @@
       "submit": "Sign in",
       "noAccount": "New to VGU Buddy?",
       "createAccount": "Create an account",
-      "backendPending": "Sign-in will be connected when the authentication backend is available.",
       "validation": {
         "emailRequired": "Enter your email address.",
         "emailInvalid": "Enter a valid email address.",
@@ -170,11 +189,12 @@
       "submit": "Create student account",
       "hasAccount": "Already have an account?",
       "signIn": "Sign in",
-      "backendPending": "Account creation will be connected when the authentication backend is available.",
       "validation": {
         "emailRequired": "Enter your email address.",
         "emailInvalid": "Enter a valid email address.",
         "passwordRequired": "Enter a password.",
+        "passwordMinimum": "Use at least 15 characters for your password.",
+        "passwordMaximum": "Your password must not exceed 72 UTF-8 bytes.",
         "consentRequired": "Consent is required to create an account."
       }
     },
@@ -190,7 +210,6 @@
       "passwordLabel": "Admin password",
       "passwordPlaceholder": "Enter your password",
       "submit": "Continue to administration",
-      "backendPending": "Admin authentication will be connected when the authentication backend is available.",
       "validation": {
         "emailRequired": "Enter the administrator email address.",
         "emailInvalid": "Enter a valid administrator email address.",

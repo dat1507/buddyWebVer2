@@ -19,7 +19,7 @@ interface AuthActions {
 type AuthStore = SessionState & AuthActions
 
 // Client presentation only, never authorization. No persistence/devtools or transport side effects.
-// AUTH-021 will bootstrap /api/auth/me and coordinate refresh/logout/private query caches.
+// AUTH-021's session client owns bootstrap/refresh/logout and private query caches.
 const useAuthStore = create<AuthStore>()((set) => ({
   status: 'unknown',
   user: null,

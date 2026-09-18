@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import i18n from '@/i18n'
+import { sessionClient } from '@/features/auth/session-client'
 
 function renderRegistrationRoute() {
   return render(
@@ -59,13 +60,13 @@ describe('UserRegistrationPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('requires explicit consent before accepting the UI-only form', () => {
+  it('requires explicit consent before submitting registration', () => {
     renderRegistrationRoute()
 
     fireEvent.change(screen.getByLabelText('Email address'), {
       target: { value: 'student@example.com' },
     })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'fixture password' } })
     fireEvent.click(screen.getByRole('button', { name: 'Create student account' }))
 
     expect(screen.getByText('Consent is required to create an account.')).toBeVisible()
@@ -73,23 +74,24 @@ describe('UserRegistrationPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('does not call an API or simulate account creation after a valid UI-only submit', () => {
-    const fetch = vi.spyOn(globalThis, 'fetch')
+  it('submits real registration and redirects to /login only after success', async () => {
+    const register = vi.spyOn(sessionClient, 'register').mockResolvedValue()
     renderRegistrationRoute()
 
     fireEvent.change(screen.getByLabelText('Email address'), {
       target: { value: 'student@example.com' },
     })
-    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'fixture password' } })
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: 'Create student account' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Account creation will be connected when the authentication backend is available.',
-    )
-    expect(screen.getByRole('heading', { name: 'Create your account' })).toBeVisible()
-    expect(fetch).not.toHaveBeenCalled()
-    fetch.mockRestore()
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
+    expect(register).toHaveBeenCalledWith({
+      email: 'student@example.com',
+      password: 'fixture password',
+      consent: true,
+    })
+    register.mockRestore()
   })
 
   it('renders the registration form in German', async () => {

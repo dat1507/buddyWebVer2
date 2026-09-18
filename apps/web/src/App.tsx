@@ -9,6 +9,7 @@ import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
+import { SessionControls } from '@/features/auth/session-controls'
 
 const userRoutes = [
   { path: 'dashboard', title: 'Dashboard' },
@@ -36,30 +37,41 @@ const adminRoutes = [
 
 function App() {
   return (
-    <Routes>
-      <Route element={<PublicLayout />}>
-        <Route index element={<LandingPage />} />
-        <Route path="adminLogin" element={<AdminLoginPage />} />
-        <Route path="login" element={<UserLoginPage />} />
-        <Route path="register" element={<UserRegistrationPage />} />
-      </Route>
+    <>
+      <SessionControls />
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route index element={<LandingPage />} />
+          <Route path="adminLogin" element={<AdminLoginPage />} />
+          <Route path="login" element={<UserLoginPage />} />
+          <Route path="register" element={<UserRegistrationPage />} />
+        </Route>
 
-      <Route path="user" element={<UserLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        {userRoutes.map(({ path, title }) => (
-          <Route key={path} path={path} element={<RoutePlaceholder area="User" title={title} />} />
-        ))}
-      </Route>
+        <Route path="user" element={<UserLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          {userRoutes.map(({ path, title }) => (
+            <Route
+              key={path}
+              path={path}
+              element={<RoutePlaceholder area="User" title={title} />}
+            />
+          ))}
+        </Route>
 
-      <Route path="admin" element={<AdminLayout />}>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        {adminRoutes.map(({ path, title }) => (
-          <Route key={path} path={path} element={<RoutePlaceholder area="Admin" title={title} />} />
-        ))}
-      </Route>
+        <Route path="admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          {adminRoutes.map(({ path, title }) => (
+            <Route
+              key={path}
+              path={path}
+              element={<RoutePlaceholder area="Admin" title={title} />}
+            />
+          ))}
+        </Route>
 
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   )
 }
 

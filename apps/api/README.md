@@ -111,7 +111,7 @@ roles receive no table access or policy.
 
 The public registration, login, refresh, current-session and logout endpoints are implemented below,
 together with verified-current-user and explicit role dependencies for protected routes. Frontend
-session store is implemented in AUTH-004; client/bootstrap/cache integration remains owned by AUTH-021.
+session store is implemented in AUTH-004; AUTH-021 now integrates the client/bootstrap/forms/cache.
 
 ## Password hashing
 
@@ -196,6 +196,50 @@ Successful login and session rotation endpoints must issue the session-bound for
 must clear it. SameSite remains defense in depth and does not replace the signed token or source-
 origin checks.
 
+### Session CSRF recovery after reload (AUTH-021)
+
+The readable JSON CSRF value is memory-only. Reload removes it while auth/CSRF HttpOnly cookies
+remain. `/me` returns identity only; pre-auth `/csrf` cannot supply the session token required by
+refresh/logout. `GET /api/auth/csrf/session` closes this gap without changing either contract.
+
+Recovery requires an exact trusted Origin, or the existing Referer fallback only if Origin is
+absent. Source validation and cryptographic cookie verification precede database access. It
+prefers a verified refresh cookie (access may be expired), falling back to valid access when
+refresh is missing/invalid, as logout does. It verifies the owner-bound persisted family is
+present, non-deleted, non-revoked and unexpired; a refresh credential must also match current JTI.
+Invalid/missing credentials or family yield generic no-store 401; database errors yield sanitized
+503. Access fallback permits logout even without refresh; it does not issue refresh credentials.
+No active-user/role/verification gate is added to recovery, so inactive accounts can still logout;
+`/me` and refresh retain their authoritative User checks.
+
+Success returns only `{"csrf_token": "..."}` with `Cache-Control: no-store`, `Pragma: no-cache`.
+A valid same-session CSRF cookie is returned unchanged, without Set-Cookie. Missing/invalid/expired/
+pre-auth/wrong-session CSRF is replaced using the existing signed session service and cookie policy.
+Recovery never creates a session, rotates JWTs, updates JTI, extends family expiry or revives a
+revoked family. Unsafe methods still require matching session cookie/header and trusted source.
+The endpoint shares the existing 120/minute transport-IP gate. No CORS widening, cookie transport
+change, dependency, database migration or runtime setting is required.
+
+Frontend reload now calls recovery, then `/me`; access 401 permits one refresh and one `/me` retry.
+The client retains only readable CSRF in memory and sanitized User in AUTH-004. Login/refresh/
+logout cookie operations serialize in one tab; late identity/private responses are discarded on
+logout/account-switch intent. Registration still uses the separate pre-auth context.
+
+Focused unit/security and opt-in PostgreSQL checks:
+
+```sh
+python -m pytest tests/test_session_csrf_api.py -q
+python -m pytest tests/test_session_csrf_live.py -q
+```
+
+The live suite requires `AUTH021_TEST_DATABASE_URL` only in the test process: loopback `127.0.0.1`,
+database `auth021_acceptance`, least-privilege `vgu_buddy_runtime`, migrated to head. It refuses other
+targets and commits synthetic accounts; never point it at populated development/production data.
+It uses explicit test-only memory rate limiting; AUTH-020/024 shared Redis live checks remain
+separate. Verification (2026-09-18): **25 focused + 3 PostgreSQL live PASS**; full backend **384
+PASS / 10 existing Redis live SKIP**, frontend **175 PASS**, and a real local browser registration,
+login, reload recovery and logout PASS. Database inspection confirms new USER and revoked family.
+
 ## Public registration
 
 `POST /api/auth/register` accepts only `email`, `password`, and the strict JSON boolean
@@ -251,7 +295,7 @@ even the newest token from that family is rejected afterward.
 
 Clients must single-flight refresh requests. Two concurrent requests with the same token are not
 both legitimate rotations: after one consumes the `jti`, the second is treated as reuse and revokes
-the family. AUTH-021 owns that frontend coordination. AUTH-024 implements explicit logout and cookie
+the family. AUTH-021 now supplies that tab-local frontend coordination. AUTH-024 implements explicit logout and cookie
 clearing separately; a failed refresh does not claim logout behavior.
 
 ## Session logout (AUTH-024)
@@ -291,12 +335,12 @@ gate; exhausted IP quota returns `429`/Retry-After and unavailable limiter stora
 Clearing browser cookies ends the browser session and prevents refresh, but a previously copied
 access JWT can remain usable until its 15-minute TTL plus 30-second verifier skew expires. Logout
 does not provide immediate access-token denylisting. An in-flight refresh response can also arrive
-after logout and set cookies, although its refresh family is revoked. AUTH-021 must coordinate
-refresh/logout/account switches and clear private query caches; browser end-to-end acceptance and
-the wrong-role admin-login UI flow are **not implemented/verified by this backend task**. AUTH-004
-now supplies the tested in-memory clear action; actual logout/client/private-cache integration
-remains pending AUTH-021. No new transport, schema migration, runtime environment variable or
-backend dependency was added by logout.
+after logout and set cookies, although its refresh family is revoked. AUTH-021 now serializes
+refresh/logout/account switches within a tab, discards stale identity/data responses and clears
+private queries while preserving public sliders. Its local browser/database and frontend tests
+satisfy the combined client/cache acceptance; cross-tab locking is not claimed. The wrong-role
+admin-login UI flow remains AUTH-023, after route guards. No new transport, schema migration,
+runtime environment variable or backend dependency was added by logout or CSRF recovery.
 
 Opt-in live acceptance requires **disposable** PostgreSQL (migrated to head with runtime-only
 credentials) and Redis. Never use development/production data: these tests commit test accounts.

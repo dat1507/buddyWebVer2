@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
+import { sessionClient } from '@/features/auth/session-client'
+import { useAuthSubmission } from '@/features/auth/use-auth-submission'
 
 type LoginField = 'email' | 'password'
 type LoginErrors = Partial<Record<LoginField, string>>
@@ -19,18 +21,19 @@ function UserLoginPage() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<LoginErrors>({})
-  const [showBackendNotice, setShowBackendNotice] = useState(false)
+  const submission = useAuthSubmission()
 
   const clearFieldFeedback = (field: LoginField) => {
     setErrors((currentErrors) => {
       if (!currentErrors[field]) return currentErrors
       return { ...currentErrors, [field]: undefined }
     })
-    setShowBackendNotice(false)
+    submission.clearFeedback()
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (submission.pending) return
 
     const emailInput = emailRef.current
     const passwordInput = passwordRef.current
@@ -49,18 +52,23 @@ function UserLoginPage() {
     setErrors(nextErrors)
 
     if (nextErrors.email) {
-      setShowBackendNotice(false)
+      submission.clearFeedback()
       emailInput?.focus()
       return
     }
 
     if (nextErrors.password) {
-      setShowBackendNotice(false)
+      submission.clearFeedback()
       passwordInput?.focus()
       return
     }
 
-    setShowBackendNotice(true)
+    void submission.submit(
+      () => sessionClient.login({ email: emailInput!.value, password: passwordInput!.value }),
+      () => {
+        if (passwordRef.current) passwordRef.current.value = ''
+      },
+    )
   }
 
   return (
@@ -88,7 +96,12 @@ function UserLoginPage() {
         </CardHeader>
 
         <CardContent className="px-5 pb-7 pt-3 sm:px-8 sm:pb-8">
-          <form noValidate className="space-y-5" onSubmit={handleSubmit}>
+          <form
+            noValidate
+            aria-busy={submission.pending}
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
             <div className="space-y-2">
               <label htmlFor="user-login-email" className="text-sm font-medium text-zinc-200">
                 {t('auth.login.emailLabel')}
@@ -100,6 +113,7 @@ function UserLoginPage() {
                 />
                 <input
                   ref={emailRef}
+                  disabled={submission.pending}
                   id="user-login-email"
                   name="email"
                   type="email"
@@ -132,6 +146,7 @@ function UserLoginPage() {
                 />
                 <input
                   ref={passwordRef}
+                  disabled={submission.pending}
                   id="user-login-password"
                   name="password"
                   type="password"
@@ -151,16 +166,24 @@ function UserLoginPage() {
               ) : null}
             </div>
 
-            <Button type="submit" size="lg" className="w-full">
-              {t('auth.login.submit')}
+            <Button type="submit" size="lg" className="w-full" disabled={submission.pending}>
+              {t(
+                submission.pending
+                  ? 'auth.session.pending'
+                  : submission.error
+                    ? 'auth.session.retry'
+                    : 'auth.login.submit',
+              )}
             </Button>
 
-            {showBackendNotice ? (
+            {submission.error || submission.success ? (
               <p
                 className="rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm leading-6 text-orange-100"
-                role="status"
+                role={submission.error ? 'alert' : 'status'}
               >
-                {t('auth.login.backendPending')}
+                {submission.error
+                  ? t(`auth.errors.${submission.error.code}`)
+                  : t('auth.session.signedIn')}
               </p>
             ) : null}
           </form>

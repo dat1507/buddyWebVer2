@@ -34,11 +34,15 @@ from app.services.auth import (
 )
 from app.services.csrf import (
     CsrfTokenClaims,
+    CsrfValidationError,
     clear_csrf_cookie,
     create_preauth_csrf_token,
     create_session_csrf_token,
+    csrf_cookie_name,
     set_csrf_cookie,
     verify_csrf_request,
+    verify_csrf_token,
+    verify_request_origin,
 )
 from app.services.refresh_sessions import (
     RefreshSessionError,
@@ -46,6 +50,7 @@ from app.services.refresh_sessions import (
     create_refresh_session,
     revoke_refresh_session,
     rotate_refresh_session,
+    validate_csrf_recovery_session,
 )
 from app.services.tokens import (
     AccessTokenClaims,
@@ -125,17 +130,10 @@ def require_refresh_context(
     return RefreshRequestContext(refresh_token=refresh_token, claims=claims)
 
 
-def require_logout_context(
-    request: Request,
-    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
-    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+def _session_cookie_claims(
+    request: Request, token_settings: AuthTokenSettings
 ) -> AccessTokenClaims | RefreshTokenClaims | None:
-    """Authenticate the family, or require pre-auth CSRF for anonymous cookie cleanup.
-
-    Prefer refresh credentials so an expired access token never prevents logout. A valid access
-    cookie can identify the family when refresh is missing/invalid. Never use unverified claims.
-    Valid credentials always require session-bound CSRF; pre-auth cannot log out a live family.
-    """
+    """Prefer a verified refresh cookie; fall back to verified access for logout/recovery."""
     claims: AccessTokenClaims | RefreshTokenClaims | None = None
     refresh_token = request.cookies.get(refresh_cookie_name(token_settings))
     if refresh_token is not None:
@@ -151,12 +149,39 @@ def require_logout_context(
             except TokenValidationError:
                 pass
 
+    return claims
+
+
+def require_logout_context(
+    request: Request,
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+) -> AccessTokenClaims | RefreshTokenClaims | None:
+    """Valid cookie credentials require session CSRF; anonymous cleanup requires pre-auth."""
+    claims = _session_cookie_claims(request, token_settings)
     verify_csrf_request(
         request,
         csrf_settings,
         expected_scope="session" if claims is not None else "preauth",
         session_id=claims.session_id if claims is not None else None,
     )
+    return claims
+
+
+def require_csrf_recovery_claims(
+    request: Request,
+    token_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    csrf_settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+) -> AccessTokenClaims | RefreshTokenClaims:
+    """Require a trusted source and verified cookie identity before opening the database."""
+    verify_request_origin(request, csrf_settings)
+    claims = _session_cookie_claims(request, token_settings)
+    if claims is None:
+        raise HTTPException(
+            401,
+            "Session is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        )
     return claims
 
 
@@ -180,6 +205,50 @@ async def issue_csrf_token(
 ) -> CsrfTokenResponse:
     """Establish a fresh pre-auth double-submit context without server-side state."""
     token = create_preauth_csrf_token(settings)
+    set_csrf_cookie(response, token, settings)
+    return CsrfTokenResponse(csrf_token=token.value)
+
+
+@router.get("/csrf/session", response_model=CsrfTokenResponse)
+async def recover_session_csrf(
+    request: Request,
+    response: Response,
+    claims: Annotated[
+        AccessTokenClaims | RefreshTokenClaims, Depends(require_csrf_recovery_claims)
+    ],
+    settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> CsrfTokenResponse:
+    """Recover the readable session CSRF value after reload without rotating auth credentials."""
+    try:
+        await validate_csrf_recovery_session(session, claims)
+    except RefreshSessionError:
+        raise HTTPException(
+            401,
+            "Session is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from None
+    except SQLAlchemyError:
+        raise HTTPException(
+            503,
+            "Session recovery is unavailable.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from None
+
+    # Reuse a valid cookie instead of unnecessarily invalidating another in-flight request.
+    existing = request.cookies.get(csrf_cookie_name(settings))
+    if existing is not None:
+        try:
+            verify_csrf_token(
+                existing, settings, expected_scope="session", session_id=claims.session_id
+            )
+        except CsrfValidationError:
+            pass
+        else:
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Pragma"] = "no-cache"
+            return CsrfTokenResponse(csrf_token=existing)
+    token = create_session_csrf_token(claims.session_id, settings)
     set_csrf_cookie(response, token, settings)
     return CsrfTokenResponse(csrf_token=token.value)
 

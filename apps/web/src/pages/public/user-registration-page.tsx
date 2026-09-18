@@ -1,12 +1,14 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { LockKeyhole, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
+import { sessionClient } from '@/features/auth/session-client'
+import { useAuthSubmission } from '@/features/auth/use-auth-submission'
 
 type RegistrationField = 'email' | 'password' | 'consent'
 type RegistrationErrors = Partial<Record<RegistrationField, string>>
@@ -20,18 +22,20 @@ function UserRegistrationPage() {
   const passwordRef = useRef<HTMLInputElement>(null)
   const consentRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<RegistrationErrors>({})
-  const [showBackendNotice, setShowBackendNotice] = useState(false)
+  const navigate = useNavigate()
+  const submission = useAuthSubmission()
 
   const clearFieldFeedback = (field: RegistrationField) => {
     setErrors((currentErrors) => {
       if (!currentErrors[field]) return currentErrors
       return { ...currentErrors, [field]: undefined }
     })
-    setShowBackendNotice(false)
+    submission.clearFeedback()
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (submission.pending) return
 
     const emailInput = emailRef.current
     const passwordInput = passwordRef.current
@@ -46,6 +50,10 @@ function UserRegistrationPage() {
 
     if (!passwordInput?.value) {
       nextErrors.password = t('auth.register.validation.passwordRequired')
+    } else if ([...passwordInput.value].length < 15) {
+      nextErrors.password = t('auth.register.validation.passwordMinimum')
+    } else if (new TextEncoder().encode(passwordInput.value).length > 72) {
+      nextErrors.password = t('auth.register.validation.passwordMaximum')
     }
 
     if (!consentInput?.checked) {
@@ -63,12 +71,20 @@ function UserRegistrationPage() {
     ).find(([field]) => nextErrors[field])
 
     if (firstInvalidField) {
-      setShowBackendNotice(false)
+      submission.clearFeedback()
       firstInvalidField[1]?.focus()
       return
     }
 
-    setShowBackendNotice(true)
+    void submission.submit(
+      () =>
+        sessionClient.register({
+          email: emailInput!.value,
+          password: passwordInput!.value,
+          consent: consentInput!.checked,
+        }),
+      () => navigate('/login', { replace: true }),
+    )
   }
 
   return (
@@ -96,7 +112,12 @@ function UserRegistrationPage() {
         </CardHeader>
 
         <CardContent className="px-5 pb-7 pt-3 sm:px-8 sm:pb-8">
-          <form noValidate className="space-y-5" onSubmit={handleSubmit}>
+          <form
+            noValidate
+            aria-busy={submission.pending}
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
             <div className="space-y-2">
               <label htmlFor="user-register-email" className="text-sm font-medium text-zinc-200">
                 {t('auth.register.emailLabel')}
@@ -108,6 +129,7 @@ function UserRegistrationPage() {
                 />
                 <input
                   ref={emailRef}
+                  disabled={submission.pending}
                   id="user-register-email"
                   name="email"
                   type="email"
@@ -140,6 +162,7 @@ function UserRegistrationPage() {
                 />
                 <input
                   ref={passwordRef}
+                  disabled={submission.pending}
                   id="user-register-password"
                   name="password"
                   type="password"
@@ -168,6 +191,7 @@ function UserRegistrationPage() {
               >
                 <input
                   ref={consentRef}
+                  disabled={submission.pending}
                   id="user-register-consent"
                   name="consent"
                   type="checkbox"
@@ -188,16 +212,22 @@ function UserRegistrationPage() {
               ) : null}
             </div>
 
-            <Button type="submit" size="lg" className="w-full">
-              {t('auth.register.submit')}
+            <Button type="submit" size="lg" className="w-full" disabled={submission.pending}>
+              {t(
+                submission.pending
+                  ? 'auth.session.pending'
+                  : submission.error
+                    ? 'auth.session.retry'
+                    : 'auth.register.submit',
+              )}
             </Button>
 
-            {showBackendNotice ? (
+            {submission.error ? (
               <p
                 className="rounded-lg border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm leading-6 text-orange-100"
-                role="status"
+                role="alert"
               >
-                {t('auth.register.backendPending')}
+                {t(`auth.errors.${submission.error.code}`)}
               </p>
             ) : null}
           </form>

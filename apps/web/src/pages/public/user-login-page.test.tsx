@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import i18n from '@/i18n'
+import { sessionClient } from '@/features/auth/session-client'
 
 function renderLoginRoute() {
   return render(
@@ -57,8 +58,13 @@ describe('UserLoginPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('keeps a valid UI-only submission on /login without calling an API', () => {
-    const fetch = vi.spyOn(globalThis, 'fetch')
+  it('submits credentials through the session client and leaves role routing for AUTH-022', async () => {
+    const login = vi.spyOn(sessionClient, 'login').mockResolvedValue({
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      email: 'student@example.com',
+      role: 'USER',
+      email_verified: false,
+    })
     renderLoginRoute()
 
     fireEvent.change(screen.getByLabelText('Email address'), {
@@ -67,12 +73,11 @@ describe('UserLoginPage', () => {
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } })
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Sign in' }))
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Sign-in will be connected when the authentication backend is available.',
-    )
+    expect(await screen.findByRole('status')).toHaveTextContent('You are signed in.')
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeVisible()
-    expect(fetch).not.toHaveBeenCalled()
-    fetch.mockRestore()
+    expect(login).toHaveBeenCalledWith({ email: 'student@example.com', password: 'secret' })
+    expect(screen.getByLabelText('Password')).toHaveValue('')
+    login.mockRestore()
   })
 
   it('renders the login form in German', async () => {
