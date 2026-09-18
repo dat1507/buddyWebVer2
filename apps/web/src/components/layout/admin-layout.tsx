@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Outlet } from 'react-router'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
+import { AdminSidebarNavigation } from '@/components/layout/admin-sidebar-navigation'
 import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Card } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
@@ -21,7 +22,7 @@ function AdminLayout() {
       </a>
       <div className="mx-auto grid w-full max-w-[96rem] gap-4 px-4 py-4 sm:px-6 md:grid-cols-[14rem_minmax(0,1fr)] md:items-start lg:px-8">
         <aside aria-label={t('adminLayout.sidebarLabel')} className="min-w-0 md:sticky md:top-4">
-          <Card className="border-primary/25 bg-zinc-950 p-4 shadow-none">
+          <Card className="space-y-4 border-primary/25 bg-zinc-950 p-4 shadow-none md:max-h-[calc(100dvh-2rem)] md:overflow-y-auto">
             <div className="flex flex-wrap items-start justify-between gap-3 md:flex-col">
               <div className="flex min-w-0 items-start gap-3">
                 <img
@@ -43,6 +44,7 @@ function AdminLayout() {
               </div>
               <LanguageToggle />
             </div>
+            <AdminSidebarNavigation />
           </Card>
         </aside>
         <main

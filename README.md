@@ -238,8 +238,11 @@ The router and navigation share page-delivery metadata. USER readiness/onboardin
 backend authorization remains authoritative. ADMIN-001 completes the AdminLayout shell with a
 distinct dark sidebar, Admin badge, responsive content region, nested Outlet and EN/DE landmarks.
 One main and keyboard skip-to-content are verified with guarded reload/logout acceptance. Admin
-module navigation and overview data remain later tasks. The next task is ADMIN-002 (Admin Sidebar
-navigation).
+module navigation is now complete in ADMIN-002: eleven localized native links share the router's
+canonical module registry, with current-route semantics and responsive keyboard access. The missing
+Event Sliders destination is a guarded scaffold; all module business pages remain under development.
+Frontend verification now totals 394 PASS. The next task is ADMIN-003 (Admin Dashboard overview,
+stats cards placeholder), ready through completed ADMIN-001.
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
 repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).

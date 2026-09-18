@@ -11,20 +11,8 @@ import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 import { SessionControls } from '@/features/auth/session-controls'
 import { RoleGuard } from '@/features/auth/role-guard'
+import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
-
-const adminRoutes = [
-  { path: 'dashboard', title: 'Admin overview' },
-  { path: 'users', title: 'User management' },
-  { path: 'matching', title: 'Matching management' },
-  { path: 'events', title: 'Event management' },
-  { path: 'announcements', title: 'Announcements' },
-  { path: 'knowledge-base', title: 'Knowledge base' },
-  { path: 'campus', title: 'Campus management' },
-  { path: 'analytics', title: 'Analytics' },
-  { path: 'audit-log', title: 'Audit log' },
-  { path: 'settings', title: 'Admin settings' },
-]
 
 function App() {
   return (

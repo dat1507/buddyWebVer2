@@ -227,6 +227,21 @@
     "skipToContent": "Skip to content",
     "badge": "Admin"
   },
+  "adminNavigation": {
+    "label": "Administrator navigation",
+    "scaffoldHint": "Module pages are under development.",
+    "overview": "Overview",
+    "users": "Users",
+    "matching": "Matching",
+    "events": "Events",
+    "eventSliders": "Event Sliders",
+    "announcements": "Announcements",
+    "knowledgeBase": "Knowledge Base",
+    "campus": "Campus",
+    "analytics": "Analytics",
+    "auditLog": "Audit Log",
+    "settings": "Settings"
+  },
   "userLayout": {
     "sidebarLabel": "Student workspace",
     "contentLabel": "Student content",

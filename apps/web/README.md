@@ -357,10 +357,48 @@ denied re-entry PASS. Document width fits available viewport width and browser e
 empty. Lab configuration initially required URL-safe base64 signing keys; corrected outside Git.
 No domain API, dependency, environment file or account data is added to source.
 
-Next task: **ADMIN-002 — Create Admin Sidebar navigation (all 11 modules)**, P0; ADMIN-001 is DONE.
+Next task after ADMIN-001: **ADMIN-002 — Create Admin Sidebar navigation (all 11 modules)**, P0; ADMIN-001 is DONE.
 ADMIN-002 and ADMIN-003 remain unimplemented here. Continue direct-to-main workflow without deploying.
 Existing bundle advisory, ten unconfigured Redis live cases and AUTH-020 production operator gate
 remain.
+
+## Administrator sidebar navigation (ADMIN-002)
+
+`src/routes/admin-routes.ts` is shared by App routing and `AdminSidebarNavigation`. Its eleven
+canonical Part 20 destinations are Overview, Users, Matching, Events, Event Sliders, Announcements,
+Knowledge Base, Campus, Analytics, Audit Log and Settings. Existing route paths/titles are preserved;
+the previously missing `/admin/event-sliders` now renders the existing placeholder inside the same
+ADMIN guard and layout. Links open scaffolds whose business pages remain under development; the
+menu also explains that status in EN/DE. No module CRUD, domain APIs or overview stats are delivered.
+
+Native NavLinks provide focus-visible styling and `aria-current="page"`. Overview matches exactly;
+other modules remain selected on segment-matched nested paths. Search/hash do not change selection.
+Nested route fixtures test future page selection without claiming those pages are implemented.
+The navigation stacks below `sm`, uses two columns until `md`, then one sidebar column. The desktop
+Card scrolls within the viewport height so every module remains keyboard reachable on short screens.
+Existing branding, language toggle, unique skip link, one main and session/role boundaries remain.
+
+```sh
+npm test -- src/components/layout/admin-sidebar-navigation.test.tsx src/components/layout/admin-sidebar-integration.test.tsx
+```
+
+Verification (2026-09-19): **26 dedicated ADMIN-002 PASS; ADMIN-001 regression 14 PASS; full frontend
+394 PASS (33 files, two workers)**. Format/lint/typecheck/build and production npm audit PASS (zero
+vulnerabilities). Initial high-concurrency frontend execution hit two existing login assertion
+timeouts; the complete two-worker run passes without changing those tests. Backend full suite:
+381 PASS / 13 opt-in live SKIP; three PostgreSQL live cases additionally PASS. Ruff/mypy/pip check,
+Alembic graph, package build, strict lockfile pip-audit and Compose validation PASS. Compose emitted
+a local Docker config access warning but validated successfully; pytest emitted a cache-write warning.
+
+Actual local browser/API/least-privilege PostgreSQL checks verify Admin login, all eleven links,
+query/hash deep-link reload, EN/DE, 1280px/768px/640px/320px width fit, two-column navigation,
+Tab/Enter access to Settings with sidebar scrolling at 1280×500, skip-link main focus, CSRF logout
+and denied Event Sliders re-entry. Console errors absent; lab servers stopped and tab/viewport cleaned.
+
+Next task: **ADMIN-003 — Create Admin Dashboard overview page (stats cards placeholder)**, P0;
+dependency ADMIN-001 is DONE. Continue direct-to-main workflow; ADMIN-003 is not implemented here.
+Existing 500kB bundle advisory, ten unconfigured Redis live cases and AUTH-020 production operator
+gate remain. No production deployment is claimed.
 
 ## Source entry points
 
@@ -370,6 +408,7 @@ remain.
 | `src/App.tsx`                           | Public, student, and administrator route definitions                 |
 | `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata   |
 | `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery    |
+| `src/routes/admin-routes.ts`            | Canonical Admin module routes and localized navigation descriptors   |
 | `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                 |
 | `src/components/landing/`               | Landing sections, carousel, and demo dialog                          |
 | `src/pages/public/`                     | Landing and authentication forms                                     |

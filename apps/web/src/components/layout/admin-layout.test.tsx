@@ -36,7 +36,7 @@ describe('ADMIN-001 AdminLayout shell', () => {
       expect(within(sidebar).getByText('VGU Buddy')).toBeVisible()
       expect(within(sidebar).getByText('Admin')).toBeVisible()
       expect(within(sidebar).getByRole('button', { name: /EN|DE/ })).toBeVisible()
-      expect(within(sidebar).queryByRole('navigation')).not.toBeInTheDocument()
+      expect(within(sidebar).getByRole('navigation')).toBeVisible()
       const main = screen.getByRole('main', { name: contentLabel })
       expect(within(main).getByRole('heading', { name: 'User management' })).toBeVisible()
       expect(screen.getAllByRole('main')).toHaveLength(1)

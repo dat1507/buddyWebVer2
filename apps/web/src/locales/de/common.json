@@ -227,6 +227,21 @@
     "skipToContent": "Zum Inhalt springen",
     "badge": "Admin"
   },
+  "adminNavigation": {
+    "label": "Administrationsnavigation",
+    "scaffoldHint": "Die Modulseiten befinden sich in Entwicklung.",
+    "overview": "Übersicht",
+    "users": "Benutzer",
+    "matching": "Zuordnung",
+    "events": "Veranstaltungen",
+    "eventSliders": "Veranstaltungsslider",
+    "announcements": "Mitteilungen",
+    "knowledgeBase": "Wissensdatenbank",
+    "campus": "Campus",
+    "analytics": "Analysen",
+    "auditLog": "Audit-Protokoll",
+    "settings": "Einstellungen"
+  },
   "userLayout": {
     "sidebarLabel": "Studierendenbereich",
     "contentLabel": "Inhalte des Studierendenbereichs",
