@@ -227,6 +227,27 @@
     "skipToContent": "Zum Inhalt springen",
     "badge": "Admin"
   },
+  "dataTable": {
+    "search": "Tabelle durchsuchen",
+    "filter": "Filter: {{column}}",
+    "all": "Alle",
+    "reset": "Tabelle zurücksetzen",
+    "scrollRegion": "Scrollbare Tabelle: {{caption}}",
+    "sortHint": "Die Schaltflächen in den Spaltenüberschriften ändern die Sortierreihenfolge.",
+    "sortAscending": "{{column}} aufsteigend sortieren",
+    "sortDescending": "{{column}} absteigend sortieren",
+    "clearSort": "Sortierung für {{column}} aufheben",
+    "loading": "Daten werden geladen…",
+    "retry": "Erneut versuchen",
+    "empty": "Keine Daten verfügbar.",
+    "noResults": "Keine Ergebnisse für Ihre Suche oder Filter.",
+    "results": "{{from}}–{{to}} von {{total}} angezeigt",
+    "pageSize": "Zeilen pro Seite",
+    "pagination": "Seitennavigation: {{caption}}",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {{current}} von {{total}}"
+  },
   "adminOverview": {
     "title": "Administrationsübersicht",
     "description": "Statistiken sind noch nicht verfügbar.",

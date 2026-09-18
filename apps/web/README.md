@@ -441,34 +441,117 @@ keyboard switching, skip-main focus, logout and denied re-entry. Available docum
 tab/viewport cleaned up and lab listener inventory confirms zero active listeners.
 
 No auth/session/API/cache/backend implementation, dependencies or environment files change.
-Next task: **ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination)**,
+Next task after ADMIN-003: **ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination)**,
 P0; dependency FE-005 is DONE, READY. ADMIN-014 still awaits MATCH-013. Continue direct-to-main
 workflow; ADMIN-004 is not implemented here. AUTH-020 production Redis/TLS/ingress acceptance
 remains pending; no production deployment is claimed.
 
+## Reusable client-side DataTable (ADMIN-004)
+
+`DataTable<T>` accepts the complete caller-owned dataset, typed column descriptors, a localized
+caption and a stable unique `getRowId`. It does not fetch, store rows or invent a domain route.
+Sort, search, filter and paging state stay local to each mounted instance; use a different React
+key when switching to an unrelated dataset and wanting a fresh view. Client-side processing is
+intended for bounded complete datasets; a single page from a server is not a complete dataset.
+Server-side query/pagination integration belongs to future domain tasks.
+
+```tsx
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
+
+type RecordRow = { id: string; name: string; status: 'active' | 'pending' }
+
+const columns: readonly DataTableColumn<RecordRow>[] = [
+  { id: 'name', header: 'Name', accessor: (row) => row.name, sortable: true },
+  {
+    id: 'status',
+    header: 'Status',
+    accessor: (row) => row.status,
+    filterOptions: [
+      { value: 'active', label: 'Active' },
+      { value: 'pending', label: 'Pending' },
+    ],
+  },
+]
+
+// Labels/caption are illustrative: product callers must supply their EN/DE translations.
+<DataTable data={rows} columns={columns} getRowId={(row) => row.id} caption="Records" />
+```
+
+Column IDs must be unique/stable across locale changes; row IDs must be unique within a dataset.
+`accessor` returns string/number/boolean/null/undefined for default display and search/sort/filter.
+`cell` supplies caller React content, including actions. React cell content is not searched: supply
+an accessor with the intended plain search text; `searchable: false` excludes a column. For a
+localized custom cell, provide matching localized accessor text and use `filterValue` for canonical
+filter values. Filter option values must be unique non-empty strings; the empty value means All.
+`compare` supports caller-specific ordering (for example dates); caller comparators must handle
+their own missing values. Use numeric timestamp accessors for built-in chronological ordering.
+
+Processing order is trimmed, NFKC-normalized case-insensitive substring search plus AND exact
+column filters → stable sort → pagination. Built-in numeric sort compares numbers, string sort
+uses the current locale's numeric/base Intl.Collator, and null/non-finite values stay last in both
+directions. Sort cycles ascending → descending → source order; only one column is sorted at once.
+Reset clears query/filters/sort and goes to the first page while retaining page size. Search/filter/
+sort/page-size changes reset paging; shrinking data/options clamp the page without restoring stale
+out-of-range state when data grows again. Page sizes default to 10/25/50; invalid options are
+normalized. `initialPageSize` applies on mount when it belongs to the configured options.
+
+`isLoading` hides stale rows/totals and marks the table busy; `error` displays a caller-supplied safe,
+localized public message and optional `onRetry`. Never pass raw backend exception text. Empty data
+and no matching search/filter results have distinct EN/DE messages; `emptyMessage` customizes the
+unfiltered empty state. Sorting alone never turns an empty source into a no-results message.
+
+Native table/caption/scoped column headers, sort buttons with active `aria-sort`, associated labels
+and instance-unique control IDs preserve table semantics. A named focusable overflow region allows
+horizontal keyboard scrolling and auto-scroll to off-screen cell actions. Controls/footer wrap on
+mobile while only the table region overflows. Buttons reuse the design-system variants and native
+inputs/selects use the existing theme tokens. Built-in controls/states/announcements support EN/DE;
+caller headers/options/cells/caption/error remain caller-localized. No dependency change is required.
+
+Verification (2026-09-19): **27 dedicated ADMIN-004 PASS; full frontend 438 PASS / 37 files / two
+workers**, including existing ADMIN/auth/USER regressions. Format/lint/typecheck/build PASS;
+production npm audit zero vulnerabilities. Backend 381 PASS / 13 opt-in live SKIP; pip check,
+Ruff, strict mypy (57 files), Alembic graph, package build, strict lockfile pip-audit and Compose PASS.
+Live PostgreSQL/Redis cases are not rerun for this pure component task; no fresh auth API/database
+browser acceptance is claimed. Local pytest cache-write/Docker config-read warnings and the
+existing >500kB bundle advisory are non-failing.
+
+Actual isolated browser harness outside Git imports the real component with 13 synthetic rows:
+numeric sorting by Enter, combined filter/search across pages, EN↔DE retaining view state, reset,
+loading/error/retry/empty/no-results, shrink/grow clamp, page size and custom cell callback PASS.
+EN/DE document width fits 1280/768/640/320px; at mobile the 512px table scrolls within the named
+region. Arrow keys scroll it; Tab to an off-screen action scrolls that action into view. Console
+errors absent; temporary tab, language/viewport override and owned server cleaned up.
+
+Next task: **ADMIN-005 — Create reusable ConfirmDialog component**, P0 / Cx1 / Phase7; dependency
+FE-004 DONE, READY. ADMIN-006, ADMIN-012 and ADMIN-SLIDER-001 still require their domain backend
+dependencies. AUTH-020 production operator acceptance remains pending. No ADMIN-005 or deployment
+is performed by ADMIN-004; direct-to-main workflow continues.
+
 ## Source entry points
 
-| Path                                    | Responsibility                                                       |
-| --------------------------------------- | -------------------------------------------------------------------- |
-| `src/main.tsx`                          | React mount, router, query provider, and localization initialization |
-| `src/App.tsx`                           | Public, student, and administrator route definitions                 |
-| `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata   |
-| `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery    |
-| `src/routes/admin-routes.ts`            | Canonical Admin module routes and localized navigation descriptors   |
-| `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                 |
-| `src/components/landing/`               | Landing sections, carousel, and demo dialog                          |
-| `src/pages/public/`                     | Landing and authentication forms                                     |
-| `src/pages/admin/`                      | Guarded Admin pages, including overview stats placeholders           |
-| `src/features/events/`                  | Event schema, API/mock repositories, and query hook                  |
-| `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types             |
-| `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions              |
-| `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination      |
-| `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                          |
-| `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                      |
-| `src/features/auth/role-guard.tsx`      | Exact-role outlet gating and fixed public wrong-role redirect        |
-| `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                   |
-| `src/i18n.ts` and `src/locales/`        | English/German localization                                          |
-| `src/test/setup.ts`                     | Test environment setup; test files are colocated with source         |
+| Path                                    | Responsibility                                                        |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| `src/main.tsx`                          | React mount, router, query provider, and localization initialization  |
+| `src/App.tsx`                           | Public, student, and administrator route definitions                  |
+| `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata    |
+| `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery     |
+| `src/routes/admin-routes.ts`            | Canonical Admin module routes and localized navigation descriptors    |
+| `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                  |
+| `src/components/ui/data-table.tsx`      | Generic client-side table and localized accessible controls           |
+| `src/components/ui/data-table-model.ts` | Typed columns, immutable search/filter/sort processing and page sizes |
+| `src/components/landing/`               | Landing sections, carousel, and demo dialog                           |
+| `src/pages/public/`                     | Landing and authentication forms                                      |
+| `src/pages/admin/`                      | Guarded Admin pages, including overview stats placeholders            |
+| `src/features/events/`                  | Event schema, API/mock repositories, and query hook                   |
+| `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types              |
+| `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions               |
+| `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination       |
+| `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                           |
+| `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                       |
+| `src/features/auth/role-guard.tsx`      | Exact-role outlet gating and fixed public wrong-role redirect         |
+| `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                    |
+| `src/i18n.ts` and `src/locales/`        | English/German localization                                           |
+| `src/test/setup.ts`                     | Test environment setup; test files are colocated with source          |
 
 The `@/` alias resolves to `src/`. Tests run through `vitest.config.ts`; the build uses `vite.config.ts`. ESLint and Prettier are the configured lint/format tools.
 

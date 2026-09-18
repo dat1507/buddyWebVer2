@@ -243,8 +243,11 @@ canonical module registry, with current-route semantics and responsive keyboard 
 Event Sliders destination is a guarded scaffold; module business pages remain under development.
 ADMIN-003 delivers the Dashboard overview with six accessible EN/DE stats cards. Values explicitly
 remain unavailable; no operational totals or stats API are supplied by these placeholders.
-Frontend verification now totals 411 PASS. The next task is ADMIN-004 (reusable DataTable with
-sort, filter, search and pagination), ready through completed FE-005.
+ADMIN-004 supplies a reusable client-side DataTable with typed columns/custom cells, localized
+sort/filter/search/pagination and caller loading/error/empty states. Its isolated synthetic browser
+checks verify keyboard access and responsive scrolling; domain list/API integration remains future work.
+Frontend verification now totals 438 PASS. The next task is ADMIN-005 (reusable ConfirmDialog),
+ready through completed FE-004.
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
 repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).

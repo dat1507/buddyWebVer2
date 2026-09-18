@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001, ADMIN-002 and ADMIN-003 are complete; ADMIN-004 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003 and ADMIN-004 are complete; ADMIN-005 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1311,7 +1311,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | ADMIN-001 | Create AdminLayout component (sidebar + content) — clean, data-dense — ✅ Completed | 3 | FE-005, AUTH-006 | P0 |
 | ADMIN-002 | Create Admin Sidebar navigation (all 11 modules) — ✅ Completed | 2 | ADMIN-001 | P0 |
 | ADMIN-003 | Create Admin Dashboard overview page (stats cards placeholder) — ✅ Completed | 2 | ADMIN-001 | P0 |
-| ADMIN-004 | Create reusable DataTable component (sort, filter, search, pagination) | 4 | FE-005 | P0 |
+| ADMIN-004 | Create reusable DataTable component (sort, filter, search, pagination) — ✅ Completed | 4 | FE-005 | P0 |
 | ADMIN-005 | Create reusable ConfirmDialog component | 1 | FE-004 | P0 |
 
 ### Phase 8: Profile Backend
@@ -4239,7 +4239,7 @@ Done: FE-022                  Create User Sidebar navigation [P0; Phase 6; compl
 Done: ADMIN-001               Create AdminLayout component (sidebar + content) — clean, data-dense [P0; Phase 7; completed 2026-09-18]
 Done: ADMIN-002               Create Admin Sidebar navigation (all 11 modules) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7; verified 2026-09-19]
-Next: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7]
+Done: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7; verified 2026-09-19]
 Next: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7]
 Next: EVT-008                 Create audit log model, migration and service [P0; Phase 10]
 Next: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination). Dependency FE-005 is DONE; READY. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-004 development. Continue direct-to-main workflow; do not execute ADMIN-004 unless explicitly requested.**
+**Next development task: ADMIN-005 — Create reusable ConfirmDialog component. Dependency FE-004 is DONE; READY. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003, ADMIN-004, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-005 development. Continue direct-to-main workflow; do not execute ADMIN-005 unless explicitly requested.**
 
 ---
 
@@ -5052,12 +5052,68 @@ as FE-021/FE-022/ADMIN-001/002. Only ADMIN-003 weight 2 moves NOT STARTED `[0, 0
 `[1, 1, 1]`, earning 2 points. No layout/navigation double count or real stats, matching, module CRUD,
 security/integration/deployment credit. ADMIN-014 still awaits MATCH-013.
 
-**Next development task:** ADMIN-004 — Create reusable DataTable component (sort, filter, search,
+**Next development task after ADMIN-003:** ADMIN-004 — Create reusable DataTable component (sort, filter, search,
 pagination), P0 / Phase 7 / Cx 4; dependency FE-005 DONE, READY. Shared primitives and test evidence
 verified; ADMIN-004 is not implemented here. Do not execute it unless explicitly requested.
 
 **Out of Scope:** Real dashboard stats/APIs, module CRUD, data tables/dialogs, matching, profile/
 readiness/onboarding/events/sliders, AUTH-020 production Redis/TLS/ingress operator gate and deployment.
+
+### ADMIN-004 — Create reusable DataTable component (sort, filter, search, pagination)
+
+- **Task ID:** `ADMIN-004`
+- **Status:** Completed — 2026-09-19; **Priority:** P0; **Phase:** 7; **Cx:** 4
+- **Dependencies:** FE-005 — DONE; design-system Button/Card/Typography/theme source and existing regression evidence verified. FE-004 shadcn configuration/Radix Slot is also present but is not a declared dependency.
+- **Goal/scope:** Reusable table infrastructure for complete bounded caller-owned client datasets. Part 16 defines the four required capabilities; Part 24 defines execution order. This task had no extended DoD before this derived acceptance record. Domain lists and server APIs/pagination belong to subsequent module tasks.
+
+**Definition of Done / acceptance derived from the registry scope and existing design conventions:**
+
+- [x] Generic typed data/column descriptors and stable row/column IDs; plain accessors, custom cells/actions, opt-out search, canonical filter values and custom comparator support.
+- [x] Non-mutating global search plus AND exact column filters before stable locale-aware string/numeric sort and pagination. Single-column ascending/descending/source-order cycle; built-in missing values remain last in both directions.
+- [x] Configurable valid page sizes, correct filtered totals/ranges and bounded Previous/Next. Search/filter/sort/page-size changes reset to page one; dataset/options shrink clamps page state without resurrecting stale out-of-range state.
+- [x] EN/DE built-in controls/states, labels and announcements; caller-localized headers/options/cells/caption/public error. Locale changes retain view state with stable IDs.
+- [x] Native table/caption/scoped headers, native labeled controls and instance-unique IDs, one active aria-sort and visible focus. Named focusable table scroller contains mobile overflow and allows off-screen cell actions to be reached by keyboard.
+- [x] Caller-driven loading/error/optional retry/empty/no-results states hide stale rows/totals. No fabricated data, stats, fetch, API route, storage or automatic retry.
+- [x] Meaningful processing/component tests, existing full regressions, required CI/security gates, isolated synthetic browser checks and diff/React/credential review pass.
+
+**Implementation:** `data-table-model.ts` defines the public column/value/filter types and pure
+processing; `data-table.tsx` owns view/paging state and native presentation. Existing Button/theme
+tokens and `cn` are reused; no table-library dependency is added. Accessor text drives search;
+custom React cell content is not introspected. Reset retains page size. Missing values, unsafe page
+options, empty vs constrained results, multiple instances, stable custom-cell state and metadata/
+data changes are covered. Server-side processing is deliberately outside this component contract.
+No product route, backend/auth/session/cache/API/dependency/environment implementation changes.
+
+**Verification (2026-09-19):** 27 dedicated ADMIN-004 PASS; full frontend 438 PASS / 37 files / two
+workers, including previous ADMIN/auth/USER regressions. Format/lint/typecheck/production build PASS;
+production npm audit zero vulnerabilities. Backend 381 PASS / 13 opt-in live SKIP; pip check, Ruff,
+strict mypy (57 files), Alembic graph, package build, strict lockfile pip-audit and Compose PASS.
+Live PostgreSQL/Redis cases are not rerun for this pure component scope; no fresh browser-to-auth-
+API/database acceptance is claimed. Existing bundle advisory and local cache/config warnings remain.
+
+Actual isolated browser harness outside Git imports the real component with 13 synthetic records.
+Numeric sort by Enter, filter + cross-page case-insensitive search, reset/source order, EN↔DE state
+retention, loading/error/retry/empty/no-results, data shrink/grow clamp, page size and custom action
+PASS. EN/DE document width fits 1280/768/640/320px; the 512px table stays inside a focusable scroller
+at mobile. Arrow keys scroll horizontally and Tab scrolls an off-screen action into view. Console
+errors empty; tab, language/viewport override and owned server cleaned up. Review fixed sort-only
+empty messaging and removed-page-size restoration; native Windows harness imports were corrected
+outside Git. Final verification receipt records any setup findings and exact CI SHA.
+
+**Git workflow:** Implement/commit/normal push directly on main after gates/diff/secret review;
+verify live exact SHA, Frontend/Backend CI and clean/synced state in the external completion receipt.
+No new task branch, force push, history rewrite or deployment.
+
+**Completion accounting:** Keep all accepted 160 IDs, Cx/deps/priorities/weights, bounds and release
+rubric. ADMIN-004 has three direct dependents, so its existing weight is Cx4 × P0 1 × acceptance 1 ×
+fanout 1.15 = 4.6; only its credit moves NOT STARTED `[0,0,0]` → DONE `[1,1,1]`. No domain list/API,
+matching, security or deployment credit. ADMIN-006/012/ADMIN-SLIDER-001 still need backend contracts.
+
+**Next development task:** ADMIN-005 — Create reusable ConfirmDialog component, P0 / Phase7 / Cx1;
+dependency FE-004 DONE, READY. It is not implemented here; do not execute unless explicitly requested.
+
+**Out of Scope:** ConfirmDialog, domain Admin lists/CRUD/APIs, manual server pagination, auth, real
+business stats/profile/readiness/onboarding/events/sliders/matching, production operator gate/deployment.
 
 ### EVT-008 — Create audit log model, migration and service
 
