@@ -213,10 +213,14 @@ Redis/TLS/ingress smoke remains pending for AUTH-020; no deployed production aut
 claimed. AUTH-005 ProtectedRoute is complete: unknown/loading sessions show neutral pending;
 confirmed anonymous User/Admin routes redirect to their login pages and authenticated sessions
 render nested routes. Bootstrap defers refreshed identity until `/me` finishes. Current frontend
-**206 tests PASS**, including 31 guard/integration checks; local browser deep-link reload/logout
-acceptance PASS. The next task is AUTH-006 (RoleGuard), not started here. Role-based frontend
-authorization and complete login routing in AUTH-022/023 remain planned; backend authorization
-continues to be authoritative.
+**256 tests PASS**, including 31 authentication and 50 role guard/integration checks. AUTH-006
+RoleGuard is complete: User routes require USER, Admin routes require ADMIN; wrong-role requests
+replace history with public `/` without private rendering or logout. Final `/me` role governs
+bootstrap, and verified refresh role changes remove incompatible content and private cache.
+Real local browser cookies/database acceptance covers both roles, matching deep-link reload,
+cross-role denial retaining sessions, EN/DE and logout/re-entry; browser error console is empty.
+The next task is AUTH-022 (User login role check and redirect); AUTH-023 Admin-login cleanup and
+routing remain planned. Backend authorization continues to be authoritative.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
 order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.

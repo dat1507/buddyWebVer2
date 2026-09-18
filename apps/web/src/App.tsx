@@ -10,7 +10,7 @@ import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 import { SessionControls } from '@/features/auth/session-controls'
-import { ProtectedRoute } from '@/features/auth/protected-route'
+import { RoleGuard } from '@/features/auth/role-guard'
 
 const userRoutes = [
   { path: 'dashboard', title: 'Dashboard' },
@@ -48,7 +48,7 @@ function App() {
           <Route path="register" element={<UserRegistrationPage />} />
         </Route>
 
-        <Route element={<ProtectedRoute />}>
+        <Route element={<RoleGuard requiredRole="USER" />}>
           <Route path="user" element={<UserLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             {userRoutes.map(({ path, title }) => (
@@ -61,7 +61,7 @@ function App() {
           </Route>
         </Route>
 
-        <Route element={<ProtectedRoute loginPath="/adminLogin" />}>
+        <Route element={<RoleGuard requiredRole="ADMIN" loginPath="/adminLogin" />}>
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             {adminRoutes.map(({ path, title }) => (

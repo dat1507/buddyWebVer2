@@ -1084,7 +1084,7 @@ main (production)
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-006 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-022 is the next development task. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1246,7 +1246,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | AUTH-003 | Create Admin Login page (/adminLogin) — distinct visual | 2 | FE-005, FE-006 | P0 |
 | AUTH-004 | Create non-persisted Zustand session store (status, user, role; no tokens) — ✅ COMPLETED | 2 | FE-001, AUTH-ARCH-001 | P0 |
 | AUTH-005 | Create ProtectedRoute component (requires auth) — ✅ Completed | 2 | AUTH-004, FE-006 | P0 |
-| AUTH-006 | Create RoleGuard component (requires specific role) | 2 | AUTH-005 | P0 |
+| AUTH-006 | Create RoleGuard component (requires specific role) — ✅ Completed | 2 | AUTH-005 | P0 |
 
 > [!IMPORTANT]
 > **Approved UI-first exception**: AUTH-001, AUTH-002, and AUTH-003 are implemented as UI-only pages before Backend Foundation. They may include responsive layouts, accessible forms, client-side validation, and loading/error presentation contracts, but must not simulate successful authentication, create fake tokens, or perform fake role redirects. Backend connectivity remains exclusively in AUTH-021 through AUTH-023.
@@ -4229,7 +4229,7 @@ Done: AUTH-024                Backend/live and frontend/cache integration accept
 Done: AUTH-004                Create non-persisted Zustand session store (status, user, role; no tokens) [P0; Phase 4; completed 2026-09-17]
 Done: AUTH-021                Connect session client, registration, and auth bootstrap [P0; Phase 5; completed 2026-09-18]
 Done: AUTH-005                Create ProtectedRoute component (requires auth) [P0; Phase 4; completed 2026-09-18]
-Next: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4]
+Done: AUTH-006                Create RoleGuard component (requires specific role) [P0; Phase 4; completed 2026-09-18]
 Next: AUTH-022                Implement login flow: User login → role check → redirect [P0; Phase 5]
 Next: AUTH-023                Implement admin login flow: Admin login → role=ADMIN check → redirect [P0; Phase 5]
 Next: FE-021                  Create UserLayout component (sidebar + content area) [P0; Phase 6]
@@ -4337,7 +4337,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: AUTH-006 — RoleGuard. AUTH-004, AUTH-005 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-006 development. Do not execute AUTH-006 unless explicitly requested.**
+**Next development task: AUTH-022 — User login role check and redirect. AUTH-004, AUTH-005, AUTH-006 and AUTH-021 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block AUTH-022 development. Do not execute AUTH-022 unless explicitly requested.**
 
 ---
 
@@ -4559,6 +4559,48 @@ features, immediate access denylisting, cross-tab locking and production deploym
 guard alone permits either valid role; backend authorization remains authoritative. Existing
 frontend chunk advisory, AUTH-020 production operator gate and Gemini remediation remain pending.
 **Next development task:** AUTH-006 — RoleGuard; not started by AUTH-005.
+
+### AUTH-006 — Create RoleGuard component (requires specific role)
+
+**Task ID:** `AUTH-006`
+**Status:** COMPLETED (✅) on 2026-09-18; **Priority:** P0; **Phase:** 4
+**Dependencies:** AUTH-005; reuses AUTH-004 sanitized role and AUTH-021 verified bootstrap.
+**Goal:** Prevent rendering private route descendants for a verified session with the wrong role.
+
+The registry has no separate detailed AC. Operational checks below derive from its specific-role
+requirement, AUTH-ARCH-001 pending contract and PART 22 authorization layering:
+
+- [x] Unknown/loading delegate to ProtectedRoute's accessible neutral EN/DE pending, retain URL and never mount private descendants. — Both roles/statuses, localized pending and private mount checks PASS.
+- [x] Anonymous sessions retain fixed User/Admin login redirects; authenticated USER can enter only User routes and ADMIN only Admin routes. — Actual router/store, both-role direct/deep/index and all 20 declared private route denial cases PASS; AUTH-005 regression preserved.
+- [x] Wrong-role requests replace history with fixed public `/`, never mount private layout/children, never follow caller-supplied destinations and preserve the valid session. — Child-effect, history/Back, query/hash, unchanged identity and no-network checks PASS.
+- [x] Verified role changes and session clear/re-verification immediately remove incompatible private content; bootstrap waits for final `/me`, with bounded refresh/retry and existing private-cache clearing. — StrictMode held `/me`, refresh versus final `/me` role, both refresh role transitions/private-public cache, malformed role fail-closed tests PASS.
+- [x] Focused/router/client integration, real local browser cookies/database, regression and quality/security gates pass. Backend role checks remain authoritative; no credentials/persistence/network added to the guard. — 50 focused and full frontend 256 PASS; backend 384 PASS/10 existing opt-in Redis live SKIP; quality/dependency/credential checks PASS.
+
+**Implementation:** Added reusable typed `features/auth/role-guard.tsx`, two colocated test files
+and exact USER/ADMIN guards in App. Non-authenticated states reuse ProtectedRoute directly; role
+selectors subscribe to sanitized verified identity. Wrong role redirects with replacement to `/`
+without logout or destination state. No change to API/bootstrap/CSRF/cookies/store/backend schema.
+
+**Verification:** Frontend format/lint/strict typecheck/production build PASS (existing >500 kB
+chunk advisory). Backend Ruff/strict mypy (57 files)/pip check PASS; three PostgreSQL live cases
+enabled in full regression. Production npm audit: zero vulnerabilities. Strict pip-audit: all 77
+pinned external installed distributions, no known vulnerabilities. Environment-wide strict audit
+rejects the local editable `vgu-buddy-api` source (not published on PyPI), so excluded editable
+source via a pinned external-only audit input in the ignored disposable lab; no dependency change
+or external dependency skip. Repository source is covered by regression/static/security review.
+Git diff/credential-signature review PASS; no env/config/dependency, generated or lab files in Git.
+Real browser + isolated PostgreSQL: anonymous Admin redirect, USER/ADMIN login, matching deep-link
+reload retaining query/hash, both cross-role denials to public home retaining sessions, both index
+routes, EN/DE, immediate logout and denied re-entry PASS. Browser error console empty. Acceptance
+is local only; no deployed production authorization or completed business-page claim.
+
+**Scope:** RoleGuard and existing route integration, focused tests and implementation evidence.
+Login form role checks, success redirects and wrong-role Admin-login cleanup remain AUTH-022/023.
+Existing User/Admin placeholder layouts/pages stay scaffolding. No backend/API/schema change or
+production deployment. The wrong-role destination is public `/`, which avoids login or role loops;
+direct navigation denial does not log out an otherwise valid session.
+
+**Next development task:** AUTH-022 — User login role check and redirect; not started by AUTH-006.
 
 ### AUTH-020 — Rate limiting middleware (SlowAPI)
 

@@ -34,7 +34,7 @@ Production builds do not use the event fixtures, even with `VITE_EVENT_SLIDER_US
 `useAuthStore` in `src/stores/auth-store.ts` is a typed Zustand 5.0.15 singleton for this browser SPA.
 It starts with `status: 'unknown'`, `user: null`, `role: null`. AUTH-021 connects it to the credentialed
 client, `/api/auth/me` bootstrap, login and logout. AUTH-005 supplies authentication route guards;
-AUTH-006 still owns role guards.
+AUTH-006 adds exact-role guards for private User/Admin descendants.
 
 | Action                      | Result                                                                      |
 | --------------------------- | --------------------------------------------------------------------------- |
@@ -139,8 +139,8 @@ alone owns bootstrap/refresh. A focused integration check exposed early identity
 after bootstrap refresh; bootstrap now validates that response without installing identity until
 the final `/me` succeeds. Normal private-request refresh still installs the verified updated User.
 
-This is authentication presentation only. AUTH-006 role authorization and AUTH-022/023 login
-redirects/denial are pending; authenticated identities are not yet separated by role in the router.
+ProtectedRoute handles authentication presentation only; App now uses AUTH-006 RoleGuard to
+separate authenticated identities by role. AUTH-022/023 login redirects/denial remain pending.
 Backend `require_auth`/`require_role` remain authoritative. Existing placeholder pages stay
 placeholders, not delivered profile/admin features. No API/cookie/CSRF/dependency/env change.
 
@@ -154,6 +154,39 @@ SKIP**, including the isolated PostgreSQL live suite. Real local browser + backe
 verify anonymous User/Admin redirects, authenticated deep-link reload without login redirect,
 and logout followed by denied re-entry. EN/DE checks PASS; browser error console empty. Existing
 chunk-size advisory, access JWT residual TTL and production AUTH-020 operator gate remain.
+
+## Role guards (AUTH-006)
+
+`src/features/auth/role-guard.tsx` accepts a typed `requiredRole` (`USER` or `ADMIN`) and fixed
+internal `loginPath`. Unknown/loading/anonymous sessions delegate to ProtectedRoute, reusing
+neutral accessible EN/DE pending and verified anonymous login redirects. App requires USER for
+all declared `/user` descendants, ADMIN for all declared `/admin` descendants, including indexes.
+There is no ADMIN override for User-only pages. A verified wrong role replaces history with public
+`/` before the private layout/outlet mounts; query/hash/router state cannot choose that destination.
+Denial preserves the valid session and never initiates logout or cookie/network/storage work.
+
+Reactive store selectors remove incompatible content immediately when role changes, session clears
+or account verification restarts. AUTH-021 waits for final `/me` after bootstrap refresh; a refresh
+payload alone cannot expose private UI. Its existing verified role-change handling clears private
+queries before installing identity and retains public event sliders. The guard adds no API calls,
+credentials, persistence, dependencies or backend authorization. Backend verifies cookies/current
+database roles independently; this guard is a UX layer. Login success routing and wrong-role
+Admin-login logout remain AUTH-022/023, and business/layout pages remain placeholders.
+
+```sh
+npm test -- src/features/auth/role-guard.test.tsx src/features/auth/role-guard-integration.test.tsx
+```
+
+Verification (2026-09-18): **50 focused PASS; full frontend 256 PASS**; Prettier, ESLint, strict
+TypeScript, production build and production npm audit (zero vulnerabilities) PASS. Full backend
+**384 PASS / 10 existing opt-in Redis live SKIP** includes three isolated PostgreSQL cases; Ruff,
+strict mypy (57 files), pip check PASS. Strict pip-audit of all 77 pinned external installed
+distributions PASS; local editable source `vgu-buddy-api` is reviewed as repository code, not a
+PyPI distribution. Audit input and acceptance lab are Git-ignored; no dependency/env file changed.
+Real local browser + backend/database cookies verify both roles, matching deep-link reload,
+cross-role denial/session retention, index navigation, EN/DE, logout and denied re-entry. Error
+console empty. Git diff/credential-signature checks PASS. Existing chunk advisory and production
+AUTH-020 operator gate remain. Next development task: AUTH-022; not started by AUTH-006.
 
 ## Source entry points
 
@@ -170,6 +203,7 @@ chunk-size advisory, access JWT residual TTL and production AUTH-020 operator ga
 | `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination      |
 | `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                          |
 | `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                      |
+| `src/features/auth/role-guard.tsx`      | Exact-role outlet gating and fixed public wrong-role redirect        |
 | `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                   |
 | `src/i18n.ts` and `src/locales/`        | English/German localization                                          |
 | `src/test/setup.ts`                     | Test environment setup; test files are colocated with source         |
