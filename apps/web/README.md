@@ -90,8 +90,8 @@ this verification from fresh memory rather than trusting a persisted client iden
 Registration acquires pre-auth CSRF and submits only email/password/consent. Validation enforces
 15 Unicode characters and the backend's 72 UTF-8-byte maximum. Only a verified backend registration
 response navigates to `/login`; registration never authenticates. Both login pages submit the same
-backend endpoint and install the actual returned User/role. AUTH-022 completes `/login` role routing;
-`/adminLogin` still displays successful login on its own page until AUTH-023 handles that flow.
+backend endpoint. AUTH-022 routes `/login` by actual role; AUTH-023 requires validated ADMIN before
+installing identity at `/adminLogin`, otherwise revokes the newly issued USER session and denies publicly.
 
 Use `sessionClient.authenticatedJson()` for future private API requests. Concurrent 401s share one
 refresh and each request retries once; a delayed 401 cannot trigger a second completed rotation.
@@ -140,8 +140,8 @@ after bootstrap refresh; bootstrap now validates that response without installin
 the final `/me` succeeds. Normal private-request refresh still installs the verified updated User.
 
 ProtectedRoute handles authentication presentation only; App now uses AUTH-006 RoleGuard to
-separate authenticated identities by role. AUTH-022 completes User login routing; AUTH-023 Admin
-login redirects/denial remain pending.
+separate authenticated identities by role. AUTH-022 completes User login routing; AUTH-023 completes
+Admin login redirects/denial as documented below.
 Backend `require_auth`/`require_role` remain authoritative. Existing placeholder pages stay
 placeholders, not delivered profile/admin features. No API/cookie/CSRF/dependency/env change.
 
@@ -172,7 +172,7 @@ payload alone cannot expose private UI. Its existing verified role-change handli
 queries before installing identity and retains public event sliders. The guard adds no API calls,
 credentials, persistence, dependencies or backend authorization. Backend verifies cookies/current
 database roles independently; this guard is a UX layer. AUTH-022 now supplies User login routing;
-wrong-role Admin-login logout/redirect remains AUTH-023, and business/layout pages remain placeholders.
+AUTH-023 supplies wrong-role Admin-login logout/redirect; business/layout pages remain placeholders.
 
 ```sh
 npm test -- src/features/auth/role-guard.test.tsx src/features/auth/role-guard-integration.test.tsx
@@ -224,6 +224,43 @@ role dashboards, recovered `/login` sessions, ignored redirect queries, reload, 
 re-entry; browser error console empty. Git diff/credential-signature review PASS; lab/build/env
 outputs excluded. Existing chunk advisory and AUTH-020 production operator gate remain.
 Next development task: AUTH-023; not started by AUTH-022.
+
+## Admin login flow (AUTH-023)
+
+`AdminLoginPage` calls the same backend endpoint through `sessionClient.login(credentials,
+{ requiredRole: 'ADMIN' })`. This option is local policy and is never sent in the request body.
+Only a validated sanitized ADMIN is installed; it replaces history with `/admin/dashboard`.
+Caller query/hash/router state/stale storage cannot choose a role or redirect destination.
+
+A successful USER response never enters authenticated client state, even while revocation is
+pending. The client uses that response's session-bound CSRF to logout inside the serialized login
+operation, including one bounded 403 recovery/retry. After cleanup, the form clears its password
+and replaces history with `/` and a fixed accessible EN/DE denial notice. Landing renders only
+the whitelisted notice code, never arbitrary router-state text. Failed logout also redirects
+with denial, keeps local identity cleared and exposes the existing safe logout error/retry;
+server revocation is not claimed until a successful backend response. Retry never resubmits credentials.
+
+Previously verified/recovered ADMIN entering this public page routes to the dashboard; an
+existing USER is denied publicly while its established valid session is retained. This differs
+from the plan's explicit cleanup of a newly issued wrong-role login session. Unknown/loading
+wait for final `/me`; errors stay on the form with safe manual retry. Duplicate submissions,
+unmount and superseding login/logout remain protected by existing hooks/queue/epoch checks.
+Private queries clear while public event sliders remain. No backend/cookie/storage/schema/env/
+dependency change, Admin discovery link, self-registration or production deployment is added.
+
+```sh
+npm test -- src/features/auth/admin-login-flow.test.tsx src/pages/public/admin-login-page.test.tsx src/features/auth/auth-integration.test.tsx
+```
+
+Verification (2026-09-18): **34 dedicated AUTH-023 PASS; full frontend 321 PASS**; format/ESLint/
+strict TypeScript/build PASS, production npm audit zero vulnerabilities. Backend **384 PASS /
+10 opt-in Redis live SKIP**, including three isolated PostgreSQL cases; Ruff/strict mypy (57 files)/
+pip check/Alembic single head and strict runtime lockfile pip-audit PASS. Actual local browser/API/
+PostgreSQL verifies ADMIN login and recovered Admin entry, USER denial/logout in EN/DE, anonymous
+private-route re-entry after cleanup, valid User login and existing USER denial/session retention.
+Browser error console empty; Git diff/credential review PASS. Existing chunk-size advisory,
+copied-access TTL and AUTH-020 production operator gate remain. Private pages are scaffolding;
+readiness/onboarding remains FE-038. Next development task: FE-021; not started by AUTH-023.
 
 ## Source entry points
 

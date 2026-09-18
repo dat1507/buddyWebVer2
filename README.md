@@ -213,7 +213,7 @@ Redis/TLS/ingress smoke remains pending for AUTH-020; no deployed production aut
 claimed. AUTH-005 ProtectedRoute is complete: unknown/loading sessions show neutral pending;
 confirmed anonymous User/Admin routes redirect to their login pages and authenticated sessions
 render nested routes. Bootstrap defers refreshed identity until `/me` finishes. Current frontend
-**287 tests PASS**, including 31 authentication, 50 role guard and 31 User login flow checks. AUTH-006
+**321 tests PASS**, including 31 authentication, 50 role guard, 31 User login and 34 Admin login flow checks. AUTH-006
 RoleGuard is complete: User routes require USER, Admin routes require ADMIN; wrong-role requests
 replace history with public `/` without private rendering or logout. Final `/me` role governs
 bootstrap, and verified refresh role changes remove incompatible content and private cache.
@@ -224,7 +224,12 @@ replace history with `/user/dashboard` for USER or `/admin/dashboard` for ADMIN,
 sanitized identity. Pending/failed verification stays on login with safe validation/error/retry;
 query/hash/router state/stale storage never choose the destination. Late and superseded responses,
 logout/account-switch/private-public cache and real local browser EN/DE acceptance PASS.
-The next task is AUTH-023 (Admin login role check, cleanup and redirect). USER readiness/onboarding
+AUTH-023 Admin login is complete: validated ADMIN routes to `/admin/dashboard`; a newly issued
+USER session at `/adminLogin` is never installed and is logged out with session CSRF before
+public denial at `/`. Failed cleanup exposes safe manual logout retry and keeps local identity
+cleared. Existing verified USER entry is denied publicly while preserving its established session.
+Real local browser/API/database ADMIN and EN/DE USER denial/revocation acceptance PASS.
+The next task is FE-021 (UserLayout). USER readiness/onboarding
 remains FE-038; current private pages are scaffolding. Backend authorization remains authoritative.
 
 See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task

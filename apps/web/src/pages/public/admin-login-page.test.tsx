@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import i18n from '@/i18n'
 import { sessionClient } from '@/features/auth/session-client'
+import { useAuthStore } from '@/stores/auth-store'
 
 function renderAdminLoginRoute() {
   return render(
@@ -17,6 +18,11 @@ function renderAdminLoginRoute() {
 describe('AdminLoginPage', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
+    useAuthStore.getState().resetSession()
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    useAuthStore.getState().resetSession()
   })
 
   it('renders a visually distinct accessible Admin Login surface at the direct URL', () => {
@@ -64,14 +70,19 @@ describe('AdminLoginPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('uses the shared session client and leaves role checks/redirects for AUTH-023', async () => {
-    const login = vi.spyOn(sessionClient, 'login').mockResolvedValue({
+  it('requires ADMIN through the shared client and routes verified identity to administration', async () => {
+    const admin = {
       id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       email: 'admin@vgu.edu.vn',
-      role: 'ADMIN',
+      role: 'ADMIN' as const,
       email_verified: false,
+    }
+    const login = vi.spyOn(sessionClient, 'login').mockImplementation(async () => {
+      useAuthStore.getState().setAuthenticated(admin)
+      return admin
     })
     renderAdminLoginRoute()
+    const password = screen.getByLabelText('Admin password')
 
     fireEvent.change(screen.getByLabelText('Admin email address'), {
       target: { value: 'admin@vgu.edu.vn' },
@@ -79,11 +90,12 @@ describe('AdminLoginPage', () => {
     fireEvent.change(screen.getByLabelText('Admin password'), { target: { value: 'secret' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue to administration' }))
 
-    expect(await screen.findByRole('status')).toHaveTextContent('You are signed in.')
-    expect(screen.getByRole('heading', { name: 'Administration access' })).toBeVisible()
-    expect(login).toHaveBeenCalledWith({ email: 'admin@vgu.edu.vn', password: 'secret' })
-    expect(screen.getByLabelText('Admin password')).toHaveValue('')
-    login.mockRestore()
+    expect(await screen.findByText('Admin overview')).toBeVisible()
+    expect(login).toHaveBeenCalledWith(
+      { email: 'admin@vgu.edu.vn', password: 'secret' },
+      { requiredRole: 'ADMIN' },
+    )
+    expect(password).toHaveValue('')
   })
 
   it('renders the Admin Login surface in German', async () => {

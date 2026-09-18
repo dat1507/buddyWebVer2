@@ -153,17 +153,13 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
         target: { value: 'fixture password' },
       })
       fireEvent.click(mainButton(adminPage ? 'Continue to administration' : 'Sign in'))
-      expect(
-        await screen.findByText(adminPage ? 'You are signed in.' : 'Admin overview'),
-      ).toBeVisible()
+      expect(await screen.findByText('Admin overview')).toBeVisible()
       expect(useAuthStore.getState()).toMatchObject({
         status: 'authenticated',
         user: admin,
         role: 'ADMIN',
       })
-      if (adminPage)
-        expect(screen.getByRole('heading', { name: 'Administration access' })).toBeVisible()
-      else expect(document.querySelector('[data-layout="admin"]')).not.toBeNull()
+      expect(document.querySelector('[data-layout="admin"]')).not.toBeNull()
       expect(JSON.parse(fetch.mock.calls[2][1]!.body as string)).not.toHaveProperty('role')
     },
   )

@@ -213,6 +213,7 @@
       "passwordLabel": "Admin-Passwort",
       "passwordPlaceholder": "Passwort eingeben",
       "submit": "Zur Verwaltung fortfahren",
+      "denied": "Du bist nicht als Administrator autorisiert.",
       "validation": {
         "emailRequired": "Gib die Administrator-E-Mail-Adresse ein.",
         "emailInvalid": "Gib eine gültige Administrator-E-Mail-Adresse ein.",

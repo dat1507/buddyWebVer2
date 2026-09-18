@@ -1,13 +1,15 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Navigate, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
-import { sessionClient } from '@/features/auth/session-client'
+import { AdminLoginDeniedError, sessionClient } from '@/features/auth/session-client'
 import { useAuthSubmission } from '@/features/auth/use-auth-submission'
+import { useAuthStore } from '@/stores/auth-store'
 
 type AdminLoginField = 'email' | 'password'
 type AdminLoginErrors = Partial<Record<AdminLoginField, string>>
@@ -21,6 +23,9 @@ function AdminLoginPage() {
   const passwordRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<AdminLoginErrors>({})
   const submission = useAuthSubmission()
+  const navigate = useNavigate()
+  const status = useAuthStore((state) => state.status)
+  const role = useAuthStore((state) => state.role)
 
   const clearFieldFeedback = (field: AdminLoginField) => {
     setErrors((currentErrors) => {
@@ -62,12 +67,29 @@ function AdminLoginPage() {
       return
     }
 
+    let denied = false
     void submission.submit(
-      () => sessionClient.login({ email: emailInput!.value, password: passwordInput!.value }),
+      async () => {
+        try {
+          await sessionClient.login(
+            { email: emailInput!.value, password: passwordInput!.value },
+            { requiredRole: 'ADMIN' },
+          )
+        } catch (error) {
+          if (!(error instanceof AdminLoginDeniedError)) throw error
+          denied = true
+        }
+        passwordInput!.value = ''
+      },
       () => {
-        if (passwordRef.current) passwordRef.current.value = ''
+        if (denied) void navigate('/', { replace: true, state: { authNotice: 'adminDenied' } })
       },
     )
+  }
+
+  if (status === 'authenticated') {
+    if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />
+    return <Navigate to="/" replace state={{ authNotice: 'adminDenied' }} />
   }
 
   return (
@@ -202,14 +224,12 @@ function AdminLoginPage() {
                 )}
               </Button>
 
-              {submission.error || submission.success ? (
+              {submission.error ? (
                 <p
                   className="rounded-lg border border-amber-300/25 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-100"
-                  role={submission.error ? 'alert' : 'status'}
+                  role="alert"
                 >
-                  {submission.error
-                    ? t(`auth.errors.${submission.error.code}`)
-                    : t('auth.session.signedIn')}
+                  {t(`auth.errors.${submission.error.code}`)}
                 </p>
               ) : null}
             </form>

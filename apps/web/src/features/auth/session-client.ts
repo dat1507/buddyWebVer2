@@ -23,8 +23,21 @@ interface Credentials {
   email: string
   password: string
 }
+interface LoginOptions {
+  requiredRole?: 'ADMIN'
+}
 interface Registration extends Credentials {
   consent: boolean
+}
+
+class AdminLoginDeniedError extends Error {
+  readonly cleanupError: ApiError | null
+
+  constructor(cleanupError: ApiError | null) {
+    super('Administrator access denied')
+    this.name = 'AdminLoginDeniedError'
+    this.cleanupError = cleanupError
+  }
 }
 
 function createSessionClient(cache: QueryClient) {
@@ -110,10 +123,16 @@ function createSessionClient(cache: QueryClient) {
         if (ticket === feedbackTicket) useFeedback.setState({ pending: false, error: null })
         return value
       } catch (error) {
-        const safe = normalizeApiError(error)
+        const denied = error instanceof AdminLoginDeniedError
+        const safe = denied ? error.cleanupError : normalizeApiError(error)
         if (generation === epoch) await clearIdentity()
-        if (ticket === feedbackTicket) useFeedback.setState({ pending: false, error: safe })
-        throw safe
+        if (ticket === feedbackTicket)
+          useFeedback.setState({
+            pending: false,
+            action: denied && safe ? 'logout' : action,
+            error: safe,
+          })
+        throw denied ? error : safe
       }
     })
   }
@@ -158,7 +177,7 @@ function createSessionClient(cache: QueryClient) {
     )
     return refreshFlight
   }
-  const login = (credentials: Credentials): Promise<SessionUser> => {
+  const login = (credentials: Credentials, options: LoginOptions = {}): Promise<SessionUser> => {
     const generation = ++epoch
     // Hide the previous account immediately; cookie changes wait for older operations to finish.
     useAuthStore.getState().startLoading()
@@ -186,7 +205,24 @@ function createSessionClient(cache: QueryClient) {
       )
       if (!result.success) throw new ApiError(200, 'invalidResponse')
       csrfToken = result.data.csrf_token
-      return installUser(result.data.user, generation)
+      checkEpoch(generation)
+      const user = parseSessionUser(result.data.user)
+      if (options.requiredRole === 'ADMIN' && user.role !== 'ADMIN') {
+        // Never install a denied USER, including while its cookie revocation is pending.
+        await clearIdentity()
+        checkEpoch(generation)
+        let cleanupError: ApiError | null = null
+        try {
+          // Stay inside this queued login; calling public logout here would deadlock the queue.
+          await sessionMutation('/auth/logout')
+          csrfToken = undefined
+        } catch (error) {
+          cleanupError = normalizeApiError(error)
+        }
+        checkEpoch(generation)
+        throw new AdminLoginDeniedError(cleanupError)
+      }
+      return installUser(user, generation)
     })
   }
   const register = (registration: Registration): Promise<void> =>
@@ -274,5 +310,5 @@ function createSessionClient(cache: QueryClient) {
 }
 
 const sessionClient = createSessionClient(queryClient)
-export { createSessionClient, sessionClient }
-export type { Credentials, Registration }
+export { AdminLoginDeniedError, createSessionClient, sessionClient }
+export type { Credentials, LoginOptions, Registration }
