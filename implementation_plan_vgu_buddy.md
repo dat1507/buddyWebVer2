@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022 and ADMIN-001 through ADMIN-005 are complete; EVT-008 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005 and EVT-008 are complete; EVS-003 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1354,7 +1354,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | EVT-005 | Create audience-safe event list, detail and calendar queries | 2 | EVT-004, AUTH-017 | P0 |
 | EVT-006 | Create admin event list, detail, CRUD and status APIs | 3 | EVT-004, AUTH-018, AUTH-011A | P0 |
 | EVT-007 | Create `POST /api/events/:id/register` (user registers for event) | 2 | EVT-002, AUTH-017 | P1 |
-| EVT-008 | Create audit log model, migration and service | 2 | AUTH-009 | P0 |
+| EVT-008 | Create audit log model, migration and service — ✅ Completed | 2 | AUTH-009 | P0 |
 | EVT-009 | Integrate event audit and content freshness | 2 | EVT-006, EVT-008 | P0 |
 | EVT-010 | Define EventMedia ownership model | 2 | EVT-001 | P0 |
 | EVT-011 | Implement authorized event media lifecycle API | 2 | EVT-010, EVS-003, EVT-006, EVT-009 | P0 |
@@ -4241,7 +4241,7 @@ Done: ADMIN-002               Create Admin Sidebar navigation (all 11 modules) [
 Done: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7; completed 2026-09-19]
-Next: EVT-008                 Create audit log model, migration and service [P0; Phase 10]
+Done: EVT-008                 Create audit log model, migration and service [P0; Phase 10; completed 2026-09-19]
 Next: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8]
 Next: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8]
 Next: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8]
@@ -5153,15 +5153,36 @@ audit implementation, AUTH-020 production operator gate and deployment.
 ### EVT-008 — Create audit log model, migration and service
 
 **Task ID:** `EVT-008`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 10  
+**Change:** Updated existing; **Status:** Completed — 2026-09-19; **Priority:** P0; **Phase:** 10
 **Goal:** Make admin content changes attributable before they ship.  
 **Dependencies:** AUTH-009  
 **Scope:** Audit schema/migration and service shared by events, sliders, profile admin reads and matching.
 
 **Acceptance Criteria:**
 
-- [ ] Successful mutation and audit commit atomically; failed changes never report success.
-- [ ] Log actor/action/resource/time and redacted changes; exclude passwords, tokens, signed URLs and full profile content.
+- [x] Successful mutation and audit commit atomically; failed changes never report success.
+- [x] Log actor/action/resource/time and redacted changes; exclude passwords, tokens, signed URLs and full profile content.
+
+**Implementation:** `AuditLog` persists the Admin FK, action, polymorphic resource identity, JSONB
+before/after values and metadata in `app_private`. Revision `0004_audit_logs` adds the planned actor/
+time and resource indexes, preserves actor attribution with `ON DELETE RESTRICT`, revokes browser/
+Data API access and grants the runtime role append-only `SELECT`/`INSERT` under matching RLS
+policies. `record_audit_log` accepts only a current active Admin, sanitizes JSON-compatible values,
+redacts credentials/tokens/signed URLs/profile content, adds and flushes on the caller's existing
+session, and never commits or rolls back. Domain mutation endpoints therefore own one short commit;
+an audit flush failure propagates and cannot be reported as mutation success.
+
+**Verification (2026-09-19):** 27 focused model/service/offline-migration tests PASS; full backend
+401 PASS / 13 configured live skips. Ruff and strict mypy (62 files) PASS. Alembic history/head and
+offline upgrade/downgrade SQL verify revision chain, constraints, indexes, grants, revocations and
+RLS policies. Disposable live PostgreSQL was unavailable because the local Docker engine did not
+start; no live-database acceptance is claimed. Package build, strict runtime lockfile pip-audit and
+Compose validation PASS. Unchanged frontend format/lint/typecheck, 446 tests / 38 files, production
+build and production npm audit (zero vulnerabilities) PASS.
+
+**Next development task:** EVS-003 — Create shared Supabase image storage service and bucket
+policies, P0 / Phase 8 / Cx3; dependencies BE-004, AUTH-018 and AUTH-011A DONE, READY. It is not
+implemented here.
 
 **Out of Scope:** Audit-log dashboard or separate logging infrastructure.
 

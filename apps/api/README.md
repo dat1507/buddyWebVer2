@@ -109,6 +109,14 @@ one session family and stores its current refresh `jti`, owning User, expiry, an
 time. The migration applies the same runtime-only privileges and RLS boundary; browser/Data API
 roles receive no table access or policy.
 
+Revision `0004_audit_logs` adds backend-only `app_private.audit_logs` for attributable Admin actions.
+The runtime role has only `SELECT` and `INSERT`, with matching RLS policies; it cannot update or
+delete audit rows. Actor/time and resource indexes support bounded history lookups. Domain services
+call `app.services.audit_logs.record_audit_log` with the same `AsyncSession` as their mutation, then
+the endpoint commits once. The service flushes without committing, rejects non-Admin actors,
+normalizes JSON-safe values, and redacts credential/token/signed-URL and profile-content fields.
+Callers must not perform external network work inside that short database transaction.
+
 The public registration, login, refresh, current-session and logout endpoints are implemented below,
 together with verified-current-user and explicit role dependencies for protected routes. Frontend
 session store is implemented in AUTH-004; AUTH-021 now integrates the client/bootstrap/forms/cache.

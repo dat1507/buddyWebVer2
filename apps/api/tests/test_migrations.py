@@ -40,13 +40,16 @@ def test_alembic_script_directory_is_loadable() -> None:
     script_directory = ScriptDirectory.from_config(migration_config())
     user_revision = script_directory.get_revision("0002_users")
     refresh_revision = script_directory.get_revision("0003_refresh_sessions")
+    audit_revision = script_directory.get_revision("0004_audit_logs")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0003_refresh_sessions"]
+    assert script_directory.get_heads() == ["0004_audit_logs"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
     assert refresh_revision.down_revision == "0002_users"
+    assert audit_revision is not None
+    assert audit_revision.down_revision == "0003_refresh_sessions"
 
 
 def test_database_configuration_is_deferred() -> None:
@@ -113,6 +116,31 @@ def test_offline_upgrade_renders_private_schema_boundary(
     )
     assert "alter table app_private.refresh_sessions enable row level security" in rendered_sql
     assert "create policy refresh_sessions_backend_access" in rendered_sql
+    assert "create table app_private.audit_logs" in rendered_sql
+    assert "constraint pk_audit_logs primary key (id)" in rendered_sql
+    assert "constraint fk_audit_logs_admin_id_users" in rendered_sql
+    assert "references app_private.users (id) on delete restrict" in rendered_sql
+    assert "constraint ck_audit_logs_action_length" in rendered_sql
+    assert "constraint ck_audit_logs_resource_type_length" in rendered_sql
+    assert (
+        "create index ix_audit_logs_admin_id_created_at "
+        "on app_private.audit_logs (admin_id, created_at)" in rendered_sql
+    )
+    assert (
+        "create index ix_audit_logs_resource_type_resource_id "
+        "on app_private.audit_logs (resource_type, resource_id)" in rendered_sql
+    )
+    assert "revoke all on table app_private.audit_logs from public" in rendered_sql
+    assert "revoke all on table app_private.audit_logs from vgu_buddy_runtime" in rendered_sql
+    assert (
+        "grant select, insert on table app_private.audit_logs to vgu_buddy_runtime"
+        in rendered_sql
+    )
+    assert "alter table app_private.audit_logs enable row level security" in rendered_sql
+    assert "create policy audit_logs_backend_read" in rendered_sql
+    assert "for select" in rendered_sql
+    assert "create policy audit_logs_backend_insert" in rendered_sql
+    assert "for insert" in rendered_sql
 
 
 def test_offline_user_downgrade_removes_table_and_enum(
@@ -161,6 +189,29 @@ def test_offline_refresh_session_downgrade_removes_policy_indexes_and_table(
     assert "drop index app_private.ix_refresh_sessions_expires_at" in rendered_sql
     assert "drop index app_private.ix_refresh_sessions_user_id" in rendered_sql
     assert "drop table app_private.refresh_sessions" in rendered_sql
+
+
+def test_offline_audit_log_downgrade_removes_policies_indexes_and_table(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, migration_test_url())
+    get_migration_database_settings.cache_clear()
+
+    try:
+        command.downgrade(
+            migration_config(),
+            "0004_audit_logs:0003_refresh_sessions",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    rendered_sql = capsys.readouterr().out.lower()
+    assert "drop policy audit_logs_backend_insert on app_private.audit_logs" in rendered_sql
+    assert "drop policy audit_logs_backend_read on app_private.audit_logs" in rendered_sql
+    assert "drop index app_private.ix_audit_logs_resource_type_resource_id" in rendered_sql
+    assert "drop index app_private.ix_audit_logs_admin_id_created_at" in rendered_sql
+    assert "drop table app_private.audit_logs" in rendered_sql
 
 
 def test_alembic_cli_reads_pyproject_configuration() -> None:
