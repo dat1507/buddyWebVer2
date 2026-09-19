@@ -12,9 +12,11 @@ from app.api.admin_users import router as admin_users_router
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 from app.api.profile import router as profile_router
+from app.api.profile_photos import router as profile_photos_router
 from app.core.config import (
     AuthConfigurationError,
     DatabaseConfigurationError,
+    StorageConfigurationError,
     get_cors_settings,
 )
 from app.core.database import dispose_database_engine
@@ -54,6 +56,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(profile_router)
+app.include_router(profile_photos_router)
 app.include_router(admin_users_router)
 
 
@@ -104,5 +107,17 @@ async def handle_auth_configuration_error(
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={"detail": "Authentication is not configured."},
+        headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+    )
+
+
+@app.exception_handler(StorageConfigurationError)
+async def handle_storage_configuration_error(
+    _request: Request, _error: StorageConfigurationError
+) -> JSONResponse:
+    """Fail closed without returning Storage endpoint or credential details."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Image storage is unavailable."},
         headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
     )

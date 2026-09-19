@@ -20,6 +20,7 @@ from pydantic import (
 )
 
 from app.models import StudentType
+from app.schemas.profile_photo import ProfilePhotoResponse
 
 
 class WeeklyAvailabilitySlot(BaseModel):
@@ -217,3 +218,4 @@ class OwnProfileResponse(BaseModel):
     preferences: ProfilePreferences | None
     matching_opt_in: bool
     version: int
+    avatar: ProfilePhotoResponse | None = None

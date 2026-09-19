@@ -7,9 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import require_role, require_session_csrf
 from app.core.database import get_database_session
-from app.models import User, UserRole
-from app.schemas import OwnProfileResponse, ProfileUpdate
+from app.models import StudentProfile, User, UserRole
+from app.schemas import OwnProfileResponse, ProfilePhotoResponse, ProfileUpdate
 from app.services.csrf import CsrfTokenClaims
+from app.services.profile_photos import get_own_avatar
 from app.services.profiles import (
     ProfileAccessError,
     ProfileValidationError,
@@ -44,6 +45,18 @@ def _profile_access_denied() -> HTTPException:
     )
 
 
+async def _own_profile_response(
+    session: AsyncSession,
+    current_user: User,
+    profile: StudentProfile,
+) -> OwnProfileResponse:
+    response = OwnProfileResponse.model_validate(profile)
+    avatar = await get_own_avatar(session, current_user)
+    if avatar is None:
+        return response
+    return response.model_copy(update={"avatar": ProfilePhotoResponse.model_validate(avatar)})
+
+
 @router.get("", response_model=OwnProfileResponse)
 async def read_own_profile(
     response: Response,
@@ -53,6 +66,7 @@ async def read_own_profile(
     """Read the current USER's profile, creating one resumable draft when absent."""
     try:
         profile = await get_or_create_own_profile(session, current_user)
+        result = await _own_profile_response(session, current_user, profile)
         await session.commit()
     except ProfileAccessError as error:
         await session.rollback()
@@ -62,7 +76,7 @@ async def read_own_profile(
         raise
 
     _mark_private(response)
-    return OwnProfileResponse.model_validate(profile)
+    return result
 
 
 @router.put("", response_model=OwnProfileResponse)
@@ -76,6 +90,7 @@ async def replace_own_profile_fields(
     """Apply one CSRF-protected, optimistic partial update to the current USER's profile."""
     try:
         profile = await update_own_profile(session, current_user, payload)
+        result = await _own_profile_response(session, current_user, profile)
         await session.commit()
     except ProfileVersionConflictError as error:
         await session.rollback()
@@ -99,4 +114,4 @@ async def replace_own_profile_fields(
         raise
 
     _mark_private(response)
-    return OwnProfileResponse.model_validate(profile)
+    return result

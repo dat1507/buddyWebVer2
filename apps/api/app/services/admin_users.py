@@ -8,7 +8,13 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.models import StudentProfile, User, UserRole
+from app.models import (
+    ProfilePhoto,
+    ProfilePhotoProcessingStatus,
+    StudentProfile,
+    User,
+    UserRole,
+)
 from app.schemas.admin_user import (
     AdminProfileDetail,
     AdminProfileSummary,
@@ -16,12 +22,22 @@ from app.schemas.admin_user import (
     AdminUserListResponse,
     AdminUserSummary,
 )
+from app.schemas.profile_photo import ProfilePhotoResponse
 
 
 def _active_profile_join() -> ColumnElement[bool]:
     return and_(
         StudentProfile.user_id == User.id,
         StudentProfile.deleted_at.is_(None),
+    )
+
+
+def _active_avatar_join() -> ColumnElement[bool]:
+    return and_(
+        ProfilePhoto.profile_id == StudentProfile.id,
+        ProfilePhoto.is_avatar.is_(True),
+        ProfilePhoto.processing_status == ProfilePhotoProcessingStatus.READY,
+        ProfilePhoto.deleted_at.is_(None),
     )
 
 
@@ -162,9 +178,17 @@ async def get_admin_user_detail(
             StudentProfile.departure_date,
             StudentProfile.matching_opt_in,
             StudentProfile.onboarding_completed_at,
+            ProfilePhoto.id,
+            ProfilePhoto.mime_type,
+            ProfilePhoto.byte_size,
+            ProfilePhoto.width,
+            ProfilePhoto.height,
+            ProfilePhoto.processing_status,
+            ProfilePhoto.created_at,
         )
         .select_from(User)
         .outerjoin(StudentProfile, _active_profile_join())
+        .outerjoin(ProfilePhoto, _active_avatar_join())
         .where(User.id == user_id, *_student_accounts())
     )
     row = (await session.execute(statement)).tuples().one_or_none()
@@ -191,6 +215,13 @@ async def get_admin_user_detail(
         departure_date,
         matching_opt_in,
         onboarding_completed_at,
+        photo_id,
+        photo_mime_type,
+        photo_byte_size,
+        photo_width,
+        photo_height,
+        photo_processing_status,
+        photo_created_at,
     ) = row
     profile = None
     if profile_id is not None:
@@ -208,6 +239,19 @@ async def get_admin_user_detail(
             departure_date=departure_date,
             matching_opt_in=matching_opt_in,
             onboarding_completed_at=onboarding_completed_at,
+            avatar=(
+                ProfilePhotoResponse(
+                    id=photo_id,
+                    mime_type=photo_mime_type,
+                    byte_size=photo_byte_size,
+                    width=photo_width,
+                    height=photo_height,
+                    processing_status=photo_processing_status,
+                    created_at=photo_created_at,
+                )
+                if photo_id is not None
+                else None
+            ),
         )
     return AdminUserDetail(
         id=account_id,

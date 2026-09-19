@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import StudentType, UserRole
+from app.models import ProfilePhotoProcessingStatus, StudentType, UserRole
 from app.services.admin_users import get_admin_user_detail, list_admin_users
 
 USER_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
@@ -83,7 +83,6 @@ async def test_list_uses_allowlisted_projection_stable_paging_and_literal_search
         "availability",
         "preferences",
         "object_key",
-        "profile_photos",
     ):
         assert forbidden not in selected_columns
     assert "users.role" in count_sql
@@ -118,6 +117,13 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
         date(2027, 2, 28),
         True,
         CREATED_AT,
+        UUID("dddddddd-dddd-4ddd-8ddd-dddddddddddd"),
+        "image/png",
+        120,
+        12,
+        10,
+        ProfilePhotoProcessingStatus.READY,
+        CREATED_AT,
     )
     mock, session = _session_with_rows([row], one=True)
 
@@ -127,6 +133,8 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
     assert result.id == USER_ID
     assert result.profile is not None
     assert result.profile.home_university == "Example University"
+    assert result.profile.avatar is not None
+    assert result.profile.avatar.mime_type == "image/png"
     sql, params = _compiled(mock.execute.await_args.args[0])
     selected_columns = sql.partition("FROM")[0]
     for forbidden in (
@@ -135,7 +143,6 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
         "availability",
         "preferences",
         "object_key",
-        "profile_photos",
     ):
         assert forbidden not in selected_columns
     assert USER_ID in params.values()

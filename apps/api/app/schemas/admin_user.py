@@ -8,6 +8,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models import StudentType, UserRole
+from app.schemas.profile_photo import ProfilePhotoResponse
 
 
 class AdminProfileSummary(BaseModel):
@@ -59,6 +60,7 @@ class AdminProfileDetail(AdminProfileSummary):
     departure_date: date | None
     matching_opt_in: bool
     onboarding_completed_at: datetime | None
+    avatar: ProfilePhotoResponse | None = None
 
 
 class AdminUserDetail(BaseModel):

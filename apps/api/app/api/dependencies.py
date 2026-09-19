@@ -12,13 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import (
     AuthTokenSettings,
     CsrfSettings,
+    StorageSettings,
     get_auth_token_settings,
     get_csrf_settings,
+    get_storage_settings,
 )
 from app.core.database import get_database_session
 from app.models import User, UserRole
 from app.services.auth import RoleVerificationError, verify_user_role
 from app.services.csrf import CsrfTokenClaims, verify_csrf_request
+from app.services.image_storage import ImageStorageService, SupabaseStorageTransport
 from app.services.tokens import (
     AccessTokenClaims,
     TokenValidationError,
@@ -97,6 +100,13 @@ def require_session_csrf(
         expected_scope="session",
         session_id=claims.session_id,
     )
+
+
+def get_image_storage_service(
+    settings: Annotated[StorageSettings, Depends(get_storage_settings)],
+) -> ImageStorageService:
+    """Build a request-scoped service around the server-only Storage credential."""
+    return ImageStorageService(SupabaseStorageTransport(settings))
 
 
 def require_role(required_role: UserRole) -> Callable[..., Awaitable[User]]:

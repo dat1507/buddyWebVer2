@@ -23,6 +23,7 @@ from app.schemas.profile import (
     WeeklyAvailability,
     WeeklyAvailabilitySlot,
 )
+from app.schemas.profile_photo import ProfilePhotoResponse, ProfilePhotoUrlResponse
 
 __all__ = [
     "AdminProfileDetail",
@@ -35,6 +36,8 @@ __all__ = [
     "LoginResponse",
     "OwnProfileResponse",
     "ProfilePreferences",
+    "ProfilePhotoResponse",
+    "ProfilePhotoUrlResponse",
     "ProfileUpdate",
     "RefreshResponse",
     "RegistrationRequest",

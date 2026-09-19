@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-013, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-014 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-014, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-015 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1327,7 +1327,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | BE-011 | Create own-profile persistence service — ✅ Completed | 2 | BE-010 | P0 |
 | BE-012 | Create own-profile read/update endpoints — ✅ Completed | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
 | BE-013 | Create authorized admin user list and detail reads — ✅ Completed | 2 | BE-011, AUTH-018, EVT-008 | P0 |
-| BE-014 | Implement own profile photo upload and removal | 2 | BE-010, BE-012, EVS-003 | P0 |
+| BE-014 | Implement own profile photo upload and removal — ✅ Completed | 2 | BE-010, BE-012, EVS-003 | P0 |
 | BE-015 | Implement profile interest and language catalog APIs | 2 | BE-009, BE-012 | P0 |
 | BE-016 | Implement profile completion and matching eligibility read model | 2 | BE-012, BE-014, BE-015 | P0 |
 
@@ -4249,7 +4249,7 @@ Done: BE-010                  Create profile, catalog and photo migrations [P0; 
 Done: BE-011                  Create own-profile persistence service [P0; Phase 8; completed 2026-09-19]
 Done: BE-012                  Create own-profile read/update endpoints [P0; Phase 8; completed 2026-09-20]
 Done: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8; completed 2026-09-20]
-Next: BE-014                  Implement own profile photo upload and removal [P0; Phase 8]
+Done: BE-014                  Implement own profile photo upload and removal [P0; Phase 8; completed 2026-09-20]
 Next: BE-015                  Implement profile interest and language catalog APIs [P0; Phase 8]
 Next: BE-016                  Implement profile completion and matching eligibility read model [P0; Phase 8]
 Next: FE-025                  Create onboarding Step 1: identity and student type [P0; Phase 9]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-014 — Implement own profile photo upload and removal. Dependencies BE-010, BE-012 and EVS-003 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-014 development. Continue direct-to-main workflow; do not execute BE-014 unless explicitly requested.**
+**Next development task: BE-015 — Implement profile interest and language catalog APIs. Dependencies BE-009 and BE-012 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-015 development. Continue direct-to-main workflow; do not execute BE-015 unless explicitly requested.**
 
 ---
 
@@ -5427,15 +5427,37 @@ Cx2; dependencies BE-010, BE-012 and EVS-003 DONE, READY. It is not implemented 
 ### BE-014 — Implement own profile photo upload and removal
 
 **Task ID:** `BE-014`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** New; **Status:** Completed 2026-09-20; **Priority:** P0; **Phase:** 8
 **Goal:** Store a validated private avatar with a reliable replacement lifecycle.  
 **Dependencies:** BE-010, BE-012, EVS-003  
 **Scope:** POST /api/profile/photos, DELETE /api/profile/photos/:id, authorized image delivery and metadata attachment.
 
 **Acceptance Criteria:**
 
-- [ ] One MVP avatar; uploaded object belongs to current profile; other-user metadata/object IDs cannot be attached, read or deleted.
-- [ ] Replacement preserves prior photo on failure; removal updates completion on next read; private URLs expire within 5 minutes and are never persisted in DB.
+- [x] One MVP avatar; uploaded object belongs to current profile; other-user metadata/object IDs cannot be attached, read or deleted.
+- [x] Replacement preserves prior photo on failure; removal updates completion on next read; private URLs expire within 5 minutes and are never persisted in DB.
+
+**Implementation:** `POST /api/profile/photos` accepts one CSRF-protected raw JPEG/PNG/WebP body,
+uses the shared decode/re-encode and private Storage service, and attaches server-generated metadata
+only to the authenticated USER's locked profile. Replacement uploads first, hard-deletes the prior
+metadata and inserts the new avatar in one transaction; upload/attachment/commit failures preserve
+the previous avatar and compensate the new object. `DELETE /api/profile/photos/:id` commits an
+owner-bound metadata deletion before Storage cleanup so readiness reads immediately see removal and
+failed cleanup remains eligible for reconciliation. Own-profile and audited admin detail responses
+include safe avatar metadata without bucket/object key. Authorized owner or coordinator reads issue
+an unpersisted signed URL with a fixed 300-second TTL; coordinator delivery logs only actor/action/
+resource identity. No multipart dependency, public URL or gallery behavior was added.
+
+**Verification (2026-09-20):** 25 new/updated BE-014 service/API/profile tests PASS, covering safe
+metadata attachment, owner isolation, CSRF/RBAC, raw-size/image validation, replacement rollback and
+compensation, delete ordering/orphan retry, signed URL lifetime, coordinator audit and sanitized
+storage failures. Full backend 544 PASS / 14 configured live skips; Ruff and strict mypy (90 files)
+PASS. Dependency consistency, Alembic history/head, package build and Compose validation PASS.
+Unchanged frontend format/lint/typecheck, 446 tests / 38 files and production build PASS. Runtime and
+frontend production dependency audits report zero known vulnerabilities.
+
+**Next development task:** BE-015 — Implement profile interest and language catalog APIs, P0 /
+Phase 8 / Cx2; dependencies BE-009 and BE-012 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Profile gallery UI, photo moderation service, public avatar URLs.
 

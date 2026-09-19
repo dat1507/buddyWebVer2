@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
 from contextlib import AbstractAsyncContextManager
+from datetime import UTC, datetime
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
@@ -21,7 +22,14 @@ from app.core.config import (
 )
 from app.core.database import get_database_session
 from app.main import app
-from app.models import StudentProfile, StudentType, User, UserRole
+from app.models import (
+    ProfilePhoto,
+    ProfilePhotoProcessingStatus,
+    StudentProfile,
+    StudentType,
+    User,
+    UserRole,
+)
 from app.services.csrf import CSRF_HEADER_NAME, create_session_csrf_token, csrf_cookie_name
 from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
 
@@ -82,6 +90,9 @@ def _session(*scalar_values: object) -> tuple[MagicMock, AsyncSession]:
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=scalar_values)
     mock.scalars = AsyncMock()
+    empty_result = MagicMock()
+    empty_result.scalar_one_or_none.return_value = None
+    mock.execute = AsyncMock(return_value=empty_result)
     mock.flush = AsyncMock()
     mock.commit = AsyncMock()
     mock.rollback = AsyncMock()
@@ -133,6 +144,7 @@ def _expected_profile(profile: StudentProfile) -> dict[str, object]:
         "preferences": profile.preferences,
         "matching_opt_in": profile.matching_opt_in,
         "version": profile.version,
+        "avatar": None,
     }
 
 
@@ -170,6 +182,49 @@ async def test_get_lazily_creates_and_commits_one_private_draft() -> None:
     assert mock.add.call_count == 1
     mock.commit.assert_awaited_once_with()
     mock.rollback.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_get_attaches_safe_avatar_metadata_without_storage_reference() -> None:
+    user = _user()
+    profile = _profile()
+    photo = ProfilePhoto(
+        id=uuid4(),
+        profile_id=PROFILE_ID,
+        bucket="profile-images",
+        object_key="cccccccc-cccc-4ccc-8ccc-cccccccccccc.png",
+        mime_type="image/png",
+        byte_size=120,
+        width=12,
+        height=10,
+        is_avatar=True,
+        processing_status=ProfilePhotoProcessingStatus.READY,
+        created_at=datetime(2026, 9, 20, 10, 30, tzinfo=UTC),
+    )
+    mock, session = _session(user, profile)
+    photo_result = MagicMock()
+    photo_result.scalar_one_or_none.return_value = photo
+    mock.execute.return_value = photo_result
+    _install(session)
+    cookies, _headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.get("/api/profile")
+
+    assert response.status_code == 200
+    assert response.json()["avatar"] == {
+        "id": str(photo.id),
+        "mime_type": "image/png",
+        "byte_size": 120,
+        "width": 12,
+        "height": 10,
+        "processing_status": "READY",
+        "created_at": "2026-09-20T10:30:00Z",
+    }
+    assert photo.object_key not in response.text
+    assert photo.bucket not in response.text
 
 
 @pytest.mark.anyio

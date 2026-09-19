@@ -306,8 +306,6 @@ async def test_openapi_has_read_only_routes_and_bounded_dtos() -> None:
         "preferences",
         "bucket",
         "object_key",
-        "mime_type",
-        "byte_size",
     }
     for schema_name in (
         "AdminProfileSummary",
