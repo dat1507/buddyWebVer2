@@ -139,6 +139,23 @@ uses the bucket's public delivery path, while profile and event media use backen
 with a maximum five-minute lifetime. On plain local PostgreSQL, the policy block is skipped so the
 existing backend development database remains usable.
 
+Revision `0006_profile_catalogs` creates the canonical profile, Interest/Language catalogs,
+normalized profile selections and private photo metadata. All tables retain the private-schema,
+runtime-only RLS boundary. Stable catalog codes are the API contract; labels remain localized data.
+The migration seeds common interests/hobbies and spoken languages with `ON CONFLICT (code) DO
+UPDATE`, while deliberately preserving an existing row's `is_active` state and identifier. Extend a
+catalog through a new data migration using the same upsert pattern: never reuse a code for another
+meaning, never replace an Interest UUID, and deactivate obsolete values instead of deleting them.
+This keeps imports idempotent and lets backend catalog endpoints expose new values without a
+frontend release.
+
+For destructive BE-010 migration acceptance, provision an empty disposable loopback database named
+`be010_acceptance`, set `BE010_TEST_DATABASE_URL` to its privileged `postgres` connection URL, and
+run `python -m pytest tests/test_profile_migration_live.py -q`. The test creates and drops the full
+application schema and runtime role, proves owner/catalog-pair/avatar uniqueness against PostgreSQL,
+then completes a downgrade/re-upgrade cycle. It rejects any non-loopback host, other database name,
+or non-`postgres` role and must never target development or production data.
+
 Domain upload endpoints must invoke `app.services.image_storage` only after application authorization
 and CSRF checks.
 It verifies the filename extension, declared MIME, magic signature and decoded format; fully decodes

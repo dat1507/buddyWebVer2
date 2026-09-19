@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-009, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-010 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-010, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-011 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1323,7 +1323,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | EVS-003 | Create shared Supabase image storage service and bucket policies — ✅ Completed | 3 | BE-004, AUTH-018, AUTH-011A | P0 |
 | BE-008 | Define unified StudentProfile and ProfilePhoto models — ✅ Completed | 2 | AUTH-008 | P0 |
 | BE-009 | Define Interest catalog and profile interest/language relations — ✅ Completed | 2 | BE-008 | P0 |
-| BE-010 | Create profile, catalog and photo migrations | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
+| BE-010 | Create profile, catalog and photo migrations — ✅ Completed | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
 | BE-011 | Create own-profile persistence service | 2 | BE-010 | P0 |
 | BE-012 | Create own-profile read/update endpoints | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
 | BE-013 | Create authorized admin user list and detail reads | 2 | BE-011, AUTH-018, EVT-008 | P0 |
@@ -4245,7 +4245,7 @@ Done: EVT-008                 Create audit log model, migration and service [P0;
 Done: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8; completed 2026-09-19]
 Done: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8; completed 2026-09-19]
 Done: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8; completed 2026-09-19]
-Next: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8]
+Done: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8; completed 2026-09-19]
 Next: BE-011                  Create own-profile persistence service [P0; Phase 8]
 Next: BE-012                  Create own-profile read/update endpoints [P0; Phase 8]
 Next: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-010 — Create profile, catalog and photo migrations. Dependencies BE-008, BE-009, AUTH-009 and BE-004 are DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-010 development. Continue direct-to-main workflow; do not execute BE-010 unless explicitly requested.**
+**Next development task: BE-011 — Create own-profile persistence service. Dependency BE-010 is DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-011 development. Continue direct-to-main workflow; do not execute BE-011 unless explicitly requested.**
 
 ---
 
@@ -5290,15 +5290,33 @@ Cx1; dependencies BE-008, BE-009, AUTH-009 and BE-004 DONE, READY. It is not imp
 ### BE-010 — Create profile, catalog and photo migrations
 
 **Task ID:** `BE-010`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** Updated existing; **Status:** Completed 2026-09-19; **Priority:** P0; **Phase:** 8
 **Goal:** Persist the canonical model with reversible migrations.  
 **Dependencies:** BE-008, BE-009, AUTH-009, BE-004  
 **Scope:** Profile tables, catalog seeds, indexes and privacy grants.
 
 **Acceptance Criteria:**
 
-- [ ] Clean DB upgrade/downgrade works, unique owners/catalog pairs and one-avatar constraint reject invalid records.
-- [ ] Seed interests cover the examples in the brief and can grow through idempotent data import without frontend edits.
+- [x] Clean DB upgrade/downgrade works, unique owners/catalog pairs and one-avatar constraint reject invalid records.
+- [x] Seed interests cover the examples in the brief and can grow through idempotent data import without frontend edits.
+
+**Implementation:** Alembic revision `0006_profile_catalogs` creates the three native enums and six
+private-schema profile/catalog/relation/photo tables matching BE-008/BE-009 metadata. It enforces
+one profile per User, composite catalog pairs, reverse catalog indexes, unique object keys and the
+partial one-active-avatar index. Every table retains runtime-only grants and RLS; browser/Data API
+roles and PUBLIC receive no access. Thirteen localized Interest examples and eight Language rows are
+seeded by stable code with idempotent upserts that preserve identifiers and inactive state. The API
+README documents the immutable-code/deactivation import contract and disposable live test.
+
+**Verification (2026-09-19):** 11 focused revision graph/offline upgrade/downgrade, seed, constraint
+and privacy tests PASS; full backend 463 PASS / 14 configured live skips. The BE-010 PostgreSQL live
+acceptance test is committed with a strict disposable loopback guard but skipped on this host because
+no PostgreSQL/Docker Engine is available. Ruff, strict mypy (74 files), dependency consistency,
+Alembic history/head, package build, Compose validation and frontend gates PASS; audits report zero
+known vulnerabilities. No dependency was added.
+
+**Next development task:** BE-011 — Create own-profile persistence service, P0 / Phase 8 / Cx2;
+dependency BE-010 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Importing nonexistent profile data or destructive resets.
 
