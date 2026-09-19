@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003 and ADMIN-004 are complete; ADMIN-005 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022 and ADMIN-001 through ADMIN-005 are complete; EVT-008 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1312,7 +1312,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 | ADMIN-002 | Create Admin Sidebar navigation (all 11 modules) — ✅ Completed | 2 | ADMIN-001 | P0 |
 | ADMIN-003 | Create Admin Dashboard overview page (stats cards placeholder) — ✅ Completed | 2 | ADMIN-001 | P0 |
 | ADMIN-004 | Create reusable DataTable component (sort, filter, search, pagination) — ✅ Completed | 4 | FE-005 | P0 |
-| ADMIN-005 | Create reusable ConfirmDialog component | 1 | FE-004 | P0 |
+| ADMIN-005 | Create reusable ConfirmDialog component — ✅ Completed | 1 | FE-004 | P0 |
 
 ### Phase 8: Profile Backend
 
@@ -4240,7 +4240,7 @@ Done: ADMIN-001               Create AdminLayout component (sidebar + content) �
 Done: ADMIN-002               Create Admin Sidebar navigation (all 11 modules) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-003               Create Admin Dashboard overview page (stats cards placeholder) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7; verified 2026-09-19]
-Next: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7]
+Done: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7; completed 2026-09-19]
 Next: EVT-008                 Create audit log model, migration and service [P0; Phase 10]
 Next: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8]
 Next: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8]
@@ -5114,6 +5114,41 @@ dependency FE-004 DONE, READY. It is not implemented here; do not execute unless
 
 **Out of Scope:** ConfirmDialog, domain Admin lists/CRUD/APIs, manual server pagination, auth, real
 business stats/profile/readiness/onboarding/events/sliders/matching, production operator gate/deployment.
+
+### ADMIN-005 — Create reusable ConfirmDialog component
+
+- **Task ID:** `ADMIN-005`
+- **Status:** Completed — 2026-09-19; **Priority:** P0; **Phase:** 7; **Cx:** 1
+- **Dependencies:** FE-004 — DONE; shadcn configuration, shared Button primitive and modal-isolation convention verified.
+- **Goal/scope:** Reusable caller-controlled confirmation UI. The registry supplied no extended task contract, so the acceptance record below is derived from its scope, existing modal/accessibility conventions and the needs of declared dependents. Domain mutations and deletion policies remain in later tasks.
+
+**Definition of Done / acceptance derived from the registry scope and existing design conventions:**
+
+- [x] Controlled open state and confirmation callback, caller-owned localized title/description/action labels, default or destructive action styling, and optional dependency-disabled confirmation.
+- [x] Caller-driven pending and error states; pending prevents duplicate confirmation and cancellation through button, Escape or backdrop without inventing mutation behavior or automatic close.
+- [x] Portalled `alertdialog` with instance-unique accessible name/description/error relationships, modal background isolation, body scroll lock, safe initial focus, keyboard focus containment and focus/state restoration.
+- [x] Reuses shared Button/theme and modal-isolation infrastructure. No dependency, locale key, API, route, auth/session, persistence, environment or secret change.
+- [x] Dedicated interaction/accessibility tests plus required frontend regressions, build/audit, browser behavior and repository CI/security review pass.
+
+**Implementation:** `confirm-dialog.tsx` owns only modal presentation and interaction. The caller owns
+business copy, async state, errors, dependency checks, mutation execution and the decision to close.
+This keeps ADMIN-010 and ADMIN-SLIDER-003 domain policy outside the primitive while allowing them to
+reuse its destructive, disabled, pending and error states.
+
+**Verification (2026-09-19):** 8 dedicated ADMIN-005 tests PASS; full frontend 446 PASS / 38 files.
+Format, lint, typecheck, production build and production npm audit (zero vulnerabilities) PASS.
+Isolated browser acceptance PASS for portal isolation, safe initial focus, keyboard loop, Escape/
+focus restoration, dependency-disabled confirmation and pending duplicate/dismissal protection; a
+real-browser pending focus-loss edge was found and fixed. Backend CI regression remains 381 PASS /
+13 configured live skips; pip check, Ruff, strict mypy (57 files), Alembic graph, package build,
+strict lockfile pip-audit and Compose validation PASS. No live database/API gate applies to this pure
+frontend primitive.
+
+**Next development task:** EVT-008 — Create audit log model, migration and service, P0 / Phase 10 /
+Cx2; dependency AUTH-009 DONE, READY. It is not implemented here.
+
+**Out of Scope:** Event/slider list, mutation, deletion dependency resolution, API/cache/database,
+audit implementation, AUTH-020 production operator gate and deployment.
 
 ### EVT-008 — Create audit log model, migration and service
 
