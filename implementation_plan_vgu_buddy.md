@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-008, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-009 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-009, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-010 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1322,7 +1322,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 |----|------|----|------|-----|
 | EVS-003 | Create shared Supabase image storage service and bucket policies — ✅ Completed | 3 | BE-004, AUTH-018, AUTH-011A | P0 |
 | BE-008 | Define unified StudentProfile and ProfilePhoto models — ✅ Completed | 2 | AUTH-008 | P0 |
-| BE-009 | Define Interest catalog and profile interest/language relations | 2 | BE-008 | P0 |
+| BE-009 | Define Interest catalog and profile interest/language relations — ✅ Completed | 2 | BE-008 | P0 |
 | BE-010 | Create profile, catalog and photo migrations | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
 | BE-011 | Create own-profile persistence service | 2 | BE-010 | P0 |
 | BE-012 | Create own-profile read/update endpoints | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
@@ -4244,7 +4244,7 @@ Done: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase
 Done: EVT-008                 Create audit log model, migration and service [P0; Phase 10; completed 2026-09-19]
 Done: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8; completed 2026-09-19]
 Done: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8; completed 2026-09-19]
-Next: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8]
+Done: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8; completed 2026-09-19]
 Next: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8]
 Next: BE-011                  Create own-profile persistence service [P0; Phase 8]
 Next: BE-012                  Create own-profile read/update endpoints [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-009 — Define Interest catalog and profile interest/language relations. Dependency BE-008 is DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-009 development. Continue direct-to-main workflow; do not execute BE-009 unless explicitly requested.**
+**Next development task: BE-010 — Create profile, catalog and photo migrations. Dependencies BE-008, BE-009, AUTH-009 and BE-004 are DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-010 development. Continue direct-to-main workflow; do not execute BE-010 unless explicitly requested.**
 
 ---
 
@@ -5259,15 +5259,31 @@ relations, P0 / Phase 8 / Cx2; dependency BE-008 DONE, READY. It is not implemen
 ### BE-009 — Define Interest catalog and profile interest/language relations
 
 **Task ID:** `BE-009`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** Updated existing; **Status:** Completed 2026-09-19; **Priority:** P0; **Phase:** 8
 **Goal:** Use extensible normalized inputs for onboarding and scoring.  
 **Dependencies:** BE-008  
 **Scope:** Interest catalog, ProfileInterest join, Language catalog, ProfileLanguage proficiency.
 
 **Acceptance Criteria:**
 
-- [ ] Stable unique codes and unique profile/catalog pairs; EN/DE labels; inactive catalog values retained for historical references.
-- [ ] Hobbies and interests share one catalog; arbitrary duplicate strings are not separate matching dimensions.
+- [x] Stable unique codes and unique profile/catalog pairs; EN/DE labels; inactive catalog values retained for historical references.
+- [x] Hobbies and interests share one catalog; arbitrary duplicate strings are not separate matching dimensions.
+
+**Implementation:** `Interest` provides one localized, active-state catalog for hobbies and interests,
+with canonical unique codes. `Language` uses a stable normalized code as its natural key and localized
+EN/DE labels. `ProfileInterest` and `ProfileLanguage` use composite primary keys so a profile cannot
+select a catalog value twice; their catalog foreign keys restrict deletion to preserve historical
+references, while profile deletion cascades. Language proficiency is a required native enum with the
+four scoring levels from Part 7. Reverse catalog indexes support matching and administration reads.
+Migration, catalog seeds and APIs remain assigned to BE-010 and BE-015.
+
+**Verification (2026-09-19):** 6 focused catalog/relation contract and PostgreSQL DDL tests PASS;
+full backend 461 PASS / 13 configured live skips. Ruff and strict mypy (71 files), dependency
+consistency, Alembic history/head, package build and Compose validation PASS. No dependency or
+migration was added.
+
+**Next development task:** BE-010 — Create profile, catalog and photo migrations, P0 / Phase 8 /
+Cx1; dependencies BE-008, BE-009, AUTH-009 and BE-004 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Admin taxonomy UI or free-form user taxonomy creation.
 

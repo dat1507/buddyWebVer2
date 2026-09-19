@@ -8,14 +8,26 @@ from app.models.profile import (
     StudentProfile,
     StudentType,
 )
+from app.models.profile_catalog import (
+    Interest,
+    Language,
+    LanguageProficiency,
+    ProfileInterest,
+    ProfileLanguage,
+)
 from app.models.refresh_session import RefreshSession
 from app.models.user import User, UserRole
 
 __all__ = (
     "AuditLog",
     "Base",
+    "Interest",
+    "Language",
+    "LanguageProficiency",
     "ProfilePhoto",
     "ProfilePhotoProcessingStatus",
+    "ProfileInterest",
+    "ProfileLanguage",
     "RefreshSession",
     "StudentProfile",
     "StudentType",
