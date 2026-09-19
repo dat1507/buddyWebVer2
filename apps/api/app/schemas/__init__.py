@@ -1,5 +1,12 @@
 """API validation and serialization schema package."""
 
+from app.schemas.admin_user import (
+    AdminProfileDetail,
+    AdminProfileSummary,
+    AdminUserDetail,
+    AdminUserListResponse,
+    AdminUserSummary,
+)
 from app.schemas.auth import (
     CsrfTokenResponse,
     LoginRequest,
@@ -18,6 +25,11 @@ from app.schemas.profile import (
 )
 
 __all__ = [
+    "AdminProfileDetail",
+    "AdminProfileSummary",
+    "AdminUserDetail",
+    "AdminUserListResponse",
+    "AdminUserSummary",
     "CsrfTokenResponse",
     "LoginRequest",
     "LoginResponse",

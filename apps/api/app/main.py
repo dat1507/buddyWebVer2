@@ -8,6 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.admin_users import router as admin_users_router
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 from app.api.profile import router as profile_router
@@ -53,6 +54,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(profile_router)
+app.include_router(admin_users_router)
 
 
 @app.exception_handler(RequestValidationError)
