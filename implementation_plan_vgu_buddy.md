@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-011, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-012 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-012, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-013 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1325,7 +1325,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | BE-009 | Define Interest catalog and profile interest/language relations — ✅ Completed | 2 | BE-008 | P0 |
 | BE-010 | Create profile, catalog and photo migrations — ✅ Completed | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
 | BE-011 | Create own-profile persistence service — ✅ Completed | 2 | BE-010 | P0 |
-| BE-012 | Create own-profile read/update endpoints | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
+| BE-012 | Create own-profile read/update endpoints — ✅ Completed | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
 | BE-013 | Create authorized admin user list and detail reads | 2 | BE-011, AUTH-018, EVT-008 | P0 |
 | BE-014 | Implement own profile photo upload and removal | 2 | BE-010, BE-012, EVS-003 | P0 |
 | BE-015 | Implement profile interest and language catalog APIs | 2 | BE-009, BE-012 | P0 |
@@ -4247,7 +4247,7 @@ Done: BE-008                  Define unified StudentProfile and ProfilePhoto mod
 Done: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8; completed 2026-09-19]
 Done: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8; completed 2026-09-19]
 Done: BE-011                  Create own-profile persistence service [P0; Phase 8; completed 2026-09-19]
-Next: BE-012                  Create own-profile read/update endpoints [P0; Phase 8]
+Done: BE-012                  Create own-profile read/update endpoints [P0; Phase 8; completed 2026-09-20]
 Next: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8]
 Next: BE-014                  Implement own profile photo upload and removal [P0; Phase 8]
 Next: BE-015                  Implement profile interest and language catalog APIs [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-012 — Create own-profile read/update endpoints. Dependencies BE-011, AUTH-017 and AUTH-011A are DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-012 development. Continue direct-to-main workflow; do not execute BE-012 unless explicitly requested.**
+**Next development task: BE-013 — Create authorized admin user list and detail reads. Dependencies BE-011, AUTH-018 and EVT-008 are DONE; READY. Shared storage foundation EVS-003 is completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-013 development. Continue direct-to-main workflow; do not execute BE-013 unless explicitly requested.**
 
 ---
 
@@ -5358,15 +5358,36 @@ dependencies BE-011, AUTH-017 and AUTH-011A DONE, READY. It is not implemented h
 ### BE-012 — Create own-profile read/update endpoints
 
 **Task ID:** `BE-012`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** Updated existing; **Status:** Completed 2026-09-20; **Priority:** P0; **Phase:** 8
 **Goal:** Expose profile persistence without IDOR.  
 **Dependencies:** BE-011, AUTH-017, AUTH-011A  
 **Scope:** GET/PUT /api/profile and own-only DTO; no-store responses.
 
 **Acceptance Criteria:**
 
-- [ ] USER can save/reload each onboarding step; anonymous request is 401, ADMIN on own student endpoint is 403.
-- [ ] Unknown fields and cross-user identifiers are rejected; validation failures do not partly mutate relations.
+- [x] USER can save/reload each onboarding step; anonymous request is 401, ADMIN on own student endpoint is 403.
+- [x] Unknown fields and cross-user identifiers are rejected; validation failures do not partly mutate relations.
+
+**Implementation:** `GET /api/profile` authenticates the current persisted USER, lazily creates the
+owner-bound resumable draft through BE-011, commits it and returns a no-store own-profile DTO.
+`PUT /api/profile` uses the same exact persisted-role boundary plus trusted-origin, double-submit
+CSRF evidence bound to the access-session ID. It applies the BE-011 allowlisted partial update,
+commits once, returns 409 for stale versions and sanitized 422 responses for cross-field/catalog
+validation. All expected failures roll back. The response excludes account email, role, `user_id`,
+completion/readiness fields, credentials and storage paths; completion and media remain assigned to
+BE-016 and BE-014. A reusable authenticated-session CSRF dependency is added without a new package.
+
+**Verification (2026-09-20):** 44 focused endpoint/schema/service tests PASS, covering lazy draft,
+save/reload, omitted/null semantics, current database role, anonymous/admin denial, missing and
+wrong-session CSRF, unknown/cross-user fields, stale version, atomic validation and OpenAPI DTO.
+Full backend 507 PASS / 14 configured live skips; Ruff, strict mypy (80 files), dependency
+consistency, Alembic history/head, package build and Compose validation PASS. Unchanged frontend
+format/lint/typecheck, 446 tests / 38 files and production build PASS. Runtime dependency audit
+reports zero known vulnerabilities; the unchanged frontend audit endpoint returned npm maintenance
+503 on three attempts and is recorded as an external gate outage rather than a source failure.
+
+**Next development task:** BE-013 — Create authorized admin user list and detail reads, P0 / Phase 8 /
+Cx2; dependencies BE-011, AUTH-018 and EVT-008 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Public profile directory; photo bytes and completion calculations belong to BE-014/016.
 

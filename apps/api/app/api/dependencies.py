@@ -9,10 +9,16 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import AuthTokenSettings, get_auth_token_settings
+from app.core.config import (
+    AuthTokenSettings,
+    CsrfSettings,
+    get_auth_token_settings,
+    get_csrf_settings,
+)
 from app.core.database import get_database_session
 from app.models import User, UserRole
 from app.services.auth import RoleVerificationError, verify_user_role
+from app.services.csrf import CsrfTokenClaims, verify_csrf_request
 from app.services.tokens import (
     AccessTokenClaims,
     TokenValidationError,
@@ -77,6 +83,20 @@ async def require_auth(
     if user is None or not user.is_active or user.deleted_at is not None:
         raise _authentication_required()
     return user
+
+
+def require_session_csrf(
+    request: Request,
+    claims: Annotated[AccessTokenClaims, Depends(require_access_claims)],
+    settings: Annotated[CsrfSettings, Depends(get_csrf_settings)],
+) -> CsrfTokenClaims:
+    """Require trusted-origin double-submit evidence bound to the access session."""
+    return verify_csrf_request(
+        request,
+        settings,
+        expected_scope="session",
+        session_id=claims.session_id,
+    )
 
 
 def require_role(required_role: UserRole) -> Callable[..., Awaitable[User]]:

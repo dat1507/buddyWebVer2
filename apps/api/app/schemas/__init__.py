@@ -10,6 +10,7 @@ from app.schemas.auth import (
     SanitizedUserResponse,
 )
 from app.schemas.profile import (
+    OwnProfileResponse,
     ProfilePreferences,
     ProfileUpdate,
     WeeklyAvailability,
@@ -20,6 +21,7 @@ __all__ = [
     "CsrfTokenResponse",
     "LoginRequest",
     "LoginResponse",
+    "OwnProfileResponse",
     "ProfilePreferences",
     "ProfileUpdate",
     "RefreshResponse",

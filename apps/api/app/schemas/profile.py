@@ -195,3 +195,25 @@ class ProfileUpdate(BaseModel):
         if not self.model_fields_set.difference({"version"}):
             raise ValueError("At least one profile field must be supplied.")
         return self
+
+
+class OwnProfileResponse(BaseModel):
+    """Editable fields from the authenticated user's profile, without account identifiers."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    full_name: str | None
+    display_name: str | None
+    student_type: StudentType | None
+    nationality: str | None
+    major: str | None
+    study_year: int | None
+    bio: str | None
+    home_university: str | None
+    arrival_date: date | None
+    departure_date: date | None
+    availability: WeeklyAvailability | None
+    preferences: ProfilePreferences | None
+    matching_opt_in: bool
+    version: int
