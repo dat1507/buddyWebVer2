@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-010, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-011 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-011, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-012 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1324,7 +1324,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | BE-008 | Define unified StudentProfile and ProfilePhoto models — ✅ Completed | 2 | AUTH-008 | P0 |
 | BE-009 | Define Interest catalog and profile interest/language relations — ✅ Completed | 2 | BE-008 | P0 |
 | BE-010 | Create profile, catalog and photo migrations — ✅ Completed | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
-| BE-011 | Create own-profile persistence service | 2 | BE-010 | P0 |
+| BE-011 | Create own-profile persistence service — ✅ Completed | 2 | BE-010 | P0 |
 | BE-012 | Create own-profile read/update endpoints | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
 | BE-013 | Create authorized admin user list and detail reads | 2 | BE-011, AUTH-018, EVT-008 | P0 |
 | BE-014 | Implement own profile photo upload and removal | 2 | BE-010, BE-012, EVS-003 | P0 |
@@ -4246,7 +4246,7 @@ Done: EVS-003                 Create shared Supabase image storage service and b
 Done: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8; completed 2026-09-19]
 Done: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8; completed 2026-09-19]
 Done: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8; completed 2026-09-19]
-Next: BE-011                  Create own-profile persistence service [P0; Phase 8]
+Done: BE-011                  Create own-profile persistence service [P0; Phase 8; completed 2026-09-19]
 Next: BE-012                  Create own-profile read/update endpoints [P0; Phase 8]
 Next: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8]
 Next: BE-014                  Implement own profile photo upload and removal [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-011 — Create own-profile persistence service. Dependency BE-010 is DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-011 development. Continue direct-to-main workflow; do not execute BE-011 unless explicitly requested.**
+**Next development task: BE-012 — Create own-profile read/update endpoints. Dependencies BE-011, AUTH-017 and AUTH-011A are DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-012 development. Continue direct-to-main workflow; do not execute BE-012 unless explicitly requested.**
 
 ---
 
@@ -5323,15 +5323,35 @@ dependency BE-010 DONE, READY. It is not implemented here.
 ### BE-011 — Create own-profile persistence service
 
 **Task ID:** `BE-011`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** Updated existing; **Status:** Completed 2026-09-19; **Priority:** P0; **Phase:** 8
 **Goal:** Support resumable onboarding and safe edits.  
 **Dependencies:** BE-010  
 **Scope:** Idempotent lazy draft creation on own GET; PUT documented as partial field update, field allowlist, version checking and validated preferences.
 
 **Acceptance Criteria:**
 
-- [ ] Two simultaneous first reads create one profile; omitted fields retain values and explicit null clears only optional fields.
-- [ ] Server derives owner from session; supplied role/user_id/completion fields fail validation; stale version returns 409.
+- [x] Two simultaneous first reads create one profile; omitted fields retain values and explicit null clears only optional fields.
+- [x] Server derives owner from session; supplied role/user_id/completion fields fail validation; stale version returns 409.
+
+**Implementation:** The owner-bound service accepts the authenticated `User` object, permits only an
+active, non-deleted USER, and lazily inserts one draft inside a savepoint. A concurrent unique-owner
+race reads the winning row without rolling back the caller's transaction. Partial updates lock the
+profile row, require the current optimistic version, validate all changes before mutation, preserve
+omitted fields and increment the version once. Strict allowlisted schemas reject owner, role and
+derived fields; required values cannot be cleared, while optional values accept explicit null.
+Availability uses ISO weekdays, bounded local-minute slots, canonical overnight splitting and an
+IANA timezone. Structured activity preferences contain unique active catalog IDs only. The service
+flushes without committing so BE-012 retains request transaction ownership. The official `tzdata`
+runtime package is locked for consistent IANA validation on Windows and minimal containers.
+
+**Verification (2026-09-19):** 28 focused schema/service, race, ownership, partial-update, version,
+availability and catalog-validation tests PASS; full backend 491 PASS / 14 configured live skips.
+Ruff, strict mypy (78 files), dependency consistency, Alembic history/head, package build and Compose
+validation PASS. Unchanged frontend format/lint/typecheck, 446 tests / 38 files and production build
+PASS. Runtime and frontend production dependency audits report zero known vulnerabilities.
+
+**Next development task:** BE-012 — Create own-profile read/update endpoints, P0 / Phase 8 / Cx2;
+dependencies BE-011, AUTH-017 and AUTH-011A DONE, READY. It is not implemented here.
 
 **Out of Scope:** Editing another user or matching score calculation.
 

@@ -57,6 +57,13 @@ from app.services.passwords import (
     hash_password,
     verify_password,
 )
+from app.services.profiles import (
+    ProfileAccessError,
+    ProfileValidationError,
+    ProfileVersionConflictError,
+    get_or_create_own_profile,
+    update_own_profile,
+)
 from app.services.refresh_sessions import (
     RefreshSessionError,
     RefreshSessionRevokedError,
@@ -111,6 +118,9 @@ __all__ = [
     "ImageValidationError",
     "PasswordHashingError",
     "PreparedImage",
+    "ProfileAccessError",
+    "ProfileValidationError",
+    "ProfileVersionConflictError",
     "ReconciliationReport",
     "RefreshTokenClaims",
     "RefreshTokenRotation",
@@ -137,6 +147,7 @@ __all__ = [
     "authenticate_user",
     "canonicalize_email",
     "hash_password",
+    "get_or_create_own_profile",
     "prepare_refresh_rotation",
     "prepare_image",
     "reconcile_orphaned_images",
@@ -146,6 +157,7 @@ __all__ = [
     "rotate_refresh_session",
     "set_auth_cookies",
     "set_csrf_cookie",
+    "update_own_profile",
     "verify_csrf_request",
     "verify_csrf_token",
     "verify_access_token",

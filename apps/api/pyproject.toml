@@ -19,6 +19,7 @@ dependencies = [
   "pydantic>=2.12.0,<3.0.0",
   "sqlalchemy[asyncio]>=2.0.0,<2.1.0",
   "slowapi>=0.1.10,<0.2.0",
+  "tzdata>=2025.2,<2027.0",
   "uvicorn[standard]>=0.52.4,<1.0.0",
 ]
 

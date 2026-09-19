@@ -81,6 +81,8 @@ typing-inspection==0.4.4
     # via
     #   fastapi
     #   pydantic
+tzdata==2026.4
+    # via vgu-buddy-api (pyproject.toml)
 uvicorn==0.53.0
     # via vgu-buddy-api (pyproject.toml)
 watchfiles==1.2.0
