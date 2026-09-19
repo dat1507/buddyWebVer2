@@ -16,6 +16,8 @@ CORS_ORIGINS_VARIABLE = "CORS_ALLOWED_ORIGINS"
 AUTH_JWT_SECRET_VARIABLE = "AUTH_JWT_SECRET"
 AUTH_CSRF_SECRET_VARIABLE = "AUTH_CSRF_SECRET"
 AUTH_COOKIE_SECURE_VARIABLE = "AUTH_COOKIE_SECURE"
+SUPABASE_URL_VARIABLE = "SUPABASE_URL"
+SUPABASE_SECRET_KEY_VARIABLE = "SUPABASE_SECRET_KEY"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -32,6 +34,10 @@ class CorsConfigurationError(RuntimeError):
 
 class AuthConfigurationError(RuntimeError):
     """Raised when server-only authentication configuration is unsafe or invalid."""
+
+
+class StorageConfigurationError(RuntimeError):
+    """Raised when server-only Supabase Storage configuration is unsafe or invalid."""
 
 
 class RuntimeDatabaseSettings(BaseModel):
@@ -103,6 +109,31 @@ class CsrfSettings(BaseModel):
         except CorsConfigurationError as error:
             raise ValueError("Trusted CSRF origins must be exact HTTP origins.") from error
         return tuple(dict.fromkeys(normalized))
+
+
+class StorageSettings(BaseModel):
+    """Trusted Supabase endpoint and secret key used only by the FastAPI process."""
+
+    model_config = ConfigDict(frozen=True)
+
+    url: str
+    secret_key: SecretStr = Field(repr=False)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, value: str) -> str:
+        try:
+            return normalize_supabase_url(value)
+        except StorageConfigurationError as error:
+            raise ValueError("Supabase URL is unsafe or invalid.") from error
+
+    @field_validator("secret_key")
+    @classmethod
+    def validate_secret_key(cls, value: SecretStr) -> SecretStr:
+        normalized = value.get_secret_value().strip()
+        if not normalized:
+            raise ValueError("Supabase secret key must not be empty.")
+        return SecretStr(normalized)
 
 
 def _read_required_secret(variable_name: str) -> SecretStr:
@@ -191,6 +222,46 @@ def _read_secure_cookie_policy() -> bool:
     raise AuthConfigurationError(f"{AUTH_COOKIE_SECURE_VARIABLE} must be exactly true or false.")
 
 
+def normalize_supabase_url(value: str) -> str:
+    """Return one trusted project origin, permitting plain HTTP only on localhost."""
+    parsed = urlsplit(value.strip())
+    is_local_http = parsed.scheme == "http" and parsed.hostname in {"127.0.0.1", "localhost"}
+    if parsed.scheme != "https" and not is_local_http:
+        raise StorageConfigurationError(
+            f"{SUPABASE_URL_VARIABLE} must use HTTPS except for localhost development."
+        )
+    if parsed.hostname is None or parsed.username is not None or parsed.password is not None:
+        raise StorageConfigurationError(f"{SUPABASE_URL_VARIABLE} must be an absolute project URL.")
+    if parsed.query or parsed.fragment:
+        raise StorageConfigurationError(
+            f"{SUPABASE_URL_VARIABLE} must not contain a query or fragment."
+        )
+    if parsed.path not in {"", "/"}:
+        raise StorageConfigurationError(f"{SUPABASE_URL_VARIABLE} must not contain a path.")
+
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise StorageConfigurationError(
+            f"{SUPABASE_URL_VARIABLE} contains an invalid port."
+        ) from error
+
+    host = parsed.hostname.lower()
+    if ":" in host:
+        host = f"[{host}]"
+    port_suffix = f":{port}" if port is not None else ""
+    return f"{parsed.scheme}://{host}{port_suffix}"
+
+
+def _read_supabase_url() -> str:
+    raw_value = os.getenv(SUPABASE_URL_VARIABLE)
+    if raw_value is None or not raw_value.strip():
+        raise StorageConfigurationError(
+            f"Required server-only environment variable {SUPABASE_URL_VARIABLE} is not configured."
+        )
+    return normalize_supabase_url(raw_value)
+
+
 @lru_cache(maxsize=1)
 def get_runtime_database_settings() -> RuntimeDatabaseSettings:
     """Load the application credential without reading migration credentials."""
@@ -226,3 +297,15 @@ def get_csrf_settings() -> CsrfSettings:
         secure_cookies=_read_secure_cookie_policy(),
         trusted_origins=_read_cors_origins(),
     )
+
+
+@lru_cache(maxsize=1)
+def get_storage_settings() -> StorageSettings:
+    """Load the server-only Storage credential without exposing it to browser settings."""
+    raw_key = os.getenv(SUPABASE_SECRET_KEY_VARIABLE)
+    if raw_key is None or not raw_key.strip():
+        raise StorageConfigurationError(
+            f"Required server-only environment variable {SUPABASE_SECRET_KEY_VARIABLE} "
+            "is not configured."
+        )
+    return StorageSettings(url=_read_supabase_url(), secret_key=SecretStr(raw_key.strip()))

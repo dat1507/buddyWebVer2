@@ -68,6 +68,9 @@ the database URLs directly to the relevant Python process:
   direct/session/transaction connection string from Supabase Connect.
 - `DATABASE_MIGRATION_URL` is read only by Alembic. Use the privileged direct connection; never use
   the transaction pooler for DDL or expose this value to the API process.
+- `SUPABASE_URL` and `SUPABASE_SECRET_KEY` are read only by the backend Storage service. The URL must
+  use HTTPS outside localhost. The secret/service-role key must stay in the deployment secret
+  manager and must never use a frontend `VITE_` prefix.
 
 Remote URLs must use TLS. Port 6543 is treated as transaction pooling: SQLAlchemy's local pool and
 prepared-statement caches are disabled. Direct/session connections use a bounded application pool.
@@ -116,6 +119,56 @@ call `app.services.audit_logs.record_audit_log` with the same `AsyncSession` as 
 the endpoint commits once. The service flushes without committing, rejects non-Admin actors,
 normalizes JSON-safe values, and redacts credential/token/signed-URL and profile-content fields.
 Callers must not perform external network work inside that short database transaction.
+
+## Shared image storage
+
+After applying Alembic, run the idempotent server-only Storage API command with `SUPABASE_URL` and
+`SUPABASE_SECRET_KEY` configured:
+
+```bash
+python -m app.cli configure-storage
+```
+
+It creates or updates private `profile-images` and `event-media` buckets plus the public promotional
+`event-slider-images` bucket. Each accepts only JPEG, PNG and WebP and has a 5 MiB server-side limit.
+Revision `0005_storage_buckets` separately installs four restrictive policies that deny `anon` and
+`authenticated` object operations in these buckets even if another permissive policy is added; the
+backend secret maps to `service_role` and bypasses RLS. Bucket mutation intentionally uses the
+Storage API instead of writing Supabase's `storage.buckets` metadata table. Public slider retrieval
+uses the bucket's public delivery path, while profile and event media use backend-issued signed URLs
+with a maximum five-minute lifetime. On plain local PostgreSQL, the policy block is skipped so the
+existing backend development database remains usable.
+
+Domain upload endpoints must invoke `app.services.image_storage` only after application authorization
+and CSRF checks.
+It verifies the filename extension, declared MIME, magic signature and decoded format; fully decodes
+and metadata-free re-encodes the image; rejects SVG and animated content; and enforces 4096x4096,
+decoded-pixel and processed 5 MiB limits. Bucket selection is a server enum, object keys are UUIDv4,
+upsert is disabled, and client paths or external image URLs are not accepted. Pillow is the only
+added runtime dependency because header inspection alone cannot safely decode/re-encode images.
+
+`replace_image_reference` uploads a new object before staging its database metadata, commits that
+reference once, rolls back and deletes the new object if attachment fails, and only deletes an old
+object after the commit and an explicit reference check. Post-commit or compensating-delete failure
+does not restore a stale database reference; the orphan remains eligible for the retryable command:
+
+```bash
+# Dry-run is the default and never deletes.
+python -m app.cli reconcile-storage
+
+# Delete only managed UUID objects older than the guard after discovering DB references.
+python -m app.cli reconcile-storage --apply --minimum-age-hours 24
+```
+
+Reconciliation discovers references only from `app_private` tables containing both `bucket` and
+`object_key`; media models must keep those canonical column names. Apply mode refuses to run before
+any such reference table exists, skips unknown/legacy keys, protects recently uploaded objects, and
+returns nonzero when a deletion fails so the command can be retried. The command never prints object
+keys, signed URLs, credentials or provider response bodies.
+
+The preferred `sb_secret_...` key is sent only in the `apikey` header as required by current
+Supabase API-key guidance. A legacy JWT-shaped `service_role` key additionally uses
+`Authorization: Bearer` for migration compatibility.
 
 The public registration, login, refresh, current-session and logout endpoints are implemented below,
 together with verified-current-user and explicit role dependencies for protected routes. Frontend

@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005 and EVT-008 are complete; EVS-003 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-007, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-008 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1320,7 +1320,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
-| EVS-003 | Create shared Supabase image storage service and bucket policies | 3 | BE-004, AUTH-018, AUTH-011A | P0 |
+| EVS-003 | Create shared Supabase image storage service and bucket policies — ✅ Completed | 3 | BE-004, AUTH-018, AUTH-011A | P0 |
 | BE-008 | Define unified StudentProfile and ProfilePhoto models | 2 | AUTH-008 | P0 |
 | BE-009 | Define Interest catalog and profile interest/language relations | 2 | BE-008 | P0 |
 | BE-010 | Create profile, catalog and photo migrations | 1 | BE-008, BE-009, AUTH-009, BE-004 | P0 |
@@ -4242,7 +4242,7 @@ Done: ADMIN-003               Create Admin Dashboard overview page (stats cards 
 Done: ADMIN-004               Create reusable DataTable component (sort, filter, search, pagination) [P0; Phase 7; verified 2026-09-19]
 Done: ADMIN-005               Create reusable ConfirmDialog component [P0; Phase 7; completed 2026-09-19]
 Done: EVT-008                 Create audit log model, migration and service [P0; Phase 10; completed 2026-09-19]
-Next: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8]
+Done: EVS-003                 Create shared Supabase image storage service and bucket policies [P0; Phase 8; completed 2026-09-19]
 Next: BE-008                  Define unified StudentProfile and ProfilePhoto models [P0; Phase 8]
 Next: BE-009                  Define Interest catalog and profile interest/language relations [P0; Phase 8]
 Next: BE-010                  Create profile, catalog and photo migrations [P0; Phase 8]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: ADMIN-005 — Create reusable ConfirmDialog component. Dependency FE-004 is DONE; READY. FE-021, FE-022, ADMIN-001, ADMIN-002, ADMIN-003, ADMIN-004, AUTH-004, AUTH-005, AUTH-006 and AUTH-021/022/023 are completed; AUTH-024 backend/live and combined frontend/cache acceptance PASS. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration. This release gate does not block ADMIN-005 development. Continue direct-to-main workflow; do not execute ADMIN-005 unless explicitly requested.**
+**Next development task: BE-008 — Define unified StudentProfile and ProfilePhoto models. Dependency AUTH-008 is DONE; READY. Shared audit and storage foundations EVT-008 and EVS-003 are completed. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-008 development. Continue direct-to-main workflow; do not execute BE-008 unless explicitly requested.**
 
 ---
 
@@ -5189,16 +5189,39 @@ implemented here.
 ### EVS-003 — Create shared Supabase image storage service and bucket policies
 
 **Task ID:** `EVS-003`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** Updated existing; **Status:** Completed 2026-09-19; **Priority:** P0; **Phase:** 8
 **Goal:** Reuse the existing storage decision for profile, event, recap and slider images.  
 **Dependencies:** BE-004, AUTH-018, AUTH-011A  
 **Scope:** Shared validation/encoding/object-key service; private profile-images and event-media buckets; existing public event-slider-images bucket; cleanup reconciliation command.
 
 **Acceptance Criteria:**
 
-- [ ] Verify signatures, MIME and extension, decode/re-encode JPEG/PNG/WebP, strip metadata, reject SVG/animated files, enforce 5 MiB and 4096x4096 plus decoded-pixel limits.
-- [ ] Generate UUID keys server-side; reject client bucket/path selection and external URL ingestion. Unauthorized uploads and CSRF failures leave no object.
-- [ ] Storage failures preserve old references; failed DB attachment cleans new objects; post-commit cleanup is retryable and protects referenced objects.
+- [x] Verify signatures, MIME and extension, decode/re-encode JPEG/PNG/WebP, strip metadata, reject SVG/animated files, enforce 5 MiB and 4096x4096 plus decoded-pixel limits.
+- [x] Generate UUID keys server-side; reject client bucket/path selection and external URL ingestion. Unauthorized uploads and CSRF failures leave no object.
+- [x] Storage failures preserve old references; failed DB attachment cleans new objects; post-commit cleanup is retryable and protects referenced objects.
+
+**Implementation:** The idempotent `configure-storage` operator command uses the Supabase Storage
+API to create or converge private `profile-images`/`event-media` and public
+`event-slider-images` with 5 MiB/MIME limits. Revision `0005_storage_buckets` adds restrictive
+policies that deny `anon`/`authenticated` operations when the Supabase Storage schema exists;
+the backend secret maps to the RLS-bypassing `service_role`. `image_storage` verifies
+magic/MIME/extension, fully decodes and metadata-free
+re-encodes static JPEG/PNG/WebP with Pillow, enforces size/dimension/pixel limits, generates UUIDv4
+keys and exposes only server-owned bucket enums. The replacement helper preserves the old DB
+reference until upload and commit succeed, compensates failed attachments, reference-checks old
+objects after commit, and leaves failed cleanup retryable. `reconcile-storage` is dry-run by default,
+discovers canonical `bucket`/`object_key` references, protects recent/referenced/unmanaged objects
+and refuses apply mode before any reference table exists.
+
+**Verification (2026-09-19):** 55 focused storage/config/CLI/offline-migration tests PASS; full
+backend 448 PASS / 13 configured live skips. Ruff and strict mypy (67 files), dependency consistency,
+Alembic history/head, offline upgrade/downgrade, package build, runtime dependency audit and Compose
+validation PASS. Unchanged frontend format/lint/typecheck, 446 tests / 38 files, production build and
+production dependency audit PASS. No live Supabase project credential, CLI or Docker engine is
+available, so no remote/local live bucket mutation is claimed.
+
+**Next development task:** BE-008 — Define unified StudentProfile and ProfilePhoto models, P0 /
+Phase 8 / Cx2; dependency AUTH-008 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Cloudinary/S3 migration, generic media CMS, client-side direct privileged uploads.
 

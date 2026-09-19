@@ -41,15 +41,18 @@ def test_alembic_script_directory_is_loadable() -> None:
     user_revision = script_directory.get_revision("0002_users")
     refresh_revision = script_directory.get_revision("0003_refresh_sessions")
     audit_revision = script_directory.get_revision("0004_audit_logs")
+    storage_revision = script_directory.get_revision("0005_storage_buckets")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0004_audit_logs"]
+    assert script_directory.get_heads() == ["0005_storage_buckets"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
     assert refresh_revision.down_revision == "0002_users"
     assert audit_revision is not None
     assert audit_revision.down_revision == "0003_refresh_sessions"
+    assert storage_revision is not None
+    assert storage_revision.down_revision == "0004_audit_logs"
 
 
 def test_database_configuration_is_deferred() -> None:
@@ -133,14 +136,27 @@ def test_offline_upgrade_renders_private_schema_boundary(
     assert "revoke all on table app_private.audit_logs from public" in rendered_sql
     assert "revoke all on table app_private.audit_logs from vgu_buddy_runtime" in rendered_sql
     assert (
-        "grant select, insert on table app_private.audit_logs to vgu_buddy_runtime"
-        in rendered_sql
+        "grant select, insert on table app_private.audit_logs to vgu_buddy_runtime" in rendered_sql
     )
     assert "alter table app_private.audit_logs enable row level security" in rendered_sql
     assert "create policy audit_logs_backend_read" in rendered_sql
     assert "for select" in rendered_sql
     assert "create policy audit_logs_backend_insert" in rendered_sql
     assert "for insert" in rendered_sql
+    assert "to_regclass('storage.objects')" in rendered_sql
+    assert "'profile-images'" in rendered_sql
+    assert "'event-media'" in rendered_sql
+    assert "'event-slider-images'" in rendered_sql
+    assert "insert into storage.buckets" not in rendered_sql
+    assert "create policy vgu_buddy_clients_no_image_select" in rendered_sql
+    assert "create policy vgu_buddy_clients_no_image_insert" in rendered_sql
+    assert "create policy vgu_buddy_clients_no_image_update" in rendered_sql
+    assert "create policy vgu_buddy_clients_no_image_delete" in rendered_sql
+    assert rendered_sql.count("as restrictive") >= 4
+    assert rendered_sql.count("to anon, authenticated") >= 4
+    assert (
+        "bucket_id not in ('profile-images', 'event-media', 'event-slider-images')" in rendered_sql
+    )
 
 
 def test_offline_user_downgrade_removes_table_and_enum(
@@ -212,6 +228,29 @@ def test_offline_audit_log_downgrade_removes_policies_indexes_and_table(
     assert "drop index app_private.ix_audit_logs_resource_type_resource_id" in rendered_sql
     assert "drop index app_private.ix_audit_logs_admin_id_created_at" in rendered_sql
     assert "drop table app_private.audit_logs" in rendered_sql
+
+
+def test_offline_storage_downgrade_removes_only_policies(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, migration_test_url())
+    get_migration_database_settings.cache_clear()
+
+    try:
+        command.downgrade(
+            migration_config(),
+            "0005_storage_buckets:0004_audit_logs",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    rendered_sql = capsys.readouterr().out.lower()
+    assert "drop policy if exists vgu_buddy_clients_no_image_delete" in rendered_sql
+    assert "drop policy if exists vgu_buddy_clients_no_image_update" in rendered_sql
+    assert "drop policy if exists vgu_buddy_clients_no_image_insert" in rendered_sql
+    assert "drop policy if exists vgu_buddy_clients_no_image_select" in rendered_sql
+    assert "delete from storage.buckets" not in rendered_sql
 
 
 def test_alembic_cli_reads_pyproject_configuration() -> None:
