@@ -276,6 +276,54 @@
     "auditLog": "Audit Log",
     "settings": "Settings"
   },
+  "onboarding": {
+    "identity": {
+      "step": "Step 1 of 3 · Identity",
+      "title": "Tell us about yourself",
+      "subtitle": "Start your Buddy profile. Your progress is saved to your account so you can return at any time.",
+      "cardTitle": "Your profile basics",
+      "requiredHint": "Full name and participation type are required. You can update these details later.",
+      "optional": "(optional)",
+      "fullNameLabel": "Full name",
+      "displayNameLabel": "Display name",
+      "studentTypeLabel": "How are you joining the Buddy Program?",
+      "studentTypeHelp": "Choose your participation type yourself. It is not inferred from your nationality or interface language.",
+      "studentTypes": {
+        "VIETNAMESE": {
+          "label": "Vietnamese student",
+          "help": "Choose this if you participate as a Vietnamese student. We will look for an international student as your buddy."
+        },
+        "INTERNATIONAL": {
+          "label": "International student",
+          "help": "Choose this if you participate as an international student. We will look for a Vietnamese student as your buddy."
+        }
+      },
+      "majorLabel": "Major or study program",
+      "studyYearLabel": "Study year",
+      "nationalityLabel": "Nationality",
+      "nationalityHelp": "Nationality is profile information only and never selects your participation type.",
+      "bioLabel": "About you",
+      "bioHelp": "Share a short introduction for your future Buddy profile.",
+      "loading": "Loading your saved profile…",
+      "loadErrorTitle": "Your profile could not be loaded",
+      "loadError": "We could not load your saved profile. Try again before entering information.",
+      "retry": "Try again",
+      "save": "Save Step 1",
+      "saving": "Saving…",
+      "saved": "Step 1 saved to your profile.",
+      "serverValidation": "Some profile details were not accepted. Review the fields and try again.",
+      "conflict": "Your profile changed in another session. Reload this page before saving again.",
+      "saveError": "Your profile could not be saved. Your entries are still here; please try again.",
+      "validation": {
+        "fullNameRequired": "Enter your full name.",
+        "fullNameMaximum": "Full name must contain at most 120 characters.",
+        "displayNameMaximum": "Display name must contain at most 80 characters.",
+        "studentTypeRequired": "Choose how you are joining the Buddy Program.",
+        "studyYearRange": "Study year must be a whole number from 1 to 10.",
+        "bioMaximum": "About you must contain at most 500 characters."
+      }
+    }
+  },
   "userLayout": {
     "sidebarLabel": "Student workspace",
     "contentLabel": "Student content",

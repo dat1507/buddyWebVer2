@@ -276,6 +276,54 @@
     "auditLog": "Audit-Protokoll",
     "settings": "Einstellungen"
   },
+  "onboarding": {
+    "identity": {
+      "step": "Schritt 1 von 3 · Identität",
+      "title": "Erzähl uns etwas über dich",
+      "subtitle": "Beginne dein Buddy-Profil. Dein Fortschritt wird in deinem Konto gespeichert, damit du jederzeit zurückkehren kannst.",
+      "cardTitle": "Grundlagen deines Profils",
+      "requiredHint": "Vollständiger Name und Teilnahmeart sind erforderlich. Du kannst diese Angaben später ändern.",
+      "optional": "(optional)",
+      "fullNameLabel": "Vollständiger Name",
+      "displayNameLabel": "Anzeigename",
+      "studentTypeLabel": "Wie nimmst du am Buddy-Programm teil?",
+      "studentTypeHelp": "Wähle deine Teilnahmeart selbst. Sie wird weder aus deiner Nationalität noch aus der Sprache der Oberfläche abgeleitet.",
+      "studentTypes": {
+        "VIETNAMESE": {
+          "label": "Vietnamesische Studierende",
+          "help": "Wähle dies, wenn du als vietnamesische Studentin oder vietnamesischer Student teilnimmst. Wir suchen eine internationale Person als Buddy für dich."
+        },
+        "INTERNATIONAL": {
+          "label": "Internationale Studierende",
+          "help": "Wähle dies, wenn du als internationale Studentin oder internationaler Student teilnimmst. Wir suchen eine vietnamesische Person als Buddy für dich."
+        }
+      },
+      "majorLabel": "Studiengang",
+      "studyYearLabel": "Studienjahr",
+      "nationalityLabel": "Nationalität",
+      "nationalityHelp": "Die Nationalität ist nur eine Profilangabe und bestimmt niemals deine Teilnahmeart.",
+      "bioLabel": "Über dich",
+      "bioHelp": "Schreibe eine kurze Vorstellung für dein zukünftiges Buddy-Profil.",
+      "loading": "Dein gespeichertes Profil wird geladen…",
+      "loadErrorTitle": "Dein Profil konnte nicht geladen werden",
+      "loadError": "Wir konnten dein gespeichertes Profil nicht laden. Versuche es erneut, bevor du Angaben eingibst.",
+      "retry": "Erneut versuchen",
+      "save": "Schritt 1 speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Schritt 1 wurde in deinem Profil gespeichert.",
+      "serverValidation": "Einige Profilangaben wurden nicht akzeptiert. Prüfe die Felder und versuche es erneut.",
+      "conflict": "Dein Profil wurde in einer anderen Sitzung geändert. Lade diese Seite vor dem erneuten Speichern neu.",
+      "saveError": "Dein Profil konnte nicht gespeichert werden. Deine Eingaben sind noch vorhanden; versuche es erneut.",
+      "validation": {
+        "fullNameRequired": "Gib deinen vollständigen Namen ein.",
+        "fullNameMaximum": "Der vollständige Name darf höchstens 120 Zeichen enthalten.",
+        "displayNameMaximum": "Der Anzeigename darf höchstens 80 Zeichen enthalten.",
+        "studentTypeRequired": "Wähle aus, wie du am Buddy-Programm teilnimmst.",
+        "studyYearRange": "Das Studienjahr muss eine ganze Zahl zwischen 1 und 10 sein.",
+        "bioMaximum": "Der Text über dich darf höchstens 500 Zeichen enthalten."
+      }
+    }
+  },
   "userLayout": {
     "sidebarLabel": "Studierendenbereich",
     "contentLabel": "Inhalte des Studierendenbereichs",
