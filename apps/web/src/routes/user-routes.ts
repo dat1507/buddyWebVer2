@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
+import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
 import { ProfilePage } from '@/pages/user/profile-page'
 
 type UserRoutePath =
@@ -9,6 +10,7 @@ type UserRoutePath =
   | 'profile'
   | 'onboarding'
   | 'onboarding/interests'
+  | 'onboarding/preferences'
   | 'matching'
   | 'buddy'
   | 'assistant'
@@ -30,6 +32,12 @@ const userRoutes: readonly UserRoute[] = [
     title: 'Profile interests and languages',
     kind: 'page',
     Component: OnboardingInterestsPage,
+  },
+  {
+    path: 'onboarding/preferences',
+    title: 'Profile availability and preferences',
+    kind: 'page',
+    Component: OnboardingPreferencesPage,
   },
   { path: 'matching', title: 'Buddy matching', kind: 'placeholder' },
   { path: 'buddy', title: 'My Buddy', kind: 'placeholder' },

@@ -14,20 +14,32 @@ import type {
 } from '@/features/profile/profile-catalog'
 import { parseProfilePhoto, parseProfilePhotoUrl } from '@/features/profile/profile-photo'
 import type { ProfilePhoto, ProfilePhotoUrl } from '@/features/profile/profile-photo'
+import { parseProfileCompletion } from '@/features/profile/profile-completion'
+import type { ProfileCompletion } from '@/features/profile/profile-completion'
 import { parseOwnProfile } from '@/features/profile/profile'
-import type { OwnProfile, OwnProfileUpdate } from '@/features/profile/profile'
+import type {
+  OnboardingPreferencesUpdate,
+  OwnProfile,
+  OwnProfileUpdate,
+} from '@/features/profile/profile'
 
 const profileClient = {
   async readOwn(signal?: AbortSignal): Promise<OwnProfile> {
     return parseOwnProfile(await sessionClient.authenticatedJson('/profile', { signal }))
   },
 
-  async updateOwn(update: OwnProfileUpdate): Promise<OwnProfile> {
+  async updateOwn(update: OwnProfileUpdate | OnboardingPreferencesUpdate): Promise<OwnProfile> {
     return parseOwnProfile(
       await sessionClient.authenticatedJson('/profile', {
         method: 'PUT',
         body: update,
       }),
+    )
+  },
+
+  async readCompletion(signal?: AbortSignal): Promise<ProfileCompletion> {
+    return parseProfileCompletion(
+      await sessionClient.authenticatedJson('/profile/completion', { signal }),
     )
   },
 

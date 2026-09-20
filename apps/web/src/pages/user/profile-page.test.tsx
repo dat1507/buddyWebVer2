@@ -44,8 +44,12 @@ const profile = {
   password_hash: 'must-never-render',
   raw_credentials: 'must-never-render',
   matching_opt_in: true,
-  availability: [{ weekday: 1, start: '09:00', end: '10:00' }],
-  preferences: { private_note: 'must-never-render' },
+  availability: {
+    timezone: 'Asia/Ho_Chi_Minh',
+    slots: [{ weekday: 1, start_minute: 540, end_minute: 600 }],
+    private_note: 'must-never-render',
+  },
+  preferences: { preferred_activity_ids: [musicId], private_note: 'must-never-render' },
 }
 
 const interestCatalogs = {

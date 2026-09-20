@@ -16,6 +16,13 @@ function useOwnProfile() {
   })
 }
 
+function useProfileCompletion() {
+  return useQuery({
+    queryKey: profileQueryKeys.completion,
+    queryFn: ({ signal }) => profileClient.readCompletion(signal),
+  })
+}
+
 function useUpdateOwnProfile() {
   const queryClient = useQueryClient()
 
@@ -54,4 +61,10 @@ function useUpdateProfileSelections() {
   })
 }
 
-export { profileQueryKeys, useOwnProfile, useUpdateOwnProfile, useUpdateProfileSelections }
+export {
+  profileQueryKeys,
+  useOwnProfile,
+  useProfileCompletion,
+  useUpdateOwnProfile,
+  useUpdateProfileSelections,
+}
