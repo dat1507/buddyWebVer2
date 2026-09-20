@@ -35,6 +35,12 @@ from app.schemas.profile_catalog import (
     ProfileLanguageSelectionResponse,
     ProfileLanguageUpdate,
 )
+from app.schemas.profile_completion import (
+    MatchingIneligibilityReason,
+    ProfileCompletionResponse,
+    ProfileCompletionStatus,
+    ProfileMissingField,
+)
 from app.schemas.profile_photo import ProfilePhotoResponse, ProfilePhotoUrlResponse
 
 __all__ = [
@@ -52,6 +58,10 @@ __all__ = [
     "LoginRequest",
     "LoginResponse",
     "OwnProfileResponse",
+    "MatchingIneligibilityReason",
+    "ProfileCompletionResponse",
+    "ProfileCompletionStatus",
+    "ProfileMissingField",
     "ProfilePreferences",
     "ProfileInterestSelectionResponse",
     "ProfileInterestUpdate",

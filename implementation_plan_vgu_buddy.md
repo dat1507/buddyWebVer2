@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-015, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-016 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-025 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1329,7 +1329,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | BE-013 | Create authorized admin user list and detail reads — ✅ Completed | 2 | BE-011, AUTH-018, EVT-008 | P0 |
 | BE-014 | Implement own profile photo upload and removal — ✅ Completed | 2 | BE-010, BE-012, EVS-003 | P0 |
 | BE-015 | Implement profile interest and language catalog APIs — ✅ Completed | 2 | BE-009, BE-012 | P0 |
-| BE-016 | Implement profile completion and matching eligibility read model | 2 | BE-012, BE-014, BE-015 | P0 |
+| BE-016 | Implement profile completion and matching eligibility read model — ✅ Completed | 2 | BE-012, BE-014, BE-015 | P0 |
 
 ### Phase 9: Profile UI
 
@@ -4251,7 +4251,7 @@ Done: BE-012                  Create own-profile read/update endpoints [P0; Phas
 Done: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8; completed 2026-09-20]
 Done: BE-014                  Implement own profile photo upload and removal [P0; Phase 8; completed 2026-09-20]
 Done: BE-015                  Implement profile interest and language catalog APIs [P0; Phase 8; completed 2026-09-20]
-Next: BE-016                  Implement profile completion and matching eligibility read model [P0; Phase 8]
+Done: BE-016                  Implement profile completion and matching eligibility read model [P0; Phase 8; completed 2026-09-20]
 Next: FE-025                  Create onboarding Step 1: identity and student type [P0; Phase 9]
 Next: FE-026                  Create onboarding Step 2: interests and languages [P0; Phase 9]
 Next: FE-028                  Create own social-style profile view [P0; Phase 9]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-016 — Implement profile completion and matching eligibility read model. Dependencies BE-012, BE-014 and BE-015 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-016 development. Continue direct-to-main workflow; do not execute BE-016 unless explicitly requested.**
+**Next development task: FE-025 — Create onboarding Step 1: identity and student type. Dependencies FE-021 and BE-012 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-025 development. Continue direct-to-main workflow; do not execute FE-025 unless explicitly requested.**
 
 ---
 
@@ -5499,16 +5499,35 @@ P0 / Phase 8 / Cx2; dependencies BE-012, BE-014 and BE-015 DONE, READY. It is no
 ### BE-016 — Implement profile completion and matching eligibility read model
 
 **Task ID:** `BE-016`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** New; **Status:** Completed 2026-09-20; **Priority:** P0; **Phase:** 8
 **Goal:** Make readiness a backend-owned result shared by onboarding and matching.  
 **Dependencies:** BE-012, BE-014, BE-015  
 **Scope:** GET /api/profile/completion; derived readiness, percentage and reason codes under Part 7 rules. Before MATCH-001 ships, reservation count is zero; MATCH-007 integrates the real reservation reader and removes this staged assumption before matching release.
 
 **Acceptance Criteria:**
 
-- [ ] Missing type, full name, processed avatar, interest or language prevents COMPLETE; client cannot set readiness.
-- [ ] Complete but opted-out, inactive or already-reserved profiles are ineligible for new pairing; persisted draft survives logout/reload.
-- [ ] Tests cover every required field removal, invalid avatar, opt-out and draft-to-complete transition.
+- [x] Missing type, full name, processed avatar, interest or language prevents COMPLETE; client cannot set readiness.
+- [x] Complete but opted-out, inactive or already-reserved profiles are ineligible for new pairing; persisted draft survives logout/reload.
+- [x] Tests cover every required field removal, invalid avatar, opt-out and draft-to-complete transition.
+
+**Implementation:** USER-only `GET /api/profile/completion` returns a no-store, backend-derived
+projection with status, percentage, stable missing-field codes, matching eligibility and reason
+codes for frontend localization. Completion counts five required groups from the persisted profile, active catalog
+relations and one READY private avatar; the first complete transition records the historical
+`onboarding_completed_at` milestone without creating a mutable completion flag. Eligibility also
+checks active/non-deleted USER state, explicit opt-in and an isolated reservation reader whose
+documented pre-MATCH-001 result is zero for later replacement by MATCH-007.
+
+**Verification (2026-09-20):** 23 BE-016 service/API tests PASS, covering all required-field
+removals, invalid counts/avatar query constraints, active catalog filtering, account state, opt-out,
+reservation, milestone persistence, RBAC, transaction rollback and the read-only OpenAPI contract.
+Full backend 599 PASS / 14 configured live skips; Ruff, strict mypy (100 files), dependency
+consistency, Alembic single-head validation, package build and Compose validation PASS. Unchanged
+frontend format/lint/typecheck, 446 tests / 38 files and production build PASS. Runtime and frontend
+production dependency audits report zero known vulnerabilities.
+
+**Next development task:** FE-025 — Create onboarding Step 1: identity and student type, P0 / Phase 9
+/ Cx3; dependencies FE-021 and BE-012 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Progress analytics or storing a second mutable completion flag.
 

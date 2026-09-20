@@ -8,9 +8,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import require_role, require_session_csrf
 from app.core.database import get_database_session
 from app.models import StudentProfile, User, UserRole
-from app.schemas import OwnProfileResponse, ProfilePhotoResponse, ProfileUpdate
+from app.schemas import (
+    OwnProfileResponse,
+    ProfileCompletionResponse,
+    ProfilePhotoResponse,
+    ProfileUpdate,
+)
 from app.services.csrf import CsrfTokenClaims
 from app.services.profile_catalogs import get_own_catalog_selections
+from app.services.profile_completion import get_own_profile_completion
 from app.services.profile_photos import get_own_avatar
 from app.services.profiles import (
     ProfileAccessError,
@@ -44,6 +50,27 @@ def _profile_access_denied() -> HTTPException:
         detail="Insufficient permissions.",
         headers=_NO_STORE_HEADERS,
     )
+
+
+@router.get("/completion", response_model=ProfileCompletionResponse)
+async def read_own_profile_completion(
+    response: Response,
+    current_user: Annotated[User, Depends(require_profile_user)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> ProfileCompletionResponse:
+    """Return backend-derived onboarding readiness and new-pair eligibility."""
+    try:
+        result = await get_own_profile_completion(session, current_user)
+        await session.commit()
+    except ProfileAccessError as error:
+        await session.rollback()
+        raise _profile_access_denied() from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    _mark_private(response)
+    return result
 
 
 async def _own_profile_response(
