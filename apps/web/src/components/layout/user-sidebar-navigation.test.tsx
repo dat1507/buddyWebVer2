@@ -27,7 +27,7 @@ const locales = [
   ],
 ] as const
 
-// Component inputs for released-page behavior; production routes remain placeholders.
+// Component inputs for released-page behavior beyond the production profile page.
 const releasedItems: readonly UserNavigationItem[] = userNavigationItems.map((item) =>
   item.to && ['dashboard', 'myProfile', 'events'].includes(item.id)
     ? { ...item, available: true, to: item.to }
@@ -69,13 +69,18 @@ describe('FE-022 student sidebar navigation', () => {
       const links = within(nav).getAllByRole('link')
       expect(links).toHaveLength(7)
       labels.forEach((label) => expect(within(nav).getByText(label)).toBeVisible())
-      links.forEach((link) => {
-        expect(link).toHaveAttribute('aria-disabled', 'true')
-        expect(link).not.toHaveAttribute('href')
-        expect(link).not.toHaveAttribute('tabindex')
-        expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
-      })
-      expect(nav.querySelector('a')).toBeNull()
+      const profile = within(nav).getByRole('link', { name: i18n.t('userNavigation.myProfile') })
+      expect(profile).toHaveAttribute('href', '/user/profile')
+      expect(profile).not.toHaveAttribute('aria-disabled')
+      links
+        .filter((link) => link !== profile)
+        .forEach((link) => {
+          expect(link).toHaveAttribute('aria-disabled', 'true')
+          expect(link).not.toHaveAttribute('href')
+          expect(link).not.toHaveAttribute('tabindex')
+          expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
+        })
+      expect(nav.querySelectorAll('a')).toHaveLength(1)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
       expect(screen.getByRole('heading', { name: 'Fixture dashboard' })).toBeVisible()
     },
@@ -83,7 +88,6 @@ describe('FE-022 student sidebar navigation', () => {
 
   it.each([
     ['/user/dashboard?source=test#content', 'Dashboard'],
-    ['/user/profile?view=details#photo', 'My Profile'],
     ['/user/matching/preview', 'Buddy Matching'],
     ['/user/buddy/details', 'My Buddy'],
     ['/user/events/example', 'Events'],
@@ -96,6 +100,14 @@ describe('FE-022 student sidebar navigation', () => {
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
     expect(current).toHaveAttribute('aria-disabled', 'true')
     expect(current).not.toHaveAttribute('href')
+  })
+
+  it('exposes the released profile page as the current native link', () => {
+    renderNavigation('/user/profile?view=details#photo')
+    const profile = screen.getByRole('link', { name: 'My Profile' })
+    expect(profile).toHaveAttribute('href', '/user/profile')
+    expect(profile).toHaveAttribute('aria-current', 'page')
+    expect(profile).not.toHaveAttribute('aria-disabled')
   })
 
   it.each(['en', 'de'] as const)(
@@ -153,7 +165,8 @@ describe('FE-022 student sidebar navigation', () => {
     const nav = screen.getByRole('navigation', { name: 'Studierendennavigation' })
     expect(nav.querySelector('[aria-current="page"]')).toBe(current)
     expect(current).toHaveTextContent('Mein Profil')
-    expect(current).toHaveAccessibleDescription('Diese Seiten sind noch nicht verfügbar.')
+    expect(current).toHaveAttribute('href', '/user/profile')
+    expect(current).not.toHaveAccessibleDescription('Diese Seiten sind noch nicht verfügbar.')
     expect(screen.getByTestId('location').textContent).toBe('/user/profile')
   })
 })

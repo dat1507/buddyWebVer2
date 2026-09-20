@@ -66,18 +66,18 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     expect(screen.queryByRole('main', { name: 'Student content' })).not.toBeInTheDocument()
   }
 
-  it.each([
-    ['/user/dashboard', 'Dashboard'],
-    ['/user/profile?view=details#photo', 'Profile'],
-  ])('renders a verified USER nested route %s inside one layout main', (path, title) => {
-    useAuthStore.getState().setAuthenticated(user)
-    renderApp(path)
-    expect(screen.getByRole('complementary', { name: 'Student workspace' })).toBeVisible()
-    expect(within(screen.getByRole('main')).getByRole('heading', { name: title })).toBeVisible()
-    expect(screen.getAllByRole('main')).toHaveLength(1)
-    expect(screen.getByTestId('location')).toHaveTextContent(path)
-    expect(fetch).not.toHaveBeenCalled()
-  })
+  it.each([['/user/dashboard', 'Dashboard']])(
+    'renders a verified USER nested route %s inside one layout main',
+    (path, title) => {
+      useAuthStore.getState().setAuthenticated(user)
+      renderApp(path)
+      expect(screen.getByRole('complementary', { name: 'Student workspace' })).toBeVisible()
+      expect(within(screen.getByRole('main')).getByRole('heading', { name: title })).toBeVisible()
+      expect(screen.getAllByRole('main')).toHaveLength(1)
+      expect(screen.getByTestId('location')).toHaveTextContent(path)
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
 
   it.each(['unknown', 'loading'] as const)(
     'never mounts the shell during %s session verification',
@@ -118,16 +118,18 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
       .mockResolvedValueOnce(json({ user, csrf_token: 'rotated' }))
       .mockReturnValueOnce(me)
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-    renderApp('/user/profile?view=details#photo', true)
+    renderApp('/user/dashboard?view=details#photo', true)
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4))
     expectNoStudentShell()
     await act(async () => {
       resolveMe(json(user))
     })
     expect(await screen.findByRole('complementary', { name: 'Student workspace' })).toBeVisible()
-    expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Profile' })).toBeVisible()
+    expect(
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Dashboard' }),
+    ).toBeVisible()
     expect(screen.getAllByRole('main')).toHaveLength(1)
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile?view=details#photo')
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard?view=details#photo')
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',

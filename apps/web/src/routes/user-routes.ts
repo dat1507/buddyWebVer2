@@ -2,6 +2,7 @@ import type { ComponentType } from 'react'
 
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
+import { ProfilePage } from '@/pages/user/profile-page'
 
 type UserRoutePath =
   | 'dashboard'
@@ -22,7 +23,7 @@ type UserRoute = { path: UserRoutePath; title: string } & (
 // Routing and navigation share delivery status. Add a page component only when its task is done.
 const userRoutes: readonly UserRoute[] = [
   { path: 'dashboard', title: 'Dashboard', kind: 'placeholder' },
-  { path: 'profile', title: 'Profile', kind: 'placeholder' },
+  { path: 'profile', title: 'Profile', kind: 'page', Component: ProfilePage },
   { path: 'onboarding', title: 'Profile setup', kind: 'page', Component: OnboardingIdentityPage },
   {
     path: 'onboarding/interests',

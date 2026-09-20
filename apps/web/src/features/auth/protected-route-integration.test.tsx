@@ -132,14 +132,14 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
   it('reload verification deduplicates StrictMode bootstrap and retains the deep link until /me succeeds', async () => {
     const recovery = deferred<Response>()
     fetch.mockReturnValueOnce(recovery.promise).mockResolvedValueOnce(json(user))
-    renderApp('/user/profile?view=details#photo', true)
+    renderApp('/user/dashboard?view=details#photo', true)
     expect(screen.getByText('Checking your session…')).toBeVisible()
     expectNoPrivateLayout()
-    expect(location()).toBe('/user/profile?view=details#photo')
+    expect(location()).toBe('/user/dashboard?view=details#photo')
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce())
     await act(async () => recovery.resolve(json({ csrf_token: 'recovered' })))
-    expect(await screen.findByText('Profile')).toBeVisible()
-    expect(location()).toBe('/user/profile?view=details#photo')
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(location()).toBe('/user/dashboard?view=details#photo')
     expect(useAuthStore.getState().role).toBe('USER')
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
@@ -209,7 +209,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     useAuthStore.getState().setAuthenticated(user)
     queryClient.setQueryData(['profile', user.id], { sensitive: true })
     queryClient.setQueryData(['event-sliders', 'en'], ['public'])
-    renderApp('/user/profile')
+    renderApp('/user/dashboard')
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
     expectNoPrivateLayout()

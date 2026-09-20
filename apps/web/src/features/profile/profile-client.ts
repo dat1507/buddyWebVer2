@@ -12,6 +12,8 @@ import type {
   ProfileSelectionsResult,
   ProfileSelectionsUpdate,
 } from '@/features/profile/profile-catalog'
+import { parseProfilePhotoUrl } from '@/features/profile/profile-photo'
+import type { ProfilePhotoUrl } from '@/features/profile/profile-photo'
 import { parseOwnProfile } from '@/features/profile/profile'
 import type { OwnProfile, OwnProfileUpdate } from '@/features/profile/profile'
 
@@ -40,6 +42,13 @@ const profileClient = {
     return parseLanguageCatalog(
       await sessionClient.authenticatedJson(`/languages?locale=${locale}`, { signal }),
       locale,
+    )
+  },
+
+  async readPhotoUrl(photoId: string, signal?: AbortSignal): Promise<ProfilePhotoUrl> {
+    return parseProfilePhotoUrl(
+      await sessionClient.authenticatedJson(`/profile/photos/${photoId}/url`, { signal }),
+      photoId,
     )
   },
 

@@ -62,10 +62,7 @@ describe('FE-022 navigation in the real guarded App', () => {
   const expectNoStudentNavigation = () =>
     expect(screen.queryByRole('navigation', { name: 'Student navigation' })).not.toBeInTheDocument()
 
-  it.each([
-    ['/user/dashboard', 'Dashboard', 'Dashboard'],
-    ['/user/profile?view=details#photo', 'Profile', 'My Profile'],
-  ])(
+  it.each([['/user/dashboard', 'Dashboard', 'Dashboard']])(
     'preserves the USER nested route %s and truthful navigation availability',
     (path, title, label) => {
       useAuthStore.getState().setAuthenticated(user)
@@ -79,7 +76,10 @@ describe('FE-022 navigation in the real guarded App', () => {
       expect(within(screen.getByRole('main')).getByRole('heading', { name: title })).toBeVisible()
       expect(screen.getAllByRole('main')).toHaveLength(1)
       expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent(label)
-      expect(nav.querySelector('a')).toBeNull()
+      expect(within(nav).getByRole('link', { name: 'My Profile' })).toHaveAttribute(
+        'href',
+        '/user/profile',
+      )
       expect(screen.getByTestId('location')).toHaveTextContent(path)
       expect(fetch).not.toHaveBeenCalled()
     },
@@ -122,14 +122,14 @@ describe('FE-022 navigation in the real guarded App', () => {
       .mockResolvedValueOnce(json({ user, csrf_token: 'rotated-csrf' }))
       .mockReturnValueOnce(finalMe)
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-    renderApp('/user/profile?view=details#photo', true)
+    renderApp('/user/dashboard?view=details#photo', true)
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4))
     expectNoStudentNavigation()
     await act(async () => {
       resolveMe(json(user))
     })
     expect(await screen.findByRole('navigation', { name: 'Student navigation' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/user/profile?view=details#photo')
+    expect(screen.getByTestId('location').textContent).toBe('/user/dashboard?view=details#photo')
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
     expectNoStudentNavigation()
@@ -147,16 +147,18 @@ describe('FE-022 navigation in the real guarded App', () => {
 
   it('uses the existing language toggle without losing route, active item or Outlet', async () => {
     useAuthStore.getState().setAuthenticated(user)
-    renderApp('/user/profile')
+    renderApp('/user/dashboard')
     const current = screen
       .getByRole('navigation', { name: 'Student navigation' })
       .querySelector('[aria-current="page"]')
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     const nav = await screen.findByRole('navigation', { name: 'Studierendennavigation' })
     expect(nav.querySelector('[aria-current="page"]')).toBe(current)
-    expect(current).toHaveTextContent('Mein Profil')
-    expect(within(screen.getByRole('main')).getByRole('heading', { name: 'Profile' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/user/profile')
+    expect(current).toHaveTextContent('Übersicht')
+    expect(
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Dashboard' }),
+    ).toBeVisible()
+    expect(screen.getByTestId('location').textContent).toBe('/user/dashboard')
     expect(fetch).not.toHaveBeenCalled()
   })
 })

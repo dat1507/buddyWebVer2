@@ -104,14 +104,14 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
   })
 
   it.each([
-    ['/user/profile?view=details#photo', 'USER', 'Profile', 'user'],
+    ['/user/dashboard?view=details#photo', 'USER', 'Dashboard', 'user'],
     ['/admin/audit-log?view=details#entry', 'ADMIN', 'Audit log', 'admin'],
   ])(
     'allows a matching role at %s with its deep link intact',
     async (path, role, title, layout) => {
       useAuthStore.getState().setAuthenticated({ ...user, role })
       renderApp(path)
-      expect(await screen.findByText(title)).toBeVisible()
+      expect(await screen.findByRole('heading', { name: title })).toBeVisible()
       expect(document.querySelector(`[data-layout="${layout}"]`)).not.toBeNull()
       expect(location()).toBe(path)
       expect(fetch).not.toHaveBeenCalled()
@@ -135,7 +135,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     ['/admin/audit-log', 'USER', false],
     ['/user/profile', 'ADMIN', false],
     ['/admin/audit-log', 'ADMIN', true],
-    ['/user/profile', 'USER', true],
+    ['/user/dashboard', 'USER', true],
   ] as const)('waits for /me before deciding %s access for %s', async (path, role, allowed) => {
     const me = deferred<Response>()
     fetch.mockResolvedValueOnce(json({ csrf_token: 'recovered' })).mockReturnValueOnce(me.promise)
@@ -152,7 +152,11 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     }
     await waitFor(() => expect(useAuthStore.getState().status).toBe('authenticated'))
     if (allowed) {
-      expect(await screen.findByText(role === 'USER' ? 'Profile' : 'Audit log')).toBeVisible()
+      expect(
+        await screen.findByRole('heading', {
+          name: role === 'USER' ? 'Dashboard' : 'Audit log',
+        }),
+      ).toBeVisible()
       expect(location()).toBe(path + '?view=details#entry')
     } else {
       expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
@@ -186,7 +190,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
 
   it.each([
     ['/admin/users', 'ADMIN', 'USER', 'User management'],
-    ['/user/profile', 'USER', 'ADMIN', 'Profile'],
+    ['/user/dashboard', 'USER', 'ADMIN', 'Dashboard'],
   ])(
     'verified refresh role change removes %s and clears private cache',
     async (path, oldRole, newRole, title) => {
@@ -198,7 +202,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
         .mockResolvedValueOnce(json({ csrf_token: 'recovered' }))
         .mockResolvedValueOnce(json({ user: { ...user, role: newRole }, csrf_token: 'rotated' }))
       renderApp(path)
-      expect(await screen.findByText(title)).toBeVisible()
+      expect(await screen.findByRole('heading', { name: title })).toBeVisible()
       await act(async () => sessionClient.refresh())
       expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
       expectNoPrivateLayout()
