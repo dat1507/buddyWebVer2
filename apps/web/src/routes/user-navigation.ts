@@ -26,7 +26,7 @@ const definitions: readonly {
 }[] = [
   { id: 'dashboard', route: 'dashboard', Icon: LayoutDashboard, end: true },
   { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
-  { id: 'editProfile', route: null, Icon: SquarePen },
+  { id: 'editProfile', route: 'profile/edit', Icon: SquarePen },
   { id: 'matching', route: 'matching', Icon: Users },
   { id: 'myBuddy', route: 'buddy', Icon: HeartHandshake },
   { id: 'events', route: 'events', Icon: CalendarDays },

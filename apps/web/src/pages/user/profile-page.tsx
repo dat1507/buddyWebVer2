@@ -197,7 +197,7 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
           </Typography>
         </div>
         <Button asChild>
-          <Link to="/user/onboarding">
+          <Link to="/user/profile/edit">
             <Pencil aria-hidden="true" />
             {t('profile.edit')}
           </Link>
@@ -250,7 +250,7 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
                     </h3>
                   </div>
                   <Button asChild variant="ghost" size="sm">
-                    <Link to="/user/onboarding/interests">{t('profile.editInterests')}</Link>
+                    <Link to="/user/profile/edit">{t('profile.editInterests')}</Link>
                   </Button>
                 </div>
                 <InterestList profile={profile} locale={locale} />

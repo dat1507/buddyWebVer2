@@ -129,11 +129,11 @@ describe('FE-028 own profile view', () => {
     )
     expect(screen.getByRole('link', { name: 'Edit profile' })).toHaveAttribute(
       'href',
-      '/user/onboarding',
+      '/user/profile/edit',
     )
     expect(screen.getByRole('link', { name: 'Edit interests' })).toHaveAttribute(
       'href',
-      '/user/onboarding/interests',
+      '/user/profile/edit',
     )
     expect(document.body).not.toHaveTextContent('must-never-render')
   })

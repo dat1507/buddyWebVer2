@@ -11,6 +11,7 @@ import type {
   ProfileLanguageSelection,
 } from '@/features/profile/profile-catalog'
 import type { OwnProfile } from '@/features/profile/profile'
+import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import {
   useInterestCatalog,
   useLanguageCatalog,
@@ -88,7 +89,15 @@ function CatalogError({
   )
 }
 
-function OnboardingInterestsForm({ profile }: { profile: OwnProfile }) {
+function OnboardingInterestsForm({
+  profile,
+  mode = 'onboarding',
+  onReload,
+}: {
+  profile: OwnProfile
+  mode?: ProfileFormMode
+  onReload?: ReloadOwnProfile
+}) {
   const { t, i18n } = useTranslation()
   const locale = catalogLocale(i18n.resolvedLanguage)
   const interests = useInterestCatalog(locale)
@@ -102,6 +111,7 @@ function OnboardingInterestsForm({ profile }: { profile: OwnProfile }) {
   )
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
+  const [reloading, setReloading] = useState(false)
 
   const normalizedSearch = search.trim().normalize('NFKC').toLocaleLowerCase(locale)
   const filteredInterests = useMemo(
@@ -184,24 +194,48 @@ function OnboardingInterestsForm({ profile }: { profile: OwnProfile }) {
     saveSelections.error instanceof ApiError && saveSelections.error.code === 'validation'
       ? t('onboarding.compatibility.serverValidation')
       : saveSelections.error instanceof ApiError && saveSelections.error.code === 'conflict'
-        ? t('onboarding.compatibility.conflict')
+        ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.compatibility.conflict')
         : t('onboarding.compatibility.saveError')
+  const hasConflict =
+    saveSelections.error instanceof ApiError && saveSelections.error.code === 'conflict'
   const catalogsReady = Boolean(interests.data && languages.data)
 
+  const reloadSavedProfile = async () => {
+    if (!onReload || reloading) return
+    setReloading(true)
+    const refreshedProfile = await onReload()
+    setReloading(false)
+    if (!refreshedProfile) return
+    setSelectedInterestIds([...refreshedProfile.interest_ids])
+    setSelectedLanguages(refreshedProfile.languages.map((selection) => ({ ...selection })))
+    setSearch('')
+    setSaved(false)
+    saveSelections.reset()
+  }
+
+  const titleId =
+    mode === 'edit' ? 'profile-edit-compatibility-title' : 'onboarding-compatibility-title'
+
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby="onboarding-compatibility-title">
+    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
       <header className="space-y-2">
         <Typography
           variant="small"
           className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
         >
-          {t('onboarding.compatibility.step')}
+          {t(
+            mode === 'edit' ? 'profileEdit.compatibilityEyebrow' : 'onboarding.compatibility.step',
+          )}
         </Typography>
-        <Typography as="h1" variant="h2" id="onboarding-compatibility-title">
-          {t('onboarding.compatibility.title')}
+        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
+          {t(mode === 'edit' ? 'profileEdit.compatibilityTitle' : 'onboarding.compatibility.title')}
         </Typography>
         <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t('onboarding.compatibility.subtitle')}
+          {t(
+            mode === 'edit'
+              ? 'profileEdit.compatibilitySubtitle'
+              : 'onboarding.compatibility.subtitle',
+          )}
         </Typography>
       </header>
 
@@ -405,12 +439,29 @@ function OnboardingInterestsForm({ profile }: { profile: OwnProfile }) {
                 role="status"
               >
                 <CheckCircle2 className="size-4" aria-hidden="true" />
-                {t('onboarding.compatibility.saved')}
+                {t(
+                  mode === 'edit'
+                    ? 'profileEdit.compatibilitySaved'
+                    : 'onboarding.compatibility.saved',
+                )}
               </p>
             ) : saveSelections.isError ? (
-              <p className="text-sm text-destructive" role="alert">
-                {saveError}
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-destructive" role="alert">
+                  {saveError}
+                </p>
+                {hasConflict && onReload ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={reloading}
+                    onClick={() => void reloadSavedProfile()}
+                  >
+                    {t(reloading ? 'profileEdit.reloading' : 'profileEdit.reloadSaved')}
+                  </Button>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <Button
@@ -420,7 +471,11 @@ function OnboardingInterestsForm({ profile }: { profile: OwnProfile }) {
           >
             {saveSelections.isPending
               ? t('onboarding.compatibility.saving')
-              : t('onboarding.compatibility.save')}
+              : t(
+                  mode === 'edit'
+                    ? 'profileEdit.saveCompatibility'
+                    : 'onboarding.compatibility.save',
+                )}
           </Button>
         </div>
       </form>
@@ -465,4 +520,4 @@ function OnboardingInterestsPage() {
   return <OnboardingInterestsForm profile={profile.data} />
 }
 
-export { OnboardingInterestsPage }
+export { OnboardingInterestsForm, OnboardingInterestsPage }

@@ -4,10 +4,12 @@ import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
 import { ProfilePage } from '@/pages/user/profile-page'
+import { ProfileEditPage } from '@/pages/user/profile-edit-page'
 
 type UserRoutePath =
   | 'dashboard'
   | 'profile'
+  | 'profile/edit'
   | 'onboarding'
   | 'onboarding/interests'
   | 'onboarding/preferences'
@@ -26,6 +28,7 @@ type UserRoute = { path: UserRoutePath; title: string } & (
 const userRoutes: readonly UserRoute[] = [
   { path: 'dashboard', title: 'Dashboard', kind: 'placeholder' },
   { path: 'profile', title: 'Profile', kind: 'page', Component: ProfilePage },
+  { path: 'profile/edit', title: 'Edit profile', kind: 'page', Component: ProfileEditPage },
   { path: 'onboarding', title: 'Profile setup', kind: 'page', Component: OnboardingIdentityPage },
   {
     path: 'onboarding/interests',

@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-027, FE-028, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-029 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-027, FE-028, FE-029, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-038 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -4257,7 +4257,7 @@ Done: FE-026                  Create onboarding Step 2: interests and languages 
 Done: FE-028                  Create own social-style profile view [P0; Phase 9; completed 2026-09-20]
 Done: FE-039                  Create reusable profile avatar upload control [P0; Phase 9; completed 2026-09-20]
 Done: FE-027                  Create onboarding Step 3: availability and preferences [P0; Phase 9; completed 2026-09-20]
-Next: FE-029                  Create profile edit page using onboarding field components [P0; Phase 9]
+Done: FE-029                  Create profile edit page using onboarding field components [P0; Phase 9; completed 2026-09-20]
 Next: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9]
 Next: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6]
 Next: EVT-001                 Define Event editorial state, time and visibility model [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: FE-029 — Create profile edit page using onboarding field components. Dependencies FE-028, FE-027 and BE-016 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-029 development. Continue direct-to-main workflow; do not execute FE-029 unless explicitly requested.**
+**Next development task: FE-038 — Integrate onboarding routing and readiness gate. Dependencies AUTH-022, AUTH-023, BE-016 and FE-027 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-038 development. Continue direct-to-main workflow; do not execute FE-038 unless explicitly requested.**
 
 ---
 
@@ -5702,15 +5702,32 @@ Phase 9 / Cx2; dependencies FE-028, FE-027 and BE-016 DONE, READY. It is not imp
 ### FE-029 — Create profile edit page using onboarding field components
 
 **Task ID:** `FE-029`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 9  
+**Change:** Updated existing; **Status:** Done (2026-09-20); **Priority:** P0; **Phase:** 9
 **Goal:** Let users maintain their own profile without duplicate form logic.  
 **Dependencies:** FE-028, FE-027, BE-016  
 **Scope:** Reuse onboarding fields and photo control; reload and version-conflict resolution.
 
 **Acceptance Criteria:**
 
-- [ ] Saving/removing a required field refreshes readiness and disables new matching; stale edits show conflict recovery.
-- [ ] Student-type changes during a reserved/live match show backend 409 and preserve existing data.
+- [x] Saving/removing a required field refreshes readiness and disables new matching; stale edits show conflict recovery.
+- [x] Student-type changes during a reserved/live match show backend 409 and preserve existing data.
+
+**Implementation (2026-09-20):** Added the released `/user/profile/edit` route and navigation entry,
+composed the existing identity/photo, interests/languages and availability/preferences forms in edit
+mode, and added the server-authoritative completion/readiness card. Every profile/photo mutation keeps
+the existing completion invalidation behavior. Conflict responses retain local edits and expose an
+explicit reload action that restores the persisted profile; the same recovery covers the backend 409
+used when a reserved/live match blocks student-type changes.
+
+**Verification (2026-09-20):** Focused FE-029 and affected profile/onboarding/navigation tests PASS,
+including required avatar/interest removal, readiness refresh, matching disablement and 409 recovery.
+Full frontend format, lint, typecheck, 477 tests / 44 files, production build and production dependency
+audit PASS. Unchanged backend CI gates remain green: 599 PASS / 14 configured live skips, Ruff,
+strict mypy (100 files), dependency consistency, Alembic single-head validation, package build,
+Compose validation and runtime dependency audit PASS.
+
+**Next development task:** FE-038 — Integrate onboarding routing and readiness gate, P0 / Phase 9 /
+Cx2; dependencies AUTH-022, AUTH-023, BE-016 and FE-027 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Editing another user profile.
 

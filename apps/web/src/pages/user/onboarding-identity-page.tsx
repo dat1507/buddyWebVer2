@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { ProfileAvatarControl } from '@/features/profile/profile-avatar-control'
+import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import type { OwnProfile, OwnProfileUpdate, StudentType } from '@/features/profile/profile'
 import { useOwnProfile, useUpdateOwnProfile } from '@/features/profile/queries/use-own-profile'
 import { ApiError } from '@/lib/api'
@@ -15,7 +16,6 @@ type FormField = 'fullName' | 'displayName' | 'studentType' | 'studyYear' | 'bio
 type FormErrors = Partial<Record<FormField, string>>
 
 interface IdentityFormState {
-  version: number | null
   fullName: string
   displayName: string
   studentType: StudentType | ''
@@ -30,7 +30,6 @@ const inputClassName =
 
 function profileToForm(profile: OwnProfile): IdentityFormState {
   return {
-    version: profile.version,
     fullName: profile.full_name ?? '',
     displayName: profile.display_name ?? '',
     studentType: profile.student_type ?? '',
@@ -46,12 +45,21 @@ function optionalText(value: string): string | null {
   return normalized || null
 }
 
-function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile }) {
+function OnboardingIdentityForm({
+  initialProfile,
+  mode = 'onboarding',
+  onReload,
+}: {
+  initialProfile: OwnProfile
+  mode?: ProfileFormMode
+  onReload?: ReloadOwnProfile
+}) {
   const { t } = useTranslation()
   const updateProfile = useUpdateOwnProfile()
   const [form, setForm] = useState<IdentityFormState>(() => profileToForm(initialProfile))
   const [errors, setErrors] = useState<FormErrors>({})
   const [saved, setSaved] = useState(false)
+  const [reloading, setReloading] = useState(false)
   const fullNameRef = useRef<HTMLInputElement>(null)
   const displayNameRef = useRef<HTMLInputElement>(null)
   const vietnameseTypeRef = useRef<HTMLInputElement>(null)
@@ -105,7 +113,7 @@ function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (updateProfile.isPending || form.version === null) return
+    if (updateProfile.isPending) return
     const nextErrors = validate()
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) {
@@ -114,7 +122,7 @@ function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile
     }
 
     const update: OwnProfileUpdate = {
-      version: form.version,
+      version: initialProfile.version,
       full_name: form.fullName.trim(),
       display_name: optionalText(form.displayName),
       student_type: form.studentType as StudentType,
@@ -135,23 +143,39 @@ function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile
     updateProfile.error instanceof ApiError && updateProfile.error.code === 'validation'
       ? t('onboarding.identity.serverValidation')
       : updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
-        ? t('onboarding.identity.conflict')
+        ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.identity.conflict')
         : t('onboarding.identity.saveError')
+  const hasConflict =
+    updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
+
+  const reloadSavedProfile = async () => {
+    if (!onReload || reloading) return
+    setReloading(true)
+    const refreshedProfile = await onReload()
+    setReloading(false)
+    if (!refreshedProfile) return
+    setForm(profileToForm(refreshedProfile))
+    setErrors({})
+    setSaved(false)
+    updateProfile.reset()
+  }
+
+  const titleId = mode === 'edit' ? 'profile-edit-identity-title' : 'onboarding-identity-title'
 
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby="onboarding-identity-title">
+    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
       <header className="space-y-2">
         <Typography
           variant="small"
           className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
         >
-          {t('onboarding.identity.step')}
+          {t(mode === 'edit' ? 'profileEdit.identityEyebrow' : 'onboarding.identity.step')}
         </Typography>
-        <Typography as="h1" variant="h2" id="onboarding-identity-title">
-          {t('onboarding.identity.title')}
+        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
+          {t(mode === 'edit' ? 'profileEdit.identityTitle' : 'onboarding.identity.title')}
         </Typography>
         <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t('onboarding.identity.subtitle')}
+          {t(mode === 'edit' ? 'profileEdit.identitySubtitle' : 'onboarding.identity.subtitle')}
         </Typography>
       </header>
 
@@ -387,18 +411,31 @@ function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile
                     role="status"
                   >
                     <CheckCircle2 className="size-4" aria-hidden="true" />
-                    {t('onboarding.identity.saved')}
+                    {t(mode === 'edit' ? 'profileEdit.identitySaved' : 'onboarding.identity.saved')}
                   </p>
                 ) : updateProfile.isError ? (
-                  <p className="text-sm text-destructive" role="alert">
-                    {saveError}
-                  </p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-destructive" role="alert">
+                      {saveError}
+                    </p>
+                    {hasConflict && onReload ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={reloading}
+                        onClick={() => void reloadSavedProfile()}
+                      >
+                        {t(reloading ? 'profileEdit.reloading' : 'profileEdit.reloadSaved')}
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
               <Button type="submit" disabled={updateProfile.isPending} className="sm:min-w-40">
                 {updateProfile.isPending
                   ? t('onboarding.identity.saving')
-                  : t('onboarding.identity.save')}
+                  : t(mode === 'edit' ? 'profileEdit.saveIdentity' : 'onboarding.identity.save')}
               </Button>
             </div>
           </form>
@@ -449,4 +486,4 @@ function OnboardingIdentityPage() {
   return <OnboardingIdentityForm initialProfile={profile.data} />
 }
 
-export { OnboardingIdentityPage }
+export { OnboardingIdentityForm, OnboardingIdentityPage }

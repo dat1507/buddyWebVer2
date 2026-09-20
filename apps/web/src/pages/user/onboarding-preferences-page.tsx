@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Typography } from '@/components/ui/typography'
 import type { CatalogLocale } from '@/features/profile/profile-catalog'
 import type { ProfileMissingField } from '@/features/profile/profile-completion'
+import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import type {
   OnboardingPreferencesUpdate,
   OwnProfile,
@@ -65,7 +66,15 @@ function missingStep(
     : '/user/onboarding'
 }
 
-function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
+function OnboardingPreferencesForm({
+  profile,
+  mode = 'onboarding',
+  onReload,
+}: {
+  profile: OwnProfile
+  mode?: ProfileFormMode
+  onReload?: ReloadOwnProfile
+}) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const locale = catalogLocale(i18n.resolvedLanguage)
@@ -88,6 +97,7 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
   const [completionError, setCompletionError] = useState(false)
   const [checkingCompletion, setCheckingCompletion] = useState(false)
   const [missingFields, setMissingFields] = useState<ProfileMissingField[] | null>(null)
+  const [reloading, setReloading] = useState(false)
 
   const clearFeedback = () => {
     setFormError(null)
@@ -130,7 +140,7 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
       setCompletionError(true)
       return
     }
-    if (result.data.status === 'COMPLETE') {
+    if (result.data.status === 'COMPLETE' && mode === 'onboarding') {
       navigate('/user/dashboard', { replace: true })
       return
     }
@@ -188,23 +198,50 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
     updateProfile.error instanceof ApiError && updateProfile.error.code === 'validation'
       ? t('onboarding.preferences.serverValidation')
       : updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
-        ? t('onboarding.preferences.conflict')
+        ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.preferences.conflict')
         : t('onboarding.preferences.saveError')
+  const hasConflict =
+    updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
+
+  const reloadSavedProfile = async () => {
+    if (!onReload || reloading) return
+    setReloading(true)
+    const refreshedProfile = await onReload()
+    setReloading(false)
+    if (!refreshedProfile) return
+
+    const refreshedSlots = refreshedProfile.availability?.slots ?? []
+    setAvailabilityEnabled(refreshedProfile.availability !== null)
+    setTimezone(refreshedProfile.availability?.timezone ?? detectedTimezone())
+    setSlots(refreshedSlots.map((slot, index) => ({ ...slot, id: index + 1 })))
+    nextSlotId.current = refreshedSlots.length + 1
+    setSelectedActivityIds([...(refreshedProfile.preferences?.preferred_activity_ids ?? [])])
+    setMatchingOptIn(refreshedProfile.matching_opt_in)
+    setFormError(null)
+    setCompletionError(false)
+    setMissingFields(null)
+    updateProfile.reset()
+  }
+
+  const titleId =
+    mode === 'edit' ? 'profile-edit-preferences-title' : 'onboarding-preferences-title'
 
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby="onboarding-preferences-title">
+    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
       <header className="space-y-2">
         <Typography
           variant="small"
           className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
         >
-          {t('onboarding.preferences.step')}
+          {t(mode === 'edit' ? 'profileEdit.preferencesEyebrow' : 'onboarding.preferences.step')}
         </Typography>
-        <Typography as="h1" variant="h2" id="onboarding-preferences-title">
-          {t('onboarding.preferences.title')}
+        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
+          {t(mode === 'edit' ? 'profileEdit.preferencesTitle' : 'onboarding.preferences.title')}
         </Typography>
         <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t('onboarding.preferences.subtitle')}
+          {t(
+            mode === 'edit' ? 'profileEdit.preferencesSubtitle' : 'onboarding.preferences.subtitle',
+          )}
         </Typography>
       </header>
 
@@ -524,12 +561,22 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
             {formError}
           </p>
         ) : updateProfile.isError ? (
-          <p
-            className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive"
-            role="alert"
-          >
-            {saveError}
-          </p>
+          <div className="space-y-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+            <p className="text-sm text-destructive" role="alert">
+              {saveError}
+            </p>
+            {hasConflict && onReload ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={reloading}
+                onClick={() => void reloadSavedProfile()}
+              >
+                {t(reloading ? 'profileEdit.reloading' : 'profileEdit.reloadSaved')}
+              </Button>
+            ) : null}
+          </div>
         ) : null}
 
         {completionError ? (
@@ -549,7 +596,7 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
           </div>
         ) : null}
 
-        {missingFields ? (
+        {missingFields && missingFields.length > 0 ? (
           <div className="space-y-3 rounded-xl border border-amber-500/50 bg-amber-500/5 p-4">
             <p className="font-semibold" role="status">
               {t('onboarding.preferences.incompleteTitle')}
@@ -560,17 +607,23 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
             <ul className="space-y-2">
               {missingFields.map((field) => (
                 <li key={field}>
-                  <Link
-                    className="text-sm font-semibold text-vgu-orange underline-offset-4 hover:underline"
-                    to={missingStep(field)}
-                  >
-                    {t(`onboarding.preferences.missingFields.${field}`)} ·{' '}
-                    {t(
-                      missingStep(field) === '/user/onboarding'
-                        ? 'onboarding.preferences.reviewStep1'
-                        : 'onboarding.preferences.reviewStep2',
-                    )}
-                  </Link>
+                  {mode === 'edit' ? (
+                    <span className="text-sm font-semibold">
+                      {t(`onboarding.preferences.missingFields.${field}`)}
+                    </span>
+                  ) : (
+                    <Link
+                      className="text-sm font-semibold text-vgu-orange underline-offset-4 hover:underline"
+                      to={missingStep(field)}
+                    >
+                      {t(`onboarding.preferences.missingFields.${field}`)} ·{' '}
+                      {t(
+                        missingStep(field) === '/user/onboarding'
+                          ? 'onboarding.preferences.reviewStep1'
+                          : 'onboarding.preferences.reviewStep2',
+                      )}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -587,7 +640,7 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
                 />
                 {t('onboarding.preferences.checkingCompletion')}
               </p>
-            ) : updateProfile.isSuccess && (completionError || missingFields) ? (
+            ) : updateProfile.isSuccess && (completionError || missingFields !== null) ? (
               <p className="flex items-center gap-2 text-sm font-medium text-emerald-600">
                 <CheckCircle2 className="size-4" aria-hidden="true" />
                 {t('onboarding.preferences.saved')}
@@ -599,7 +652,11 @@ function OnboardingPreferencesForm({ profile }: { profile: OwnProfile }) {
               ? t('onboarding.preferences.saving')
               : checkingCompletion
                 ? t('onboarding.preferences.checking')
-                : t('onboarding.preferences.finish')}
+                : t(
+                    mode === 'edit'
+                      ? 'profileEdit.savePreferences'
+                      : 'onboarding.preferences.finish',
+                  )}
           </Button>
         </div>
       </form>
@@ -648,4 +705,4 @@ function OnboardingPreferencesPage() {
   return <OnboardingPreferencesForm profile={profile.data} />
 }
 
-export { OnboardingPreferencesPage }
+export { OnboardingPreferencesForm, OnboardingPreferencesPage }
