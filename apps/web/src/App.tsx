@@ -11,6 +11,7 @@ import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
 import { SessionControls } from '@/features/auth/session-controls'
 import { RoleGuard } from '@/features/auth/role-guard'
+import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
 import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
 
@@ -29,19 +30,29 @@ function App() {
         <Route element={<RoleGuard requiredRole="USER" />}>
           <Route path="user" element={<UserLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-            {userRoutes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={
-                  route.kind === 'page' ? (
-                    <route.Component />
-                  ) : (
-                    <RoutePlaceholder area="User" title={route.title} />
-                  )
-                }
-              />
-            ))}
+            {userRoutes.map((route) => {
+              const page =
+                route.kind === 'page' ? (
+                  <route.Component />
+                ) : (
+                  <RoutePlaceholder area="User" title={route.title} />
+                )
+              return (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={
+                    route.readiness ? (
+                      <ProfileReadinessGate requirement={route.readiness}>
+                        {page}
+                      </ProfileReadinessGate>
+                    ) : (
+                      page
+                    )
+                  }
+                />
+              )
+            })}
           </Route>
         </Route>
 

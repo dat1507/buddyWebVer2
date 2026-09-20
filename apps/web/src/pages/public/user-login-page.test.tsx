@@ -1,3 +1,4 @@
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -5,13 +6,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import i18n from '@/i18n'
 import { sessionClient } from '@/features/auth/session-client'
+import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { completeProfileCompletion } from '@/test/profile-completion'
 
 function renderLoginRoute() {
   return render(
-    <MemoryRouter initialEntries={['/login']}>
-      <App />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
   )
 }
 
@@ -19,9 +24,11 @@ describe('UserLoginPage', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
+    queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
   })
   afterEach(() => {
     vi.restoreAllMocks()
+    queryClient.clear()
     useAuthStore.getState().resetSession()
   })
 

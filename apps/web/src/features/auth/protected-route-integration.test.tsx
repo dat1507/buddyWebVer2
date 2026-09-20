@@ -7,9 +7,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
+import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { completeProfileCompletion } from '@/test/profile-completion'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -35,6 +37,8 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
+    queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
+    vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)

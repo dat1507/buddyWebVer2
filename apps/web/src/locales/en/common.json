@@ -520,6 +520,12 @@
     "reloadSaved": "Reload saved profile",
     "reloading": "Reloading…"
   },
+  "profileReadiness": {
+    "loading": "Checking profile readiness…",
+    "errorTitle": "Profile readiness could not be checked",
+    "error": "We could not verify where your profile should continue. Try again without leaving this page.",
+    "retry": "Try again"
+  },
   "profileAvatar": {
     "title": "Profile photo",
     "help": "Choose a JPEG, PNG or WebP image. Your photo stays private and is validated by the server before it replaces the saved photo.",

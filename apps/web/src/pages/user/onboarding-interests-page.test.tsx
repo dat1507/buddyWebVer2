@@ -5,10 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
+import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { incompleteProfileCompletion } from '@/test/profile-completion'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -103,7 +105,9 @@ describe('FE-026 onboarding interests and languages step', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     queryClient.clear()
+    queryClient.setQueryData(['profile', 'completion'], incompleteProfileCompletion)
     useAuthStore.getState().setAuthenticated(user)
+    vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(incompleteProfileCompletion)
     authenticatedJson = vi
       .spyOn(sessionClient, 'authenticatedJson')
       .mockImplementation(async (path) => catalogResponse(path))

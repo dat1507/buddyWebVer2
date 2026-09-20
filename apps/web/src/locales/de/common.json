@@ -520,6 +520,12 @@
     "reloadSaved": "Gespeichertes Profil neu laden",
     "reloading": "Wird neu geladen…"
   },
+  "profileReadiness": {
+    "loading": "Profilbereitschaft wird geprüft…",
+    "errorTitle": "Profilbereitschaft konnte nicht geprüft werden",
+    "error": "Wir konnten nicht prüfen, wo dein Profil fortgesetzt werden soll. Versuche es erneut, ohne diese Seite zu verlassen.",
+    "retry": "Erneut versuchen"
+  },
   "profileAvatar": {
     "title": "Profilfoto",
     "help": "Wähle ein JPEG-, PNG- oder WebP-Bild. Dein Foto bleibt privat und wird vom Server geprüft, bevor es das gespeicherte Foto ersetzt.",

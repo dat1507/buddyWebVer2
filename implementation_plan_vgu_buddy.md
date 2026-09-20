@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-027, FE-028, FE-029, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-038 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-023 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1340,7 +1340,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | FE-027 | Create onboarding Step 3: availability and preferences — ✅ Completed | 3 | FE-026, BE-012, BE-016, FE-039 | P0 |
 | FE-028 | Create own social-style profile view — ✅ Completed | 2 | FE-025, BE-012, BE-014, BE-015 | P0 |
 | FE-029 | Create profile edit page using onboarding field components | 2 | FE-028, FE-027, BE-016 | P0 |
-| FE-038 | Integrate onboarding routing and readiness gate | 2 | AUTH-022, AUTH-023, BE-016, FE-027 | P0 |
+| FE-038 | Integrate onboarding routing and readiness gate — ✅ Completed | 2 | AUTH-022, AUTH-023, BE-016, FE-027 | P0 |
 | FE-039 | Create reusable profile avatar upload control — ✅ Completed | 2 | FE-025, BE-014 | P0 |
 
 ### Phase 10: Event Management Backend
@@ -4258,7 +4258,7 @@ Done: FE-028                  Create own social-style profile view [P0; Phase 9;
 Done: FE-039                  Create reusable profile avatar upload control [P0; Phase 9; completed 2026-09-20]
 Done: FE-027                  Create onboarding Step 3: availability and preferences [P0; Phase 9; completed 2026-09-20]
 Done: FE-029                  Create profile edit page using onboarding field components [P0; Phase 9; completed 2026-09-20]
-Next: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9]
+Done: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9; completed 2026-09-20]
 Next: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6]
 Next: EVT-001                 Define Event editorial state, time and visibility model [P0; Phase 10]
 Next: EVT-002                 Create EventRegistration model [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: FE-038 — Integrate onboarding routing and readiness gate. Dependencies AUTH-022, AUTH-023, BE-016 and FE-027 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-038 development. Continue direct-to-main workflow; do not execute FE-038 unless explicitly requested.**
+**Next development task: FE-023 — Create profile-aware User Dashboard home. Dependencies FE-021, FE-022, BE-012, BE-016 and FE-038 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-023 development. Continue direct-to-main workflow; do not execute FE-023 unless explicitly requested.**
 
 ---
 
@@ -5734,16 +5734,33 @@ Cx2; dependencies AUTH-022, AUTH-023, BE-016 and FE-027 DONE, READY. It is not i
 ### FE-038 — Integrate onboarding routing and readiness gate
 
 **Task ID:** `FE-038`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 9  
+**Change:** New; **Status:** Completed (✅) on 2026-09-20; **Priority:** P0; **Phase:** 9
 **Goal:** Extend the approved login redirect with profile readiness.  
 **Dependencies:** AUTH-022, AUTH-023, BE-016, FE-027  
 **Scope:** /user/onboarding and readiness-aware /user/dashboard and /user/matching entry; /auth/me resolves first.
 
 **Acceptance Criteria:**
 
-- [ ] Incomplete USER after login goes to onboarding; complete USER to dashboard; ADMIN bypasses student onboarding.
-- [ ] Direct matching URL cannot bypass eligibility; loading or network failure does not masquerade as incomplete profile.
-- [ ] Own profile editing, settings/logout and event viewing stay reachable; reload, back navigation and resume have no redirect loop.
+- [x] Incomplete USER after login goes to onboarding; complete USER to dashboard; ADMIN bypasses student onboarding.
+- [x] Direct matching URL cannot bypass eligibility; loading or network failure does not masquerade as incomplete profile.
+- [x] Own profile editing, settings/logout and event viewing stay reachable; reload, back navigation and resume have no redirect loop.
+
+**Implementation (2026-09-20):** Added a localized profile-readiness gate backed by the existing
+server completion query. USER dashboard, onboarding steps and matching entry now declare their exact
+readiness requirement in the shared route registry; role/bootstrap guards still resolve `/auth/me`
+first. Incomplete and complete users are redirected with replacement history, matching also requires
+server eligibility, and pending/error states remain in place with explicit retry. Profile view/edit,
+settings/logout and event routes remain outside this gate.
+
+**Verification (2026-09-20):** Dedicated readiness routing tests cover incomplete/complete USER login,
+ADMIN bypass, direct matching denial, neutral loading, retryable network failure and `/auth/me` ordering.
+Full frontend format, lint, typecheck, 483 tests / 45 files, production build and production dependency
+audit PASS. Unchanged backend CI gates remain green: 599 PASS / 14 configured live skips, Ruff, strict
+mypy (100 files), dependency consistency, Alembic single-head validation, package build, Compose
+validation and runtime dependency audit PASS.
+
+**Next development task:** FE-023 — Create profile-aware User Dashboard home, P0 / Phase 6 / Cx2;
+dependencies FE-021, FE-022, BE-012, BE-016 and FE-038 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Changing the cookie/CSRF design or redirecting all authenticated routes blindly.
 
