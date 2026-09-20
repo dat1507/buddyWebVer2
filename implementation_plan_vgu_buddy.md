@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-014, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-015 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-015, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; BE-016 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1328,7 +1328,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | BE-012 | Create own-profile read/update endpoints — ✅ Completed | 2 | BE-011, AUTH-017, AUTH-011A | P0 |
 | BE-013 | Create authorized admin user list and detail reads — ✅ Completed | 2 | BE-011, AUTH-018, EVT-008 | P0 |
 | BE-014 | Implement own profile photo upload and removal — ✅ Completed | 2 | BE-010, BE-012, EVS-003 | P0 |
-| BE-015 | Implement profile interest and language catalog APIs | 2 | BE-009, BE-012 | P0 |
+| BE-015 | Implement profile interest and language catalog APIs — ✅ Completed | 2 | BE-009, BE-012 | P0 |
 | BE-016 | Implement profile completion and matching eligibility read model | 2 | BE-012, BE-014, BE-015 | P0 |
 
 ### Phase 9: Profile UI
@@ -4250,7 +4250,7 @@ Done: BE-011                  Create own-profile persistence service [P0; Phase 
 Done: BE-012                  Create own-profile read/update endpoints [P0; Phase 8; completed 2026-09-20]
 Done: BE-013                  Create authorized admin user list and detail reads [P0; Phase 8; completed 2026-09-20]
 Done: BE-014                  Implement own profile photo upload and removal [P0; Phase 8; completed 2026-09-20]
-Next: BE-015                  Implement profile interest and language catalog APIs [P0; Phase 8]
+Done: BE-015                  Implement profile interest and language catalog APIs [P0; Phase 8; completed 2026-09-20]
 Next: BE-016                  Implement profile completion and matching eligibility read model [P0; Phase 8]
 Next: FE-025                  Create onboarding Step 1: identity and student type [P0; Phase 9]
 Next: FE-026                  Create onboarding Step 2: interests and languages [P0; Phase 9]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: BE-015 — Implement profile interest and language catalog APIs. Dependencies BE-009 and BE-012 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-015 development. Continue direct-to-main workflow; do not execute BE-015 unless explicitly requested.**
+**Next development task: BE-016 — Implement profile completion and matching eligibility read model. Dependencies BE-012, BE-014 and BE-015 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block BE-016 development. Continue direct-to-main workflow; do not execute BE-016 unless explicitly requested.**
 
 ---
 
@@ -5464,15 +5464,35 @@ Phase 8 / Cx2; dependencies BE-009 and BE-012 DONE, READY. It is not implemented
 ### BE-015 — Implement profile interest and language catalog APIs
 
 **Task ID:** `BE-015`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 8  
+**Change:** New; **Status:** Completed 2026-09-20; **Priority:** P0; **Phase:** 8
 **Goal:** Connect the existing Step 2 UI tasks to real catalog data.  
 **Dependencies:** BE-009, BE-012  
 **Scope:** GET /api/interests and /api/languages; PUT /api/profile/interests and /languages; owner/version validation.
 
 **Acceptance Criteria:**
 
-- [ ] Localized catalogs allow selection by stable ID; unknown IDs, duplicates, excessive counts and invalid proficiency fail safely.
-- [ ] Updating one relation preserves unrelated profile fields; edits invalidate completion/candidate snapshots.
+- [x] Localized catalogs allow selection by stable ID; unknown IDs, duplicates, excessive counts and invalid proficiency fail safely.
+- [x] Updating one relation preserves unrelated profile fields; edits invalidate completion/candidate snapshots.
+
+**Implementation:** Authenticated USER and ADMIN catalog reads return only active Interest/Language
+rows with stable IDs/codes and the requested EN/DE label. CSRF-protected USER-only relation PUTs
+replace an exact bounded set under the locked owner profile and optimistic `version`, reject unknown
+or inactive catalog values, duplicates and invalid proficiency, and commit atomically. Semantic edits
+increment the shared profile version so derived completion and future matching candidate snapshots
+cannot reuse stale selections; no-op replacements avoid version churn. Own-profile reads attach the
+normalized selections for resumable onboarding without exposing owner/account fields.
+
+**Verification (2026-09-20):** 32 new/updated BE-015 schema/service/API/profile tests PASS, covering
+localized active catalogs, stable identifiers, owner/RBAC/CSRF isolation, exact relation replacement,
+limits, duplicates, invalid proficiency, unknown/inactive values, stale versions, atomic rollback,
+no-op behavior and reload attachment. Full backend 576 PASS / 14 configured live skips; Ruff, strict
+mypy (96 files), dependency consistency, Alembic single-head validation, package build and Compose
+validation PASS. Unchanged frontend format/lint/typecheck, 446 tests / 38 files with two workers and
+extended host timeout, and production build PASS. Runtime and frontend production dependency audits
+report zero known vulnerabilities.
+
+**Next development task:** BE-016 — Implement profile completion and matching eligibility read model,
+P0 / Phase 8 / Cx2; dependencies BE-012, BE-014 and BE-015 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Additional taxonomy provider or hard-coded frontend option list.
 

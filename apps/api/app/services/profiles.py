@@ -108,6 +108,14 @@ async def get_or_create_own_profile(session: AsyncSession, owner: User) -> Stude
     return await _get_or_create_own_profile(session, owner, for_update=False)
 
 
+async def get_or_create_own_profile_for_update(
+    session: AsyncSession,
+    owner: User,
+) -> StudentProfile:
+    """Resolve and lock the owner profile for related-table operations."""
+    return await _get_or_create_own_profile(session, owner, for_update=True)
+
+
 def _availability_value(value: WeeklyAvailability) -> dict[str, object]:
     return {
         "timezone": value.timezone,

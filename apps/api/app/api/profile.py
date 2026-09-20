@@ -10,6 +10,7 @@ from app.core.database import get_database_session
 from app.models import StudentProfile, User, UserRole
 from app.schemas import OwnProfileResponse, ProfilePhotoResponse, ProfileUpdate
 from app.services.csrf import CsrfTokenClaims
+from app.services.profile_catalogs import get_own_catalog_selections
 from app.services.profile_photos import get_own_avatar
 from app.services.profiles import (
     ProfileAccessError,
@@ -51,6 +52,13 @@ async def _own_profile_response(
     profile: StudentProfile,
 ) -> OwnProfileResponse:
     response = OwnProfileResponse.model_validate(profile)
+    selections = await get_own_catalog_selections(session, current_user, profile)
+    response = response.model_copy(
+        update={
+            "interest_ids": list(selections.interest_ids),
+            "languages": list(selections.languages),
+        }
+    )
     avatar = await get_own_avatar(session, current_user)
     if avatar is None:
         return response

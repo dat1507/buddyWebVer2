@@ -23,6 +23,8 @@ from app.core.config import (
 from app.core.database import get_database_session
 from app.main import app
 from app.models import (
+    LanguageProficiency,
+    ProfileLanguage,
     ProfilePhoto,
     ProfilePhotoProcessingStatus,
     StudentProfile,
@@ -90,6 +92,9 @@ def _session(*scalar_values: object) -> tuple[MagicMock, AsyncSession]:
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=scalar_values)
     mock.scalars = AsyncMock()
+    empty_scalars = MagicMock()
+    empty_scalars.all.return_value = []
+    mock.scalars.return_value = empty_scalars
     empty_result = MagicMock()
     empty_result.scalar_one_or_none.return_value = None
     mock.execute = AsyncMock(return_value=empty_result)
@@ -145,6 +150,8 @@ def _expected_profile(profile: StudentProfile) -> dict[str, object]:
         "matching_opt_in": profile.matching_opt_in,
         "version": profile.version,
         "avatar": None,
+        "interest_ids": [],
+        "languages": [],
     }
 
 
@@ -225,6 +232,35 @@ async def test_get_attaches_safe_avatar_metadata_without_storage_reference() -> 
     }
     assert photo.object_key not in response.text
     assert photo.bucket not in response.text
+
+
+@pytest.mark.anyio
+async def test_get_attaches_normalized_catalog_selections_for_resume() -> None:
+    user = _user()
+    profile = _profile()
+    interest_id = uuid4()
+    language = ProfileLanguage(
+        profile_id=PROFILE_ID,
+        language_code="de",
+        proficiency=LanguageProficiency.INTERMEDIATE,
+    )
+    mock, session = _session(user, profile)
+    interest_result = MagicMock()
+    interest_result.all.return_value = [interest_id]
+    language_result = MagicMock()
+    language_result.all.return_value = [language]
+    mock.scalars.side_effect = [interest_result, language_result]
+    _install(session)
+    cookies, _headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.get("/api/profile")
+
+    assert response.status_code == 200
+    assert response.json()["interest_ids"] == [str(interest_id)]
+    assert response.json()["languages"] == [{"language_code": "de", "proficiency": "intermediate"}]
 
 
 @pytest.mark.anyio

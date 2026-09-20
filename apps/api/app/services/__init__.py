@@ -62,6 +62,7 @@ from app.services.profiles import (
     ProfileValidationError,
     ProfileVersionConflictError,
     get_or_create_own_profile,
+    get_or_create_own_profile_for_update,
     update_own_profile,
 )
 from app.services.refresh_sessions import (
@@ -148,6 +149,7 @@ __all__ = [
     "canonicalize_email",
     "hash_password",
     "get_or_create_own_profile",
+    "get_or_create_own_profile_for_update",
     "prepare_refresh_rotation",
     "prepare_image",
     "reconcile_orphaned_images",

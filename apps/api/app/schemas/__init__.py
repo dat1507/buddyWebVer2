@@ -23,6 +23,18 @@ from app.schemas.profile import (
     WeeklyAvailability,
     WeeklyAvailabilitySlot,
 )
+from app.schemas.profile_catalog import (
+    CatalogLocale,
+    InterestCatalogItem,
+    InterestCatalogResponse,
+    LanguageCatalogItem,
+    LanguageCatalogResponse,
+    ProfileInterestSelectionResponse,
+    ProfileInterestUpdate,
+    ProfileLanguageSelection,
+    ProfileLanguageSelectionResponse,
+    ProfileLanguageUpdate,
+)
 from app.schemas.profile_photo import ProfilePhotoResponse, ProfilePhotoUrlResponse
 
 __all__ = [
@@ -32,10 +44,20 @@ __all__ = [
     "AdminUserListResponse",
     "AdminUserSummary",
     "CsrfTokenResponse",
+    "CatalogLocale",
+    "InterestCatalogItem",
+    "InterestCatalogResponse",
+    "LanguageCatalogItem",
+    "LanguageCatalogResponse",
     "LoginRequest",
     "LoginResponse",
     "OwnProfileResponse",
     "ProfilePreferences",
+    "ProfileInterestSelectionResponse",
+    "ProfileInterestUpdate",
+    "ProfileLanguageSelection",
+    "ProfileLanguageSelectionResponse",
+    "ProfileLanguageUpdate",
     "ProfilePhotoResponse",
     "ProfilePhotoUrlResponse",
     "ProfileUpdate",

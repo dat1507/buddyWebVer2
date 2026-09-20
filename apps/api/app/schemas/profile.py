@@ -20,6 +20,7 @@ from pydantic import (
 )
 
 from app.models import StudentType
+from app.schemas.profile_catalog import ProfileLanguageSelection
 from app.schemas.profile_photo import ProfilePhotoResponse
 
 
@@ -219,3 +220,5 @@ class OwnProfileResponse(BaseModel):
     matching_opt_in: bool
     version: int
     avatar: ProfilePhotoResponse | None = None
+    interest_ids: list[UUID] = Field(default_factory=list, max_length=20)
+    languages: list[ProfileLanguageSelection] = Field(default_factory=list, max_length=10)
