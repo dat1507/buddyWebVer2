@@ -29,6 +29,8 @@ class ApiError extends Error {
 interface JsonRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
+  binaryBody?: Blob
+  contentType?: string
   csrfToken?: string
   signal?: AbortSignal
 }
@@ -43,6 +45,13 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
     throw new ApiError(0, 'configuration')
   }
   if (!/^\/(?!\/)/.test(path)) throw new ApiError(0, 'configuration')
+  if (
+    (options.body !== undefined && options.binaryBody !== undefined) ||
+    (options.binaryBody !== undefined && !options.contentType) ||
+    (options.binaryBody === undefined && options.contentType !== undefined)
+  ) {
+    throw new ApiError(0, 'configuration')
+  }
   const method = options.method ?? 'GET'
   if (method !== 'GET' && !options.csrfToken) throw new ApiError(0, 'csrf')
   const controller = new AbortController()
@@ -58,9 +67,12 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
       headers: {
         Accept: 'application/json',
         ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(options.binaryBody === undefined ? {} : { 'Content-Type': options.contentType! }),
         ...(method === 'GET' ? {} : { 'X-CSRF-Token': options.csrfToken! }),
       },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body:
+        options.binaryBody ??
+        (options.body === undefined ? undefined : JSON.stringify(options.body)),
       signal: controller.signal,
     })
     if (!response.ok) {

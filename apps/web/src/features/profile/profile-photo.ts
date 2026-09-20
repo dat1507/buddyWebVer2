@@ -21,6 +21,12 @@ const profilePhotoUrlSchema = z.object({
 type ProfilePhoto = Readonly<z.infer<typeof profilePhotoSchema>>
 type ProfilePhotoUrl = Readonly<z.infer<typeof profilePhotoUrlSchema> & { expiresAt: number }>
 
+function parseProfilePhoto(payload: unknown): ProfilePhoto {
+  const result = profilePhotoSchema.safeParse(payload)
+  if (!result.success) throw new ApiError(200, 'invalidResponse')
+  return Object.freeze(result.data)
+}
+
 function parseProfilePhotoUrl(payload: unknown, photoId: string): ProfilePhotoUrl {
   const result = profilePhotoUrlSchema.safeParse(payload)
   if (
@@ -36,5 +42,5 @@ function parseProfilePhotoUrl(payload: unknown, photoId: string): ProfilePhotoUr
   })
 }
 
-export { parseProfilePhotoUrl, profilePhotoSchema }
+export { parseProfilePhoto, parseProfilePhotoUrl, profilePhotoSchema }
 export type { ProfilePhoto, ProfilePhotoUrl }

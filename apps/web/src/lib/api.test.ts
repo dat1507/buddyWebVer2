@@ -46,12 +46,52 @@ describe('credentialed JSON transport', () => {
     })
   })
 
+  it('sends an authenticated binary body without JSON serialization', async () => {
+    const fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          mime_type: 'image/png',
+        }),
+      ),
+    )
+    vi.stubGlobal('fetch', fetch)
+    const image = new File(['png-bytes'], 'avatar.png', { type: 'image/png' })
+
+    await requestJson('/profile/photos', {
+      method: 'POST',
+      binaryBody: image,
+      contentType: image.type,
+      csrfToken: 'signed-fixture',
+    })
+
+    expect(fetch.mock.calls[0][1]).toMatchObject({
+      credentials: 'include',
+      cache: 'default',
+      body: image,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'image/png',
+        'X-CSRF-Token': 'signed-fixture',
+      },
+    })
+  })
+
   it('fails before fetch when configuration or CSRF is missing', async () => {
     const fetch = vi.fn()
     vi.stubGlobal('fetch', fetch)
     await expect(requestJson('/auth/register', { method: 'POST' })).rejects.toMatchObject({
       code: 'csrf',
     })
+    await expect(
+      requestJson('/profile/photos', {
+        method: 'POST',
+        body: {},
+        binaryBody: new Blob(),
+        contentType: 'image/png',
+        csrfToken: 'signed-fixture',
+      }),
+    ).rejects.toMatchObject({ code: 'configuration' })
     await expect(getJson('//attacker.example')).rejects.toMatchObject({ code: 'configuration' })
     vi.stubEnv('VITE_API_URL', '')
     await expect(getJson('/auth/me')).rejects.toMatchObject({ code: 'configuration' })

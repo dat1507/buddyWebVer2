@@ -12,8 +12,8 @@ import type {
   ProfileSelectionsResult,
   ProfileSelectionsUpdate,
 } from '@/features/profile/profile-catalog'
-import { parseProfilePhotoUrl } from '@/features/profile/profile-photo'
-import type { ProfilePhotoUrl } from '@/features/profile/profile-photo'
+import { parseProfilePhoto, parseProfilePhotoUrl } from '@/features/profile/profile-photo'
+import type { ProfilePhoto, ProfilePhotoUrl } from '@/features/profile/profile-photo'
 import { parseOwnProfile } from '@/features/profile/profile'
 import type { OwnProfile, OwnProfileUpdate } from '@/features/profile/profile'
 
@@ -50,6 +50,22 @@ const profileClient = {
       await sessionClient.authenticatedJson(`/profile/photos/${photoId}/url`, { signal }),
       photoId,
     )
+  },
+
+  async uploadPhoto(file: File): Promise<ProfilePhoto> {
+    return parseProfilePhoto(
+      await sessionClient.authenticatedJson('/profile/photos', {
+        method: 'POST',
+        binaryBody: file,
+        contentType: file.type || 'application/octet-stream',
+      }),
+    )
+  },
+
+  async removePhoto(photoId: string): Promise<void> {
+    await sessionClient.authenticatedJson(`/profile/photos/${photoId}`, {
+      method: 'DELETE',
+    })
   },
 
   async updateSelections(update: ProfileSelectionsUpdate): Promise<ProfileSelectionsResult> {

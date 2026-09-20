@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-028, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-039 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-028, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-027 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1341,7 +1341,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | FE-028 | Create own social-style profile view — ✅ Completed | 2 | FE-025, BE-012, BE-014, BE-015 | P0 |
 | FE-029 | Create profile edit page using onboarding field components | 2 | FE-028, FE-027, BE-016 | P0 |
 | FE-038 | Integrate onboarding routing and readiness gate | 2 | AUTH-022, AUTH-023, BE-016, FE-027 | P0 |
-| FE-039 | Create reusable profile avatar upload control | 2 | FE-025, BE-014 | P0 |
+| FE-039 | Create reusable profile avatar upload control — ✅ Completed | 2 | FE-025, BE-014 | P0 |
 
 ### Phase 10: Event Management Backend
 
@@ -4255,7 +4255,7 @@ Done: BE-016                  Implement profile completion and matching eligibil
 Done: FE-025                  Create onboarding Step 1: identity and student type [P0; Phase 9; completed 2026-09-20]
 Done: FE-026                  Create onboarding Step 2: interests and languages [P0; Phase 9; completed 2026-09-20]
 Done: FE-028                  Create own social-style profile view [P0; Phase 9; completed 2026-09-20]
-Next: FE-039                  Create reusable profile avatar upload control [P0; Phase 9]
+Done: FE-039                  Create reusable profile avatar upload control [P0; Phase 9; completed 2026-09-20]
 Next: FE-027                  Create onboarding Step 3: availability and preferences [P0; Phase 9]
 Next: FE-029                  Create profile edit page using onboarding field components [P0; Phase 9]
 Next: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: FE-039 — Create reusable profile avatar upload control. Dependencies FE-025 and BE-014 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-039 development. Continue direct-to-main workflow; do not execute FE-039 unless explicitly requested.**
+**Next development task: FE-027 — Create onboarding Step 3: availability and preferences. Dependencies FE-026, BE-012, BE-016 and FE-039 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-027 development. Continue direct-to-main workflow; do not execute FE-027 unless explicitly requested.**
 
 ---
 
@@ -5632,15 +5632,36 @@ Cx2; dependencies FE-025 and BE-014 DONE, READY. It is not implemented here.
 ### FE-039 — Create reusable profile avatar upload control
 
 **Task ID:** `FE-039`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 9  
+**Change:** New; **Status:** Completed (2026-09-20); **Priority:** P0; **Phase:** 9
 **Goal:** Provide upload/replace/remove in onboarding and editing.  
 **Dependencies:** FE-025, BE-014  
 **Scope:** Accessible file input, preview, optional client resize, pending/error/retry; server remains final validator.
 
 **Acceptance Criteria:**
 
-- [ ] Failed uploads preserve saved avatar; file input and preview are keyboard accessible; local object URLs are revoked.
-- [ ] Upload/removal refetches own profile and completion; browser never sees privileged storage credentials.
+- [x] Failed uploads preserve saved avatar; file input and preview are keyboard accessible; local object URLs are revoked.
+- [x] Upload/removal refetches own profile and completion; browser never sees privileged storage credentials.
+
+**Implementation (2026-09-20):** Added a reusable EN/DE profile avatar control to the existing
+identity onboarding/edit route. It provides a native accessible file input, local preview,
+upload/replace retry states, and confirmed removal while retaining the saved avatar after failed
+mutations. The authenticated transport now sends the selected image as a CSRF-protected raw body
+to the backend; responses are reduced to public photo metadata. Successful upload/removal
+refetches the own-profile and completion query roots, while short-lived signed URLs stay within
+the private profile cache lifecycle. Local object URLs are revoked on clear, replacement,
+successful mutation and unmount.
+
+**Verification (2026-09-20):** Four focused FE-039 UI tests and binary transport/session coverage
+PASS for keyboard access, preview lifecycle, failed upload/remove recovery, confirmation, EN/DE,
+CSRF raw-body delivery, private metadata exclusion and profile/completion invalidation. Full
+frontend format/lint/typecheck, 469 tests / 42 files, production build and production dependency
+audit PASS. Unchanged backend CI gates remain green: 599 PASS / 14 configured live skips, Ruff,
+strict mypy (100 files), dependency consistency, Alembic single-head validation, package build,
+Compose validation and runtime dependency audit PASS.
+
+**Next development task:** FE-027 — Create onboarding Step 3: availability and preferences, P0 /
+Phase 9 / Cx3; dependencies FE-026, BE-012, BE-016 and FE-039 DONE, READY. It is not implemented
+here.
 
 **Out of Scope:** Camera capture, gallery or image editor.
 

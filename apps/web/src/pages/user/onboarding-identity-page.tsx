@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { ProfileAvatarControl } from '@/features/profile/profile-avatar-control'
 import type { OwnProfile, OwnProfileUpdate, StudentType } from '@/features/profile/profile'
 import { useOwnProfile, useUpdateOwnProfile } from '@/features/profile/queries/use-own-profile'
 import { ApiError } from '@/lib/api'
@@ -159,11 +160,12 @@ function OnboardingIdentityForm({ initialProfile }: { initialProfile: OwnProfile
           <CardTitle>{t('onboarding.identity.cardTitle')}</CardTitle>
           <CardDescription>{t('onboarding.identity.requiredHint')}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-7">
+          <ProfileAvatarControl profile={initialProfile} />
           <form
             noValidate
             aria-busy={updateProfile.isPending}
-            className="space-y-7"
+            className="space-y-7 border-t border-border pt-7"
             onSubmit={handleSubmit}
           >
             <div className="grid gap-5 sm:grid-cols-2">

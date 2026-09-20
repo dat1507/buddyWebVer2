@@ -392,6 +392,30 @@ describe('AUTH-021 session coordination', () => {
     expect(fetch.mock.calls[4][1]).toMatchObject({ headers: { 'X-CSRF-Token': 'replacement' } })
   })
 
+  it('forwards a private binary upload with the verified session CSRF', async () => {
+    await bootstrap()
+    const image = new File(['image-bytes'], 'avatar.webp', { type: 'image/webp' })
+    fetch.mockResolvedValueOnce(json({ status: 'stored' }, 201))
+
+    await expect(
+      client.authenticatedJson('/profile/photos', {
+        method: 'POST',
+        binaryBody: image,
+        contentType: image.type,
+      }),
+    ).resolves.toEqual({ status: 'stored' })
+
+    expect(fetch.mock.calls[2][1]).toMatchObject({
+      method: 'POST',
+      body: image,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'image/webp',
+        'X-CSRF-Token': 'session-fixture',
+      },
+    })
+  })
+
   it('does not return stale private data when account intent changed mid-request', async () => {
     await bootstrap()
     const late = deferred<Response>()
