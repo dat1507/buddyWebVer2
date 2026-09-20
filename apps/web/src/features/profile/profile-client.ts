@@ -1,4 +1,17 @@
 import { sessionClient } from '@/features/auth/session-client'
+import {
+  parseInterestCatalog,
+  parseInterestSelection,
+  parseLanguageCatalog,
+  parseLanguageSelection,
+} from '@/features/profile/profile-catalog'
+import type {
+  CatalogLocale,
+  InterestCatalog,
+  LanguageCatalog,
+  ProfileSelectionsResult,
+  ProfileSelectionsUpdate,
+} from '@/features/profile/profile-catalog'
 import { parseOwnProfile } from '@/features/profile/profile'
 import type { OwnProfile, OwnProfileUpdate } from '@/features/profile/profile'
 
@@ -14,6 +27,50 @@ const profileClient = {
         body: update,
       }),
     )
+  },
+
+  async readInterests(locale: CatalogLocale, signal?: AbortSignal): Promise<InterestCatalog> {
+    return parseInterestCatalog(
+      await sessionClient.authenticatedJson(`/interests?locale=${locale}`, { signal }),
+      locale,
+    )
+  },
+
+  async readLanguages(locale: CatalogLocale, signal?: AbortSignal): Promise<LanguageCatalog> {
+    return parseLanguageCatalog(
+      await sessionClient.authenticatedJson(`/languages?locale=${locale}`, { signal }),
+      locale,
+    )
+  },
+
+  async updateSelections(update: ProfileSelectionsUpdate): Promise<ProfileSelectionsResult> {
+    let version = update.version
+    let interestIds = update.interestIds
+    let languages = update.languages
+
+    if (update.updateInterests) {
+      const result = parseInterestSelection(
+        await sessionClient.authenticatedJson('/profile/interests', {
+          method: 'PUT',
+          body: { version, interest_ids: interestIds },
+        }),
+      )
+      version = result.version
+      interestIds = result.interest_ids
+    }
+
+    if (update.updateLanguages) {
+      const result = parseLanguageSelection(
+        await sessionClient.authenticatedJson('/profile/languages', {
+          method: 'PUT',
+          body: { version, languages },
+        }),
+      )
+      version = result.version
+      languages = result.languages
+    }
+
+    return { version, interest_ids: interestIds, languages }
   },
 }
 

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { profileLanguageSelectionSchema } from '@/features/profile/profile-catalog'
 import { ApiError } from '@/lib/api'
 
 const studentTypeSchema = z.enum(['VIETNAMESE', 'INTERNATIONAL'])
@@ -13,6 +14,8 @@ const ownProfileSchema = z.object({
   major: z.string().nullable(),
   study_year: z.number().int().min(1).max(10).nullable(),
   bio: z.string().nullable(),
+  interest_ids: z.array(z.string().uuid()).max(20).default([]),
+  languages: z.array(profileLanguageSelectionSchema).max(10).default([]),
   version: z.number().int().positive(),
 })
 

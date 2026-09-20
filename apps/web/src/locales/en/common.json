@@ -322,6 +322,43 @@
         "studyYearRange": "Study year must be a whole number from 1 to 10.",
         "bioMaximum": "About you must contain at most 500 characters."
       }
+    },
+    "compatibility": {
+      "step": "Step 2 of 3 · Interests and languages",
+      "title": "What do you enjoy?",
+      "subtitle": "Choose interests and languages that can help us find meaningful common ground with your future buddy.",
+      "interestsTitle": "Your interests",
+      "interestsDescription": "Search the current interest catalog and choose up to {{maximum}} topics.",
+      "searchInterests": "Search interests",
+      "searchPlaceholder": "Search by interest name",
+      "interestCount": "{{count}} of {{maximum}} interests selected",
+      "noInterestResults": "No interests match your search.",
+      "noInterests": "No interests are available right now.",
+      "languagesTitle": "Languages you speak",
+      "languagesDescription": "Choose up to {{maximum}} languages and set your proficiency for each one.",
+      "languageCount": "{{count}} of {{maximum}} languages selected",
+      "proficiencyFor": "Proficiency in {{language}}",
+      "proficiencies": {
+        "native": "Native",
+        "fluent": "Fluent",
+        "intermediate": "Intermediate",
+        "beginner": "Beginner"
+      },
+      "noLanguages": "No languages are available right now.",
+      "loadingProfile": "Loading your saved profile…",
+      "loadingInterests": "Loading interests…",
+      "loadingLanguages": "Loading languages…",
+      "profileErrorTitle": "Your profile could not be loaded",
+      "profileError": "We could not load your saved selections. Try again before making changes.",
+      "interestsError": "The interest catalog could not be loaded.",
+      "languagesError": "The language catalog could not be loaded.",
+      "retry": "Try again",
+      "save": "Save Step 2",
+      "saving": "Saving…",
+      "saved": "Step 2 saved to your profile.",
+      "serverValidation": "Some selections were not accepted. Review them and try again.",
+      "conflict": "Your profile changed in another session. Try saving again with the refreshed profile.",
+      "saveError": "Your selections could not be saved. They are still here; please try again."
     }
   },
   "userLayout": {

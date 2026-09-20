@@ -322,6 +322,43 @@
         "studyYearRange": "Das Studienjahr muss eine ganze Zahl zwischen 1 und 10 sein.",
         "bioMaximum": "Der Text über dich darf höchstens 500 Zeichen enthalten."
       }
+    },
+    "compatibility": {
+      "step": "Schritt 2 von 3 · Interessen und Sprachen",
+      "title": "Was machst du gerne?",
+      "subtitle": "Wähle Interessen und Sprachen, die dir und deinem zukünftigen Buddy helfen können, Gemeinsamkeiten zu finden.",
+      "interestsTitle": "Deine Interessen",
+      "interestsDescription": "Durchsuche den aktuellen Interessenkatalog und wähle bis zu {{maximum}} Themen aus.",
+      "searchInterests": "Interessen suchen",
+      "searchPlaceholder": "Nach Interessenname suchen",
+      "interestCount": "{{count}} von {{maximum}} Interessen ausgewählt",
+      "noInterestResults": "Keine Interessen entsprechen deiner Suche.",
+      "noInterests": "Derzeit sind keine Interessen verfügbar.",
+      "languagesTitle": "Sprachen, die du sprichst",
+      "languagesDescription": "Wähle bis zu {{maximum}} Sprachen aus und gib jeweils dein Niveau an.",
+      "languageCount": "{{count}} von {{maximum}} Sprachen ausgewählt",
+      "proficiencyFor": "Sprachniveau in {{language}}",
+      "proficiencies": {
+        "native": "Muttersprache",
+        "fluent": "Fließend",
+        "intermediate": "Fortgeschritten",
+        "beginner": "Anfänger"
+      },
+      "noLanguages": "Derzeit sind keine Sprachen verfügbar.",
+      "loadingProfile": "Dein gespeichertes Profil wird geladen…",
+      "loadingInterests": "Interessen werden geladen…",
+      "loadingLanguages": "Sprachen werden geladen…",
+      "profileErrorTitle": "Dein Profil konnte nicht geladen werden",
+      "profileError": "Wir konnten deine gespeicherte Auswahl nicht laden. Versuche es erneut, bevor du Änderungen vornimmst.",
+      "interestsError": "Der Interessenkatalog konnte nicht geladen werden.",
+      "languagesError": "Der Sprachkatalog konnte nicht geladen werden.",
+      "retry": "Erneut versuchen",
+      "save": "Schritt 2 speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Schritt 2 wurde in deinem Profil gespeichert.",
+      "serverValidation": "Einige Auswahlen wurden nicht akzeptiert. Prüfe sie und versuche es erneut.",
+      "conflict": "Dein Profil wurde in einer anderen Sitzung geändert. Versuche mit dem aktualisierten Profil erneut zu speichern.",
+      "saveError": "Deine Auswahl konnte nicht gespeichert werden. Sie ist noch vorhanden; versuche es erneut."
     }
   },
   "userLayout": {

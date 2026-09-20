@@ -1,11 +1,13 @@
 import type { ComponentType } from 'react'
 
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
+import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 
 type UserRoutePath =
   | 'dashboard'
   | 'profile'
   | 'onboarding'
+  | 'onboarding/interests'
   | 'matching'
   | 'buddy'
   | 'assistant'
@@ -22,6 +24,12 @@ const userRoutes: readonly UserRoute[] = [
   { path: 'dashboard', title: 'Dashboard', kind: 'placeholder' },
   { path: 'profile', title: 'Profile', kind: 'placeholder' },
   { path: 'onboarding', title: 'Profile setup', kind: 'page', Component: OnboardingIdentityPage },
+  {
+    path: 'onboarding/interests',
+    title: 'Profile interests and languages',
+    kind: 'page',
+    Component: OnboardingInterestsPage,
+  },
   { path: 'matching', title: 'Buddy matching', kind: 'placeholder' },
   { path: 'buddy', title: 'My Buddy', kind: 'placeholder' },
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },
