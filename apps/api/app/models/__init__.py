@@ -2,6 +2,13 @@
 
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.event import (
+    Event,
+    EventPhase,
+    EventStatus,
+    EventVisibility,
+    derive_event_phase,
+)
 from app.models.profile import (
     ProfilePhoto,
     ProfilePhotoProcessingStatus,
@@ -21,6 +28,10 @@ from app.models.user import User, UserRole
 __all__ = (
     "AuditLog",
     "Base",
+    "Event",
+    "EventPhase",
+    "EventStatus",
+    "EventVisibility",
     "Interest",
     "Language",
     "LanguageProficiency",
@@ -33,4 +44,5 @@ __all__ = (
     "StudentType",
     "User",
     "UserRole",
+    "derive_event_phase",
 )
