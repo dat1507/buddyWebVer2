@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; FE-023 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-008 and EVS-003 are complete; EVT-001 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1301,7 +1301,7 @@ This phase is an approved completion gate inserted after FE-020 and before Backe
 |----|------|----|------|-----|
 | FE-021 | Create UserLayout component (sidebar + content area) — ✅ Completed | 3 | FE-005, AUTH-006 | P0 |
 | FE-022 | Create User Sidebar navigation — ✅ Completed | 2 | FE-021 | P0 |
-| FE-023 | Create profile-aware User Dashboard home | 2 | FE-021, FE-022, BE-012, BE-016, FE-038 | P0 |
+| FE-023 | Create profile-aware User Dashboard home — ✅ Completed | 2 | FE-021, FE-022, BE-012, BE-016, FE-038 | P0 |
 | FE-024 | Create User Settings page with real session actions | 2 | FE-021, AUTH-021, AUTH-025 | P1 |
 
 ### Phase 7: Admin Dashboard Shell
@@ -4259,7 +4259,7 @@ Done: FE-039                  Create reusable profile avatar upload control [P0;
 Done: FE-027                  Create onboarding Step 3: availability and preferences [P0; Phase 9; completed 2026-09-20]
 Done: FE-029                  Create profile edit page using onboarding field components [P0; Phase 9; completed 2026-09-20]
 Done: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9; completed 2026-09-20]
-Next: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6]
+Done: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6; completed 2026-09-21]
 Next: EVT-001                 Define Event editorial state, time and visibility model [P0; Phase 10]
 Next: EVT-002                 Create EventRegistration model [P0; Phase 10]
 Next: EVT-010                 Define EventMedia ownership model [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: FE-023 — Create profile-aware User Dashboard home. Dependencies FE-021, FE-022, BE-012, BE-016 and FE-038 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block FE-023 development. Continue direct-to-main workflow; do not execute FE-023 unless explicitly requested.**
+**Next development task: EVT-001 — Define Event editorial state, time and visibility model. Dependencies BE-006 and AUTH-008 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-001 development. Continue direct-to-main workflow; do not execute EVT-001 unless explicitly requested.**
 
 ---
 
@@ -5767,15 +5767,31 @@ dependencies FE-021, FE-022, BE-012, BE-016 and FE-038 DONE, READY. It is not im
 ### FE-023 — Create profile-aware User Dashboard home
 
 **Task ID:** `FE-023`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 6  
+**Change:** Updated existing; **Status:** Completed (✅) on 2026-09-21; **Priority:** P0; **Phase:** 6
 **Goal:** Give completed users a useful home after login.  
 **Dependencies:** FE-021, FE-022, BE-012, BE-016, FE-038  
 **Scope:** Own profile card, completeness/missing-field callout, matching and events entry points.
 
 **Acceptance Criteria:**
 
-- [ ] Dashboard uses saved own profile; loading/error/retry are distinct from incomplete status.
-- [ ] Links use delivered routes; no invented match, notification or event counts.
+- [x] Dashboard uses saved own profile; loading/error/retry are distinct from incomplete status.
+- [x] Links use delivered routes; no invented match, notification or event counts.
+
+**Implementation (2026-09-21):** Replaced the dashboard scaffold with a localized, responsive page
+using the existing own-profile and completion queries. It presents saved identity details, explicit
+loading/error/retry and completion states, missing-field guidance, and canonical profile, matching
+and event actions. Matching-ineligible users are directed to the delivered profile editor instead of
+the guarded matching route; no synthetic counts, notifications or analytics are displayed.
+
+**Verification (2026-09-21):** Dedicated FE-023 tests cover saved profile rendering, exact route
+links, matching eligibility, incomplete readiness, neutral loading and retryable failures. Full
+frontend format, lint, typecheck, 487 tests / 46 files, production build and production dependency
+audit PASS. Unchanged backend CI gates remain green: 599 PASS / 14 configured live skips, Ruff,
+strict mypy (100 files), dependency consistency, Alembic single-head validation, package build,
+Compose validation and runtime dependency audit PASS.
+
+**Next development task:** EVT-001 — Define Event editorial state, time and visibility model, P0 /
+Phase 10 / Cx2; dependencies BE-006 and AUTH-008 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Full analytics, social feed, live notifications.
 

@@ -9,6 +9,7 @@ import { sessionClient } from '@/features/auth/session-client'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
+import { completeOwnProfile } from '@/test/profile'
 
 function renderLoginRoute() {
   return render(
@@ -24,6 +25,7 @@ describe('UserLoginPage', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
+    queryClient.setQueryData(['profile', 'own'], completeOwnProfile)
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
   })
   afterEach(() => {

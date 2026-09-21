@@ -6,6 +6,7 @@ import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
 import { ProfilePage } from '@/pages/user/profile-page'
 import { ProfileEditPage } from '@/pages/user/profile-edit-page'
+import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
 
 type UserRoutePath =
   | 'dashboard'
@@ -29,7 +30,13 @@ type UserRoute = {
 
 // Routing and navigation share delivery status. Add a page component only when its task is done.
 const userRoutes: readonly UserRoute[] = [
-  { path: 'dashboard', title: 'Dashboard', readiness: 'complete', kind: 'placeholder' },
+  {
+    path: 'dashboard',
+    title: 'Dashboard',
+    readiness: 'complete',
+    kind: 'page',
+    Component: UserDashboardPage,
+  },
   { path: 'profile', title: 'Profile', kind: 'page', Component: ProfilePage },
   { path: 'profile/edit', title: 'Edit profile', kind: 'page', Component: ProfileEditPage },
   {

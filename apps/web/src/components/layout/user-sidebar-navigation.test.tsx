@@ -27,7 +27,7 @@ const locales = [
   ],
 ] as const
 
-// Component inputs for released-page behavior beyond the production profile page.
+// Component inputs for released-page behavior beyond the production dashboard/profile pages.
 const releasedItems: readonly UserNavigationItem[] = userNavigationItems.map((item) =>
   item.to && ['dashboard', 'myProfile', 'events'].includes(item.id)
     ? { ...item, available: true, to: item.to }
@@ -77,22 +77,27 @@ describe('FE-022 student sidebar navigation', () => {
       })
       expect(editProfile).toHaveAttribute('href', '/user/profile/edit')
       expect(editProfile).not.toHaveAttribute('aria-disabled')
+      const dashboard = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.dashboard'),
+      })
+      expect(dashboard).toHaveAttribute('href', '/user/dashboard')
+      expect(dashboard).toHaveAttribute('aria-current', 'page')
+      expect(dashboard).not.toHaveAttribute('aria-disabled')
       links
-        .filter((link) => link !== profile && link !== editProfile)
+        .filter((link) => link !== dashboard && link !== profile && link !== editProfile)
         .forEach((link) => {
           expect(link).toHaveAttribute('aria-disabled', 'true')
           expect(link).not.toHaveAttribute('href')
           expect(link).not.toHaveAttribute('tabindex')
           expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
         })
-      expect(nav.querySelectorAll('a')).toHaveLength(2)
+      expect(nav.querySelectorAll('a')).toHaveLength(3)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
       expect(screen.getByRole('heading', { name: 'Fixture dashboard' })).toBeVisible()
     },
   )
 
   it.each([
-    ['/user/dashboard?source=test#content', 'Dashboard'],
     ['/user/matching/preview', 'Buddy Matching'],
     ['/user/buddy/details', 'My Buddy'],
     ['/user/events/example', 'Events'],
@@ -105,6 +110,14 @@ describe('FE-022 student sidebar navigation', () => {
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
     expect(current).toHaveAttribute('aria-disabled', 'true')
     expect(current).not.toHaveAttribute('href')
+  })
+
+  it('exposes the released dashboard as the current native link', () => {
+    renderNavigation('/user/dashboard?source=test#content')
+    const dashboard = screen.getByRole('link', { name: 'Dashboard' })
+    expect(dashboard).toHaveAttribute('href', '/user/dashboard')
+    expect(dashboard).toHaveAttribute('aria-current', 'page')
+    expect(dashboard).not.toHaveAttribute('aria-disabled')
   })
 
   it('exposes the released profile page as the current native link', () => {

@@ -12,6 +12,7 @@ import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
+import { completeOwnProfile } from '@/test/profile'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -31,7 +32,9 @@ describe('FE-022 navigation in the real guarded App', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
+    queryClient.setQueryData(['profile', 'own'], completeOwnProfile)
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
+    vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
@@ -160,7 +163,7 @@ describe('FE-022 navigation in the real guarded App', () => {
     expect(nav.querySelector('[aria-current="page"]')).toBe(current)
     expect(current).toHaveTextContent('Übersicht')
     expect(
-      within(screen.getByRole('main')).getByRole('heading', { name: 'Dashboard' }),
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Übersicht' }),
     ).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/user/dashboard')
     expect(fetch).not.toHaveBeenCalled()

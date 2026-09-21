@@ -526,6 +526,41 @@
     "error": "Wir konnten nicht prüfen, wo dein Profil fortgesetzt werden soll. Versuche es erneut, ohne diese Seite zu verlassen.",
     "retry": "Erneut versuchen"
   },
+  "userDashboard": {
+    "eyebrow": "Dein Buddy-Bereich",
+    "title": "Übersicht",
+    "welcome": "Willkommen zurück, {{name}}.",
+    "subtitle": "Prüfe deine Profilbereitschaft und fahre mit den für dich verfügbaren Bereichen des Buddy-Programms fort.",
+    "loading": "Deine Übersicht wird geladen…",
+    "loadErrorTitle": "Deine Übersicht konnte nicht geladen werden",
+    "loadError": "Wir konnten dein gespeichertes Profil und deine Bereitschaft nicht laden. Versuche es erneut.",
+    "retry": "Erneut versuchen",
+    "profileCardLabel": "Profilübersicht für {{name}}",
+    "viewProfile": "Profil ansehen",
+    "editProfile": "Profil bearbeiten",
+    "completion": {
+      "completeTitle": "Dein Profil ist vollständig",
+      "completeDescription": "Deine erforderlichen Profilangaben für das Buddy-Programm sind gespeichert.",
+      "incompleteTitle": "Dein Profil braucht Aufmerksamkeit",
+      "incompleteDescription": "Vervollständige die erforderlichen Angaben, bevor du mit dem Matching fortfährst.",
+      "label": "Profilabschluss",
+      "percentage": "{{percentage}} %",
+      "finishProfile": "Profil vervollständigen"
+    },
+    "actionsTitle": "Setze deine Buddy-Reise fort",
+    "matching": {
+      "title": "Buddy-Matching",
+      "readyDescription": "Dein Profil ist für das Matching freigeschaltet.",
+      "pausedDescription": "Aktualisiere deine Matching-Präferenzen, wenn du bereit bist, einen Buddy zu finden.",
+      "open": "Matching öffnen",
+      "configure": "Matching-Präferenzen aktualisieren"
+    },
+    "events": {
+      "title": "Veranstaltungen",
+      "description": "Öffne den Veranstaltungsbereich für Studierende und entdecke weitere VGU-Aktivitäten.",
+      "open": "Veranstaltungen entdecken"
+    }
+  },
   "profileAvatar": {
     "title": "Profilfoto",
     "help": "Wähle ein JPEG-, PNG- oder WebP-Bild. Dein Foto bleibt privat und wird vom Server geprüft, bevor es das gespeicherte Foto ersetzt.",

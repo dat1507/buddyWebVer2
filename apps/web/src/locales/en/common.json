@@ -526,6 +526,41 @@
     "error": "We could not verify where your profile should continue. Try again without leaving this page.",
     "retry": "Try again"
   },
+  "userDashboard": {
+    "eyebrow": "Your Buddy workspace",
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}.",
+    "subtitle": "Review your profile readiness and continue to the parts of the Buddy Program that are available to you.",
+    "loading": "Loading your dashboard…",
+    "loadErrorTitle": "Your dashboard could not be loaded",
+    "loadError": "We could not load your saved profile and readiness. Try again.",
+    "retry": "Try again",
+    "profileCardLabel": "Profile summary for {{name}}",
+    "viewProfile": "View profile",
+    "editProfile": "Edit profile",
+    "completion": {
+      "completeTitle": "Your profile is complete",
+      "completeDescription": "Your required Buddy Program profile details are saved.",
+      "incompleteTitle": "Your profile needs attention",
+      "incompleteDescription": "Complete the required details before continuing to matching.",
+      "label": "Profile completion",
+      "percentage": "{{percentage}}%",
+      "finishProfile": "Finish profile"
+    },
+    "actionsTitle": "Continue your Buddy journey",
+    "matching": {
+      "title": "Buddy matching",
+      "readyDescription": "Your profile is eligible to enter the matching experience.",
+      "pausedDescription": "Update your matching preferences when you are ready to find a buddy.",
+      "open": "Open matching",
+      "configure": "Update matching preferences"
+    },
+    "events": {
+      "title": "Events",
+      "description": "Open the student events area to continue exploring VGU activities.",
+      "open": "Explore events"
+    }
+  },
   "profileAvatar": {
     "title": "Profile photo",
     "help": "Choose a JPEG, PNG or WebP image. Your photo stays private and is validated by the server before it replaces the saved photo.",

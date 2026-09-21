@@ -9,6 +9,7 @@ import { SessionBootstrap } from '@/features/auth/session-controls'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
+import { completeOwnProfile } from '@/test/profile'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -63,7 +64,10 @@ describe('FE-038 profile readiness routing', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
-    client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
+    })
+    client.setQueryData(['profile', 'own'], completeOwnProfile)
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -112,6 +116,7 @@ describe('FE-038 profile readiness routing', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/user/onboarding')
     incompleteView.unmount()
     client.clear()
+    client.setQueryData(['profile', 'own'], completeOwnProfile)
 
     authenticatedJson.mockImplementation(async (path) => {
       if (path === '/profile/completion') return complete
@@ -149,7 +154,7 @@ describe('FE-038 profile readiness routing', () => {
 
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
-    expect(screen.queryByRole('heading', { name: 'Buddy matching' })).not.toBeInTheDocument()
+    expect(screen.queryByText('This area is not available yet.')).not.toBeInTheDocument()
   })
 
   it('keeps the requested route neutral while readiness is loading', async () => {
