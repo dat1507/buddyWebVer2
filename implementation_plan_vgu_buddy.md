@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001, EVT-002, EVT-003, EVT-008, EVT-010 and EVS-003 are complete; EVT-004 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001 through EVT-004, EVT-008, EVT-010 and EVS-003 are complete; EVT-005 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1350,7 +1350,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | EVT-001 | Define Event editorial state, time and visibility model — ✅ Completed | 2 | BE-006, AUTH-008 | P0 |
 | EVT-002 | Create EventRegistration model — ✅ Completed | 1 | EVT-001 | P0 |
 | EVT-003 | Create Event, EventMedia and registration migrations — ✅ Completed | 1 | EVT-001, EVT-002, EVT-010, AUTH-009, BE-004 | P0 |
-| EVT-004 | Create event CRUD and publication service | 3 | EVT-003 | P0 |
+| EVT-004 | Create event CRUD and publication service — ✅ Completed | 3 | EVT-003 | P0 |
 | EVT-005 | Create audience-safe event list, detail and calendar queries | 2 | EVT-004, AUTH-017 | P0 |
 | EVT-006 | Create admin event list, detail, CRUD and status APIs | 3 | EVT-004, AUTH-018, AUTH-011A | P0 |
 | EVT-007 | Create `POST /api/events/:id/register` (user registers for event) | 2 | EVT-002, AUTH-017 | P1 |
@@ -4264,7 +4264,7 @@ Done: EVT-001                 Define Event editorial state, time and visibility 
 Done: EVT-002                 Create EventRegistration model [P0; Phase 10; completed 2026-09-21]
 Done: EVT-010                 Define EventMedia ownership model [P0; Phase 10; completed 2026-09-21]
 Done: EVT-003                 Create Event, EventMedia and registration migrations [P0; Phase 10; completed 2026-09-21]
-Next: EVT-004                 Create event CRUD and publication service [P0; Phase 10]
+Done: EVT-004                 Create event CRUD and publication service [P0; Phase 10; completed 2026-09-22]
 Next: EVT-005                 Create audience-safe event list, detail and calendar queries [P0; Phase 10]
 Next: EVT-006                 Create admin event list, detail, CRUD and status APIs [P0; Phase 10]
 Next: EVT-009                 Integrate event audit and content freshness [P0; Phase 10]
@@ -5925,16 +5925,31 @@ Cx3; dependency EVT-003 DONE, READY. It is not implemented here.
 ### EVT-004 — Create event CRUD and publication service
 
 **Task ID:** `EVT-004`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 10  
+**Change:** Updated existing; **Status:** Completed 2026-09-22; **Priority:** P0; **Phase:** 10
 **Goal:** Allow event updates without repository edits.  
 **Dependencies:** EVT-003  
 **Scope:** Draft save, validated publish/cancel, version checking, deletion policy and API projections.
 
 **Acceptance Criteria:**
 
-- [ ] Publish requires EN/DE titles/descriptions, cover, valid times and location; drafts permit incomplete fields.
-- [ ] Delete rejects published recap or active registrations with 409; removing an eligible event detaches sliders and schedules safe media cleanup.
-- [ ] Editing dates beyond a published recap boundary is rejected until recap is unpublished.
+- [x] Publish requires EN/DE titles/descriptions, cover, valid times and location; drafts permit incomplete fields.
+- [x] Delete rejects published recap or active registrations with 409; removing an eligible event detaches sliders and schedules safe media cleanup.
+- [x] Editing dates beyond a published recap boundary is rejected until recap is unpublished.
+
+**Implementation:** Strict draft/update/status schemas and an allowlisted Admin projection now back a
+transaction-owned Event service. It derives creator/updater from the active Admin, locks mutations,
+checks optimistic versions, validates publication and managed covers, preserves the first publication
+timestamp, enforces registration/recap deletion conflicts, and returns post-commit storage cleanup
+work. A typed relation boundary supplies recap and slider checks when their later-owned tables land;
+the service already invokes that boundary transactionally and does not commit independently.
+
+**Verification (2026-09-22):** 19 focused EVT-004 tests and 41 related Event tests PASS; full backend
+642 PASS / 15 configured live skips. Ruff, strict mypy (111 files), dependency consistency, Alembic
+single-head validation, package build, Compose validation and runtime dependency audit PASS. No
+dependency or migration was added.
+
+**Next development task:** EVT-005 — Create audience-safe event list, detail and calendar queries,
+P0 / Phase 10 / Cx2; dependencies EVT-004 and AUTH-017 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Manual completion, recurrence and recurring jobs for temporal phase.
 

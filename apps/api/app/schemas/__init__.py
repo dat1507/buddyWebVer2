@@ -16,6 +16,12 @@ from app.schemas.auth import (
     RegistrationResponse,
     SanitizedUserResponse,
 )
+from app.schemas.event import (
+    AdminEventResponse,
+    EventDraftCreate,
+    EventDraftUpdate,
+    EventStatusUpdate,
+)
 from app.schemas.profile import (
     OwnProfileResponse,
     ProfilePreferences,
@@ -44,6 +50,7 @@ from app.schemas.profile_completion import (
 from app.schemas.profile_photo import ProfilePhotoResponse, ProfilePhotoUrlResponse
 
 __all__ = [
+    "AdminEventResponse",
     "AdminProfileDetail",
     "AdminProfileSummary",
     "AdminUserDetail",
@@ -57,6 +64,9 @@ __all__ = [
     "LanguageCatalogResponse",
     "LoginRequest",
     "LoginResponse",
+    "EventDraftCreate",
+    "EventDraftUpdate",
+    "EventStatusUpdate",
     "OwnProfileResponse",
     "MatchingIneligibilityReason",
     "ProfileCompletionResponse",
