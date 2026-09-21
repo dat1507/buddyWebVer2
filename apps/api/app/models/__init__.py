@@ -5,6 +5,8 @@ from app.models.base import Base
 from app.models.event import (
     Event,
     EventPhase,
+    EventRegistration,
+    EventRegistrationStatus,
     EventStatus,
     EventVisibility,
     derive_event_phase,
@@ -30,6 +32,8 @@ __all__ = (
     "Base",
     "Event",
     "EventPhase",
+    "EventRegistration",
+    "EventRegistrationStatus",
     "EventStatus",
     "EventVisibility",
     "Interest",

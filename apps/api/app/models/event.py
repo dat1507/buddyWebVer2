@@ -16,9 +16,11 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Text,
+    UniqueConstraint,
     Uuid,
     and_,
     false,
+    func,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, validates
@@ -51,6 +53,14 @@ class EventPhase(StrEnum):
     UPCOMING = "UPCOMING"
     ONGOING = "ONGOING"
     COMPLETED = "COMPLETED"
+
+
+class EventRegistrationStatus(StrEnum):
+    """Lifecycle state for one user's optional internal Event RSVP."""
+
+    REGISTERED = "registered"
+    CANCELLED = "cancelled"
+    ATTENDED = "attended"
 
 
 def _require_aware(value: datetime, *, field_name: str) -> datetime:
@@ -273,4 +283,59 @@ class Event(Base):
             cls.published_at.is_not(None),
             cls.visibility == EventVisibility.PUBLIC,
             cls.status.in_((EventStatus.PUBLISHED, EventStatus.CANCELLED)),
+        )
+
+
+class EventRegistration(Base):
+    """One optional internal RSVP owned by a User for an Event."""
+
+    __tablename__ = "event_registrations"
+    __table_args__ = (UniqueConstraint("event_id", "user_id"),)
+
+    event_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(f"{APPLICATION_SCHEMA}.events.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(f"{APPLICATION_SCHEMA}.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    registered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    status: Mapped[EventRegistrationStatus] = mapped_column(
+        Enum(
+            EventRegistrationStatus,
+            name="event_registration_status",
+            schema=APPLICATION_SCHEMA,
+            native_enum=True,
+            validate_strings=True,
+            values_callable=lambda statuses: [status.value for status in statuses],
+        ),
+        nullable=False,
+        default=EventRegistrationStatus.REGISTERED,
+        server_default=EventRegistrationStatus.REGISTERED.value,
+    )
+
+    @validates("registered_at")
+    def validate_registered_at(self, _key: str, value: datetime) -> datetime:
+        return _require_aware(value, field_name="Registration time")
+
+    @property
+    def is_active(self) -> bool:
+        """Return whether this row currently reserves Event capacity."""
+
+        return self.deleted_at is None and self.status is EventRegistrationStatus.REGISTERED
+
+    @classmethod
+    def active_clause(cls) -> ColumnElement[bool]:
+        """Return the shared SQL predicate for capacity and deletion checks."""
+
+        return and_(
+            cls.deleted_at.is_(None),
+            cls.status == EventRegistrationStatus.REGISTERED,
         )

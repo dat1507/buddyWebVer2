@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001, EVT-008 and EVS-003 are complete; EVT-002 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001, EVT-002, EVT-008 and EVS-003 are complete; EVT-010 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1348,7 +1348,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
 | EVT-001 | Define Event editorial state, time and visibility model — ✅ Completed | 2 | BE-006, AUTH-008 | P0 |
-| EVT-002 | Create EventRegistration model | 1 | EVT-001 | P0 |
+| EVT-002 | Create EventRegistration model — ✅ Completed | 1 | EVT-001 | P0 |
 | EVT-003 | Create Event, EventMedia and registration migrations | 1 | EVT-001, EVT-002, EVT-010, AUTH-009, BE-004 | P0 |
 | EVT-004 | Create event CRUD and publication service | 3 | EVT-003 | P0 |
 | EVT-005 | Create audience-safe event list, detail and calendar queries | 2 | EVT-004, AUTH-017 | P0 |
@@ -4261,7 +4261,7 @@ Done: FE-029                  Create profile edit page using onboarding field co
 Done: FE-038                  Integrate onboarding routing and readiness gate [P0; Phase 9; completed 2026-09-20]
 Done: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6; completed 2026-09-21]
 Done: EVT-001                 Define Event editorial state, time and visibility model [P0; Phase 10; completed 2026-09-21]
-Next: EVT-002                 Create EventRegistration model [P0; Phase 10]
+Done: EVT-002                 Create EventRegistration model [P0; Phase 10; completed 2026-09-21]
 Next: EVT-010                 Define EventMedia ownership model [P0; Phase 10]
 Next: EVT-003                 Create Event, EventMedia and registration migrations [P0; Phase 10]
 Next: EVT-004                 Create event CRUD and publication service [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: EVT-002 — Create EventRegistration model. Dependency EVT-001 is DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-002 development. Continue direct-to-main workflow; do not execute EVT-002 unless explicitly requested.**
+**Next development task: EVT-010 — Define EventMedia ownership model. Dependency EVT-001 is DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-010 development. Continue direct-to-main workflow; do not execute EVT-010 unless explicitly requested.**
 
 ---
 
@@ -5826,6 +5826,39 @@ dependency or migration was added.
 dependency EVT-001 DONE, READY. It is not implemented here.
 
 **Out of Scope:** Recurring events and mandatory internal registration.
+
+### EVT-002 — Create EventRegistration model
+
+**Task ID:** `EVT-002`
+**Status:** Completed 2026-09-21; **Priority:** P0; **Phase:** 10
+**Goal:** Represent optional internal Event RSVPs independently of Event editorial state.
+**Dependencies:** EVT-001
+**Scope:** Part 7 EventRegistration ownership, registration timestamp and
+registered/cancelled/attended lifecycle.
+
+**Acceptance Criteria:**
+
+- [x] One registration row belongs to exactly one Event and one User; each Event/User pair is
+  unique and the registration timestamp is a timezone-aware immutable instant.
+- [x] Registration lifecycle uses only registered/cancelled/attended, defaults to registered and
+  exposes one shared active predicate without changing Event editorial status.
+
+**Implementation:** `EventRegistration` uses backend-owned UUID/audit fields, cascading Event/User
+foreign keys and a unique `(event_id, user_id)` constraint so retries cannot create duplicate RSVPs.
+`registered_at` is a timezone-aware server timestamp. `EventRegistrationStatus` persists the Part 7
+lowercase lifecycle values and the active predicate counts only live `registered` rows, excluding
+cancelled, attended and soft-deleted records.
+
+**Verification (2026-09-21):** 6 focused registration model/domain/DDL tests PASS; full backend
+614 PASS / 14 configured live skips. Ruff and strict mypy (103 files), dependency consistency,
+Alembic single-head validation, package build, Compose validation and runtime dependency audit PASS.
+No dependency or migration was added.
+
+**Next development task:** EVT-010 — Define EventMedia ownership model, P0 / Phase 10 / Cx2;
+dependency EVT-001 DONE, READY. It is not implemented here.
+
+**Out of Scope:** Migration execution (EVT-003), capacity/deadline transactions, registration APIs
+or admin registration views (EVT-007/ADMIN-011).
 
 ### EVT-010 — Define EventMedia ownership model
 
