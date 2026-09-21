@@ -14,6 +14,8 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    ForeignKeyConstraint,
+    Index,
     Integer,
     Text,
     UniqueConstraint,
@@ -166,6 +168,18 @@ class Event(Base):
             name="ck_events_max_participants_positive",
         ),
         CheckConstraint("version >= 1", name="ck_events_version_positive"),
+        ForeignKeyConstraint(
+            ["cover_media_id", "id"],
+            [
+                f"{APPLICATION_SCHEMA}.event_media.id",
+                f"{APPLICATION_SCHEMA}.event_media.event_id",
+            ],
+            name="fk_events_cover_media_owner_event_media",
+            ondelete="RESTRICT",
+            use_alter=True,
+        ),
+        Index("ix_events_status", "status"),
+        Index("ix_events_start_date", "start_date"),
     )
 
     title_en: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -185,7 +199,6 @@ class Event(Base):
     category: Mapped[str | None] = mapped_column(Text, nullable=True)
     organizer: Mapped[str | None] = mapped_column(Text, nullable=True)
     registration_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # EVT-010 supplies the EventMedia model; EVT-003 installs the circular cover FK.
     cover_media_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
     status: Mapped[EventStatus] = mapped_column(
         Enum(
@@ -309,7 +322,10 @@ class EventRegistration(Base):
     """One optional internal RSVP owned by a User for an Event."""
 
     __tablename__ = "event_registrations"
-    __table_args__ = (UniqueConstraint("event_id", "user_id"),)
+    __table_args__ = (
+        UniqueConstraint("event_id", "user_id"),
+        Index("ix_event_registrations_user_id", "user_id"),
+    )
 
     event_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
@@ -393,6 +409,12 @@ class EventMedia(Base):
         ),
         CheckConstraint("sort_order >= 0", name="ck_event_media_sort_order_nonnegative"),
         UniqueConstraint("id", "event_id", name="uq_event_media_id_event_id"),
+        Index(
+            "ix_event_media_event_id_usage_sort_order",
+            "event_id",
+            "usage",
+            "sort_order",
+        ),
     )
 
     event_id: Mapped[UUID] = mapped_column(

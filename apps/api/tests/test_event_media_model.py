@@ -122,6 +122,9 @@ def test_event_media_uses_fixed_private_bucket_and_unique_object_key() -> None:
     assert str(cast(DefaultClause, bucket.server_default).arg) == "'event-media'"
     assert isinstance(table.c.object_key.type, Text)
     assert unique_columns == {("object_key",), ("id", "event_id")}
+    assert {index.name for index in table.indexes} == {
+        "ix_event_media_event_id_usage_sort_order"
+    }
 
 
 def test_event_media_metadata_is_bounded_for_shared_image_storage() -> None:

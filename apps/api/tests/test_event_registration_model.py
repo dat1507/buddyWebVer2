@@ -95,6 +95,9 @@ def test_registration_pair_is_unique_and_status_defaults_to_registered() -> None
     status = table.c.status
 
     assert unique_pairs == {("event_id", "user_id")}
+    assert {index.name for index in table.indexes} == {
+        "ix_event_registrations_user_id"
+    }
     assert isinstance(status.type, Enum)
     assert status.type.enum_class is EventRegistrationStatus
     assert status.type.enums == ["registered", "cancelled", "attended"]

@@ -64,7 +64,7 @@ def test_event_enums_separate_editorial_state_visibility_and_derived_phase() -> 
     )
 
 
-def test_event_table_covers_part_7_without_persisting_phase_or_media_relation_yet() -> None:
+def test_event_table_covers_part_7_without_persisting_phase() -> None:
     table = cast(Table, Event.__table__)
 
     assert table.schema == APPLICATION_SCHEMA
@@ -115,7 +115,7 @@ def test_event_table_covers_part_7_without_persisting_phase_or_media_relation_ye
     )
     assert isinstance(table.c.cover_media_id.type, Uuid)
     assert table.c.cover_media_id.nullable is True
-    assert not table.c.cover_media_id.foreign_keys
+    assert len(table.c.cover_media_id.foreign_keys) == 1
 
 
 def test_event_draft_fields_are_nullable_but_supplied_content_is_bounded() -> None:
@@ -204,12 +204,29 @@ def test_event_uses_aware_schedule_fields_text_locations_and_user_attribution() 
         for constraint in table.constraints
         if isinstance(constraint, ForeignKeyConstraint)
     }
-    assert set(foreign_keys) == {("created_by",), ("updated_by",)}
-    for constraint in foreign_keys.values():
+    assert set(foreign_keys) == {
+        ("cover_media_id", "id"),
+        ("created_by",),
+        ("updated_by",),
+    }
+    cover_reference = foreign_keys[("cover_media_id", "id")]
+    assert cover_reference.ondelete == "RESTRICT"
+    assert cover_reference.use_alter is True
+    assert tuple(element.target_fullname for element in cover_reference.elements) == (
+        "app_private.event_media.id",
+        "app_private.event_media.event_id",
+    )
+    for columns in (("created_by",), ("updated_by",)):
+        constraint = foreign_keys[columns]
         assert constraint.ondelete == "RESTRICT"
         assert tuple(element.target_fullname for element in constraint.elements) == (
             "app_private.users.id",
         )
+
+    assert {index.name for index in table.indexes} == {
+        "ix_events_start_date",
+        "ix_events_status",
+    }
 
     annotations = get_type_hints(Event)
     assert get_args(annotations["start_date"]) == (datetime | None,)
