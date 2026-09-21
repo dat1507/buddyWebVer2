@@ -4,6 +4,9 @@ from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.event import (
     Event,
+    EventMedia,
+    EventMediaProcessingStatus,
+    EventMediaUsage,
     EventPhase,
     EventRegistration,
     EventRegistrationStatus,
@@ -31,6 +34,9 @@ __all__ = (
     "AuditLog",
     "Base",
     "Event",
+    "EventMedia",
+    "EventMediaProcessingStatus",
+    "EventMediaUsage",
     "EventPhase",
     "EventRegistration",
     "EventRegistrationStatus",

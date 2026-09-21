@@ -1086,7 +1086,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001, EVT-002, EVT-008 and EVS-003 are complete; EVT-010 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001, EVT-002, EVT-008, EVT-010 and EVS-003 are complete; EVT-003 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1356,7 +1356,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | EVT-007 | Create `POST /api/events/:id/register` (user registers for event) | 2 | EVT-002, AUTH-017 | P1 |
 | EVT-008 | Create audit log model, migration and service — ✅ Completed | 2 | AUTH-009 | P0 |
 | EVT-009 | Integrate event audit and content freshness | 2 | EVT-006, EVT-008 | P0 |
-| EVT-010 | Define EventMedia ownership model | 2 | EVT-001 | P0 |
+| EVT-010 | Define EventMedia ownership model — ✅ Completed | 2 | EVT-001 | P0 |
 | EVT-011 | Implement authorized event media lifecycle API | 2 | EVT-010, EVS-003, EVT-006, EVT-009 | P0 |
 | EVT-012 | Define EventRecap model and migration | 2 | EVT-003, EVT-010 | P0 |
 | EVT-013 | Implement recap editing and publication APIs | 2 | EVT-012, EVT-011 | P0 |
@@ -4262,7 +4262,7 @@ Done: FE-038                  Integrate onboarding routing and readiness gate [P
 Done: FE-023                  Create profile-aware User Dashboard home [P0; Phase 6; completed 2026-09-21]
 Done: EVT-001                 Define Event editorial state, time and visibility model [P0; Phase 10; completed 2026-09-21]
 Done: EVT-002                 Create EventRegistration model [P0; Phase 10; completed 2026-09-21]
-Next: EVT-010                 Define EventMedia ownership model [P0; Phase 10]
+Done: EVT-010                 Define EventMedia ownership model [P0; Phase 10; completed 2026-09-21]
 Next: EVT-003                 Create Event, EventMedia and registration migrations [P0; Phase 10]
 Next: EVT-004                 Create event CRUD and publication service [P0; Phase 10]
 Next: EVT-005                 Create audience-safe event list, detail and calendar queries [P0; Phase 10]
@@ -4339,7 +4339,7 @@ Core release gate: all P0 contracts, including basic matching and basic recap, p
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: EVT-010 — Define EventMedia ownership model. Dependency EVT-001 is DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-010 development. Continue direct-to-main workflow; do not execute EVT-010 unless explicitly requested.**
+**Next development task: EVT-003 — Create Event, EventMedia and registration migrations. Dependencies EVT-001, EVT-002, EVT-010, AUTH-009 and BE-004 are DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-003 development. Continue direct-to-main workflow; do not execute EVT-003 unless explicitly requested.**
 
 ---
 
@@ -5863,15 +5863,31 @@ or admin registration views (EVT-007/ADMIN-011).
 ### EVT-010 — Define EventMedia ownership model
 
 **Task ID:** `EVT-010`  
-**Change:** New; **Status:** Planned; **Priority:** P0; **Phase:** 10  
+**Change:** New; **Status:** Completed 2026-09-21; **Priority:** P0; **Phase:** 10
 **Goal:** Store media ownership and lifecycle outside source files.  
 **Dependencies:** EVT-001  
 **Scope:** EventMedia FK, bucket/key, dimensions/MIME/size, owner, usage, order and localized alt text.
 
 **Acceptance Criteria:**
 
-- [ ] Cover and recap-media ownership belongs to one Event; keys are unique and metadata records processing state.
-- [ ] Deletion/replacement reference checks can detect retained cover/gallery media; no signed URL is persisted.
+- [x] Cover and recap-media ownership belongs to one Event; keys are unique and metadata records processing state.
+- [x] Deletion/replacement reference checks can detect retained cover/gallery media; no signed URL is persisted.
+
+**Implementation:** `EventMedia` owns every event/recap image through a required Event FK and the
+fixed private `event-media` bucket. Unique object keys, localized bounded alt text, shared image
+size/type/dimension limits, non-negative order, creator attribution, explicit usage and processing
+status provide the storage metadata required by EVT-011 without persisting a public or signed URL.
+Derived cover/gallery/readiness roles support safe reference checks. The unique `(id, event_id)`
+pair prepares EVT-003 to enforce same-Event cover ownership with a composite circular FK.
+
+**Verification (2026-09-21):** 7 focused EventMedia model/domain/DDL tests PASS; full backend
+621 PASS / 14 configured live skips. Ruff and strict mypy (104 files), dependency consistency,
+Alembic single-head validation, package build, Compose validation and runtime dependency audit PASS.
+No dependency or migration was added.
+
+**Next development task:** EVT-003 — Create Event, EventMedia and registration migrations, P0 /
+Phase 10 / Cx1; dependencies EVT-001, EVT-002, EVT-010, AUTH-009 and BE-004 DONE, READY. It is not
+implemented here.
 
 **Out of Scope:** Migration execution (EVT-003), upload transport or advanced gallery UI.
 

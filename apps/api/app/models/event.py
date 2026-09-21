@@ -30,6 +30,10 @@ from app.core.database import APPLICATION_SCHEMA
 from app.models.base import Base
 
 DEFAULT_EVENT_TIMEZONE = "Asia/Ho_Chi_Minh"
+EVENT_MEDIA_BUCKET = "event-media"
+MAX_EVENT_MEDIA_BYTES = 5 * 1024 * 1024
+MAX_EVENT_MEDIA_DIMENSION = 4096
+MAX_EVENT_MEDIA_PIXELS = MAX_EVENT_MEDIA_DIMENSION * MAX_EVENT_MEDIA_DIMENSION
 
 
 class EventStatus(StrEnum):
@@ -61,6 +65,21 @@ class EventRegistrationStatus(StrEnum):
     REGISTERED = "registered"
     CANCELLED = "cancelled"
     ATTENDED = "attended"
+
+
+class EventMediaUsage(StrEnum):
+    """Purpose of an Event-owned image across Event and recap content."""
+
+    EVENT_COVER = "EVENT_COVER"
+    RECAP_COVER = "RECAP_COVER"
+    RECAP_GALLERY = "RECAP_GALLERY"
+
+
+class EventMediaProcessingStatus(StrEnum):
+    """Terminal validation state for an Event-owned image."""
+
+    READY = "READY"
+    FAILED = "FAILED"
 
 
 def _require_aware(value: datetime, *, field_name: str) -> datetime:
@@ -339,3 +358,114 @@ class EventRegistration(Base):
             cls.deleted_at.is_(None),
             cls.status == EventRegistrationStatus.REGISTERED,
         )
+
+
+class EventMedia(Base):
+    """Private image metadata owned by one Event, without a durable delivery URL."""
+
+    __tablename__ = "event_media"
+    __table_args__ = (
+        CheckConstraint(
+            f"bucket = '{EVENT_MEDIA_BUCKET}'",
+            name="ck_event_media_event_bucket",
+        ),
+        CheckConstraint(
+            "char_length(btrim(alt_en)) BETWEEN 1 AND 200",
+            name="ck_event_media_alt_en_length",
+        ),
+        CheckConstraint(
+            "char_length(btrim(alt_de)) BETWEEN 1 AND 200",
+            name="ck_event_media_alt_de_length",
+        ),
+        CheckConstraint(
+            "mime_type IN ('image/jpeg', 'image/png', 'image/webp')",
+            name="ck_event_media_mime_type",
+        ),
+        CheckConstraint(
+            f"byte_size BETWEEN 1 AND {MAX_EVENT_MEDIA_BYTES}",
+            name="ck_event_media_byte_size_range",
+        ),
+        CheckConstraint(
+            f"width BETWEEN 1 AND {MAX_EVENT_MEDIA_DIMENSION} "
+            f"AND height BETWEEN 1 AND {MAX_EVENT_MEDIA_DIMENSION} "
+            f"AND width * height <= {MAX_EVENT_MEDIA_PIXELS}",
+            name="ck_event_media_dimensions",
+        ),
+        CheckConstraint("sort_order >= 0", name="ck_event_media_sort_order_nonnegative"),
+        UniqueConstraint("id", "event_id", name="uq_event_media_id_event_id"),
+    )
+
+    event_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(f"{APPLICATION_SCHEMA}.events.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    bucket: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+        default=EVENT_MEDIA_BUCKET,
+        server_default=text(f"'{EVENT_MEDIA_BUCKET}'"),
+    )
+    object_key: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    usage: Mapped[EventMediaUsage] = mapped_column(
+        Enum(
+            EventMediaUsage,
+            name="event_media_usage",
+            schema=APPLICATION_SCHEMA,
+            native_enum=True,
+            validate_strings=True,
+            values_callable=lambda usages: [usage.value for usage in usages],
+        ),
+        nullable=False,
+    )
+    alt_en: Mapped[str] = mapped_column(Text, nullable=False)
+    alt_de: Mapped[str] = mapped_column(Text, nullable=False)
+    mime_type: Mapped[str] = mapped_column(Text, nullable=False)
+    byte_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default=text("0"),
+    )
+    processing_status: Mapped[EventMediaProcessingStatus] = mapped_column(
+        Enum(
+            EventMediaProcessingStatus,
+            name="event_media_processing_status",
+            schema=APPLICATION_SCHEMA,
+            native_enum=True,
+            validate_strings=True,
+            values_callable=lambda statuses: [status.value for status in statuses],
+        ),
+        nullable=False,
+        default=EventMediaProcessingStatus.READY,
+        server_default=EventMediaProcessingStatus.READY.value,
+    )
+    created_by: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(f"{APPLICATION_SCHEMA}.users.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+
+    @property
+    def is_ready(self) -> bool:
+        """Return whether this active metadata row can back authorized delivery."""
+
+        return (
+            self.deleted_at is None
+            and self.processing_status is EventMediaProcessingStatus.READY
+        )
+
+    @property
+    def is_cover(self) -> bool:
+        """Distinguish cover candidates from retained recap gallery images."""
+
+        return self.usage in {EventMediaUsage.EVENT_COVER, EventMediaUsage.RECAP_COVER}
+
+    @property
+    def is_gallery(self) -> bool:
+        """Identify media retained for ordered recap gallery use."""
+
+        return self.usage is EventMediaUsage.RECAP_GALLERY
