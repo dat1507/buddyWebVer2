@@ -14,33 +14,28 @@ matching workflow are still under active development.
 
 Implemented:
 
-- Responsive EN/DE public landing page, navigation, event carousel, and accessible demo dialog.
-- UI-only User Login, Student Registration, and direct-URL Admin Login pages with client-side
-  validation. These forms do not yet authenticate users.
-- Development event fixtures plus a production-shaped event API adapter.
-- FastAPI application with generated OpenAPI documentation and a database health endpoint.
-- Async SQLAlchemy/PostgreSQL connection boundary with separate runtime and migration credentials.
-- Alembic baseline for the private `app_private` schema and least-privilege runtime role.
-- Docker Compose service for local PostgreSQL 17 with the pgvector package.
-- Shared SQLAlchemy base model and the `USER`/`ADMIN` role contract.
-- Exact-origin credentialed CORS configuration.
-- Persisted User model/migration, bcrypt and registration/login/role services, hardened JWT cookie
-  primitives, and a signed double-submit CSRF bootstrap endpoint.
-- CSRF-protected registration and login endpoints. Login returns a sanitized User and establishes
-  access/refresh JWTs only in HttpOnly cookies with a session-bound CSRF context.
-- Persistent refresh-session state plus a CSRF-protected refresh endpoint with atomic token
-  rotation and session-family revocation when an old refresh token is reused.
-- A reusable verified-current-user dependency that authenticates the access cookie and reloads
-  active User identity and role from PostgreSQL for protected backend routes.
-- A no-store `GET /api/auth/me` endpoint that restores only the sanitized current User session.
+- Responsive EN/DE public landing page, navigation, development event carousel, and accessible demo
+  dialog.
+- API-connected registration, User/Admin login, session bootstrap/refresh/logout, protected routes,
+  exact-role guards, and private-query cleanup.
+- Backend-owned bcrypt passwords, rotating JWT cookie sessions, signed double-submit CSRF,
+  server-authoritative role checks, rate limiting, and sanitized auth responses.
+- PostgreSQL-backed own-profile onboarding/edit/view flows for Vietnamese and international
+  students, completion/eligibility calculation, catalogs, and optimistic version checks.
+- Private profile-avatar upload, crop/optimization, server-side validation, Supabase Storage, signed
+  delivery URLs, removal, and persistence across reload/login.
+- Admin-only bounded user/profile reads plus the Admin shell, overview, DataTable and ConfirmDialog.
+- Event tables and CRUD/publication service contracts. These services are not yet exposed as Event
+  API routes.
+- Async SQLAlchemy/PostgreSQL access, Alembic migrations through `0007_event_tables`, private
+  `app_private` schema, least-privilege runtime role, database health probe, and local PostgreSQL 17.
 
 Not implemented yet:
 
-- Logout endpoint and frontend session integration.
-- Frontend registration/login integration and authenticated session bootstrap.
-- Protected User/Admin routes backed by server authorization.
-- Profile, event-management, matching, notification, or AI business APIs.
-- A provisioned production Supabase project or production deployment configuration.
+- Buddy Matching persistence, algorithm, APIs, delivered User pages, or Admin matching workflow.
+- Production Event/Event Slider APIs and the remaining Admin/public Event UI.
+- Notifications, AI assistant, campus, and settings business features.
+- Provisioned production backend/Redis/database/storage environments and verified same-site ingress.
 
 ## Architecture
 
@@ -196,9 +191,19 @@ python -m piptools compile --allow-unsafe --extra dev --strip-extras --output-fi
 
 ## Deployment
 
-No production deployment is configured or claimed by this repository. The implementation plan
-targets a separately deployed frontend, FastAPI service, and Supabase-hosted PostgreSQL, but those
-resources must be provisioned and verified before they can be documented as live.
+`apps/web/vercel.json` provides the required Vite SPA deep-link fallback and baseline browser
+security headers. Configure the Vercel project Root Directory as `apps/web`, set `VITE_API_URL` at
+build time, and keep every server secret out of `VITE_*` variables.
+
+The FastAPI deployment must run from `apps/api` with a command equivalent to
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Production still requires operator-provided
+PostgreSQL, migration, TLS Redis, Supabase Storage and exact CORS/CSRF origins. Because authentication
+uses host-only `SameSite=Lax` cookies, frontend and API must be deployed on the same site (for example,
+first-party subdomains or a reviewed reverse proxy); an unrelated Vercel-to-backend origin is not an
+accepted production topology.
+
+The repository is suitable for a staging deployment after those environment resources are supplied,
+but no production deployment is configured or claimed.
 
 ## Development Status and Roadmap
 
@@ -251,8 +256,11 @@ dialog. Browser-side reposition/zoom produces an 800×800 WebP (PNG fallback) be
 server-side decode, dimension, signature and metadata-stripping validation. No image-processing
 service or client-side storage credential was added.
 
-Frontend verification now totals 498 PASS. The next task is ADMIN-005 (reusable ConfirmDialog),
-ready through completed FE-004.
+Frontend verification now totals 498 PASS. Source audit on 2026-09-23 confirms that Buddy Matching
+has only profile eligibility inputs and guarded placeholder routes; it has no runtime model,
+migration, service or API. The next development task is **MATCH-001 — Match model and persistence
+constraints**, followed by eligibility, deterministic scoring/assignment, matching APIs and the
+User/Admin UI vertical slice.
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
 repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -33,6 +33,9 @@ DATABASE_ERROR_MESSAGE = "Admin account could not be created because the databas
 PASSWORD_INPUT_ERROR_MESSAGE = "Admin password input was cancelled."
 STORAGE_ERROR_MESSAGE = "Storage reconciliation could not be completed."
 STORAGE_CONFIGURATION_ERROR_MESSAGE = "Storage bucket configuration could not be completed."
+UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
+    "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
+)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -46,12 +49,7 @@ def _parser() -> argparse.ArgumentParser:
         help="Create one active, verified Admin account.",
     )
     create_admin_parser.add_argument("--email", required=True, help="Admin email address.")
-    password_source = create_admin_parser.add_mutually_exclusive_group()
-    password_source.add_argument(
-        "--password",
-        help="Admin password; omit this option to use a hidden confirmation prompt.",
-    )
-    password_source.add_argument(
+    create_admin_parser.add_argument(
         "--password-stdin",
         action="store_true",
         help="Read the Admin password from one standard-input line.",
@@ -80,9 +78,6 @@ def _parser() -> argparse.ArgumentParser:
 
 def _read_password(arguments: argparse.Namespace) -> str:
     try:
-        supplied_password = arguments.password
-        if isinstance(supplied_password, str):
-            return supplied_password
         if arguments.password_stdin:
             return sys.stdin.readline().rstrip("\r\n")
 
@@ -145,7 +140,15 @@ async def _configure_storage_command() -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse and execute one operational command with sanitized terminal failures."""
-    arguments = _parser().parse_args(argv)
+    raw_arguments = list(argv) if argv is not None else sys.argv[1:]
+    if any(
+        argument == "--password" or argument.startswith("--password=")
+        for argument in raw_arguments
+    ):
+        print(f"Error: {UNSAFE_PASSWORD_ARGUMENT_MESSAGE}", file=sys.stderr)
+        return 2
+
+    arguments = _parser().parse_args(raw_arguments)
     if arguments.command == "create-admin":
         try:
             password = _read_password(arguments)

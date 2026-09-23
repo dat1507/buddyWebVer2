@@ -11,6 +11,12 @@
 
 > **v2.2 — 2026-09-12, planning only:** Source-backed profile/buddy/events audit, unified profile, private media, hard cross-group matching, recap model and task dependencies. See [feature audit](docs/feature-implementation-plan-audit.md). No new runtime feature is implemented by this revision.
 >
+> **Demo-priority audit — 2026-09-22:** Fresh `origin/main` verification confirms that Authentication and Profile are implemented and tested, while Matching has no runtime model, migration, service, API or delivered page. The pending master order is therefore reprioritized, without changing task contracts or dependencies, to finish the existing Matching vertical slice before resuming the independent Event/Admin track. AUTH-020's production operator gate and production deployment remain separate from local demo readiness.
+>
+> **Runtime acceptance update — 2026-09-23:** The local environment is now configured, the development database is at `0007_event_tables (head)`, Supabase Storage configuration is idempotent, and a real authenticated Profile/avatar upload-crop-refresh-F5 persistence path has passed. Unit and integration coverage exercises both student types. The final two-user cross-type plus Admin matching run remains the Matching release acceptance gate, but it no longer blocks the MATCH-001 persistence foundation.
+>
+> **Deployment/security audit — 2026-09-23:** Current source and repository history pass the local secret-pattern, dependency and security review; `.env` files are ignored and untracked. The codebase is **READY FOR STAGING, NOT PRODUCTION**. Before production, operators must provision and verify the backend, PostgreSQL migrations, TLS Redis, exact CORS/origin values, Supabase buckets, a same-site frontend/API cookie topology, observability/rollback, and revocation of any credential ever exposed outside this repository. Vercel must use `apps/web` as its Root Directory and the SPA rewrite in `apps/web/vercel.json`.
+>
 > **Reading order:** Parts 6–8 and 19 define the updated architecture; Part 16 is the task registry; Part 24 is the execution order; Part 25 supplies full contracts for every new/updated task. Historical completed contracts in Parts 18/18A retain their original status and text.
 
 ## PART 1 — LEGACY WEBSITE AUDIT (Historical)
@@ -1086,7 +1092,7 @@ historical task branches/history remain intact; they are not the workflow for su
 ## PART 15 — COMPLETE IMPLEMENTATION ROADMAP (Updated)
 
 > [!IMPORTANT]
-> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001 through EVT-004, EVT-008, EVT-010 and EVS-003 are complete; EVT-005 is the next development task. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
+> Phase numbers group parallel workstreams; they are not the canonical single-developer execution sequence. **PART 24 — NEW MASTER IMPLEMENTATION ORDER is authoritative.** The Frontend completion and AUTH-ARCH-001 gates, BE-001 through BE-016, AUTH-007 through AUTH-019, AUTH-004/005/006 and AUTH-021/022/023 are recorded complete; AUTH-020 implementation/local/live acceptance are verified with its production operator gate pending. AUTH-024 backend/live and combined frontend/cache acceptance PASS. FE-021, FE-022, FE-023, FE-025, FE-026, FE-027, FE-028, FE-029, FE-038, FE-039, ADMIN-001 through ADMIN-005, EVT-001 through EVT-004, EVT-008, EVT-010 and EVS-003 are complete; MATCH-001 is the next READY development task under the 2026-09-22 demo-priority override. From FE-022 onward, implement/commit/push directly on main unless actual repository protection prevents it. Parts 18/18A remain execution evidence, not a request to redo completed UI. FE-014 builds against the approved API contract with a development-only mock, while EVS-001 through EVS-007, ADMIN-SLIDER-001 through ADMIN-SLIDER-004, and FE-014B later activate end-to-end Admin-managed production content.
 
 ### Dependency Graph
 
@@ -1339,7 +1345,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | FE-026 | Create onboarding Step 2: interests and languages — ✅ Completed | 3 | FE-025, BE-015 | P0 |
 | FE-027 | Create onboarding Step 3: availability and preferences — ✅ Completed | 3 | FE-026, BE-012, BE-016, FE-039 | P0 |
 | FE-028 | Create own social-style profile view — ✅ Completed | 2 | FE-025, BE-012, BE-014, BE-015 | P0 |
-| FE-029 | Create profile edit page using onboarding field components | 2 | FE-028, FE-027, BE-016 | P0 |
+| FE-029 | Create profile edit page using onboarding field components — ✅ Completed | 2 | FE-028, FE-027, BE-016 | P0 |
 | FE-038 | Integrate onboarding routing and readiness gate — ✅ Completed | 2 | AUTH-022, AUTH-023, BE-016, FE-027 | P0 |
 | FE-039 | Create reusable profile avatar upload control — ✅ Completed | 2 | FE-025, BE-014 | P0 |
 
@@ -3682,8 +3688,9 @@ exposing any public role-assignment API or silently modifying an existing accoun
 **Operational Acceptance Criteria**:
 
 - [x] `python -m app.cli create-admin --email <email>` uses a hidden password prompt plus
-  confirmation. `--password-stdin` supports non-interactive secret delivery; the planned
-  `--password` form remains compatible but is documented as less safe for shell history/processes.
+  confirmation. `--password-stdin` supports non-interactive secret delivery. Command-line
+  `--password` and `--password=<value>` forms are rejected so secrets cannot enter shell history
+  or process listings.
 - [x] The command uses only server-side `DATABASE_URL`, canonicalizes the email, requires at least
   15 characters and at most 72 UTF-8 bytes, then hashes the exact password with bcrypt cost 12.
 - [x] A successful transaction creates one `ADMIN` with `is_active=true`,
@@ -4139,7 +4146,7 @@ If USER tries /adminLogin:
 
 Run `python -m app.cli create-admin --email admin@vgu.edu.vn` for a hidden password prompt and
 confirmation. Non-interactive deployment can pass one password line with `--password-stdin`.
-`--password` is retained for compatibility but is not recommended because process listings and
+Command-line `--password` and `--password=<value>` forms are rejected because process listings and
 shell history may expose command-line arguments.
 
 The command uses the configured least-privilege `DATABASE_URL`, canonicalizes the email, applies
@@ -4181,29 +4188,29 @@ Task 18: FE-018  Create CTA section
 Task 19: FE-019  Assemble Landing Page
 Task 20: FE-020  Create Language Toggle
                  ── Frontend completion remediation ──
-Next:    FE-HYGIENE-001  Establish recoverable FE-016..FE-020 baseline
-Next:    FE-FIX-001      Fix testimonial clone accessibility
-Next:    FE-FIX-002      Fully localize Language Toggle labels/tooltips
-Next:    FE-FIX-003      Remove duplicate flag SVG IDs
-Next:    FE-FIX-004      Correct Landing integration coverage
-Next:    FE-FIX-005      Harden marquee motion and tests
-Next:    FE-DEMO-001     Migrate Demo.mp4 and create WebP poster
-Next:    FE-DEMO-002     Create accessible Demo Video dialog
-Next:    FE-DEMO-003     Connect Watch Demo to the dialog
+Done:    FE-HYGIENE-001  Establish recoverable FE-016..FE-020 baseline [completed 2026-09-10]
+Done:    FE-FIX-001      Fix testimonial clone accessibility [completed 2026-09-10]
+Done:    FE-FIX-002      Fully localize Language Toggle labels/tooltips [completed 2026-09-10]
+Done:    FE-FIX-003      Remove duplicate flag SVG IDs [completed 2026-09-10]
+Done:    FE-FIX-004      Correct Landing integration coverage [completed 2026-09-10]
+Done:    FE-FIX-005      Harden marquee motion and tests [completed 2026-09-10]
+Done:    FE-DEMO-001     Migrate Demo.mp4 and create WebP poster [completed 2026-09-10]
+Done:    FE-DEMO-002     Create accessible Demo Video dialog [completed 2026-09-10]
+Done:    FE-DEMO-003     Connect Watch Demo to the dialog [completed 2026-09-10]
                  ── UI-only authentication pages (approved before backend) ──
-Next:    AUTH-001        Create User Login UI (/login)
-Next:    AUTH-002        Create Student Registration UI (/register)
-Next:    AUTH-003        Create direct-URL-only Admin Login UI (/adminLogin)
-Next:    FE-AUTH-ENTRY-001  Add desktop User Sign in menu
-Next:    FE-AUTH-ENTRY-002  Add mobile User auth actions
-Next:    FE-AUTH-ENTRY-003  Route Join the Community to /register
-Next:    FE-TECH-001        Assess TypeScript strict mode
-Next:    FE-VERIFY-001      Run Frontend completion gate
-Next:    FE-CLOSEOUT-001    Restore formatting and type-check gates
-Next:    FE-CLOSEOUT-002    Isolate modal background content
-Next:    FE-CLOSEOUT-003    Finalize public route scroll restoration
-Next:    FE-HYGIENE-002     Verify auth layouts and restore repository hygiene
-Next:    AUTH-ARCH-001      Decide JWT transport and frontend auth-state boundary
+Done:    AUTH-001        Create User Login UI (/login) [completed 2026-09-10]
+Done:    AUTH-002        Create Student Registration UI (/register) [completed 2026-09-10]
+Done:    AUTH-003        Create direct-URL-only Admin Login UI (/adminLogin) [completed 2026-09-11]
+Done:    FE-AUTH-ENTRY-001  Add desktop User Sign in menu [completed 2026-09-11]
+Done:    FE-AUTH-ENTRY-002  Add mobile User auth actions [completed 2026-09-11]
+Done:    FE-AUTH-ENTRY-003  Route Join the Community to /register [completed 2026-09-11]
+Done:    FE-TECH-001        Assess TypeScript strict mode [completed 2026-09-11]
+Done:    FE-VERIFY-001      Run Frontend completion gate [completed 2026-09-11]
+Done:    FE-CLOSEOUT-001    Restore formatting and type-check gates [completed 2026-09-11]
+Done:    FE-CLOSEOUT-002    Isolate modal background content [completed 2026-09-11]
+Done:    FE-CLOSEOUT-003    Finalize public route scroll restoration [completed 2026-09-11]
+Done:    FE-HYGIENE-002     Verify auth layouts and restore repository hygiene [completed 2026-09-11]
+Done:    AUTH-ARCH-001      Decide JWT transport and frontend auth-state boundary [completed 2026-09-11]
                  ── Frontend UI and auth architecture complete ──
 Done: BE-001                  Initialize FastAPI project with pyproject.toml [P0; Phase 2; completed 2026-09-12]
 Done: BE-002                  Create project structure (api/, core/, models/, schemas/, services/) [P0; Phase 2; completed 2026-09-12]
@@ -4265,6 +4272,23 @@ Done: EVT-002                 Create EventRegistration model [P0; Phase 10; comp
 Done: EVT-010                 Define EventMedia ownership model [P0; Phase 10; completed 2026-09-21]
 Done: EVT-003                 Create Event, EventMedia and registration migrations [P0; Phase 10; completed 2026-09-21]
 Done: EVT-004                 Create event CRUD and publication service [P0; Phase 10; completed 2026-09-22]
+Next: MATCH-001               Create Match model and persistence constraints [P0; Phase 13; READY]
+Next: MATCH-007               Implement shared eligibility and candidate hard-constraint policy [P0; Phase 13]
+Next: MATCH-003               Create deterministic rule-based compatibility scoring [P0; Phase 13]
+Next: MATCH-004               Implement deterministic greedy buddy assignment [P0; Phase 13]
+Next: MATCH-008               Create admin matching run and preview persistence [P0; Phase 13]
+Next: MATCH-013               Create admin matching preview and history read APIs [P0; Phase 13]
+Next: MATCH-014               Create guarded match publication and override APIs [P0; Phase 13]
+Next: MATCH-009               Create own-match result endpoint [P0; Phase 13]
+Next: MATCH-010               Create own-match accept/reject endpoint [P0; Phase 13]
+Next: FE-033                  Create matching participation/preferences form [P0; Phase 14]
+Next: FE-034                  Create match result and safe buddy card [P0; Phase 14]
+Next: FE-035                  Create buddy match accept/reject UI [P0; Phase 14]
+Next: FE-037                  Create My Buddy page [P0; Phase 14]
+Next: ADMIN-014               Create Admin Matching overview [P0; Phase 15]
+Next: ADMIN-015               Create Run Matching control panel [P0; Phase 15]
+Next: ADMIN-016               Create matching preview and publish table [P0; Phase 15]
+Next: ADMIN-017               Create constrained manual match override UI [P0; Phase 15]
 Next: EVT-005                 Create audience-safe event list, detail and calendar queries [P0; Phase 10]
 Next: EVT-006                 Create admin event list, detail, CRUD and status APIs [P0; Phase 10]
 Next: EVT-009                 Integrate event audit and content freshness [P0; Phase 10]
@@ -4291,23 +4315,6 @@ Next: ADMIN-SLIDER-003        Add publish/draft/archive, active toggle, and dele
 Next: ADMIN-SLIDER-004        Add transactional drag/drop ordering with optimistic UI and rollback [P0; Phase 11A]
 Next: FE-031                  Create audience-aware Event detail and recap view [P0; Phase 12]
 Next: FE-014B                 Verify live Event Slider integration and linked Event freshness [P0; Phase 12A]
-Next: MATCH-001               Create Match model and persistence constraints [P0; Phase 13]
-Next: MATCH-007               Implement shared eligibility and candidate hard-constraint policy [P0; Phase 13]
-Next: MATCH-003               Create deterministic rule-based compatibility scoring [P0; Phase 13]
-Next: MATCH-004               Implement deterministic greedy buddy assignment [P0; Phase 13]
-Next: MATCH-008               Create admin matching run and preview persistence [P0; Phase 13]
-Next: MATCH-013               Create admin matching preview and history read APIs [P0; Phase 13]
-Next: MATCH-014               Create guarded match publication and override APIs [P0; Phase 13]
-Next: MATCH-009               Create own-match result endpoint [P0; Phase 13]
-Next: MATCH-010               Create own-match accept/reject endpoint [P0; Phase 13]
-Next: FE-033                  Create matching participation/preferences form [P0; Phase 14]
-Next: FE-034                  Create match result and safe buddy card [P0; Phase 14]
-Next: FE-035                  Create buddy match accept/reject UI [P0; Phase 14]
-Next: FE-037                  Create My Buddy page [P0; Phase 14]
-Next: ADMIN-014               Create Admin Matching overview [P0; Phase 15]
-Next: ADMIN-015               Create Run Matching control panel [P0; Phase 15]
-Next: ADMIN-016               Create matching preview and publish table [P0; Phase 15]
-Next: ADMIN-017               Create constrained manual match override UI [P0; Phase 15]
 Next: AUTH-025                Implement authenticated password change endpoint [P1; Phase 5]
 Next: FE-024                  Create User Settings page with real session actions [P1; Phase 6]
 Next: EVT-007                 Create `POST /api/events/:id/register` (user registers for event) [P1; Phase 10]
@@ -4327,19 +4334,33 @@ Next: MATCH-006               Implement Hungarian comparison algorithm [P2; Phas
 
 ### Execution gates and independent tracks
 
-The list above is topologically sorted; completed task IDs and historical ordinal labels are retained above it. Phase labels group responsibilities; storage is Phase 8 shared work, and FE-023 is integrated after profile readiness even though it remains in Dashboard Phase 6. Dependencies take precedence over a numeric ID. P0 is the core release; P1/P2 tasks follow it unless explicitly a prerequisite. No completed task is reopened by this audit.
+The list above is topologically sorted within the selected delivery lane; completed task IDs and historical ordinal labels are retained above it. Phase labels group responsibilities; storage is Phase 8 shared work, and FE-023 is integrated after profile readiness even though it remains in Dashboard Phase 6. Dependencies take precedence over a numeric ID. P0 is the core release; P1/P2 tasks follow it unless explicitly a prerequisite. No completed task is reopened by this audit. The 2026-09-22 demo-priority override selects the independent Matching lane before the remaining Event lane; it does not claim that Event dependencies changed or that Event work is no longer part of the core release.
 
 Shared: **BE-001 → BE-002..007 → Auth Backend/RBAC + AUTH-024 → AUTH-004..006/021..023 → guarded layouts**, plus EVT-008 audit and EVS-003 storage.
 
-User/Profile/Matching: **BE-008/009 → BE-010 → BE-011/012 → BE-014/015 → BE-016 → FE-025/026/039/027 → FE-038 → FE-023/028/029 → MATCH-001 → MATCH-007 → MATCH-003 → MATCH-004 → MATCH-008/013/014 → MATCH-009/010 → FE-033/034/035/037 + ADMIN-014/015/016/017**. Profile backend readiness allows matching backend to proceed while profile UI is being finished.
+User/Profile/Matching: **BE-008/009 → BE-010 → BE-011/012 → BE-014/015 → BE-016 → FE-025/026/039/027 → FE-038 → FE-023/028/029 → MATCH-001 → MATCH-007 → MATCH-003 → MATCH-004 → MATCH-008/013/014 → MATCH-009/010 → FE-033/034/035/037 + ADMIN-014/015/016/017 → real two-user cross-type plus Admin acceptance**. The code-level Profile dependencies and local Profile/avatar persistence acceptance are complete, so MATCH-001 is ready.
 
-Event/Admin: **EVT-001/002/010 → EVT-003 → EVT-004/005/006 → EVT-009/011 → EVT-012/013 → ADMIN-006..010 + ADMIN-EVT-001 → EVS-001/002/004/005/006/007 → ADMIN-SLIDER-001..004 → FE-031 → FE-014B**. Existing EVS-003 has already supplied shared storage. The two tracks may proceed independently after shared auth/storage/audit; this is sequencing guidance, not an instruction to spawn agents.
+Event/Admin: **EVT-001/002/010 → EVT-003 → EVT-004/005/006 → EVT-009/011 → EVT-012/013 → ADMIN-006..010 + ADMIN-EVT-001 → EVS-001/002/004/005/006/007 → ADMIN-SLIDER-001..004 → FE-031 → FE-014B**. Existing EVS-003 has already supplied shared storage. The two tracks may proceed independently after shared auth/storage/audit; for the demo deadline, pause the Event lane after completed EVT-004 and resume it after the Matching demo slice. This is sequencing guidance, not an instruction to spawn agents.
 
 Core release gate: all P0 contracts, including basic matching and basic recap, pass their integration/security acceptance criteria. The landing-only milestone in the previous order is not the complete Buddy MVP. A working API plus admin-to-public checks must prove content updates without a redeploy. Calendar UI (FE-EVENT-CALENDAR-001), full recap gallery (ADMIN-EVT-002), internal registration (EVT-007/FE-032), settings password change and feedback follow as P1. MATCH-005/006 are Phase 16 research.
 
 Later RAG/Knowledge Base/Campus/Analytics/Notifications/Portfolio tracks retain their product intent in Parts 9–14. The old master-order shorthand reused FE-035..037 for RAG and ADMIN-019..027 without actual task contracts; those ambiguous aliases are withdrawn, not renumbered completed tasks. Allocate unique IDs and full contracts before starting those future tracks. Numerical completion progress is optional UI in FE-023; notifications remain a later track, not a prerequisite for reading a match or an event.
 
-**Next development task: EVT-004 — Create event CRUD and publication service. Dependency EVT-003 is DONE; READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and does not block EVT-004 development. Continue direct-to-main workflow; do not execute EVT-004 unless explicitly requested.**
+### Demo priority classes (temporary delivery order)
+
+- **P0 — MUST HAVE FOR DEMO:** MATCH-001, MATCH-007, MATCH-003, MATCH-004, MATCH-008, MATCH-013, MATCH-014, MATCH-009, MATCH-010, FE-033, FE-034, FE-035, FE-037, ADMIN-014, ADMIN-015 and ADMIN-016; then a real two-student plus Admin local acceptance run against migrated PostgreSQL and configured private image storage.
+- **P1 — SHOULD HAVE:** ADMIN-017 constrained manual override and clear seeded/demo operator notes. These improve recovery during the demo but do not replace the algorithmic run/publish path.
+- **P2 — POST-DEMO for this deadline:** the remaining Event/EventSlider/Admin Event lane, AUTH-025/FE-024, event registration/calendar, feedback/history and MATCH-005/006 research. Their existing product-release priorities and dependencies are unchanged; this label is only the September 22 demo schedule.
+
+### DEMO CRITICAL PATH
+
+`MATCH-001 → MATCH-007 → MATCH-003 → MATCH-004 → MATCH-008 → MATCH-013 → MATCH-014 → MATCH-009 → MATCH-010 → FE-033 → FE-034 → FE-035 → FE-037 → ADMIN-014 → ADMIN-015 → ADMIN-016 → real local two-user cross-type plus Admin acceptance`
+
+The prerequisite Profile path is no longer a MATCH-001 blocker: the configured local environment, migrated PostgreSQL database, backend-owned session flow and real avatar upload/crop/reload persistence have passed, while automated coverage verifies both Vietnamese and international Profile rules. The final runtime gate belongs at the end of the vertical slice and must verify the complete two-user cross-type matching workflow.
+
+The final acceptance is a gate, not a new implementation task: create one Admin through AUTH-019, register one Vietnamese and one international USER through AUTH-013/AUTH-021, complete both profiles through the existing Profile flow, run/preview/publish through the new Admin UI, accept from both user sessions, and verify the active Buddy result after reload. It must use PostgreSQL and the configured private storage service; no fake users, fake match result or frontend-only success state may satisfy it.
+
+**Next development task: MATCH-001 — Create Match model and persistence constraints. Dependency BE-010 is DONE and the local Profile/runtime prerequisite has passed, so MATCH-001 is READY. AUTH-020 production acceptance remains pending operator-provided Redis/TLS/ingress configuration and is a deployment gate, not a blocker for local Matching development. Continue the direct-to-main workflow; execute MATCH-001 only when explicitly requested.**
 
 ---
 
@@ -6201,7 +6222,7 @@ P0 / Phase 10 / Cx2; dependencies EVT-004 and AUTH-017 DONE, READY. It is not im
 ### MATCH-001 — Create Match model and persistence constraints
 
 **Task ID:** `MATCH-001`  
-**Change:** Updated existing; **Status:** Planned; **Priority:** P0; **Phase:** 13  
+**Change:** Updated existing; **Status:** Planned — READY; **Priority:** P0; **Phase:** 13
 **Goal:** Record accountable pairs without duplicate active allocations.  
 **Dependencies:** BE-010  
 **Scope:** Match and MatchingRun models/migrations (run table before run_id FK); international student_id and Vietnamese buddy_id reference profiles; score metadata, statuses and user responses.

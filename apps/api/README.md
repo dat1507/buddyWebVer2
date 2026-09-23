@@ -475,10 +475,9 @@ printf '%s\n' "$ADMIN_SEED_PASSWORD" | python -m app.cli create-admin \
   --email admin@vgu.edu.vn --password-stdin
 ```
 
-`--password <value>` remains supported for the documented deployment contract, but a hidden prompt
-or standard input is safer because command-line arguments may appear in shell history and process
-listings. The password must contain at least 15 characters and at most 72 UTF-8 bytes. It is hashed
-with bcrypt cost 12; the CLI never logs it.
+Command-line password values are rejected because they can appear in shell history and process
+listings. Use the hidden prompt or `--password-stdin`. The password must contain at least 15
+characters and at most 72 UTF-8 bytes. It is hashed with bcrypt cost 12; the CLI never logs it.
 
 The command canonicalizes the email and creates exactly one active, email-verified `ADMIN` in a
 single transaction. Duplicate addresses fail without changing, promoting, reactivating, or

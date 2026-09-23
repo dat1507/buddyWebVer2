@@ -2,7 +2,10 @@
 
 React and TypeScript single-page application for the VGU Buddy Program rebuild.
 
-See the [root README](../../README.md) for product context, screenshots, architecture, configuration, and implementation status. The current package contains the public website, API-connected authentication forms, a responsive student layout shell, and placeholder student/admin pages.
+See the [root README](../../README.md) for product context, screenshots, architecture, configuration,
+and implementation status. The current package contains the public website, API-connected
+authentication, protected User/Admin shells, real own-profile/onboarding/avatar pages, and explicit
+placeholders for Buddy Matching and the remaining business modules.
 
 ## Run locally
 
@@ -26,6 +29,14 @@ The landing page uses development event fixtures by default. No backend or envir
 | `npm test`                                | Run Vitest once with jsdom and Testing Library |
 | `npm run build`                           | Type-check and generate `dist`                 |
 | `npm run preview`                         | Serve the existing production build locally    |
+
+## Vercel staging configuration
+
+Use `apps/web` as the Vercel project Root Directory. `vercel.json` keeps React Router deep links
+working after reload and adds baseline browser security headers. Set `VITE_API_URL` for each Vercel
+environment; never expose backend secrets through a `VITE_*` variable. The API must be reachable
+through the same-site cookie topology documented in the root README before authentication can be
+accepted in staging.
 
 Production builds do not use the event fixtures, even with `VITE_EVENT_SLIDER_USE_MOCKS=true`. Without a working event API configured at build time, the carousel displays its error state in preview. Authentication uses the configured `VITE_API_URL` in both modes; a missing/unavailable API displays safe feedback and permits retry.
 

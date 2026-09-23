@@ -151,26 +151,29 @@ async def test_create_admin_rolls_back_and_preserves_non_unique_integrity_error(
     mock.rollback.assert_awaited_once_with()
 
 
-def test_cli_accepts_explicit_password_without_echoing_it(
+@pytest.mark.parametrize(
+    "unsafe_arguments",
+    [
+        ["--password", TEST_PASSWORD],
+        [f"--password={TEST_PASSWORD}"],
+    ],
+)
+def test_cli_rejects_command_line_password_without_echoing_it(
+    unsafe_arguments: list[str],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    async def command(email: str, password: str) -> str:
-        assert email == "Admin@Example.com"
-        assert password == TEST_PASSWORD
-        return "admin@example.com"
-
+    command = AsyncMock()
     monkeypatch.setattr(cli, "_create_admin_command", command)
 
-    exit_code = cli.main(
-        ["create-admin", "--email", "Admin@Example.com", "--password", TEST_PASSWORD]
-    )
+    exit_code = cli.main(["create-admin", "--email", "Admin@Example.com", *unsafe_arguments])
 
     captured = capsys.readouterr()
-    assert exit_code == 0
-    assert captured.out == "Admin account created: admin@example.com\n"
-    assert captured.err == ""
-    assert TEST_PASSWORD not in captured.out
+    assert exit_code == 2
+    assert captured.out == ""
+    assert captured.err == f"Error: {cli.UNSAFE_PASSWORD_ARGUMENT_MESSAGE}\n"
+    assert TEST_PASSWORD not in captured.err
+    command.assert_not_awaited()
 
 
 def test_cli_uses_hidden_confirmation_prompt_when_password_is_omitted(
@@ -276,11 +279,10 @@ def test_cli_sanitizes_database_failures(
     async def failing_command(_email: str, _password: str) -> str:
         raise error
 
+    monkeypatch.setattr(cli, "getpass", lambda _prompt: TEST_PASSWORD)
     monkeypatch.setattr(cli, "_create_admin_command", failing_command)
 
-    exit_code = cli.main(
-        ["create-admin", "--email", "admin@example.com", "--password", TEST_PASSWORD]
-    )
+    exit_code = cli.main(["create-admin", "--email", "admin@example.com"])
 
     captured = capsys.readouterr()
     assert exit_code == 1
