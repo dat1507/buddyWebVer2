@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { AvatarCropDialog, type AvatarCropSource } from '@/features/profile/avatar-crop-dialog'
+import {
+  AVATAR_ACCEPT,
+  validateAvatarSourceFile,
+  type AvatarSourceError,
+} from '@/features/profile/avatar-image'
 import type { OwnProfile } from '@/features/profile/profile'
 import {
   useRemoveProfilePhoto,
@@ -12,11 +18,10 @@ import {
 import { useProfilePhotoUrl } from '@/features/profile/queries/use-profile-photo-url'
 import { ApiError } from '@/lib/api'
 
-const acceptedImageTypes = 'image/jpeg,image/png,image/webp'
-
 interface AvatarSelection {
   file: File
   previewUrl: string
+  originalName: string
 }
 
 function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
@@ -26,7 +31,12 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
   const errorId = `${inputId}-error`
   const inputRef = useRef<HTMLInputElement>(null)
   const previewUrlRef = useRef<string | null>(null)
+  const cropUrlRef = useRef<string | null>(null)
+  const validationRequestRef = useRef(0)
   const [selection, setSelection] = useState<AvatarSelection | null>(null)
+  const [cropSource, setCropSource] = useState<AvatarCropSource | null>(null)
+  const [cropOpen, setCropOpen] = useState(false)
+  const [clientError, setClientError] = useState<AvatarSourceError | null>(null)
   const [removeOpen, setRemoveOpen] = useState(false)
   const upload = useUploadProfilePhoto()
   const remove = useRemoveProfilePhoto()
@@ -36,7 +46,9 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
 
   useEffect(
     () => () => {
+      validationRequestRef.current += 1
       if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
+      if (cropUrlRef.current) URL.revokeObjectURL(cropUrlRef.current)
     },
     [],
   )
@@ -53,11 +65,41 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
     if (inputRef.current) inputRef.current.value = ''
   }
 
+  const closeCrop = () => {
+    if (cropUrlRef.current) URL.revokeObjectURL(cropUrlRef.current)
+    cropUrlRef.current = null
+    setCropSource(null)
+    setCropOpen(false)
+  }
+
+  const handleFileSelection = async (file: File | null) => {
+    const requestId = validationRequestRef.current + 1
+    validationRequestRef.current = requestId
+    setClientError(null)
+    upload.reset()
+    remove.reset()
+    if (!file) return
+
+    const validationError = await validateAvatarSourceFile(file)
+    if (validationRequestRef.current !== requestId) return
+    if (validationError) {
+      setClientError(validationError)
+      return
+    }
+
+    closeCrop()
+    const url = URL.createObjectURL(file)
+    cropUrlRef.current = url
+    setCropSource({ file, url })
+    setCropOpen(true)
+  }
+
   const uploadError =
     upload.error instanceof ApiError && upload.error.code === 'validation'
       ? t('profileAvatar.invalidImage')
       : t('profileAvatar.uploadError')
   const removeError = t('profileAvatar.removeError')
+  const visibleError = clientError ? t(`profileAvatar.errors.${clientError}`) : null
 
   return (
     <section
@@ -138,22 +180,14 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
               ref={inputRef}
               id={inputId}
               type="file"
-              accept={acceptedImageTypes}
+              accept={AVATAR_ACCEPT}
               disabled={isPending}
-              aria-describedby={upload.isError ? `${helpId} ${errorId}` : helpId}
+              aria-describedby={upload.isError || clientError ? `${helpId} ${errorId}` : helpId}
               className="block w-full rounded-lg border border-input bg-background text-sm text-foreground file:mr-3 file:border-0 file:bg-vgu-orange file:px-4 file:py-2.5 file:font-semibold file:text-vgu-black hover:file:bg-vgu-orange-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => {
                 const file = event.target.files?.[0] ?? null
-                revokePreview()
-                if (file) {
-                  const previewUrl = URL.createObjectURL(file)
-                  previewUrlRef.current = previewUrl
-                  setSelection({ file, previewUrl })
-                } else {
-                  setSelection(null)
-                }
-                upload.reset()
-                remove.reset()
+                event.currentTarget.value = ''
+                void handleFileSelection(file)
               }}
             />
           </div>
@@ -166,8 +200,8 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
                 className="size-20 shrink-0 rounded-xl object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{selection.file.name}</p>
-                <p className="text-xs text-muted-foreground">{t('profileAvatar.previewOnly')}</p>
+                <p className="truncate text-sm font-semibold">{selection.originalName}</p>
+                <p className="text-xs text-muted-foreground">{t('profileAvatar.previewReady')}</p>
               </div>
               <Button
                 type="button"
@@ -182,7 +216,11 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
             </div>
           ) : null}
 
-          {upload.isError ? (
+          {visibleError ? (
+            <p id={errorId} className="text-sm text-destructive" role="alert">
+              {visibleError}
+            </p>
+          ) : upload.isError ? (
             <p id={errorId} className="text-sm text-destructive" role="alert">
               {uploadError}
             </p>
@@ -260,6 +298,20 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
         error={remove.isError ? removeError : undefined}
         destructive
         isPending={remove.isPending}
+      />
+      <AvatarCropDialog
+        open={cropOpen}
+        source={cropSource}
+        onCancel={closeCrop}
+        onApply={(file) => {
+          const originalName = cropSource?.file.name ?? file.name
+          revokePreview()
+          const previewUrl = URL.createObjectURL(file)
+          previewUrlRef.current = previewUrl
+          setSelection({ file, previewUrl, originalName })
+          setClientError(null)
+          closeCrop()
+        }}
       />
     </section>
   )

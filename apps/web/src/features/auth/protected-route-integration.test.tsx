@@ -42,6 +42,21 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -123,7 +138,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
   })
 
   it.each([
-    ['/user', '/user/dashboard', 'USER', 'Dashboard'],
+    ['/user', '/user/profile/edit', 'USER', 'Edit profile'],
     ['/admin', '/admin/dashboard', 'ADMIN', 'Admin overview'],
   ])(
     'verified identity at %s keeps the existing dashboard index navigation',
@@ -139,14 +154,14 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
   it('reload verification deduplicates StrictMode bootstrap and retains the deep link until /me succeeds', async () => {
     const recovery = deferred<Response>()
     fetch.mockReturnValueOnce(recovery.promise).mockResolvedValueOnce(json(user))
-    renderApp('/user/dashboard?view=details#photo', true)
+    renderApp('/user/profile/edit?view=details#photo', true)
     expect(screen.getByText('Checking your session…')).toBeVisible()
     expectNoPrivateLayout()
-    expect(location()).toBe('/user/dashboard?view=details#photo')
+    expect(location()).toBe('/user/profile/edit?view=details#photo')
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce())
     await act(async () => recovery.resolve(json({ csrf_token: 'recovered' })))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
-    expect(location()).toBe('/user/dashboard?view=details#photo')
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(location()).toBe('/user/profile/edit?view=details#photo')
     expect(useAuthStore.getState().role).toBe('USER')
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
@@ -216,7 +231,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     useAuthStore.getState().setAuthenticated(user)
     queryClient.setQueryData(['profile', user.id], { sensitive: true })
     queryClient.setQueryData(['event-sliders', 'en'], ['public'])
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
     expectNoPrivateLayout()

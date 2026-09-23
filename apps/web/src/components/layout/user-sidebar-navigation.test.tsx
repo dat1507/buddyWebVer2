@@ -10,15 +10,14 @@ const locales = [
   [
     'en',
     'Student navigation',
-    ['Dashboard', 'My Profile', 'Edit Profile', 'Buddy Matching', 'My Buddy', 'Events', 'Settings'],
+    ['Edit Profile', 'My Profile', 'Buddy Matching', 'My Buddy', 'Events', 'Settings'],
   ],
   [
     'de',
     'Studierendennavigation',
     [
-      'Übersicht',
-      'Mein Profil',
       'Profil bearbeiten',
+      'Mein Profil',
       'Buddy-Matching',
       'Mein Buddy',
       'Veranstaltungen',
@@ -27,9 +26,9 @@ const locales = [
   ],
 ] as const
 
-// Component inputs for released-page behavior beyond the production dashboard/profile pages.
+// Component inputs for released-page behavior beyond the production profile pages.
 const releasedItems: readonly UserNavigationItem[] = userNavigationItems.map((item) =>
-  item.to && ['dashboard', 'myProfile', 'events'].includes(item.id)
+  item.to && ['editProfile', 'myProfile', 'events'].includes(item.id)
     ? { ...item, available: true, to: item.to }
     : item,
 )
@@ -39,13 +38,13 @@ function LocationProbe() {
   return <p data-testid="location">{location.pathname + location.search + location.hash}</p>
 }
 
-function renderNavigation(path = '/user/dashboard', items = userNavigationItems) {
+function renderNavigation(path = '/user/profile/edit', items = userNavigationItems) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <UserSidebarNavigation items={items} />
       <LocationProbe />
       <Routes>
-        <Route path="/user/dashboard" element={<h1>Fixture dashboard</h1>} />
+        <Route path="/user/profile/edit" element={<h1>Fixture editor</h1>} />
         <Route path="/user/profile" element={<h1>Fixture profile</h1>} />
         <Route path="/user/events" element={<h1>Fixture events</h1>} />
         <Route path="/user/events/:id" element={<h1>Fixture event detail</h1>} />
@@ -67,7 +66,7 @@ describe('FE-022 student sidebar navigation', () => {
       renderNavigation()
       const nav = screen.getByRole('navigation', { name: navLabel })
       const links = within(nav).getAllByRole('link')
-      expect(links).toHaveLength(7)
+      expect(links).toHaveLength(6)
       labels.forEach((label) => expect(within(nav).getByText(label)).toBeVisible())
       const profile = within(nav).getByRole('link', { name: i18n.t('userNavigation.myProfile') })
       expect(profile).toHaveAttribute('href', '/user/profile')
@@ -77,23 +76,19 @@ describe('FE-022 student sidebar navigation', () => {
       })
       expect(editProfile).toHaveAttribute('href', '/user/profile/edit')
       expect(editProfile).not.toHaveAttribute('aria-disabled')
-      const dashboard = within(nav).getByRole('link', {
-        name: i18n.t('userNavigation.dashboard'),
-      })
-      expect(dashboard).toHaveAttribute('href', '/user/dashboard')
-      expect(dashboard).toHaveAttribute('aria-current', 'page')
-      expect(dashboard).not.toHaveAttribute('aria-disabled')
+      expect(editProfile).toHaveAttribute('aria-current', 'page')
       links
-        .filter((link) => link !== dashboard && link !== profile && link !== editProfile)
+        .filter((link) => link !== profile && link !== editProfile)
         .forEach((link) => {
           expect(link).toHaveAttribute('aria-disabled', 'true')
           expect(link).not.toHaveAttribute('href')
           expect(link).not.toHaveAttribute('tabindex')
           expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
         })
-      expect(nav.querySelectorAll('a')).toHaveLength(3)
+      expect(nav.querySelectorAll('a')).toHaveLength(2)
+      expect(nav).not.toHaveTextContent(/Dashboard|Übersicht/)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
-      expect(screen.getByRole('heading', { name: 'Fixture dashboard' })).toBeVisible()
+      expect(screen.getByRole('heading', { name: 'Fixture editor' })).toBeVisible()
     },
   )
 
@@ -112,12 +107,11 @@ describe('FE-022 student sidebar navigation', () => {
     expect(current).not.toHaveAttribute('href')
   })
 
-  it('exposes the released dashboard as the current native link', () => {
-    renderNavigation('/user/dashboard?source=test#content')
-    const dashboard = screen.getByRole('link', { name: 'Dashboard' })
-    expect(dashboard).toHaveAttribute('href', '/user/dashboard')
-    expect(dashboard).toHaveAttribute('aria-current', 'page')
-    expect(dashboard).not.toHaveAttribute('aria-disabled')
+  it('puts Edit Profile first and omits the retired Dashboard item', () => {
+    renderNavigation('/user/profile/edit?source=test#content')
+    const nav = screen.getByRole('navigation')
+    expect(within(nav).getAllByRole('link')[0]).toHaveTextContent('Edit Profile')
+    expect(within(nav).queryByText('Dashboard')).not.toBeInTheDocument()
   })
 
   it('exposes the released profile page as the current native link', () => {
@@ -140,10 +134,12 @@ describe('FE-022 student sidebar navigation', () => {
     'allows native links to supplied released pages and updates active state in %s',
     async (language) => {
       await i18n.changeLanguage(language)
-      renderNavigation('/user/dashboard', releasedItems)
+      renderNavigation('/user/profile/edit', releasedItems)
       const nav = screen.getByRole('navigation')
-      const dashboard = within(nav).getByRole('link', { name: i18n.t('userNavigation.dashboard') })
-      expect(dashboard).toHaveAttribute('aria-current', 'page')
+      const editProfile = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.editProfile'),
+      })
+      expect(editProfile).toHaveAttribute('aria-current', 'page')
       const profile = within(nav).getByRole('link', { name: i18n.t('userNavigation.myProfile') })
       expect(profile).toHaveAttribute('href', '/user/profile')
       profile.focus()
@@ -151,11 +147,11 @@ describe('FE-022 student sidebar navigation', () => {
       fireEvent.click(profile)
       expect(screen.getByRole('heading', { name: 'Fixture profile' })).toBeVisible()
       expect(profile).toHaveAttribute('aria-current', 'page')
-      expect(dashboard).not.toHaveAttribute('aria-current')
+      expect(editProfile).not.toHaveAttribute('aria-current')
       fireEvent.click(within(nav).getByRole('link', { name: i18n.t('userNavigation.events') }))
       expect(screen.getByRole('heading', { name: 'Fixture events' })).toBeVisible()
       expect(screen.getByTestId('location').textContent).toBe('/user/events')
-      expect(nav.querySelectorAll('a')).toHaveLength(4)
+      expect(nav.querySelectorAll('a')).toHaveLength(3)
     },
   )
 
@@ -169,14 +165,14 @@ describe('FE-022 student sidebar navigation', () => {
   })
 
   it('does not let an unavailable item receive focus or change the route', () => {
-    renderNavigation('/user/dashboard', releasedItems)
-    const dashboard = screen.getByRole('link', { name: 'Dashboard' })
-    dashboard.focus()
+    renderNavigation('/user/profile/edit', releasedItems)
+    const editProfile = screen.getByRole('link', { name: 'Edit Profile' })
+    editProfile.focus()
     const matching = screen.getByRole('link', { name: /Buddy Matching/ })
     matching.focus()
-    expect(dashboard).toHaveFocus()
+    expect(editProfile).toHaveFocus()
     fireEvent.click(matching)
-    expect(screen.getByTestId('location').textContent).toBe('/user/dashboard')
+    expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit')
     expect(matching).toHaveAttribute('aria-disabled', 'true')
     expect(matching).not.toHaveAttribute('href')
     expect(matching).not.toHaveAttribute('aria-current')

@@ -12,6 +12,48 @@ import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { incompleteProfileCompletion } from '@/test/profile-completion'
 
+vi.mock('@/features/profile/avatar-crop-dialog', () => ({
+  AvatarCropDialog: ({
+    open,
+    source,
+    onCancel,
+    onApply,
+  }: {
+    open: boolean
+    source: { file: File; url: string } | null
+    onCancel: () => void
+    onApply: (file: File) => void
+  }) =>
+    open && source ? (
+      <div role="dialog" aria-label="Crop profile photo">
+        <span>{source.file.name}</span>
+        <button
+          type="button"
+          onClick={() =>
+            onApply(
+              new File(
+                [new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])],
+                'avatar.webp',
+                {
+                  type: 'image/webp',
+                },
+              ),
+            )
+          }
+        >
+          Use this crop
+        </button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+      </div>
+    ) : null,
+}))
+
+const pngHeader = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+const jpegHeader = new Uint8Array([0xff, 0xd8, 0xff, 0xe0])
+const webpHeader = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50])
+
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   email: 'student@example.com',
@@ -34,7 +76,7 @@ const oldPhoto = {
 const newPhoto = {
   ...oldPhoto,
   id: newPhotoId,
-  mime_type: 'image/png',
+  mime_type: 'image/webp',
   byte_size: 23_456,
   created_at: '2026-09-20T09:00:00Z',
 }
@@ -99,7 +141,7 @@ describe('FE-039 reusable profile avatar control', () => {
   })
 
   it('keeps the saved avatar after a failed upload and retries the same accessible preview', async () => {
-    const replacement = new File(['replacement'], 'replacement.png', { type: 'image/png' })
+    const replacement = new File([pngHeader], 'replacement.png', { type: 'image/png' })
     let profileReads = 0
     let uploadAttempts = 0
     createObjectURL.mockReturnValue('blob:replacement')
@@ -137,6 +179,7 @@ describe('FE-039 reusable profile avatar control', () => {
     input.focus()
     expect(input).toHaveFocus()
     fireEvent.change(input, { target: { files: [replacement] } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Use this crop' }))
     expect(
       await screen.findByRole('img', { name: 'Preview of selected profile photo' }),
     ).toHaveAttribute('src', 'blob:replacement')
@@ -160,8 +203,8 @@ describe('FE-039 reusable profile avatar control', () => {
     )
     expect(authenticatedJson).toHaveBeenCalledWith('/profile/photos', {
       method: 'POST',
-      binaryBody: replacement,
-      contentType: 'image/png',
+      binaryBody: expect.objectContaining({ name: 'avatar.webp', type: 'image/webp' }),
+      contentType: 'image/webp',
     })
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['profile', 'completion'],
@@ -218,25 +261,31 @@ describe('FE-039 reusable profile avatar control', () => {
       if (path === '/profile') return { ...profile, avatar: null }
       throw new Error(`Unexpected test path: ${path}`)
     })
-    createObjectURL.mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second')
+    createObjectURL
+      .mockReturnValueOnce('blob:first-source')
+      .mockReturnValueOnce('blob:first-preview')
+      .mockReturnValueOnce('blob:second-source')
+      .mockReturnValueOnce('blob:second-preview')
     const view = renderPage()
     const input = await screen.findByLabelText('Choose a profile photo')
-    const first = new File(['first'], 'first.webp', { type: 'image/webp' })
-    const second = new File(['second'], 'second.jpeg', { type: 'image/jpeg' })
+    const first = new File([webpHeader], 'first.webp', { type: 'image/webp' })
+    const second = new File([jpegHeader], 'second.jpeg', { type: 'image/jpeg' })
 
     fireEvent.change(input, { target: { files: [first] } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Use this crop' }))
     expect(
       await screen.findByRole('img', { name: 'Preview of selected profile photo' }),
-    ).toHaveAttribute('src', 'blob:first')
+    ).toHaveAttribute('src', 'blob:first-preview')
     fireEvent.change(input, { target: { files: [second] } })
-    await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:first'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Use this crop' }))
+    await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:first-preview'))
     expect(screen.getByRole('img', { name: 'Preview of selected profile photo' })).toHaveAttribute(
       'src',
-      'blob:second',
+      'blob:second-preview',
     )
 
     view.unmount()
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:second')
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:second-preview')
   })
 
   it('localizes the reusable file and action labels in German', async () => {

@@ -7,6 +7,7 @@ import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
 import { useModalIsolation } from '@/hooks/use-modal-isolation'
+import { useAuthStore } from '@/stores/auth-store'
 
 const navItems = [
   { href: '/#home', translationKey: 'nav.home' },
@@ -28,6 +29,9 @@ function Navbar() {
   const drawerOverlayRef = useRef<HTMLDivElement>(null)
   const signInButtonRef = useRef<HTMLButtonElement>(null)
   const signInMenuRef = useRef<HTMLElement>(null)
+  const status = useAuthStore((state) => state.status)
+  const role = useAuthStore((state) => state.role)
+  const workspacePath = role === 'ADMIN' ? '/admin/dashboard' : '/user/profile/edit'
 
   useModalIsolation(drawerOverlayRef, isMenuOpen)
 
@@ -145,49 +149,62 @@ function Navbar() {
             <LanguageToggle />
           </div>
 
-          <div className="relative hidden lg:block">
+          {status === 'authenticated' ? (
             <Button
-              ref={signInButtonRef}
-              type="button"
+              asChild
               variant="outline"
-              className="gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300"
-              aria-haspopup="true"
-              aria-expanded={isSignInMenuOpen}
-              aria-controls="desktop-sign-in-menu"
-              onClick={() => setIsSignInMenuOpen((isOpen) => !isOpen)}
+              className="hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 lg:inline-flex"
             >
-              <UserRound aria-hidden="true" className="size-4" />
-              {t('nav.signIn')}
-              <ChevronDown
-                aria-hidden="true"
-                className={`size-4 transition-transform ${isSignInMenuOpen ? 'rotate-180' : ''}`}
-              />
+              <Link to={workspacePath}>
+                <UserRound aria-hidden="true" className="size-4" />
+                {t('nav.openWorkspace')}
+              </Link>
             </Button>
-
-            {isSignInMenuOpen ? (
-              <nav
-                ref={signInMenuRef}
-                id="desktop-sign-in-menu"
-                aria-label={t('nav.accountNavigation')}
-                className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-xl border border-white/10 bg-zinc-950 p-2 shadow-2xl shadow-black/50"
+          ) : (
+            <div className="relative hidden lg:block">
+              <Button
+                ref={signInButtonRef}
+                type="button"
+                variant="outline"
+                className="gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300"
+                aria-haspopup="true"
+                aria-expanded={isSignInMenuOpen}
+                aria-controls="desktop-sign-in-menu"
+                onClick={() => setIsSignInMenuOpen((isOpen) => !isOpen)}
               >
-                <Link
-                  to="/login"
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                  onClick={() => setIsSignInMenuOpen(false)}
+                <UserRound aria-hidden="true" className="size-4" />
+                {t('nav.signIn')}
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`size-4 transition-transform ${isSignInMenuOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+
+              {isSignInMenuOpen ? (
+                <nav
+                  ref={signInMenuRef}
+                  id="desktop-sign-in-menu"
+                  aria-label={t('nav.accountNavigation')}
+                  className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-64 rounded-xl border border-white/10 bg-zinc-950 p-2 shadow-2xl shadow-black/50"
                 >
-                  {t('nav.userLogin')}
-                </Link>
-                <Link
-                  to="/register"
-                  className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                  onClick={() => setIsSignInMenuOpen(false)}
-                >
-                  {t('nav.createStudentAccount')}
-                </Link>
-              </nav>
-            ) : null}
-          </div>
+                  <Link
+                    to="/login"
+                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    onClick={() => setIsSignInMenuOpen(false)}
+                  >
+                    {t('nav.userLogin')}
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="mt-1 block rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    onClick={() => setIsSignInMenuOpen(false)}
+                  >
+                    {t('nav.createStudentAccount')}
+                  </Link>
+                </nav>
+              ) : null}
+            </div>
+          )}
 
           <Button
             ref={menuButtonRef}
@@ -265,22 +282,35 @@ function Navbar() {
               </a>
 
               <div className="mt-4 space-y-1 border-t border-white/10 pt-4">
-                <Link
-                  to="/login"
-                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                  onClick={closeMenu}
-                >
-                  <UserRound aria-hidden="true" className="size-4" />
-                  {t('nav.userLogin')}
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                  onClick={closeMenu}
-                >
-                  <UserPlus aria-hidden="true" className="size-4" />
-                  {t('nav.createStudentAccount')}
-                </Link>
+                {status === 'authenticated' ? (
+                  <Link
+                    to={workspacePath}
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    onClick={closeMenu}
+                  >
+                    <UserRound aria-hidden="true" className="size-4" />
+                    {t('nav.openWorkspace')}
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                      onClick={closeMenu}
+                    >
+                      <UserRound aria-hidden="true" className="size-4" />
+                      {t('nav.userLogin')}
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                      onClick={closeMenu}
+                    >
+                      <UserPlus aria-hidden="true" className="size-4" />
+                      {t('nav.createStudentAccount')}
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
 

@@ -132,7 +132,7 @@ path: `/user` descendants use `/login`, `/admin` descendants use `/adminLogin`. 
 only the requested pathname/search/hash for later login-flow work; the guard does not follow it.
 Public landing, login, registration, direct Admin login and 404 routes remain outside the guard.
 
-Validated `authenticated` state renders the nested outlet and existing dashboard index navigation.
+Validated `authenticated` state renders the nested outlet and the profile editor index navigation.
 Logout immediately unmounts private content; account re-verification returns to neutral pending.
 The guard never fetches, inspects cookies, reads storage or restores an identity itself. AUTH-021
 alone owns bootstrap/refresh. A focused integration check exposed early identity installation
@@ -192,7 +192,7 @@ AUTH-020 operator gate remain. AUTH-006 preceded the User login flow documented 
 ## User login flow (AUTH-022)
 
 `UserLoginPage` observes the verified AUTH-004 status and exact sanitized role. Successful login or
-an already verified/recovered session visiting `/login` replaces history with `/user/dashboard`
+an already verified/recovered session visiting `/login` replaces history with `/user/profile/edit`
 for USER, `/admin/dashboard` for ADMIN. Unknown/loading/anonymous identity does not trigger success
 routing; AUTH-021's final `/me` controls reload recovery, including the bounded refresh path.
 Destinations are fixed internal constants. Query/hash/router state (`state.from`) and stale Web
@@ -206,8 +206,8 @@ suppresses late identity through the existing session-client epoch and serialize
 Signout followed by a new User/Admin login preserves public sliders and removes private cache.
 The guard still verifies role before any private layout renders; backend authorization is independent.
 
-The existing dashboard routes/pages are scaffolding. Readiness-aware onboarding routing is FE-038
-after BE-016/FE-027; it is not fabricated here. `/adminLogin` role denial/logout/redirect is AUTH-023.
+The retired `/user/dashboard` URL redirects to `/user/profile/edit`. Readiness-aware onboarding is
+available through the same forms reused by the editor. `/adminLogin` role denial/logout/redirect is AUTH-023.
 No API/client/CSRF/store/backend/env/schema/dependency contract changes or production deployment.
 
 ```sh
@@ -294,18 +294,19 @@ copied-access TTL and AUTH-020 production Redis/TLS/ingress operator gate remain
 
 ## Student sidebar navigation (FE-022)
 
-`UserSidebarNavigation` adds a named navigation landmark and seven localized items: Dashboard,
-My Profile, Edit Profile, Buddy Matching, My Buddy, Events and Settings. Calendar/Notifications
+`UserSidebarNavigation` adds a named navigation landmark and six localized items: Edit Profile,
+My Profile, Buddy Matching, My Buddy, Events and Settings. Calendar/Notifications
 appear only after delivery; assistant/campus/Admin links are outside this sidebar's scope.
 
 `src/routes/user-routes.ts` is the shared route registry. A `placeholder` route renders the existing
 scaffolding and cannot produce an actionable sidebar link. A delivered `page` must supply its actual
-component; routing and navigation use that same descriptor. All current student pages remain
-placeholders. Their sidebar entries are `aria-disabled` spans without href or tab stops, with a
-localized explanation and status. Edit Profile has no existing route, so it has no destination URL.
+component; routing and navigation use that same descriptor. Edit Profile and My Profile are released
+native links. Unfinished destinations are `aria-disabled` spans without href or tab stops, with a
+localized explanation and status. The retired Dashboard is absent from the menu and its old URL
+redirects safely to Edit Profile.
 
 Current locations use `aria-current="page"`, including requested scaffold routes. Delivered-page
-inputs render native NavLinks with focus-visible styles, exact profile/dashboard matching and
+inputs render native NavLinks with focus-visible styles, exact profile matching and
 nested matching/buddy/events/settings support. Search/hash do not select a different destination.
 Unit fixtures exercise this released-page branch without claiming business features are delivered.
 

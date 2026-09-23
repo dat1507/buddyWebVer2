@@ -19,7 +19,8 @@
     "signIn": "Anmelden",
     "accountNavigation": "Kontonavigation",
     "userLogin": "Benutzeranmeldung",
-    "createStudentAccount": "Studierendenkonto erstellen"
+    "createStudentAccount": "Studierendenkonto erstellen",
+    "openWorkspace": "Arbeitsbereich öffnen"
   },
   "hero": {
     "title1": "Verbinde dich mit",
@@ -563,7 +564,7 @@
   },
   "profileAvatar": {
     "title": "Profilfoto",
-    "help": "Wähle ein JPEG-, PNG- oder WebP-Bild. Dein Foto bleibt privat und wird vom Server geprüft, bevor es das gespeicherte Foto ersetzt.",
+    "help": "Wähle ein JPEG-, PNG- oder WebP-Bild mit höchstens 12 MiB und 32 Megapixeln. Schneide es zu und zoome es, bevor eine optimierte Kopie mit 800 × 800 Pixeln sicher geprüft und hochgeladen wird.",
     "current": "Aktuelles Foto",
     "currentAlt": "Aktuelles Profilfoto",
     "noCurrent": "Kein Profilfoto gespeichert",
@@ -574,11 +575,29 @@
     "replaceLabel": "Ersatzfoto auswählen",
     "previewAlt": "Vorschau des ausgewählten Profilfotos",
     "previewOnly": "Nur Vorschau – lade das Foto hoch, um es zu speichern.",
+    "previewReady": "Quadratisch zugeschnitten und optimiert. Lade das Foto hoch, um es zu speichern.",
+    "cropTitle": "Profilfoto zuschneiden",
+    "cropDescription": "Ziehe das Bild, um es im Quadrat zu positionieren. Nutze den Zoomregler für einen engeren Ausschnitt.",
+    "cropArea": "Zuschneidebereich für das Profilfoto. Ziehe das Bild oder verschiebe es mit den Pfeiltasten.",
+    "loadingCrop": "Bild zum Zuschneiden wird geladen",
+    "dragHint": "Zum Verschieben ziehen",
+    "zoom": "Zoom",
+    "cancelCrop": "Abbrechen",
+    "applyCrop": "Diesen Ausschnitt verwenden",
+    "processingCrop": "Foto wird vorbereitet…",
     "clearSelection": "Auswahl aufheben",
     "upload": "Foto hochladen",
     "uploading": "Foto wird hochgeladen…",
     "retryUpload": "Upload erneut versuchen",
     "invalidImage": "Der Server hat dieses Bild nicht akzeptiert. Wähle eine gültige JPEG-, PNG- oder WebP-Datei und versuche es erneut.",
+    "errors": {
+      "unsupportedFormat": "Wähle eine .jpg-, .jpeg-, .png- oder .webp-Datei, deren Dateityp zur Erweiterung passt.",
+      "sourceTooLarge": "Wähle ein Bild, das nicht größer als 12 MiB ist.",
+      "signatureMismatch": "Der Dateiinhalt passt nicht zur Bilderweiterung. Wähle eine unveränderte JPEG-, PNG- oder WebP-Datei.",
+      "decodeError": "Dieses Bild konnte nicht gelesen werden. Wähle eine andere JPEG-, PNG- oder WebP-Datei.",
+      "dimensionsTooLarge": "Wähle ein Bild mit höchstens 8192 Pixeln je Seite und insgesamt 32 Megapixeln.",
+      "processingError": "Das zugeschnittene Foto konnte nicht vorbereitet werden. Passe den Ausschnitt an oder wähle ein anderes Bild."
+    },
     "uploadError": "Dein Foto konnte nicht hochgeladen werden. Das gespeicherte Foto ist unverändert; versuche es erneut.",
     "uploaded": "Profilfoto aktualisiert.",
     "remove": "Aktuelles Foto entfernen",
@@ -593,7 +612,8 @@
   "userLayout": {
     "sidebarLabel": "Studierendenbereich",
     "contentLabel": "Inhalte des Studierendenbereichs",
-    "skipToContent": "Zum Inhalt springen"
+    "skipToContent": "Zum Inhalt springen",
+    "backHome": "Zur Startseite"
   },
   "userNavigation": {
     "label": "Studierendennavigation",

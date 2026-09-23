@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Iterator
 from datetime import UTC, datetime
+from io import BytesIO
 from typing import Any, cast
 from unittest.mock import AsyncMock
 from urllib.error import HTTPError
@@ -149,12 +150,30 @@ async def test_transport_updates_existing_bucket_configuration() -> None:
     )
     assert update.kwargs["content_type"] == "application/json"
     assert json.loads(update.kwargs["body"]) == {
-        "id": "event-slider-images",
-        "name": "event-slider-images",
         "public": True,
         "file_size_limit": 5 * 1024 * 1024,
         "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
     }
+    assert "id" not in json.loads(update.kwargs["body"])
+    assert "name" not in json.loads(update.kwargs["body"])
+
+
+@pytest.mark.anyio
+async def test_transport_repeatedly_converges_existing_bucket_configuration() -> None:
+    transport = SupabaseStorageTransport(_settings())
+    request = AsyncMock(return_value=b"{}")
+    transport._request = request  # type: ignore[method-assign]
+
+    await transport.configure_bucket(ImageBucket.PROFILE_IMAGES)
+    await transport.configure_bucket(ImageBucket.PROFILE_IMAGES)
+
+    assert [call.args[0] for call in request.await_args_list] == ["GET", "PUT", "GET", "PUT"]
+    for update in (request.await_args_list[1], request.await_args_list[3]):
+        assert json.loads(update.kwargs["body"]) == {
+            "public": False,
+            "file_size_limit": 5 * 1024 * 1024,
+            "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
+        }
 
 
 @pytest.mark.anyio
@@ -174,6 +193,15 @@ async def test_transport_creates_missing_bucket_configuration() -> None:
         ("GET", "https://project.supabase.co/storage/v1/bucket/profile-images"),
         ("POST", "https://project.supabase.co/storage/v1/bucket"),
     ]
+    create = request.await_args_list[1]
+    assert create.kwargs["content_type"] == "application/json"
+    assert json.loads(create.kwargs["body"]) == {
+        "id": "profile-images",
+        "name": "profile-images",
+        "public": False,
+        "file_size_limit": 5 * 1024 * 1024,
+        "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
+    }
 
 
 @pytest.mark.anyio
@@ -191,6 +219,15 @@ async def test_transport_converges_bucket_after_concurrent_create() -> None:
     await transport.configure_bucket(ImageBucket.EVENT_MEDIA)
 
     assert [call.args[0] for call in request.await_args_list] == ["GET", "POST", "PUT"]
+    create_body = json.loads(request.await_args_list[1].kwargs["body"])
+    update_body = json.loads(request.await_args_list[2].kwargs["body"])
+    assert create_body["id"] == "event-media"
+    assert create_body["name"] == "event-media"
+    assert update_body == {
+        "public": False,
+        "file_size_limit": 5 * 1024 * 1024,
+        "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
+    }
 
 
 @pytest.mark.anyio
@@ -281,3 +318,33 @@ def test_transport_sanitizes_http_failures_without_secret(
     assert str(raised.value) == "Storage request failed with HTTP status 503."
     assert raised.value.status_code == 503
     assert TEST_SECRET not in str(raised.value)
+
+
+def test_transport_normalizes_structured_provider_not_found_without_exposing_body(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    transport = SupabaseStorageTransport(_settings())
+    provider_body = b'{"statusCode":"404","error":"Bucket not found","message":"private"}'
+
+    class FailingOpener:
+        def open(self, *_args: object, **_kwargs: object) -> None:
+            raise HTTPError(
+                "https://project.supabase.co/storage/v1/bucket/missing",
+                400,
+                "Bad Request",
+                cast(Any, None),
+                BytesIO(provider_body),
+            )
+
+    monkeypatch.setattr(image_storage, "build_opener", lambda *_args: FailingOpener())
+
+    with pytest.raises(StorageOperationError) as raised:
+        transport._request_sync(
+            "GET",
+            "https://project.supabase.co/storage/v1/bucket/missing",
+        )
+
+    assert str(raised.value) == "Storage request failed with HTTP status 400."
+    assert raised.value.status_code == 404
+    assert "Bucket not found" not in str(raised.value)
+    assert "private" not in str(raised.value)

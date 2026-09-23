@@ -75,7 +75,7 @@ function UserLoginPage() {
 
   // Login and reload bootstrap install only verified, sanitized identity. Never follow redirect input.
   if (status === 'authenticated' && role === 'USER')
-    return <Navigate to="/user/dashboard" replace />
+    return <Navigate to="/user/profile/edit" replace />
   if (status === 'authenticated' && role === 'ADMIN')
     return <Navigate to="/admin/dashboard" replace />
 

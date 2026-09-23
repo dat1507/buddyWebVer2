@@ -36,6 +36,21 @@ describe('FE-022 navigation in the real guarded App', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -69,7 +84,7 @@ describe('FE-022 navigation in the real guarded App', () => {
   const expectNoStudentNavigation = () =>
     expect(screen.queryByRole('navigation', { name: 'Student navigation' })).not.toBeInTheDocument()
 
-  it.each([['/user/dashboard', 'Dashboard', 'Dashboard']])(
+  it.each([['/user/profile/edit', 'Edit profile', 'Edit Profile']])(
     'preserves the USER nested route %s and truthful navigation availability',
     (path, title, label) => {
       useAuthStore.getState().setAuthenticated(user)
@@ -92,9 +107,17 @@ describe('FE-022 navigation in the real guarded App', () => {
     },
   )
 
+  it('redirects the retired Dashboard URL to the profile editor', async () => {
+    useAuthStore.getState().setAuthenticated(user)
+    renderApp('/user/dashboard?view=details#photo')
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
+    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument()
+  })
+
   it.each(['unknown', 'loading'] as const)('does not mount USER navigation during %s', (status) => {
     useAuthStore.setState({ status })
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     expect(screen.getByRole('status')).toHaveTextContent('Checking your session')
     expectNoStudentNavigation()
     expect(fetch).not.toHaveBeenCalled()
@@ -110,7 +133,7 @@ describe('FE-022 navigation in the real guarded App', () => {
 
   it('denies ADMIN access to USER navigation while preserving verified identity', async () => {
     useAuthStore.getState().setAuthenticated({ ...user, role: 'ADMIN' })
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/')
     expectNoStudentNavigation()
@@ -129,14 +152,14 @@ describe('FE-022 navigation in the real guarded App', () => {
       .mockResolvedValueOnce(json({ user, csrf_token: 'rotated-csrf' }))
       .mockReturnValueOnce(finalMe)
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-    renderApp('/user/dashboard?view=details#photo', true)
+    renderApp('/user/profile/edit?view=details#photo', true)
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4))
     expectNoStudentNavigation()
     await act(async () => {
       resolveMe(json(user))
     })
     expect(await screen.findByRole('navigation', { name: 'Student navigation' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/user/dashboard?view=details#photo')
+    expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit?view=details#photo')
     fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
     expectNoStudentNavigation()
@@ -154,18 +177,18 @@ describe('FE-022 navigation in the real guarded App', () => {
 
   it('uses the existing language toggle without losing route, active item or Outlet', async () => {
     useAuthStore.getState().setAuthenticated(user)
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     const current = screen
       .getByRole('navigation', { name: 'Student navigation' })
       .querySelector('[aria-current="page"]')
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     const nav = await screen.findByRole('navigation', { name: 'Studierendennavigation' })
     expect(nav.querySelector('[aria-current="page"]')).toBe(current)
-    expect(current).toHaveTextContent('Übersicht')
+    expect(current).toHaveTextContent('Profil bearbeiten')
     expect(
-      within(screen.getByRole('main')).getByRole('heading', { name: 'Übersicht' }),
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Profil bearbeiten' }),
     ).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/user/dashboard')
+    expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit')
     expect(fetch).not.toHaveBeenCalled()
   })
 })

@@ -19,7 +19,8 @@
     "signIn": "Sign in",
     "accountNavigation": "Account navigation",
     "userLogin": "User login",
-    "createStudentAccount": "Create student account"
+    "createStudentAccount": "Create student account",
+    "openWorkspace": "Open workspace"
   },
   "hero": {
     "title1": "Connect with",
@@ -563,7 +564,7 @@
   },
   "profileAvatar": {
     "title": "Profile photo",
-    "help": "Choose a JPEG, PNG or WebP image. Your photo stays private and is validated by the server before it replaces the saved photo.",
+    "help": "Choose a JPEG, PNG or WebP image up to 12 MiB and 32 megapixels. Crop and zoom it before an optimized 800 × 800 copy is securely validated and uploaded.",
     "current": "Current photo",
     "currentAlt": "Current profile photo",
     "noCurrent": "No profile photo saved",
@@ -574,11 +575,29 @@
     "replaceLabel": "Choose a replacement photo",
     "previewAlt": "Preview of selected profile photo",
     "previewOnly": "Preview only — upload to save this photo.",
+    "previewReady": "Cropped to a square and optimized. Upload to save this photo.",
+    "cropTitle": "Crop profile photo",
+    "cropDescription": "Drag the image to reposition it inside the square. Use the zoom control for a closer crop.",
+    "cropArea": "Profile photo crop area. Drag or use the arrow keys to reposition the image.",
+    "loadingCrop": "Loading image for cropping",
+    "dragHint": "Drag to reposition",
+    "zoom": "Zoom",
+    "cancelCrop": "Cancel",
+    "applyCrop": "Use this crop",
+    "processingCrop": "Preparing photo…",
     "clearSelection": "Clear selection",
     "upload": "Upload photo",
     "uploading": "Uploading photo…",
     "retryUpload": "Retry upload",
     "invalidImage": "The server did not accept this image. Choose a valid JPEG, PNG or WebP file and try again.",
+    "errors": {
+      "unsupportedFormat": "Choose a .jpg, .jpeg, .png or .webp file whose file type matches its extension.",
+      "sourceTooLarge": "Choose an image no larger than 12 MiB.",
+      "signatureMismatch": "This file's contents do not match its image extension. Choose an unmodified JPEG, PNG or WebP file.",
+      "decodeError": "This image could not be decoded. Choose another JPEG, PNG or WebP file.",
+      "dimensionsTooLarge": "Choose an image no larger than 8192 px on either side and 32 megapixels in total.",
+      "processingError": "The cropped photo could not be prepared. Adjust the crop or choose another image."
+    },
     "uploadError": "Your photo could not be uploaded. The saved photo is unchanged; try again.",
     "uploaded": "Profile photo updated.",
     "remove": "Remove current photo",
@@ -593,7 +612,8 @@
   "userLayout": {
     "sidebarLabel": "Student workspace",
     "contentLabel": "Student content",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "backHome": "Back to home"
   },
   "userNavigation": {
     "label": "Student navigation",

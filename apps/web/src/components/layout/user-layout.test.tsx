@@ -41,6 +41,11 @@ describe('FE-021 UserLayout shell', () => {
       expect(skip).toHaveAttribute('href', `#${main.id}`)
       expect(main).toHaveAttribute('tabindex', '-1')
       expect(document.getElementById(main.id)).toBe(main)
+      expect(
+        within(screen.getByRole('complementary', { name: sidebarLabel })).getByRole('link', {
+          name: i18n.t('userLayout.backHome'),
+        }),
+      ).toHaveAttribute('href', '/#home')
     },
   )
 

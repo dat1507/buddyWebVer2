@@ -36,6 +36,21 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -73,7 +88,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     expect(screen.queryByRole('main', { name: 'Student content' })).not.toBeInTheDocument()
   }
 
-  it.each([['/user/dashboard', 'Dashboard']])(
+  it.each([['/user/profile/edit', 'Edit profile']])(
     'renders a verified USER nested route %s inside one layout main',
     (path, title) => {
       useAuthStore.getState().setAuthenticated(user)
@@ -90,7 +105,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     'never mounts the shell during %s session verification',
     (status) => {
       useAuthStore.setState({ status })
-      renderApp('/user/dashboard')
+      renderApp('/user/profile/edit')
       expect(screen.getByRole('status')).toHaveTextContent('Checking your session')
       expectNoStudentShell()
       expect(screen.getAllByRole('main')).toHaveLength(1)
@@ -99,7 +114,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
 
   it('redirects anonymous access through the existing guard without rendering the shell', async () => {
     useAuthStore.getState().clearSession()
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
     expect(screen.getByTestId('location')).toHaveTextContent('/login')
     expectNoStudentShell()
@@ -107,7 +122,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
 
   it('does not let ADMIN bypass the USER guard', async () => {
     useAuthStore.getState().setAuthenticated({ ...user, role: 'ADMIN' })
-    renderApp('/user/dashboard')
+    renderApp('/user/profile/edit')
     expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/')
     expectNoStudentShell()
@@ -125,7 +140,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
       .mockResolvedValueOnce(json({ user, csrf_token: 'rotated' }))
       .mockReturnValueOnce(me)
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-    renderApp('/user/dashboard?view=details#photo', true)
+    renderApp('/user/profile/edit?view=details#photo', true)
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4))
     expectNoStudentShell()
     await act(async () => {
@@ -133,10 +148,12 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     })
     expect(await screen.findByRole('complementary', { name: 'Student workspace' })).toBeVisible()
     expect(
-      within(screen.getByRole('main')).getByRole('heading', { name: 'Dashboard' }),
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Edit profile' }),
     ).toBeVisible()
     expect(screen.getAllByRole('main')).toHaveLength(1)
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard?view=details#photo')
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      '/user/profile/edit?view=details#photo',
+    )
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',

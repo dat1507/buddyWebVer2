@@ -32,6 +32,21 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
   })
@@ -189,7 +204,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     expect(await screen.findByRole('alert')).toBeVisible()
     expect(useAuthStore.getState().user).toBeNull()
     fireEvent.click(mainButton('Try again'))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
     expect(useAuthStore.getState().role).toBe('USER')
   })
 

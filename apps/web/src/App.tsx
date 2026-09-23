@@ -29,7 +29,8 @@ function App() {
 
         <Route element={<RoleGuard requiredRole="USER" />}>
           <Route path="user" element={<UserLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route index element={<Navigate to="profile/edit" replace />} />
+            <Route path="dashboard" element={<Navigate to="/user/profile/edit" replace />} />
             {userRoutes.map((route) => {
               const page =
                 route.kind === 'page' ? (

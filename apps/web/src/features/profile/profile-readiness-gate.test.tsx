@@ -17,17 +17,6 @@ const user = {
   role: 'USER' as const,
   email_verified: false,
 }
-const profile = {
-  id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-  full_name: null,
-  display_name: null,
-  student_type: null,
-  nationality: null,
-  major: null,
-  study_year: null,
-  bio: null,
-  version: 1,
-}
 const complete = {
   status: 'COMPLETE' as const,
   percentage: 100,
@@ -99,21 +88,19 @@ describe('FE-038 profile readiness routing', () => {
       </QueryClientProvider>,
     )
 
-  it('routes incomplete and complete USER sessions from login to the correct destination', async () => {
+  it('routes incomplete and complete USER sessions from login to the profile editor', async () => {
     const authenticatedJson = vi
       .spyOn(sessionClient, 'authenticatedJson')
       .mockImplementation(async (path) => {
         if (path === '/profile/completion') return incomplete
-        if (path === '/profile') return profile
+        if (path === '/profile') return completeOwnProfile
         throw new Error(`Unexpected test path: ${path}`)
       })
     useAuthStore.getState().setAuthenticated(user)
     const incompleteView = renderApp('/login')
 
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Tell us about yourself' }),
-    ).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/onboarding')
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
     incompleteView.unmount()
     client.clear()
     client.setQueryData(['profile', 'own'], completeOwnProfile)
@@ -124,8 +111,8 @@ describe('FE-038 profile readiness routing', () => {
     })
     renderApp('/login')
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
   })
 
   it('lets ADMIN bypass student readiness without requesting profile completion', async () => {
@@ -152,8 +139,8 @@ describe('FE-038 profile readiness routing', () => {
     useAuthStore.getState().setAuthenticated(user)
     renderApp('/user/matching')
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
     expect(screen.queryByText('This area is not available yet.')).not.toBeInTheDocument()
   })
 
@@ -161,16 +148,16 @@ describe('FE-038 profile readiness routing', () => {
     const completion = deferred<unknown>()
     vi.spyOn(sessionClient, 'authenticatedJson').mockReturnValue(completion.promise)
     useAuthStore.getState().setAuthenticated(user)
-    renderApp('/user/dashboard')
+    renderApp('/user/matching')
 
     expect(screen.getByRole('status')).toHaveTextContent('Checking profile readiness')
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
     expect(
       screen.queryByRole('heading', { name: 'Tell us about yourself' }),
     ).not.toBeInTheDocument()
 
     await act(async () => completion.resolve(complete))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
   })
 
   it('shows retryable failure in place without treating a network error as incomplete', async () => {
@@ -178,18 +165,18 @@ describe('FE-038 profile readiness routing', () => {
       .mockRejectedValueOnce(new ApiError(0, 'network'))
       .mockResolvedValueOnce(complete)
     useAuthStore.getState().setAuthenticated(user)
-    renderApp('/user/dashboard')
+    renderApp('/user/matching')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not verify where your profile should continue.',
     )
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
     expect(
       screen.queryByRole('heading', { name: 'Tell us about yourself' }),
     ).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
   })
 
   it('does not request readiness until reload bootstrap has resolved /auth/me', async () => {
@@ -198,17 +185,17 @@ describe('FE-038 profile readiness routing', () => {
       .mockResolvedValueOnce(json({ csrf_token: 'recovered' }))
       .mockReturnValueOnce(me.promise)
       .mockResolvedValueOnce(json(complete))
-    renderApp('/user/dashboard', true)
+    renderApp('/user/matching', true)
 
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',
     ])
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
 
     await act(async () => me.resolve(json(user)))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',

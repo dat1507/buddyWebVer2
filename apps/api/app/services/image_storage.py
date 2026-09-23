@@ -201,10 +201,27 @@ class SupabaseStorageTransport:
         except HTTPError as error:
             raise StorageOperationError(
                 f"Storage request failed with HTTP status {error.code}.",
-                status_code=error.code,
+                status_code=self._provider_status_code(error),
             ) from None
         except (OSError, TimeoutError, URLError):
             raise StorageOperationError("Storage service is unavailable.") from None
+
+    @staticmethod
+    def _provider_status_code(error: HTTPError) -> int:
+        """Normalize a structured provider status without exposing its response body."""
+        try:
+            payload = json.loads(error.read(4096))
+        except (AttributeError, OSError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
+            return error.code
+        if not isinstance(payload, dict):
+            return error.code
+
+        provider_status = payload.get("statusCode")
+        if isinstance(provider_status, str) and provider_status.isdecimal():
+            provider_status = int(provider_status)
+        if type(provider_status) is int and 400 <= provider_status <= 599:
+            return provider_status
+        return error.code
 
     def _authentication_headers(self) -> dict[str, str]:
         headers = {
@@ -252,16 +269,20 @@ class SupabaseStorageTransport:
         if not isinstance(bucket, ImageBucket):
             raise StorageOperationError("Storage bucket must be selected by trusted server code.")
 
-        request_body = json.dumps(
+        bucket_policy = {
+            "public": bucket.is_public,
+            "file_size_limit": MAX_IMAGE_BYTES,
+            "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
+        }
+        create_body = json.dumps(
             {
                 "id": bucket.value,
                 "name": bucket.value,
-                "public": bucket.is_public,
-                "file_size_limit": MAX_IMAGE_BYTES,
-                "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"],
+                **bucket_policy,
             },
             separators=(",", ":"),
         ).encode("utf-8")
+        update_body = json.dumps(bucket_policy, separators=(",", ":")).encode("utf-8")
         bucket_url = self._url("bucket", bucket.value)
         try:
             await self._request("GET", bucket_url)
@@ -272,7 +293,7 @@ class SupabaseStorageTransport:
                 await self._request(
                     "POST",
                     self._url("bucket"),
-                    body=request_body,
+                    body=create_body,
                     content_type="application/json",
                 )
                 return
@@ -283,7 +304,7 @@ class SupabaseStorageTransport:
         await self._request(
             "PUT",
             bucket_url,
-            body=request_body,
+            body=update_body,
             content_type="application/json",
         )
 

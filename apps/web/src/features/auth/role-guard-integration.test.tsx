@@ -42,6 +42,21 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -111,7 +126,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
   })
 
   it.each([
-    ['/user/dashboard?view=details#photo', 'USER', 'Dashboard', 'user'],
+    ['/user/profile/edit?view=details#photo', 'USER', 'Edit profile', 'user'],
     ['/admin/audit-log?view=details#entry', 'ADMIN', 'Audit log', 'admin'],
   ])(
     'allows a matching role at %s with its deep link intact',
@@ -142,7 +157,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     ['/admin/audit-log', 'USER', false],
     ['/user/profile', 'ADMIN', false],
     ['/admin/audit-log', 'ADMIN', true],
-    ['/user/dashboard', 'USER', true],
+    ['/user/profile/edit', 'USER', true],
   ] as const)('waits for /me before deciding %s access for %s', async (path, role, allowed) => {
     const me = deferred<Response>()
     fetch.mockResolvedValueOnce(json({ csrf_token: 'recovered' })).mockReturnValueOnce(me.promise)
@@ -161,7 +176,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     if (allowed) {
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Audit log',
+          name: role === 'USER' ? 'Edit profile' : 'Audit log',
         }),
       ).toBeVisible()
       expect(location()).toBe(path + '?view=details#entry')
@@ -197,7 +212,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
 
   it.each([
     ['/admin/users', 'ADMIN', 'USER', 'User management'],
-    ['/user/dashboard', 'USER', 'ADMIN', 'Dashboard'],
+    ['/user/profile/edit', 'USER', 'ADMIN', 'Edit profile'],
   ])(
     'verified refresh role change removes %s and clears private cache',
     async (path, oldRole, newRole, title) => {

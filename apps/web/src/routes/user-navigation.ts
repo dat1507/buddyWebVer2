@@ -1,7 +1,6 @@
 import {
   CalendarDays,
   HeartHandshake,
-  LayoutDashboard,
   Settings,
   SquarePen,
   UserRound,
@@ -24,9 +23,8 @@ const definitions: readonly {
   Icon: LucideIcon
   end?: boolean
 }[] = [
-  { id: 'dashboard', route: 'dashboard', Icon: LayoutDashboard, end: true },
-  { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
   { id: 'editProfile', route: 'profile/edit', Icon: SquarePen },
+  { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
   { id: 'matching', route: 'matching', Icon: Users },
   { id: 'myBuddy', route: 'buddy', Icon: HeartHandshake },
   { id: 'events', route: 'events', Icon: CalendarDays },

@@ -55,7 +55,7 @@ function ProfileReadinessGate({ children, requirement }: ProfileReadinessGatePro
 
   if (requirement === 'incomplete') {
     return completion.data.status === 'COMPLETE' ? (
-      <Navigate to="/user/dashboard" replace />
+      <Navigate to="/user/profile/edit" replace />
     ) : (
       children
     )
@@ -66,7 +66,7 @@ function ProfileReadinessGate({ children, requirement }: ProfileReadinessGatePro
   }
 
   if (requirement === 'matchingEligible' && !completion.data.matching_eligible) {
-    return <Navigate to="/user/dashboard" replace />
+    return <Navigate to="/user/profile/edit" replace />
   }
 
   return children

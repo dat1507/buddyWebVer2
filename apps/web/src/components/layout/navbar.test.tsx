@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Navbar } from '@/components/layout/navbar'
 import i18n from '@/i18n'
+import { useAuthStore } from '@/stores/auth-store'
 
 function renderNavbar() {
   return render(
@@ -17,6 +18,7 @@ describe('Navbar', () => {
   beforeEach(async () => {
     localStorage.clear()
     await i18n.changeLanguage('en')
+    useAuthStore.getState().resetSession()
   })
 
   it('renders primary navigation items and language toggle', () => {
@@ -171,5 +173,31 @@ describe('Navbar', () => {
     expect(
       within(dialog).getByRole('link', { name: 'Studierendenkonto erstellen' }),
     ).toHaveAttribute('href', '/register')
+  })
+
+  it.each([
+    ['USER', '/user/profile/edit'],
+    ['ADMIN', '/admin/dashboard'],
+  ] as const)('shows an authenticated %s workspace action without guest actions', (role, href) => {
+    useAuthStore.getState().setAuthenticated({
+      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      email: 'student@example.com',
+      email_verified: true,
+      role,
+    })
+    renderNavbar()
+
+    expect(screen.getByRole('link', { name: 'Open workspace' })).toHaveAttribute('href', href)
+    expect(screen.queryByRole('button', { name: 'Sign in' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }))
+    const drawer = screen.getByRole('dialog', { name: 'Primary navigation' })
+    expect(within(drawer).getByRole('link', { name: 'Open workspace' })).toHaveAttribute(
+      'href',
+      href,
+    )
+    expect(within(drawer).queryByRole('link', { name: 'User login' })).not.toBeInTheDocument()
+    expect(
+      within(drawer).queryByRole('link', { name: 'Create student account' }),
+    ).not.toBeInTheDocument()
   })
 })

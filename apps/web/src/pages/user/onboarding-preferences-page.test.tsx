@@ -172,7 +172,7 @@ describe('FE-027 onboarding availability and preferences step', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Join buddy matching/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Save and finish onboarding' }))
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith('/profile', {
       method: 'PUT',
       body: {
@@ -224,7 +224,7 @@ describe('FE-027 onboarding availability and preferences step', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Do not join matching yet/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Save and finish onboarding' }))
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith('/profile', {
       method: 'PUT',
       body: {

@@ -49,6 +49,21 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
+      id: completeOwnProfile.avatar!.id,
+      url: 'https://media.example.test/avatar',
+      expires_in: 300,
+      expiresAt: Date.now() + 300_000,
+    })
+
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -158,15 +173,15 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
           name:
             role === 'USER'
               ? language === 'en'
-                ? 'Dashboard'
-                : 'Übersicht'
+                ? 'Edit profile'
+                : 'Profil bearbeiten'
               : language === 'en'
                 ? 'Admin overview'
                 : 'Administrationsübersicht',
         }),
       ).toBeVisible()
       expect(location()).toEqual({
-        pathname: role === 'USER' ? '/user/dashboard' : '/admin/dashboard',
+        pathname: role === 'USER' ? '/user/profile/edit' : '/admin/dashboard',
         search: '',
         hash: '',
         state: null,
@@ -194,7 +209,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       renderApp()
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(fetch).not.toHaveBeenCalled()
@@ -230,8 +245,13 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       })
       expectNoPrivate()
       submit()
-      expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
-      expect(location()).toEqual({ pathname: '/user/dashboard', search: '', hash: '', state: null })
+      expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+      expect(location()).toEqual({
+        pathname: '/user/profile/edit',
+        search: '',
+        hash: '',
+        state: null,
+      })
       sessionStorage.removeItem('auth')
     },
   )
@@ -297,7 +317,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     submit()
     expect(await screen.findByRole('alert')).toBeVisible()
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
     expect(fetch.mock.calls[5][1]).toMatchObject({ headers: { 'X-CSRF-Token': 'retry' } })
     expect(fetch).toHaveBeenCalledTimes(6)
   })
@@ -384,7 +404,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(useAuthStore.getState().user?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
@@ -415,7 +435,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(fetch).toHaveBeenCalledTimes(2)
@@ -438,7 +458,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     } finally {
       await act(async () => me.resolve(json(user)))
     }
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
     expect(document.querySelector('[data-layout="admin"]')).toBeNull()
     expect(fetch).toHaveBeenCalledTimes(4)
   })

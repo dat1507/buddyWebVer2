@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet } from 'react-router'
+import { Link, Outlet } from 'react-router'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
@@ -24,7 +24,11 @@ function UserLayout() {
         <aside aria-label={t('userLayout.sidebarLabel')} className="min-w-0 lg:sticky lg:top-6">
           <Card className="space-y-5 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-4 lg:flex-col lg:items-start">
-              <div className="flex min-w-0 items-center gap-3">
+              <Link
+                to="/#home"
+                aria-label={t('userLayout.backHome')}
+                className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
+              >
                 <img
                   src={vguBuddyLogo}
                   alt=""
@@ -35,10 +39,10 @@ function UserLayout() {
                     VGU Buddy
                   </Typography>
                   <Typography variant="muted" className="mt-1">
-                    {t('userLayout.sidebarLabel')}
+                    {t('userLayout.backHome')}
                   </Typography>
                 </div>
-              </div>
+              </Link>
               <LanguageToggle />
             </div>
             <UserSidebarNavigation />

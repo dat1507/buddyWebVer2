@@ -141,7 +141,7 @@ function OnboardingPreferencesForm({
       return
     }
     if (result.data.status === 'COMPLETE' && mode === 'onboarding') {
-      navigate('/user/dashboard', { replace: true })
+      navigate('/user/profile/edit', { replace: true })
       return
     }
     setMissingFields([...result.data.missing_fields])

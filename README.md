@@ -220,7 +220,7 @@ bootstrap, and verified refresh role changes remove incompatible content and pri
 Real local browser cookies/database acceptance covers both roles, matching deep-link reload,
 cross-role denial retaining sessions, EN/DE and logout/re-entry; browser error console is empty.
 AUTH-022 User login role routing is complete: successful login and recovered sessions at `/login`
-replace history with `/user/dashboard` for USER or `/admin/dashboard` for ADMIN, using only verified
+replace history with `/user/profile/edit` for USER or `/admin/dashboard` for ADMIN, using only verified
 sanitized identity. Pending/failed verification stays on login with safe validation/error/retry;
 query/hash/router state/stale storage never choose the destination. Late and superseded responses,
 logout/account-switch/private-public cache and real local browser EN/DE acceptance PASS.
@@ -232,10 +232,10 @@ Real local browser/API/database ADMIN and EN/DE USER denial/revocation acceptanc
 FE-021 UserLayout is complete: responsive sidebar/content regions, nested route Outlet, one main
 landmark, keyboard skip link and EN/DE labels reuse the existing design system. Guard/bootstrap/
 logout acceptance and actual desktop/mobile browser checks PASS. FE-022 adds scoped EN/DE student
-navigation with current-route semantics. Current business pages remain placeholders, so all seven
-items are unavailable without href or keyboard tab stops; Edit Profile has no invented URL.
-The router and navigation share page-delivery metadata. USER readiness/onboarding remains FE-038;
-backend authorization remains authoritative. ADMIN-001 completes the AdminLayout shell with a
+navigation with current-route semantics. Edit Profile is the first released destination, followed
+by My Profile; Dashboard is no longer shown and `/user/dashboard` safely redirects to the editor.
+The router and navigation share page-delivery metadata. The editor reuses all three profile/onboarding
+forms without duplicating their state. Backend authorization remains authoritative. ADMIN-001 completes the AdminLayout shell with a
 distinct dark sidebar, Admin badge, responsive content region, nested Outlet and EN/DE landmarks.
 One main and keyboard skip-to-content are verified with guarded reload/logout acceptance. Admin
 module navigation is now complete in ADMIN-002: eleven localized native links share the router's
@@ -246,7 +246,12 @@ remain unavailable; no operational totals or stats API are supplied by these pla
 ADMIN-004 supplies a reusable client-side DataTable with typed columns/custom cells, localized
 sort/filter/search/pagination and caller loading/error/empty states. Its isolated synthetic browser
 checks verify keyboard access and responsive scrolling; domain list/API integration remains future work.
-Frontend verification now totals 438 PASS. The next task is ADMIN-005 (reusable ConfirmDialog),
+Avatar selection now validates extension, MIME and signature before opening an accessible 1:1 crop
+dialog. Browser-side reposition/zoom produces an 800×800 WebP (PNG fallback) before the existing
+server-side decode, dimension, signature and metadata-stripping validation. No image-processing
+service or client-side storage credential was added.
+
+Frontend verification now totals 498 PASS. The next task is ADMIN-005 (reusable ConfirmDialog),
 ready through completed FE-004.
 
 From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
