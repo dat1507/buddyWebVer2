@@ -69,7 +69,7 @@ the repository does not contain a Supabase Local stack.
 - Backend: Python 3.12+, FastAPI, SQLAlchemy 2, asyncpg, Alembic, Pydantic.
 - Database: PostgreSQL 17; the local image includes pgvector 0.8.6.
 - Testing and quality: Vitest, Testing Library, ESLint, Prettier, pytest, Ruff, mypy, pip-audit.
-- Local infrastructure: Docker Desktop and Docker Compose.
+- Local infrastructure: Docker Desktop and Docker Compose for the reproducible full stack.
 - CI: GitHub Actions runs deterministic frontend and backend checks.
 
 ## Repository Structure
@@ -81,7 +81,7 @@ the repository does not contain a Supabase Local stack.
 │   └── web/                    # React/Vite application and frontend tests
 ├── docs/                       # Repository and implementation audit documents
 ├── .github/workflows/          # Continuous integration
-├── docker-compose.yml          # Local PostgreSQL + pgvector service
+├── docker-compose.yml          # Local PostgreSQL, Redis, API, worker and web stack
 ├── implementation_plan_vgu_buddy.md
 └── CONTRIBUTING.md
 ```
@@ -124,25 +124,36 @@ For a runtime-only environment, install `requirements.lock` instead of
 `requirements-dev.lock`. See [apps/api/README.md](apps/api/README.md) for database credentials,
 migrations, and the health check.
 
-### Local PostgreSQL
+### Reproducible local stack
 
-Create an ignored `apps/api/.env` from `apps/api/.env.example`, set a unique local password, and
-start PostgreSQL from the repository root:
+Create an ignored `apps/api/.env` from `apps/api/.env.example`. Supply unique local-only database,
+auth, CSRF and sealing secrets plus sandbox Storage/email settings. For Compose, both database URLs
+must use the internal host `postgres`; `DATABASE_URL` remains the least-privilege runtime role and
+must use `LOCAL_RUNTIME_DATABASE_PASSWORD`, while `DATABASE_MIGRATION_URL` remains the privileged
+migration role. Never commit this file.
+
+From the repository root, validate and start PostgreSQL, Redis, migration, API, leased outbox
+worker and Vite web server with one command set:
 
 ```sh
 docker compose --env-file apps/api/.env config --quiet
-docker compose --env-file apps/api/.env up -d --wait postgres
+docker compose --env-file apps/api/.env up --build -d --wait
 ```
 
-Configure `DATABASE_MIGRATION_URL` in the Alembic process, then run:
+All published ports bind to loopback. API liveness is `/api/health/live`; readiness is
+`/api/health/ready` and reports separate sanitized database, Redis, email and Storage states.
+The worker reuses PostgreSQL outbox leases after restart. Redis outages fail the API readiness
+probe without exposing connection details, while Compose restart policy recovers failed processes.
+
+Stop the stack while preserving PostgreSQL and Redis named volumes:
 
 ```sh
-cd apps/api
-python -m alembic -c pyproject.toml upgrade head
+docker compose --env-file apps/api/.env down
 ```
 
-Use `docker compose --env-file apps/api/.env down` to stop the database while preserving its named
-volume. Do not add `--volumes` unless a destructive local reset is intended.
+Do not add `--volumes` unless a destructive local reset is intended. To run only infrastructure
+for host-based development, start `postgres redis` and follow the backend README for migrations and
+the local runtime-role password.
 
 ## Environment Variables
 
@@ -151,7 +162,7 @@ Committed templates:
 - [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
   development event-fixture flag.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
-  URLs, auth/CSRF signing keys, cookie policy, and the exact CORS origin allowlist.
+  URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 
 Populated `.env` files are ignored. Database passwords and URLs are server-only and must never use a
 `VITE_` prefix or be committed.

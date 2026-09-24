@@ -105,4 +105,15 @@ jobs:
       - name: Validate Docker Compose
         env:
           POSTGRES_PASSWORD: ci-compose-validation-only
+          DATABASE_URL: postgresql+asyncpg://vgu_buddy_runtime:ci-runtime-only@postgres:5432/vgu_buddy?sslmode=disable
+          DATABASE_MIGRATION_URL: postgresql+asyncpg://postgres:ci-compose-validation-only@postgres:5432/vgu_buddy?sslmode=disable
+          LOCAL_RUNTIME_DATABASE_PASSWORD: ci-runtime-only
+          AUTH_JWT_SECRET: compose-jwt-validation-placeholder
+          AUTH_CSRF_SECRET: compose-csrf-validation-placeholder
+          SUPABASE_URL: https://ci-placeholder.supabase.co
+          SUPABASE_SECRET_KEY: ci-placeholder
+          RESEND_API_KEY: ci-placeholder
+          EMAIL_FROM_ADDRESS: no-reply@example.test
+          PUBLIC_APP_BASE_URL: https://example.test
+          EMAIL_VERIFICATION_SEALING_KEY: compose-sealing-validation-placeholder
         run: docker compose -f docker-compose.yml config --quiet

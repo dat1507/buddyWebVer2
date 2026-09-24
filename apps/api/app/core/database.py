@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from functools import lru_cache
 from typing import Final
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from app.core.config import (
+    APP_ENV_VARIABLE,
     DatabaseConfigurationError,
     MigrationDatabaseSettings,
     RuntimeDatabaseSettings,
@@ -28,6 +30,7 @@ APPLICATION_SCHEMA: Final = "app_private"
 TRANSACTION_POOLER_PORT: Final = 6543
 _ALLOWED_SSL_MODES: Final = frozenset({"require", "verify-ca", "verify-full"})
 _LOCAL_DATABASE_HOSTS: Final = frozenset({"127.0.0.1", "::1", "localhost"})
+_LOCAL_COMPOSE_DATABASE_HOST: Final = "postgres"
 _SUPPORTED_DRIVERS: Final = frozenset({"postgres", "postgresql", "postgresql+asyncpg"})
 
 
@@ -63,7 +66,10 @@ def _as_async_postgres_url(
         )
 
     ssl_mode = libpq_ssl_mode or asyncpg_ssl_mode
-    is_local = url.host in _LOCAL_DATABASE_HOSTS
+    is_local = url.host in _LOCAL_DATABASE_HOSTS or (
+        os.getenv(APP_ENV_VARIABLE, "production").strip().lower() == "local"
+        and url.host == _LOCAL_COMPOSE_DATABASE_HOST
+    )
     if ssl_mode is None and is_local:
         ssl_mode = "disable"
     elif ssl_mode is None:

@@ -442,6 +442,16 @@ def test_vercel_cannot_opt_into_memory(monkeypatch: pytest.MonkeyPatch) -> None:
         get_auth_rate_limiter()
 
 
+def test_rate_limit_prefix_must_identify_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "test")
+    monkeypatch.setenv("RATE_LIMIT_STORAGE_URI", "memory://")
+    monkeypatch.setenv("RATE_LIMIT_KEY_PREFIX", "vgu-buddy:production:auth:v1")
+    with pytest.raises(RateLimitUnavailable):
+        get_auth_rate_limiter()
+
+
 @pytest.mark.anyio
 async def test_storage_outage_is_sanitized_503_never_memory_fallback(
     monkeypatch: pytest.MonkeyPatch,

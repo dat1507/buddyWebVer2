@@ -557,11 +557,11 @@ a separate later request. Missing, malformed, expired, or wrong-type access cred
 inactive/deleted/missing Users retain the generic `401 Authentication required.` dependency
 contract.
 
-## Local PostgreSQL + pgvector
+## Local Compose infrastructure
 
-The repository-level `docker-compose.yml` runs PostgreSQL 17 with pgvector 0.8.6. It binds only to
-the loopback interface, requires a non-empty local password, waits for PostgreSQL readiness, and
-stores data in the named `postgres_data` volume.
+The repository-level `docker-compose.yml` runs PostgreSQL 17 with pgvector 0.8.6 and Redis 7.4.
+Both publish only to loopback, use health checks and persist local data in named volumes. The full
+stack additionally builds the API, leased email worker and Vite web server.
 
 From `apps/api`, copy the template and set a unique local-only `POSTGRES_PASSWORD`:
 
@@ -569,11 +569,11 @@ From `apps/api`, copy the template and set a unique local-only `POSTGRES_PASSWOR
 cp .env.example .env
 ```
 
-Then, from the repository root, validate and start the database:
+For host-based backend development, validate and start only the dependencies:
 
 ```bash
 docker compose --env-file apps/api/.env config --quiet
-docker compose --env-file apps/api/.env up -d --wait postgres
+docker compose --env-file apps/api/.env up -d --wait postgres redis
 ```
 
 The image installs pgvector without mutating the database outside Alembic. Confirm that the
@@ -604,9 +604,19 @@ Set `DATABASE_URL` in the FastAPI process to that local runtime-role URL, includ
 `sslmode=disable`. `GET /api/health/database` should then return `200 {"status":"ok"}` after a real
 database round trip.
 
-Stop the service while preserving local data with `docker compose --env-file apps/api/.env down`.
-Adding `--volumes` permanently removes the local database volume and should be used only when a
-clean reset is intended.
+For full-stack Compose, configure sandbox email/Storage values and use internal database host
+`postgres` in both database URLs. Set a unique `LOCAL_RUNTIME_DATABASE_PASSWORD` and use the same
+value in the runtime URL; the post-migration setup container assigns it without placing it in argv.
+Then run:
+
+```bash
+docker compose --env-file apps/api/.env config --quiet
+docker compose --env-file apps/api/.env up --build -d --wait
+```
+
+This starts migration, API, the lightweight polling worker/scheduler and web app without a separate
+queue framework. Stop services with `docker compose --env-file apps/api/.env down`; adding
+`--volumes` permanently removes both local database and Redis data.
 
 Run the schema boundary migration with:
 
@@ -626,8 +636,16 @@ adds explicit object revocations and RLS as defense in depth. Future table migra
 the same private-schema, grant and policy boundary. Neither database value may use a `VITE_` prefix
 or appear in frontend code.
 
-`GET /api/health/database` performs `SELECT 1`, returning `200 {"status":"ok"}` only after a real
-round trip. Missing or unreachable configuration returns a sanitized 503 response.
+`GET /api/health/live` checks only that the process can respond. `GET /api/health/database` retains
+the focused SQL probe. `GET /api/health/ready` checks a real database round trip and Redis PING,
+then reports fixed, sanitized configuration states for email and Storage. It returns 503 until all
+four dependencies are ready and never returns endpoints, credentials or provider diagnostics.
+
+`REDIS_URL` and `REDIS_KEY_PREFIX` configure the shared async Redis boundary used by readiness and
+future coordination. Local/test may use `redis://`; production accepts only `rediss://`. Both the
+general and rate-limit key prefixes must include their environment, preventing local, staging/test
+and production namespaces from sharing keys. Redis credentials remain server-only and must not
+reuse any auth signing secret.
 
 The declarative base and domain tables remain assigned to BE-006 and later domain tasks. Supabase
 Auth is not used; FastAPI remains the application authentication authority.

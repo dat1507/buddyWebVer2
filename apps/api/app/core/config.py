@@ -5,10 +5,20 @@ from __future__ import annotations
 import base64
 import binascii
 import os
+import re
 from functools import lru_cache
+from typing import Literal, Self, cast
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, SecretBytes, SecretStr, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SecretBytes,
+    SecretStr,
+    field_validator,
+    model_validator,
+)
 
 RUNTIME_URL_VARIABLE = "DATABASE_URL"
 MIGRATION_URL_VARIABLE = "DATABASE_MIGRATION_URL"
@@ -22,6 +32,9 @@ RESEND_API_KEY_VARIABLE = "RESEND_API_KEY"
 EMAIL_FROM_ADDRESS_VARIABLE = "EMAIL_FROM_ADDRESS"
 PUBLIC_APP_BASE_URL_VARIABLE = "PUBLIC_APP_BASE_URL"
 EMAIL_VERIFICATION_SEALING_KEY_VARIABLE = "EMAIL_VERIFICATION_SEALING_KEY"
+APP_ENV_VARIABLE = "APP_ENV"
+REDIS_URL_VARIABLE = "REDIS_URL"
+REDIS_KEY_PREFIX_VARIABLE = "REDIS_KEY_PREFIX"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -46,6 +59,10 @@ class StorageConfigurationError(RuntimeError):
 
 class EmailConfigurationError(RuntimeError):
     """Raised when server-only transactional email configuration is missing or unsafe."""
+
+
+class RedisConfigurationError(RuntimeError):
+    """Raised when shared Redis configuration is missing or unsafe."""
 
 
 class RuntimeDatabaseSettings(BaseModel):
@@ -191,6 +208,47 @@ class EmailVerificationDeliverySettings(BaseModel):
         if len(value.get_secret_value()) != 32:
             raise ValueError("Email-verification sealing key must contain exactly 32 bytes.")
         return value
+
+
+class RedisSettings(BaseModel):
+    """Shared async Redis connection and environment-isolated key namespace."""
+
+    model_config = ConfigDict(frozen=True)
+
+    environment: Literal["local", "test", "production"]
+    url: SecretStr = Field(repr=False)
+    key_prefix: str
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, value: SecretStr) -> SecretStr:
+        normalized = value.get_secret_value().strip()
+        try:
+            parsed = urlsplit(normalized)
+            if parsed.scheme not in {"redis", "rediss"} or not parsed.hostname:
+                raise ValueError
+            _port = parsed.port
+            if parsed.fragment:
+                raise ValueError
+        except (TypeError, ValueError) as error:
+            raise ValueError("Redis URL is unsafe or invalid.") from error
+        return SecretStr(normalized)
+
+    @field_validator("key_prefix")
+    @classmethod
+    def validate_key_prefix(cls, value: str) -> str:
+        if not re.fullmatch(r"[A-Za-z0-9:_-]{1,100}", value):
+            raise ValueError("Redis key prefix is unsafe or invalid.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_environment_boundary(self) -> Self:
+        scheme = urlsplit(self.url.get_secret_value()).scheme
+        if self.environment == "production" and scheme != "rediss":
+            raise ValueError("Production Redis must use TLS.")
+        if f":{self.environment}:" not in self.key_prefix:
+            raise ValueError("Redis key prefix must identify its environment.")
+        return self
 
 
 def _read_required_secret(variable_name: str) -> SecretStr:
@@ -440,3 +498,23 @@ def get_email_verification_delivery_settings() -> EmailVerificationDeliverySetti
         raise EmailConfigurationError(
             "Server-only email-verification delivery configuration is unsafe or invalid."
         ) from error
+
+
+@lru_cache(maxsize=1)
+def get_redis_settings() -> RedisSettings:
+    """Load shared Redis without reflecting credentials or endpoint diagnostics."""
+    environment = os.getenv(APP_ENV_VARIABLE, "production")
+    raw_url = os.getenv(REDIS_URL_VARIABLE)
+    prefix = os.getenv(REDIS_KEY_PREFIX_VARIABLE, f"vgu-buddy:{environment}:ops:v1")
+    if raw_url is None or not raw_url.strip():
+        raise RedisConfigurationError("Required server-only Redis configuration is missing.")
+    if environment not in {"local", "test", "production"}:
+        raise RedisConfigurationError("Server-only Redis configuration is unsafe.")
+    try:
+        return RedisSettings(
+            environment=cast(Literal["local", "test", "production"], environment),
+            url=SecretStr(raw_url),
+            key_prefix=prefix,
+        )
+    except ValueError as error:
+        raise RedisConfigurationError("Server-only Redis configuration is unsafe.") from error

@@ -184,11 +184,13 @@ def get_auth_rate_limiter() -> AuthRateLimiter:
     """Production is the default; only explicit local/test mode permits memory."""
     environment = os.getenv("APP_ENV", "production")
     uri = os.getenv("RATE_LIMIT_STORAGE_URI", "")
-    prefix = os.getenv("RATE_LIMIT_KEY_PREFIX", "vgu-buddy:auth:v1")
     try:
         if environment not in {"local", "test", "production"}:
             raise ValueError
+        prefix = os.getenv("RATE_LIMIT_KEY_PREFIX", f"vgu-buddy:{environment}:auth:v1")
         if not re.fullmatch(r"[A-Za-z0-9:_-]{1,100}", prefix):
+            raise ValueError
+        if f":{environment}:" not in prefix:
             raise ValueError
         if uri == "memory://":
             if environment == "production" or os.getenv("VERCEL") or os.getenv("VERCEL_ENV"):

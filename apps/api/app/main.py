@@ -22,6 +22,7 @@ from app.core.config import (
 )
 from app.core.database import dispose_database_engine
 from app.core.rate_limits import AuthRateLimitMiddleware, close_auth_rate_limiter
+from app.core.redis import close_redis_client
 from app.services.csrf import CsrfValidationError
 
 CORS_ALLOWED_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
@@ -33,6 +34,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Release database resources when the API process stops."""
     yield
     await dispose_database_engine()
+    await close_redis_client()
     close_auth_rate_limiter()
 
 

@@ -101,6 +101,27 @@ def test_local_url_allows_explicitly_disabled_tls() -> None:
     assert "sslmode" not in url.query
 
 
+def test_local_compose_url_allows_disabled_tls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "local")
+    raw_url = _database_test_url("runtime-user", host="postgres") + "?sslmode=disable"
+    settings = RuntimeDatabaseSettings(url=SecretStr(raw_url))
+
+    assert runtime_database_url(settings).query["ssl"] == "disable"
+
+
+def test_compose_hostname_is_not_trusted_outside_local(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("APP_ENV", "production")
+    raw_url = _database_test_url("runtime-user", host="postgres") + "?sslmode=disable"
+    settings = RuntimeDatabaseSettings(url=SecretStr(raw_url))
+
+    with pytest.raises(DatabaseConfigurationError, match="must require TLS"):
+        runtime_database_url(settings)
+
+
 def test_conflicting_ssl_parameters_are_rejected() -> None:
     raw_url = _database_test_url("runtime-user") + "?sslmode=require&ssl=verify-full"
     settings = RuntimeDatabaseSettings(url=SecretStr(raw_url))

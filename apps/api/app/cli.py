@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from getpass import getpass
 from uuid import uuid4
 
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import (
     DatabaseConfigurationError,
@@ -18,9 +21,14 @@ from app.core.config import (
     StorageConfigurationError,
     get_email_provider_settings,
     get_email_verification_delivery_settings,
+    get_migration_database_settings,
     get_storage_settings,
 )
-from app.core.database import dispose_database_engine, get_session_factory
+from app.core.database import (
+    dispose_database_engine,
+    get_session_factory,
+    migration_database_url,
+)
 from app.services.auth import AdminCreationError, create_admin
 from app.services.email_outbox import (
     DEFAULT_OUTBOX_BATCH_SIZE,
@@ -47,6 +55,7 @@ PASSWORD_INPUT_ERROR_MESSAGE = "Admin password input was cancelled."
 STORAGE_ERROR_MESSAGE = "Storage reconciliation could not be completed."
 STORAGE_CONFIGURATION_ERROR_MESSAGE = "Storage bucket configuration could not be completed."
 EMAIL_WORKER_ERROR_MESSAGE = "Transactional email worker could not be started or completed."
+LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be configured."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
 )
@@ -71,6 +80,10 @@ def _parser() -> argparse.ArgumentParser:
     commands.add_parser(
         "configure-storage",
         help="Create or update the managed Supabase image buckets.",
+    )
+    commands.add_parser(
+        "configure-local-runtime-role",
+        help="Set the local Compose runtime-role password after migrations.",
     )
     reconcile_parser = commands.add_parser(
         "reconcile-storage",
@@ -173,6 +186,32 @@ async def _configure_storage_command() -> int:
     return len(ImageBucket)
 
 
+async def _configure_local_runtime_role_command() -> None:
+    """Set a local-only runtime password without putting it in argv or SQL logs."""
+    password = os.getenv("LOCAL_RUNTIME_DATABASE_PASSWORD")
+    if os.getenv("APP_ENV") != "local" or password is None or not password:
+        raise DatabaseConfigurationError("Local runtime role configuration is unavailable.")
+    url = migration_database_url(get_migration_database_settings())
+    if url.host not in {"127.0.0.1", "localhost", "postgres"}:
+        raise DatabaseConfigurationError("Local runtime role requires a local database host.")
+
+    engine = create_async_engine(url, pool_pre_ping=True)
+    try:
+        async with engine.begin() as connection:
+            statement = await connection.scalar(
+                text(
+                    "SELECT format('ALTER ROLE vgu_buddy_runtime PASSWORD %L', "
+                    "CAST(:runtime_password AS text))"
+                ),
+                {"runtime_password": password},
+            )
+            if not isinstance(statement, str):
+                raise DatabaseConfigurationError("Local runtime role statement was not created.")
+            await connection.exec_driver_sql(statement)
+    finally:
+        await engine.dispose()
+
+
 async def _email_worker_command(
     *,
     once: bool,
@@ -237,6 +276,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
 
         print(f"Storage buckets configured: {configured}")
+        return 0
+
+    if arguments.command == "configure-local-runtime-role":
+        try:
+            asyncio.run(_configure_local_runtime_role_command())
+        except (DatabaseConfigurationError, OSError, SQLAlchemyError):
+            print(f"Error: {LOCAL_RUNTIME_ROLE_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print("Local runtime database role configured.")
         return 0
 
     if arguments.command == "reconcile-storage":
