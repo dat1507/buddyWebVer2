@@ -20,6 +20,8 @@ SUPABASE_URL_VARIABLE = "SUPABASE_URL"
 SUPABASE_SECRET_KEY_VARIABLE = "SUPABASE_SECRET_KEY"
 RESEND_API_KEY_VARIABLE = "RESEND_API_KEY"
 EMAIL_FROM_ADDRESS_VARIABLE = "EMAIL_FROM_ADDRESS"
+PUBLIC_APP_BASE_URL_VARIABLE = "PUBLIC_APP_BASE_URL"
+EMAIL_VERIFICATION_SEALING_KEY_VARIABLE = "EMAIL_VERIFICATION_SEALING_KEY"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -167,6 +169,30 @@ class EmailProviderSettings(BaseModel):
         return normalized
 
 
+class EmailVerificationDeliverySettings(BaseModel):
+    """HTTPS link origin and dedicated key for sealed outbox delivery payloads."""
+
+    model_config = ConfigDict(frozen=True)
+
+    public_app_base_url: str
+    sealing_key: SecretBytes = Field(repr=False)
+
+    @field_validator("public_app_base_url")
+    @classmethod
+    def validate_public_app_base_url(cls, value: str) -> str:
+        try:
+            return normalize_public_app_base_url(value)
+        except EmailConfigurationError as error:
+            raise ValueError("Public application base URL is unsafe or invalid.") from error
+
+    @field_validator("sealing_key")
+    @classmethod
+    def validate_sealing_key(cls, value: SecretBytes) -> SecretBytes:
+        if len(value.get_secret_value()) != 32:
+            raise ValueError("Email-verification sealing key must contain exactly 32 bytes.")
+        return value
+
+
 def _read_required_secret(variable_name: str) -> SecretStr:
     raw_value = os.getenv(variable_name)
     if raw_value is None or not raw_value.strip():
@@ -201,6 +227,17 @@ def normalize_http_origin(origin: str) -> str:
     default_port = 80 if parsed.scheme == "http" else 443
     port_suffix = f":{port}" if port is not None and port != default_port else ""
     return f"{parsed.scheme}://{host}{port_suffix}"
+
+
+def normalize_public_app_base_url(value: str) -> str:
+    """Return one canonical HTTPS application origin for verification links."""
+    try:
+        normalized = normalize_http_origin(value.strip())
+    except CorsConfigurationError as error:
+        raise EmailConfigurationError("Public application base URL is unsafe or invalid.") from error
+    if not normalized.startswith("https://"):
+        raise EmailConfigurationError("Public application base URL must use HTTPS.")
+    return normalized
 
 
 def _read_cors_origins() -> tuple[str, ...]:
@@ -238,6 +275,30 @@ def _read_urlsafe_signing_key(variable_name: str) -> SecretBytes:
     if len(signing_key) < 32:
         raise AuthConfigurationError(f"{variable_name} must decode to at least 32 random bytes.")
     return SecretBytes(signing_key)
+
+
+def _read_email_verification_sealing_key() -> SecretBytes:
+    raw_value = os.getenv(EMAIL_VERIFICATION_SEALING_KEY_VARIABLE)
+    if raw_value is None or not raw_value:
+        raise EmailConfigurationError(
+            "Required server-only email-verification delivery configuration is not configured."
+        )
+    try:
+        urlsafe_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_="
+        if any(character not in urlsafe_characters for character in raw_value):
+            raise ValueError
+        encoded = raw_value.encode("ascii")
+        padded = encoded + (b"=" * (-len(encoded) % 4))
+        key = base64.b64decode(padded, altchars=b"-_", validate=True)
+    except (UnicodeEncodeError, binascii.Error, ValueError) as error:
+        raise EmailConfigurationError(
+            "Email-verification sealing key must be URL-safe base64."
+        ) from error
+    if len(key) != 32:
+        raise EmailConfigurationError(
+            "Email-verification sealing key must decode to exactly 32 random bytes."
+        )
+    return SecretBytes(key)
 
 
 def _read_secure_cookie_policy() -> bool:
@@ -359,4 +420,23 @@ def get_email_provider_settings() -> EmailProviderSettings:
     except ValueError as error:
         raise EmailConfigurationError(
             "Server-only transactional email configuration is unsafe or invalid."
+        ) from error
+
+
+@lru_cache(maxsize=1)
+def get_email_verification_delivery_settings() -> EmailVerificationDeliverySettings:
+    """Load the trusted link origin and dedicated at-rest sealing key."""
+    raw_base_url = os.getenv(PUBLIC_APP_BASE_URL_VARIABLE)
+    if raw_base_url is None or not raw_base_url.strip():
+        raise EmailConfigurationError(
+            "Required server-only email-verification delivery configuration is not configured."
+        )
+    try:
+        return EmailVerificationDeliverySettings(
+            public_app_base_url=raw_base_url,
+            sealing_key=_read_email_verification_sealing_key(),
+        )
+    except ValueError as error:
+        raise EmailConfigurationError(
+            "Server-only email-verification delivery configuration is unsafe or invalid."
         ) from error

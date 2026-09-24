@@ -73,6 +73,9 @@ the database URLs directly to the relevant Python process:
   manager and must never use a frontend `VITE_` prefix.
 - `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` are read only by the transactional email worker. Use a
   send-only provider key and a verified sender identity; keep both out of frontend builds and Git.
+- `PUBLIC_APP_BASE_URL` is the exact HTTPS browser origin used for verification links.
+  `EMAIL_VERIFICATION_SEALING_KEY` is a dedicated URL-safe base64 key that decodes to exactly 32
+  random bytes. Both the API and email worker need these values; the key stays server-only.
 
 Remote URLs must use TLS. Port 6543 is treated as transaction pooling: SQLAlchemy's local pool and
 prepared-statement caches are disabled. Direct/session connections use a bounded application pool.
@@ -135,10 +138,13 @@ The worker leases ready rows with `FOR UPDATE SKIP LOCKED`, commits the lease be
 and reuses the event idempotency key for every attempt. Retryable failures use bounded exponential
 backoff and become terminal after five attempts; `failed_at` and a sanitized `last_error_code`
 provide database observability. Expired five-minute leases are recoverable by another worker.
-Templates are a server-owned allowlist. The built-in registry remains empty until the later feature
-tasks add their reviewed event templates; clients cannot select a template.
+Templates are a server-owned allowlist; clients cannot select a template. The verification renderer
+decrypts its AES-GCM sealed token only in worker memory, builds a plain-text link from the configured
+HTTPS origin, and rejects malformed, tampered, or expired payloads. Neither the raw token nor the
+rendered link is stored in the outbox.
 
-Configure `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` only in the worker process, then run:
+Configure `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`, `PUBLIC_APP_BASE_URL`, and
+`EMAIL_VERIFICATION_SEALING_KEY` in the worker process, then run:
 
 ```bash
 python -m app.cli email-worker
@@ -150,6 +156,12 @@ recipient addresses and rendered content from errors and representations. For di
 acceptance, create an empty loopback database named `mail001_acceptance`, set
 `MAIL001_TEST_DATABASE_URL` only in the test process, and run
 `pytest -q tests/test_email_outbox_live.py`.
+
+An authenticated current USER requests or resends verification with
+`POST /api/auth/email-verification/request`. The unsafe request requires session CSRF and the shared
+per-user/IP rate limits. It always returns the same generic response for unverified and already
+verified USERs. For an unverified USER, token supersession and the sealed outbox event commit in one
+database transaction; delivery happens afterward.
 
 ## Shared image storage
 

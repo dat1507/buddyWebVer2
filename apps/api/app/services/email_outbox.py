@@ -7,7 +7,7 @@ import re
 from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Final, Protocol
+from typing import TYPE_CHECKING, Final, Protocol
 from uuid import UUID
 
 from sqlalchemy import or_, select
@@ -16,6 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.models import TransactionalOutbox
 from app.services.auth import EmailValidationError, canonicalize_email
 from app.services.email_provider import EmailDeliveryError, EmailProvider, OutboundEmail
+
+if TYPE_CHECKING:
+    from app.core.config import EmailVerificationDeliverySettings
 
 OUTBOX_LEASE_TTL: Final = timedelta(minutes=5)
 MAX_DELIVERY_ATTEMPTS: Final = 5
@@ -396,6 +399,10 @@ async def process_transactional_outbox_batch(
     )
 
 
-def default_email_template_registry() -> EmailTemplateRegistry:
-    """Return the built-in allowlist; later feature tasks add their own reviewed renderers."""
-    return EmailTemplateRegistry(())
+def default_email_template_registry(
+    settings: EmailVerificationDeliverySettings,
+) -> EmailTemplateRegistry:
+    """Return the reviewed built-in transactional-email template allowlist."""
+    from app.services.email_verification_requests import EmailVerificationTemplate
+
+    return EmailTemplateRegistry((EmailVerificationTemplate(settings),))

@@ -7,18 +7,22 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import require_auth
+from app.api.dependencies import require_auth, require_role, require_session_csrf
 from app.core.config import (
     AuthTokenSettings,
     CsrfSettings,
+    EmailConfigurationError,
+    EmailVerificationDeliverySettings,
     get_auth_token_settings,
     get_csrf_settings,
+    get_email_verification_delivery_settings,
 )
 from app.core.database import get_database_session
 from app.core.rate_limits import AuthRateLimiter, check_user_rate_limit, login_identifier
-from app.models import User
+from app.models import User, UserRole
 from app.schemas.auth import (
     CsrfTokenResponse,
+    EmailVerificationRequestResponse,
     LoginRequest,
     LoginResponse,
     RefreshResponse,
@@ -43,6 +47,10 @@ from app.services.csrf import (
     verify_csrf_request,
     verify_csrf_token,
     verify_request_origin,
+)
+from app.services.email_verification_requests import (
+    EmailVerificationRequestError,
+    request_email_verification,
 )
 from app.services.refresh_sessions import (
     RefreshSessionError,
@@ -73,6 +81,20 @@ router = APIRouter(
         503: {"description": "Required backend configuration/storage is unavailable."},
     },
 )
+
+require_current_user = require_role(UserRole.USER)
+
+
+def require_email_verification_delivery_settings() -> EmailVerificationDeliverySettings:
+    """Fail closed without exposing server-only verification delivery configuration."""
+    try:
+        return get_email_verification_delivery_settings()
+    except EmailConfigurationError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email verification is unavailable.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from None
 
 
 @dataclass(frozen=True, slots=True)
@@ -196,6 +218,50 @@ async def read_current_session(
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return SanitizedUserResponse.from_user(current_user)
+
+
+@router.post(
+    "/email-verification/request",
+    response_model=EmailVerificationRequestResponse,
+    responses={403: {"description": "Authenticated USER session CSRF validation failed."}},
+)
+async def request_current_email_verification(
+    request: Request,
+    response: Response,
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    current_user: Annotated[User, Depends(require_current_user)],
+    delivery_settings: Annotated[
+        EmailVerificationDeliverySettings,
+        Depends(require_email_verification_delivery_settings),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> EmailVerificationRequestResponse:
+    """Request or resend one safe verification link to the current USER address."""
+    await check_user_rate_limit(request, current_user)
+    try:
+        await request_email_verification(session, current_user.id, delivery_settings)
+        await session.commit()
+    except EmailVerificationRequestError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except SQLAlchemyError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email verification is unavailable.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    return EmailVerificationRequestResponse()
 
 
 @router.get("/csrf", response_model=CsrfTokenResponse)

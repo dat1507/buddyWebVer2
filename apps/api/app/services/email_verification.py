@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import Final
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,6 +39,7 @@ class EmailVerificationTokenError(ValueError):
 class IssuedEmailVerificationToken:
     """Plaintext returned once to the caller and intentionally excluded from repr."""
 
+    token_id: UUID
     token: str = field(repr=False)
     expires_at: datetime
 
@@ -139,7 +140,9 @@ async def issue_email_verification_token(
 
     plaintext_token = _base64url_encode(entropy)
     expires_at = current_time + EMAIL_VERIFICATION_TOKEN_TTL
+    token_id = uuid4()
     stored_token = EmailVerificationToken(
+        id=token_id,
         user_id=user.id,
         token_digest=_digest_random_bytes(entropy),
         email_snapshot=user.email,
@@ -149,7 +152,11 @@ async def issue_email_verification_token(
     )
     session.add(stored_token)
     await session.flush()
-    return IssuedEmailVerificationToken(token=plaintext_token, expires_at=expires_at)
+    return IssuedEmailVerificationToken(
+        token_id=token_id,
+        token=plaintext_token,
+        expires_at=expires_at,
+    )
 
 
 async def consume_email_verification_token(

@@ -61,6 +61,12 @@ class RegistrationResponse(BaseModel):
     status: Literal["registered"] = "registered"
 
 
+class EmailVerificationRequestResponse(BaseModel):
+    """Generic response shared by first request, resend, and already-verified USERs."""
+
+    status: Literal["verification_requested"] = "verification_requested"
+
+
 class LoginRequest(BaseModel):
     """Untrusted credentials for both student and administrator login pages."""
 

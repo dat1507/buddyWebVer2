@@ -17,6 +17,7 @@ from app.core.config import (
     EmailConfigurationError,
     StorageConfigurationError,
     get_email_provider_settings,
+    get_email_verification_delivery_settings,
     get_storage_settings,
 )
 from app.core.database import dispose_database_engine, get_session_factory
@@ -181,7 +182,7 @@ async def _email_worker_command(
     if not 1 <= batch_size <= MAX_OUTBOX_BATCH_SIZE or poll_seconds < 0.1:
         raise OutboxValidationError("Email worker bounds are invalid.")
     provider = ResendEmailProvider(get_email_provider_settings())
-    templates = default_email_template_registry()
+    templates = default_email_template_registry(get_email_verification_delivery_settings())
     worker_id = f"email-worker-{uuid4()}"
     try:
         while True:

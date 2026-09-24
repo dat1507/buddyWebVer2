@@ -72,6 +72,14 @@ from app.services.email_verification import (
     digest_email_verification_token,
     issue_email_verification_token,
 )
+from app.services.email_verification_requests import (
+    EMAIL_VERIFICATION_REQUESTED,
+    EmailVerificationRequestError,
+    EmailVerificationRequestResult,
+    EmailVerificationTemplate,
+    request_email_verification,
+    seal_email_verification_token,
+)
 from app.services.events import (
     NO_EVENT_RELATIONS,
     EventAccessError,
@@ -167,6 +175,7 @@ __all__ = [
     "ACCESS_TOKEN_TTL",
     "EMAIL_VERIFICATION_TOKEN_BYTES",
     "EMAIL_VERIFICATION_TOKEN_TTL",
+    "EMAIL_VERIFICATION_REQUESTED",
     "DEFAULT_OUTBOX_BATCH_SIZE",
     "MAX_DELIVERY_ATTEMPTS",
     "MAX_OUTBOX_BATCH_SIZE",
@@ -184,6 +193,9 @@ __all__ = [
     "CsrfValidationError",
     "ConsumedEmailVerificationToken",
     "EmailVerificationTokenError",
+    "EmailVerificationRequestError",
+    "EmailVerificationRequestResult",
+    "EmailVerificationTemplate",
     "EmailDelivery",
     "EmailDeliveryError",
     "EmailProvider",
@@ -252,6 +264,8 @@ __all__ = [
     "hash_password",
     "enqueue_transactional_email",
     "issue_email_verification_token",
+    "request_email_verification",
+    "seal_email_verification_token",
     "get_event",
     "get_verified_buddy_principal",
     "get_or_create_own_profile",

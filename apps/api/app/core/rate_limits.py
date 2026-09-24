@@ -43,6 +43,7 @@ AUTH_ENDPOINTS = frozenset(
         ("POST", "/api/auth/login"),
         ("POST", "/api/auth/refresh"),
         ("POST", "/api/auth/logout"),
+        ("POST", "/api/auth/email-verification/request"),
     }
 )
 _NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}

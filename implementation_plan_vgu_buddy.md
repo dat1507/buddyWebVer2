@@ -6806,7 +6806,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | EMAIL-001 (**Done 2026-09-24**) | Verification persistence + legacy migration | AUTH-008/009 | Legacy USER→NULL absent evidence; ADMIN access preserved; digest-only one-use 15m token persistence | Migration/model/Admin-regression/security tests |
 | EMAIL-001A (**Done 2026-09-24**) | Cryptographic verification token service | EMAIL-001 | High-entropy issue/digest/consume/supersede contract | Unit/property/replay tests |
 | MAIL-001 (**Done 2026-09-24**) | Provider + transactional outbox | BE-004, EMAIL-001 | Commit independent of delivery; retry/idempotency | Fake-provider/lease/failure tests |
-| EMAIL-002 | Request/resend verification | EMAIL-001A, MAIL-001, AUTH-020 | Current address only; rate-limited; old token superseded | API/rate/concurrency tests |
+| EMAIL-002 (**Done 2026-09-24**) | Request/resend verification | EMAIL-001A, MAIL-001, AUTH-020 | Current address only; rate-limited; old token superseded | API/rate/concurrency tests |
 | EMAIL-003 | Confirm verification | EMAIL-001A | One valid token atomically stamps current email | Expiry/replay/race tests |
 | EMAIL-004 | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
 | EMAIL-005 | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
@@ -6890,6 +6890,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### EMAIL-002 — Request and resend verification
 
+- **Status:** **Done 2026-09-24.** The authenticated USER endpoint now stages the newest digest-only token and a durable current-address outbox event atomically; AES-GCM sealed delivery payloads keep the plaintext token out of persistence while preserving worker retries.
 - **Purpose:** Issue a safe 15-minute link to the current address.
 - **Scope / likely files:** auth router/schema/service, rate-limit policy, verification email template/outbox event, environment base URL.
 - **Dependencies / ownership:** EMAIL-001A, MAIL-001, AUTH-020; Backend.
@@ -7496,11 +7497,11 @@ Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` are complete; feature-specific email events, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
+| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002` and `AUTH-V2-001` are complete; confirmation/change-email flows, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
 | **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `EMAIL-002`.** `AUTH-V2-001` is complete and establishes the shared current-database VERIFIED capability guard for later Buddy/chat transports. `EMAIL-002` is next in the listed delivery order, and its `EMAIL-001A`, `MAIL-001` and `AUTH-020` dependencies are complete. Do not start `EMAIL-002` as part of the completed `AUTH-V2-001` implementation session.
+**Next implementation task: `EMAIL-003`.** `EMAIL-002` is complete; `EMAIL-003` is next in the listed delivery order and its `EMAIL-001A` dependency is complete. Do not start `EMAIL-003` as part of the completed `EMAIL-002` implementation session.
 
 ### 26.19 Documentation-change boundary
 

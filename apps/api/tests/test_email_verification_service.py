@@ -118,6 +118,7 @@ async def test_issue_uses_32_random_bytes_and_supersedes_the_current_token() -> 
     stored = mock.add.call_args.args[0]
     assert isinstance(stored, EmailVerificationToken)
     assert stored.user_id == user.id
+    assert issued.token_id == stored.id
     assert stored.email_snapshot == user.email
     assert stored.created_at == NOW
     assert stored.expires_at - stored.created_at == EMAIL_VERIFICATION_TOKEN_TTL

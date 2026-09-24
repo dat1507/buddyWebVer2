@@ -33,6 +33,8 @@ cachecontrol==0.14.4
     #   pip-audit
 certifi==2026.7.22
     # via requests
+cffi==2.1.1
+    # via cryptography
 charset-normalizer==3.5.1
     # via requests
 click==8.5.0
@@ -43,6 +45,8 @@ colorama==0.4.6
     # via
     #   build
     #   pytest
+cryptography==50.0.1
+    # via vgu-buddy-api (pyproject.toml)
 cyclonedx-python-lib==11.12.0
     # via pip-audit
 defusedxml==0.7.1
@@ -122,6 +126,8 @@ pluggy==1.6.0
     # via pytest
 py-serializable==2.1.0
     # via cyclonedx-python-lib
+pycparser==3.0
+    # via cffi
 pydantic==2.13.5
     # via
     #   fastapi
