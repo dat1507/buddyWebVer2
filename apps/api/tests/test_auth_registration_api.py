@@ -124,6 +124,7 @@ async def test_registration_creates_only_a_user_and_returns_no_authentication_ma
     assert user.role is UserRole.USER
     assert user.password_hash == TEST_PASSWORD_HASH
     assert user.email_verified is False
+    assert user.email_verified_at is None
 
 
 @pytest.mark.anyio

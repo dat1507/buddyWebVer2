@@ -51,7 +51,7 @@ async def test_list_uses_allowlisted_projection_stable_paging_and_literal_search
         "student@example.com",
         UserRole.USER,
         True,
-        True,
+        CREATED_AT,
         CREATED_AT,
         PROFILE_ID,
         "Ada Student",
@@ -73,6 +73,7 @@ async def test_list_uses_allowlisted_projection_stable_paging_and_literal_search
     assert result.total_pages == 2
     assert result.items[0].profile is not None
     assert result.items[0].profile.display_name == "Ada"
+    assert result.items[0].email_verified is True
 
     count_sql, count_params = _compiled(mock.scalar.await_args.args[0])
     list_sql, list_params = _compiled(mock.execute.await_args.args[0])
@@ -88,6 +89,8 @@ async def test_list_uses_allowlisted_projection_stable_paging_and_literal_search
     assert "users.role" in count_sql
     assert "users.deleted_at IS NULL" in list_sql
     assert "student_profiles.deleted_at IS NULL" in list_sql
+    assert "users.email_verified_at" in selected_columns
+    assert "users.email_verified," not in selected_columns
     assert "ORDER BY" in list_sql
     assert "LIMIT" in list_sql and "OFFSET" in list_sql
     expected_pattern = r"%100\%\_buddy%"
@@ -102,7 +105,7 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
         "student@example.com",
         UserRole.USER,
         True,
-        True,
+        CREATED_AT,
         CREATED_AT,
         PROFILE_ID,
         "Ada Student",
@@ -135,6 +138,7 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
     assert result.profile.home_university == "Example University"
     assert result.profile.avatar is not None
     assert result.profile.avatar.mime_type == "image/png"
+    assert result.email_verified is True
     sql, params = _compiled(mock.execute.await_args.args[0])
     selected_columns = sql.partition("FROM")[0]
     for forbidden in (
@@ -148,6 +152,8 @@ async def test_detail_excludes_matching_inputs_storage_and_credentials() -> None
     assert USER_ID in params.values()
     assert "users.role" in sql
     assert "users.deleted_at IS NULL" in sql
+    assert "users.email_verified_at" in selected_columns
+    assert "users.email_verified," not in selected_columns
 
 
 @pytest.mark.anyio

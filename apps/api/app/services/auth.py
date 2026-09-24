@@ -102,6 +102,7 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
         role=UserRole.USER,
         is_active=True,
         email_verified=False,
+        email_verified_at=None,
     )
     session.add(user)
     try:
@@ -115,7 +116,7 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
 
 
 async def create_admin(session: AsyncSession, email: str, password: str) -> User:
-    """Stage one verified ADMIN for a trusted CLI transaction without committing it."""
+    """Stage one trusted ADMIN for a CLI transaction without changing USER verification."""
     try:
         canonical_email = canonicalize_email(email)
         if len(password) < MIN_ADMIN_PASSWORD_CHARACTERS:
@@ -134,6 +135,7 @@ async def create_admin(session: AsyncSession, email: str, password: str) -> User
         role=UserRole.ADMIN,
         is_active=True,
         email_verified=True,
+        email_verified_at=None,
     )
     session.add(user)
     try:

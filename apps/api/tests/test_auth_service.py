@@ -120,6 +120,7 @@ async def test_registration_stages_only_a_canonical_least_privilege_user() -> No
     assert user.role is UserRole.USER
     assert user.is_active is True
     assert user.email_verified is False
+    assert user.email_verified_at is None
     assert user.last_login is None
     assert user.deleted_at is None
     assert user.password_hash != TEST_PASSWORD

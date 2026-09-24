@@ -1,11 +1,12 @@
 """Authentication transport request and response schemas."""
 
-from typing import Final, Literal
+from datetime import datetime
+from typing import Final, Literal, Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr, field_validator
 
-from app.models import UserRole
+from app.models import User, UserRole
 from app.services.auth import EmailValidationError, canonicalize_email
 from app.services.passwords import BCRYPT_MAX_PASSWORD_BYTES
 
@@ -78,6 +79,18 @@ class SanitizedUserResponse(BaseModel):
     email: str
     role: UserRole
     email_verified: bool
+    email_verified_at: datetime | None
+
+    @classmethod
+    def from_user(cls, user: User) -> Self:
+        """Project authoritative USER verification without changing ADMIN authentication."""
+        return cls(
+            id=user.id,
+            email=user.email,
+            role=user.role,
+            email_verified=user.is_current_email_verified,
+            email_verified_at=user.email_verified_at,
+        )
 
 
 class LoginResponse(BaseModel):

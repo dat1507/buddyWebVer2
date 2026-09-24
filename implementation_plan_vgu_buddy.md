@@ -1,4 +1,4 @@
-# VGU Student Companion Platform — Complete Implementation Plan v2.2
+# VGU Student Companion Platform — Complete Implementation Plan v2.4
 
 > **Transforming VGU Buddy Program Website → VGU Student Companion Platform**
 > A production-quality student companion system with research-depth in matching algorithms, RAG systems, and interactive campus features.
@@ -7,17 +7,19 @@
 >
 > **v2.1 Changes**: Event Slider is admin-managed dynamic content backed by PostgreSQL/API and Supabase Storage. Frontend mock data is development-only.
 
+> **v2.4 — 2026-09-24, confirmed Buddy Matching V2 contracts:** Part 26 is the controlling source for Email Verification, custom preferences, recommendations, invitations, ACTIVE Buddy relationships, chat, Admin matching monitoring, Semester Reset/Restore, and their deployment gates. It incorporates the confirmed `student_type` lock, exact invitation-message limits, and evidence-only legacy verification migration. It supersedes every unimplemented v2.2 assumption involving global reservation, greedy 1:1 assignment, MatchingRun/Admin preview/publish/manual override, PROPOSED/ADMIN_APPROVED matching, or two-party acceptance. Historical completed task records remain unchanged. No feature code or migration was implemented by this amendment.
+
 ---
 
 > **v2.2 — 2026-09-12, planning only:** Source-backed profile/buddy/events audit, unified profile, private media, hard cross-group matching, recap model and task dependencies. See [feature audit](docs/feature-implementation-plan-audit.md). No new runtime feature is implemented by this revision.
 >
-> **Demo-priority audit — 2026-09-22:** Fresh `origin/main` verification confirms that Authentication and Profile are implemented and tested, while Matching has no runtime model, migration, service, API or delivered page. The pending master order is therefore reprioritized, without changing task contracts or dependencies, to finish the existing Matching vertical slice before resuming the independent Event/Admin track. AUTH-020's production operator gate and production deployment remain separate from local demo readiness.
+> **Demo-priority audit — 2026-09-22 (historical v2.2 sequencing):** Fresh `origin/main` verification confirmed that Authentication and Profile were implemented and tested, while Matching had no runtime model, migration, service, API or delivered page. Its Admin-published Matching order is now superseded by Part 26; the source finding remains valid.
 >
-> **Runtime acceptance update — 2026-09-23:** The local environment is now configured, the development database is at `0007_event_tables (head)`, Supabase Storage configuration is idempotent, and a real authenticated Profile/avatar upload-crop-refresh-F5 persistence path has passed. Unit and integration coverage exercises both student types. The final two-user cross-type plus Admin matching run remains the Matching release acceptance gate, but it no longer blocks the MATCH-001 persistence foundation.
+> **Runtime acceptance update — 2026-09-23 (historical v2.2 acceptance):** The local environment was configured, the development database was at `0007_event_tables (head)`, Supabase Storage configuration was idempotent, and a real authenticated Profile/avatar upload-crop-refresh-F5 persistence path passed. The old “two-user plus Admin matching run” gate is superseded by ACCEPT-001.
 >
-> **Deployment/security audit — 2026-09-23:** Current source and repository history pass the local secret-pattern, dependency and security review; `.env` files are ignored and untracked. The codebase is **READY FOR STAGING, NOT PRODUCTION**. Before production, operators must provision and verify the backend, PostgreSQL migrations, TLS Redis, exact CORS/origin values, Supabase buckets, a same-site frontend/API cookie topology, observability/rollback, and revocation of any credential ever exposed outside this repository. Vercel must use `apps/web` as its Root Directory and the SPA rewrite in `apps/web/vercel.json`.
+> **Deployment/security audit — 2026-09-23 (historical v2.2 foundation status):** Current source and repository history passed that audit's local checks; `.env` files were ignored and untracked. Its **READY FOR STAGING** label applied only to the then-existing foundation and is superseded for Buddy Matching V2 by Part 26: V2 is not ready for staging now. Vercel must still use `apps/web` as its Root Directory and the SPA rewrite in `apps/web/vercel.json`.
 >
-> **Reading order:** Parts 6–8 and 19 define the updated architecture; Part 16 is the task registry; Part 24 is the execution order; Part 25 supplies full contracts for every new/updated task. Historical completed contracts in Parts 18/18A retain their original status and text.
+> **Reading order:** Part 26 is authoritative for Buddy Matching V2 and deployment readiness. Parts 6–8, 16, 21, 24 and 25 retain useful history and non-matching material, but their old matching entries are explicitly superseded by Part 26. Historical completed contracts in Parts 18/18A retain their original status and text.
 
 ## PART 1 — LEGACY WEBSITE AUDIT (Historical)
 
@@ -106,7 +108,7 @@ VGU Student Companion Platform
 
 ### Core release boundary (v2.2)
 
-MVP 1–4 are delivery increments toward one **core Buddy MVP**, not claims that the earlier landing-only release fulfills buddy matching. MUST HAVE: real auth/RBAC and logout, own profile/type/avatar/interests/languages, server readiness, onboarding, guarded user dashboard, greedy cross-group matching with review/acceptance, admin Event CRUD/media/basic recap, public event detail and live Event Slider. SHOULD HAVE: calendar UI, full recap gallery, numerical progress UI, notifications, advanced filters and internal RSVP. LATER: embeddings, learned weights, solver comparisons, public social feeds, multi-photo profile UI, RAG/campus/gamification. Backend completion rules and calendar query support are required now even when their enhanced UI is deferred.
+MVP 1–4 are delivery increments toward one **core Buddy MVP**, not claims that the earlier landing-only release fulfills buddy matching. The Buddy release boundary is now Part 26: verified-email-gated recommendations, user invitations, multiple ACTIVE Buddies, text chat, monitoring-only Admin and safeguarded Semester Reset/Restore. Admin-published greedy assignment is no longer a release requirement. Event/recap/slider work remains an independent product track. LATER: embeddings, learned weights, solver comparisons, public social feeds, multi-photo profile UI, RAG/campus/gamification.
 
 ### Student Journey Map
 
@@ -364,18 +366,19 @@ graph TB
 
 ```mermaid
 graph LR
-    P[Saved profile data and versions] --> E[Server eligibility]
-    E --> F[Only VIETNAMESE x INTERNATIONAL candidate pairs]
-    F --> S[Rule-based compatibility score]
-    S --> G[Deterministic greedy assignment]
-    G --> R[Admin preview]
-    R --> V[Revalidate and publish atomically]
-    V --> M[Own proposed match]
-    M --> A[Both students accept]
-    A --> B[Active Buddy pair]
+    P[Create or update profile] --> U[UNVERIFIED]
+    U --> V[Verify current email]
+    V --> E[Server eligibility]
+    E --> R[Ranked recommended profiles]
+    R --> I[Sender creates invitation]
+    I --> D{Recipient decision}
+    D -->|Decline| X[DECLINED]
+    D -->|Accept| M[ACTIVE Match]
+    M --> B[Current Buddies]
+    B --> C[One-to-one Chat]
 ```
 
-Hard constraints run before scoring and again at persistence, acceptance and manual override. Research algorithms consume the same allowed candidate set later; they cannot bypass the opposite-group rule. No vector index or embedding service is needed to start.
+The backend enforces VERIFIED email, active/non-deleted account, complete profile, matching opt-in, valid/opposite student type and no self-match. Recommendations only filter, score and rank; they never allocate, reserve or create a Match. A user may have multiple ACTIVE Buddy relationships, while an unordered pair may have at most one ACTIVE Match. Admin observes aggregate/system state and never previews, publishes, accepts, declines, activates or overrides an individual match. Part 26 defines the complete contract.
 
 ### Level 6: RAG Pipeline
 
@@ -441,7 +444,7 @@ erDiagram
         string password_hash
         enum role "USER | ADMIN"
         boolean is_active
-        boolean email_verified
+        timestamp email_verified_at "nullable; current email only"
         timestamp last_login
         timestamp created_at
         timestamp updated_at
@@ -758,12 +761,12 @@ erDiagram
 
 - Replace the two unimplemented StudentProfile/BuddyProfile designs with one profile per USER. This avoids duplicated name/bio/language rules and ambiguous users owning both roles. `student_type` is self-selected program participation type: `VIETNAMESE` seeks an International Buddy and `INTERNATIONAL` seeks a Vietnamese Buddy. It is not authorization and is not inferred from nationality or UI language. Both are USER accounts; ADMIN has no automatic matching profile. No gender field is collected for MVP.
 - Required for COMPLETE: trimmed `full_name` (1–120 chars), explicit student_type, one processed private avatar, 1–20 valid interests, 1–10 languages with proficiency. Bio, display name (1–80), major/year, nationality, availability and activities are optional. Percentage = completed required groups / 5 × 100; completion is derived, never accepted from a client. `onboarding_completed_at` is a historical milestone, not an authorization flag. Removing a required field makes the profile incomplete immediately.
-- Eligibility for a new pairing additionally requires active, non-deleted USER, explicit `matching_opt_in`, and no proposed/accepted/active reservation. Do not add an email-verification gate without delivering that workflow. Readiness API returns `{status, percentage, missing_fields, matching_eligible, reasons}`; reason codes are localized by frontend. API errors retain the existing `{detail: ...}` envelope.
+- V2 eligibility additionally requires active, non-deleted USER, explicit `matching_opt_in`, current `email_verified_at`, valid student type and opposite type for the candidate. There is no proposed/accepted/active global reservation and no per-user Buddy maximum. Readiness/API reason codes must include the VERIFIED lock and remain backend-derived/localized by the frontend. API errors retain the existing `{detail: ...}` envelope.
 - Registration keeps email/password/consent only and redirects to login after backend success. Login and reload first resolve `/auth/me`, then readiness. Incomplete users enter `/user/onboarding`; complete users enter `/user/dashboard`. Profile editing, logout/settings and allowed events remain reachable. ADMIN bypasses onboarding. Invalid session and temporary profile-service failure are distinct states.
 - Interests and hobbies share an extensible Interest catalog (including all examples in the brief); Language uses stable codes and proficiency. Admin taxonomy UI is deferred; a documented idempotent backend seed/import expands data without frontend changes. Availability is validated JSON weekly slots, ISO weekday, minutes from midnight, timezone; overnight slots split across days. Preferred activities reference catalog IDs. No duplicate preferences storage: FE-033 writes the own-profile API.
-- Type changes are allowed before matching; any proposed/accepted/active pair blocks type changes with 409 until coordinator ends/reassigns the match. Use the same profile row lock for type edits, opt-out and match publication. Existing active buddies may still view their relationship after optional edits; incomplete/opted-out profiles cannot enter a new pair. Declining a proposal is always allowed for the participant.
-- Owner can read/update only their profile; coordinator can read minimal list and audited detail via admin endpoints, not edit arbitrary profiles. Safe buddy card is available only through own-match data: display name (fallback full name), bio, type, major/year, interests, languages, optional nationality and authorized avatar. No account email, contact information, exact schedule, raw preferences, credentials or signed URLs in logs. No public profile directory in MVP.
-- Unique `user_id`, unique profile/interest and profile/language pairs, one avatar per profile, FK media ownership and appropriate reverse catalog indexes are enforced by migration. `Match` references profiles, not ambiguous user/buddy records; live-participant uniqueness and opposite-type validation apply on all writes. Service and DB trigger lock both profiles in stable ID order before checking reservations; profile type changes use the same invariant. MatchingRun (schema in MATCH-001, orchestration in MATCH-008) stores id, creator, algorithm/weights versions, candidate profile versions, proposal JSON, status, created_at and expires_at; expires after 24 hours, and any candidate/version change requires rerun.
+- `student_type` may change only while the USER has no ACTIVE Match. Once at least one ACTIVE Match exists, the backend rejects a type-changing profile update; unchanged resubmission remains valid. The frontend disables the field and explains the lock, but is not the security boundary. Do not rewrite existing Matches or invent a user-level Unmatch. Because this V2 has no user End Buddy Relationship, the type is effectively fixed for the remaining semester; Semester Reset deletes old USER accounts, so the next cohort registers/selects type anew. Opt-out/incomplete state removes recommendation/invitation eligibility but does not delete existing data. Email UNVERIFIED locks every Buddy/chat interaction until re-verification as specified in Part 26.
+- Owner can read/update only their profile; coordinator can read minimal list and audited detail via admin endpoints, not edit arbitrary profiles. The V2 safe matching card is available only through authorized recommendation/invitation/Buddy endpoints: avatar, display name (fallback full name), student type, major, interests, languages, preferred activities, score/explanation and normalized display availability. It never includes account email, auth/security/internal fields or signed URLs in logs.
+- Unique `user_id`, canonical profile preference relations, one avatar per profile, FK media ownership and reverse indexes remain enforced. V2 `Match` references the two participants with canonical unordered-pair keys; only the same ACTIVE pair is unique, while either user may appear in many ACTIVE Matches. MatchingRun, global live-participant uniqueness, reservation locks and Admin publication are superseded and must not be added.
 
 ### Event and recap relationship decision (v2.2)
 
@@ -795,6 +798,9 @@ CREATE INDEX idx_document_chunk_embedding ON document_chunks
 ---
 
 ## PART 8 — MATCHING SYSTEM
+
+> [!WARNING]
+> **Superseded matching design:** The v2.2 comparison, greedy-assignment and Admin-control material retained in this Part is historical planning context only. It must not be implemented. Buddy Matching V2 in Part 26 replaces it with verified user-driven recommendations and invitations, supports multiple ACTIVE Buddies, and removes Admin approval/publish/override from the happy path.
 
 ### Algorithm Comparison Strategy
 
@@ -1424,6 +1430,8 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 
 ### Phase 13: Matching Backend
 
+> **Superseded by Part 26:** Do not execute any task in this old Matching Backend table as written. No listed matching task was implemented. MATCH-002/011 feedback and MATCH-005/006/012 research may be reconsidered only after V2 with new dependencies/contracts; they are not release tasks. The V2 registry uses `EMAIL-*`, `PREF-*`, `REC-*`, `INV-*`, `BUDDY-*`, `CHAT-*`, `ADMIN-V2-*`, `SEM-*`, `OPS-*`, and `ACCEPT-*` IDs.
+
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
 | MATCH-001 | Create Match model and persistence constraints | 2 | BE-010 | P0 |
@@ -1441,6 +1449,8 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 
 ### Phase 14: Matching UI
 
+> **Superseded by Part 26:** All tasks in this old Matching UI table remain unimplemented historical proposals. Reuse the `/user/matching` navigation location, but implement the V2 sections and verified lock through the new tasks. Match feedback is deferred and requires a new V2 contract.
+
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
 | FE-033 | Create matching participation/preferences form | 3 | FE-027, BE-012, BE-016 | P0 |
@@ -1450,6 +1460,8 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | FE-037 | Create My Buddy page | 2 | FE-034, FE-035 | P0 |
 
 ### Phase 15: Admin Matching Management UI
+
+> **Superseded by Part 26:** All tasks in this old Admin Matching table are not executable as written. Admin becomes monitoring-only; run/preview/publish/manual override/history assumptions are removed or replaced by `ADMIN-V2-*`.
 
 | ID | Task | Cx | Deps | Pri |
 |----|------|----|------|-----|
@@ -4058,6 +4070,8 @@ Admin routes always require verified ADMIN; mutations additionally require CSRF.
 
 ### Matching
 
+> **Superseded by Part 26.** The endpoint matrix immediately below documents the abandoned v2.2 Admin-published flow and must not be implemented. The authoritative V2 API groups are recommendations, invitations, current Buddies, conversations/messages and monitoring/reset APIs in Part 26.
+
 | Endpoint | Method | User | Admin |
 |----------|--------|------|-------|
 | `/api/profile` (matching preference fields) | PUT | ✅ (own; BE-012) | ❌ |
@@ -4163,6 +4177,9 @@ would need a separate task to define concurrency, rotation, secret delivery and 
 ---
 
 ## PART 24 — NEW MASTER IMPLEMENTATION ORDER
+
+> [!CAUTION]
+> **Buddy Matching entries in this v2.2 order are superseded.** Preserve the completed history below, but do not execute any `Next: MATCH-*`, `FE-033..037`, or `ADMIN-014..017` line as written. The exact V2 order and parallel branches are in Part 26. Non-matching Event/Admin work remains independently planned.
 
 Historical completed steps are retained below; the pending dependency-sorted sequence is updated for v2.2. Legacy ordinal labels are retained for cross-reference and are not required to remain contiguous after the approved UI-first insertion.
 
@@ -4272,23 +4289,23 @@ Done: EVT-002                 Create EventRegistration model [P0; Phase 10; comp
 Done: EVT-010                 Define EventMedia ownership model [P0; Phase 10; completed 2026-09-21]
 Done: EVT-003                 Create Event, EventMedia and registration migrations [P0; Phase 10; completed 2026-09-21]
 Done: EVT-004                 Create event CRUD and publication service [P0; Phase 10; completed 2026-09-22]
-Next: MATCH-001               Create Match model and persistence constraints [P0; Phase 13; READY]
-Next: MATCH-007               Implement shared eligibility and candidate hard-constraint policy [P0; Phase 13]
-Next: MATCH-003               Create deterministic rule-based compatibility scoring [P0; Phase 13]
-Next: MATCH-004               Implement deterministic greedy buddy assignment [P0; Phase 13]
-Next: MATCH-008               Create admin matching run and preview persistence [P0; Phase 13]
-Next: MATCH-013               Create admin matching preview and history read APIs [P0; Phase 13]
-Next: MATCH-014               Create guarded match publication and override APIs [P0; Phase 13]
-Next: MATCH-009               Create own-match result endpoint [P0; Phase 13]
-Next: MATCH-010               Create own-match accept/reject endpoint [P0; Phase 13]
-Next: FE-033                  Create matching participation/preferences form [P0; Phase 14]
-Next: FE-034                  Create match result and safe buddy card [P0; Phase 14]
-Next: FE-035                  Create buddy match accept/reject UI [P0; Phase 14]
-Next: FE-037                  Create My Buddy page [P0; Phase 14]
-Next: ADMIN-014               Create Admin Matching overview [P0; Phase 15]
-Next: ADMIN-015               Create Run Matching control panel [P0; Phase 15]
-Next: ADMIN-016               Create matching preview and publish table [P0; Phase 15]
-Next: ADMIN-017               Create constrained manual match override UI [P0; Phase 15]
+Superseded: MATCH-001          Old Match/reservation persistence contract; use Part 26 BUDDY-001
+Superseded: MATCH-007          Old reservation eligibility contract; use Part 26 REC-001
+Superseded: MATCH-003          Old weights contract; use Part 26 REC-002
+Superseded: MATCH-004          Greedy assignment removed by V2
+Superseded: MATCH-008          Admin matching run removed by V2
+Superseded: MATCH-013          Admin preview/history contract removed by V2
+Superseded: MATCH-014          Admin publish/override removed by V2
+Superseded: MATCH-009          Old own-match endpoint; use Part 26 INV/BUDDY APIs
+Superseded: MATCH-010          Two-party response removed; use Part 26 INV-005/006
+Superseded: FE-033             Use Part 26 REC-004/INV-007 Buddy Matching page
+Superseded: FE-034             Use Part 26 safe recommendation/invitation/Buddy cards
+Superseded: FE-035             Use Part 26 INV-007 recipient decision UI
+Superseded: FE-037             Use Part 26 BUDDY-003 route-compatible Current Buddies
+Superseded: ADMIN-014          Use Part 26 ADMIN-V2-001/002 monitoring
+Superseded: ADMIN-015          Admin Run Matching removed by V2
+Superseded: ADMIN-016          Admin preview/publish removed by V2
+Superseded: ADMIN-017          Admin manual override removed by V2
 Next: EVT-005                 Create audience-safe event list, detail and calendar queries [P0; Phase 10]
 Next: EVT-006                 Create admin event list, detail, CRUD and status APIs [P0; Phase 10]
 Next: EVT-009                 Integrate event audit and content freshness [P0; Phase 10]
@@ -4323,13 +4340,10 @@ Next: ADMIN-EVT-002           Create recap gallery upload and ordering UI [P1; P
 Next: FE-030                  Create published event list for users [P1; Phase 12]
 Next: FE-032                  Create Event registration button [P1; Phase 12]
 Next: FE-EVENT-CALENDAR-001   Create Event Calendar UI after stable Event API [P1; Phase 12B]
-Next: MATCH-002               Create MatchFeedback model + migration [P1; Phase 13]
-Next: MATCH-011               Create `POST /api/matching/feedback` (user feedback) [P1; Phase 13]
-Next: MATCH-012               Create synthetic dataset generator (500 profiles) [P1; Phase 13]
-Next: FE-036                  Create match feedback form [P1; Phase 14]
-Next: ADMIN-018               Create match history table [P1; Phase 15]
-Next: MATCH-005               Implement Gale-Shapley comparison algorithm [P2; Phase 16]
-Next: MATCH-006               Implement Hungarian comparison algorithm [P2; Phase 16]
+Deferred/recontract: MATCH-002/011 + FE-036  Match feedback is outside confirmed V2 and depends on a future V2 contract
+Deferred/recontract: MATCH-012               Synthetic research data is not a V2 release dependency
+Superseded: ADMIN-018                         Old algorithm/publication history is removed; monitoring uses ADMIN-V2
+Deferred/recontract: MATCH-005/006            1:1 assignment research does not drive V2 recommendations
 ```
 
 ### Execution gates and independent tracks
@@ -6221,6 +6235,8 @@ P0 / Phase 10 / Cx2; dependencies EVT-004 and AUTH-017 DONE, READY. It is not im
 
 ### MATCH-001 — Create Match model and persistence constraints
 
+> **SUPERSEDED — DO NOT IMPLEMENT:** This historical matching block assumes global 1:1 reservation and/or Admin-run/publish/override. No task in the block was implemented. Use the V2 contracts in Part 26; feedback/research tasks require later V2 re-contracting, and completed historical tasks elsewhere remain untouched.
+
 **Task ID:** `MATCH-001`  
 **Change:** Updated existing; **Status:** Planned — READY; **Priority:** P0; **Phase:** 13
 **Goal:** Record accountable pairs without duplicate active allocations.  
@@ -6640,3 +6656,859 @@ Verification consulted official documentation on 2026-09-12:
 - [Data API default-exposure changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically): direct ORM connections are distinct from Data API exposure. Inspect actual grants instead of relying on defaults.
 
 These references support platform boundaries; proposed size limits, eligibility fields, matching weights and recap structure are project design decisions. No live Supabase instance, deployment, legal compliance certification or current provider pricing was audited.
+
+---
+
+## PART 26 — BUDDY MATCHING V2 AUDIT AND CONTROLLING IMPLEMENTATION PLAN
+
+### 26.1 Workspace verification and audit boundary
+
+Audit performed 2026-09-24 before documentation edits.
+
+| Item | Verified state |
+|---|---|
+| Workspace / Git root | `C:\Users\phuoc\Downloads\buddyWebVer2` / `C:/Users/phuoc/Downloads/buddyWebVer2` |
+| Branch | `main` |
+| HEAD | `fa190f4191921b643b67acf84c96f1777870c212` (`chore(security): harden deploy readiness and prioritize matching`) |
+| Remote | `origin https://github.com/dat1507/buddyWebVer2.git` (fetch/push) |
+| Initial worktree | Dirty only because user-owned untracked `TUN_9944.jpg` exists; preserved and out of scope |
+| Instructions | No `AGENTS.md` found in the repository |
+| Scope | Audit and planning only; no application source, migration, dependency, resource or deployment change |
+
+Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests skipped**; Ruff and strict mypy pass. Frontend direct TypeScript build and Vite production build pass, with the existing >500 kB chunk warning. The default parallel Vitest run produced 8 timeouts/failures on this host; all seven affected files passed serially (**67/67**), so CI/test-runner resource stability remains a gate. `npm` itself is broken in this local user installation (missing global `npm-cli.js`), while repository-local Node binaries work. `pip-audit` could not create/upgrade its isolated environment; dependency audit is therefore not freshly established by this audit. No live PostgreSQL, TLS Redis, deployed backend, email provider, WebSocket host, backup or restore system was exercised.
+
+### 26.2 Current source audit
+
+| Area | State | Source evidence | V2 consequence |
+|---|---|---|---|
+| Register/Login/Logout/Refresh/`/me` | **Implemented** | `app/api/auth.py`, `services/auth.py`, `services/refresh_sessions.py`, `services/tokens.py`; frontend `features/auth/session-client.ts` | Reuse cookie session, rotation, sanitized session projection and client bootstrap. Registration creates an unverified USER and no session. |
+| CSRF / protected routes / roles | **Implemented** | Signed origin-bound double-submit CSRF in `services/csrf.py`; persisted role checks in `api/dependencies.py`; `RoleGuard`/`ProtectedRoute` are presentation gates | Reuse for every unsafe HTTP API; add a verified-user backend dependency for matching/chat. WebSocket auth needs a separate handshake/origin design. |
+| Email identity | **Partial / conflict** | `models/user.py` has `email_verified: bool`; registration sets USER=false, the trusted Admin CLI bootstrap sets ADMIN=true, and admin list/detail services only project the flag. No production code records a verification event/timestamp; no `email_verified_at`, email-change API or verification workflow exists | Replace the USER verification source of truth with nullable `email_verified_at`. Migrate every legacy USER to NULL unless an authoritative external timestamp import is supplied; never infer time from this boolean or other activity. Keep Admin login/RBAC independent from student verification so migration cannot lock Admin out. Changing USER email must atomically clear verification. |
+| Profile identity/completion | **Implemented foundation** | `StudentProfile`, `ProfilePhoto`, StudentType, interests/languages, availability, preferences, opt-in; backend-derived completion in `services/profile_completion.py` | Reuse profile, type, avatar, availability and opt-in. Update eligibility: VERIFIED required; remove the reservation rule. |
+| Custom preferences | **Missing / partial conflict** | Only predefined Interest and Language relations exist. Preferred activity IDs are stored inside profile JSON and validated against `Interest`, not an Activity catalog. No custom labels/normalization exist | Add Activity catalog/relation and profile-owned custom preference rows normalized by NFKC → trim → whitespace collapse → Unicode casefold. Do not create global catalog rows. |
+| Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
+| Matching frontend | **Placeholder / conflict** | `/user/matching`, `/user/buddy`, `/admin/matching` are placeholders in route registries; current `/user/matching` gate uses old `matching_eligible` including reservation logic | Reuse the Buddy Matching navigation concept. Replace with four V2 sections and a server-backed UNVERIFIED lock; `/user/buddy` may redirect to/focus Current Buddies. |
+| Dashboard routing | **Partial / conflict** | `user-dashboard-page.tsx` exists, but `App.tsx` redirects both `/user` and `/user/dashboard` to `/user/profile/edit` | Fix/re-accept intended post-onboarding navigation in a separately scoped integration task or fold it into REC-004; do not claim the dashboard flow is release-ready. |
+| Email delivery | **Missing** | No provider dependency, SMTP client, email abstraction, template, outbox, worker or retry code/config | Introduce a small provider interface plus PostgreSQL transactional outbox and bounded worker; delivery failure never rolls back invitations/matches. |
+| Chat/realtime | **Missing** | No conversation/message models, chat API or WebSocket route. `websockets` is only an indirect Uvicorn dependency | Add FastAPI WebSocket endpoint, persistent PostgreSQL messages and Redis Pub/Sub. Do not add Supabase Realtime. |
+| Redis | **Partial** | Redis is used synchronously via `limits` only for auth rate limits; local default is memory; Docker Compose has no Redis service | Keep rate-limit Redis behavior; add an async Redis boundary/local service for realtime and job coordination, with production `rediss://`. |
+| Background work | **Missing** | No scheduler, task worker, cleanup or outbox consumer | Start with one lightweight separately runnable worker/scheduler using PostgreSQL leases and Redis only where coordination is useful; do not add a heavyweight queue framework without measured need. |
+| Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
+| Admin auth/user views/audit | **Partial** | Admin CLI, role protection, `/api/admin/users`, audited detail/photo reads exist; overview statistics are em dashes; audit log is append-only but Admin-linked with `ON DELETE RESTRICT` | Reuse RBAC, tables/components and redaction. Add monitoring-only matching stats and dedicated reset-operation audit that survives student deletion. |
+| Frontend deployment | **Partial** | Vite production build passes; `apps/web/vercel.json` supplies SPA rewrite and basic security headers; `VITE_API_URL` exists | Vercel Root Directory must be `apps/web`; validate HTTPS, exact API URL and deep links on staging. Current separate-site cookies need a verified same-site topology. |
+| Backend/DB deployment | **Partial / not deployed** | FastAPI package, DB health endpoint, separated runtime/migration URLs and TLS enforcement exist; no backend deployment manifest/IaC and no general readiness endpoint | Provision a WebSocket-capable host, health/readiness probes, migrations, trusted proxy config and rollback/recovery. |
+| Secrets | **Partial assurance** | `.env` and `.env.local` are ignored/untracked; only templates are tracked. Targeted current/history scan found no Google/GitHub/AWS/private-key signatures; actual ignored values were not read | Require provider/Redis/backup secrets in server secret manager, rotation procedure and a release-time full secret scan. This audit is not a guarantee about credentials exposed outside Git. |
+
+### 26.3 Conflicts with the old implementation plan
+
+| Old assumption | Current source | V2 requirement | Required plan change |
+|---|---|---|---|
+| Deterministic greedy 1:1 assignment | Not implemented | Recommendation only; no assignment | Withdraw MATCH-004; use `REC-*`. |
+| Proposed/accepted users are globally reserved | Readiness stub returns zero; no Match table | Multiple ACTIVE Buddies; no global reservation | Remove `ACTIVE_MATCH_RESERVATION`; do not block recommendations because a user has another Buddy. |
+| Admin run → preview → publish → override | Admin page is placeholder | Admin monitoring only | Withdraw MATCH-008/013/014 and ADMIN-015/016/017. |
+| Both users respond to a proposed match | No runtime support | Sender consents by sending; recipient Accept creates ACTIVE Match | Replace MATCH-009/010 and FE-035 with invitation state-machine tasks. |
+| `email_verified: bool` without workflow | Boolean exists; always false for new USER | Nullable verification timestamp, 15-minute one-use link, resend and change-email re-verification | Add `EMAIL-*`; update session/profile UI and backend locks. |
+| Profile type remains freely editable | Existing own-profile update can change `student_type`; no Match table exists yet | Backend rejects a type change whenever either participant has at least one ACTIVE Match | Add `PROFILE-V2-001/002`; serialize the update against Accept and expose a stable lock reason. Do not mutate existing Matches or add Unmatch. |
+| Invitation message limit is underspecified | No invitation schema/service exists | Trim outer whitespace; count maximal non-whitespace runs; maximum 500 words and 10,000 Unicode code points | Freeze the same validation fixtures for backend and frontend in `INV-003/007`; backend remains authoritative and all rendering is plain text. |
+| Languages 25%, activities 10%, major 10%; missing-signal renormalization | No scorer exists | Fixed 40/35/15/5/5 signals | `REC-002` implements the confirmed weights; optional empty sets score zero rather than changing weights. |
+| Matching requires at least one language/interest through profile completion | Implemented completion rule | V2 also allows custom values, but still requires complete profile | Count valid predefined + custom values without weakening completion. |
+| Preferred activities reuse Interest IDs | Implemented JSON workaround | Activities are an independent 35% signal with predefined + custom values | Add Activity catalog/relation and migrate profile preference handling in `PREF-*`. |
+| Safe buddy view hides raw availability | No buddy DTO exists | Availability time may be shown | Create one explicit safe matching DTO that includes normalized display availability but excludes email/auth/internal fields. |
+| `Match` has PROPOSED/rejected/completed/Admin fields | Not implemented | Accept creates ACTIVE; no user Unmatch; semester reset ends lifecycle | New minimal ACTIVE Match model with unordered-pair uniqueness and invitation provenance. |
+| “Conversation/chat” in ERD means AI assistant | No peer chat exists | One peer conversation per ACTIVE Match, text only | Add separate BuddyConversation/BuddyMessage tables and `CHAT-*`. |
+| `$0/month`/specific free quotas | Historical, unverified | Do not guess current pricing | Treat all provider pricing as deployment-time verification; list service categories and practical tradeoffs only. |
+
+### 26.4 Final Buddy Matching V2 architecture
+
+`Create/complete profile → UNVERIFIED → verify current email → VERIFIED → recommendations → sender invitation → recipient Accept/Decline → ACTIVE Match → Current Buddies → 1:1 text chat`.
+
+- FastAPI/PostgreSQL is authoritative for verification, eligibility, scores, invitation transitions, Matches, authorization, read state, retention and reset boundaries.
+- Recommendations are recalculated from eligible persisted profiles, ranked by server score, and have no side effect.
+- Accept is the only path from PENDING invitation to ACTIVE Match. It locks/revalidates the invitation, both users/profiles and unordered pair in one transaction.
+- Accept revalidates the `VIETNAMESE ↔ INTERNATIONAL` invariant and activates the `student_type` edit lock for both users in the same concurrency domain. A profile update that would change type after any ACTIVE Match exists is rejected; existing Match rows are never migrated.
+- Decline/Cancel/expiry do not create a Match and impose no cooldown. Accepted invitations remain visible to the sender until `sender_hidden_at` is set.
+- Email changes retain invitations, Matches, conversations and messages but make every Buddy/Chat operation unavailable until the new address is verified.
+- PostgreSQL persists chat; Redis distributes realtime events/coordinates connections. REST history remains the recovery path after reconnect.
+- Admin sees monitoring data and safe profile fields only. Admin cannot create, approve, publish, accept, decline or override an individual relationship.
+- Semester Reset is a separately authorized, backed-up, audited system operation. It removes USER-owned data/accounts, keeps ADMIN/shared catalogs/configuration and establishes a persisted cohort boundary.
+
+### 26.5 Data model changes (planning contract; no migration in this task)
+
+| Model/table | Required shape and constraints |
+|---|---|
+| `users` amendment | Add nullable `email_verified_at timestamptz`; USER verification derives from a non-null timestamp for the current email. Migration sets every legacy USER to NULL unless an authoritative verification timestamp source is explicitly imported. Do not derive a timestamp from `email_verified`, creation time, last login, profile update or activity. The legacy boolean is only an initialization/status flag: USER registration writes false and Admin CLI bootstrap writes true. ADMIN authentication/RBAC must not depend on `email_verified_at`; preserve bootstrap access without manufacturing a timestamp. USER email change and timestamp clear are atomic. Keep role/is_active/deleted_at. |
+| `student_profiles` amendment | No new relationship lifecycle column is required. `student_type` remains editable only while its USER has zero ACTIVE Matches. Profile update and invitation Accept enforce the invariant transactionally through the ACTIVE Match query/participant locks; a frontend editable flag is derived, never stored as authority. |
+| `email_verification_tokens` | `id`, `user_id`, token digest only, `email_snapshot`, `created_at`, `expires_at` (15 minutes), `consumed_at`, `superseded_at`; one-use and never logged. New issue supersedes earlier active tokens. |
+| `transactional_outbox` | Event type, aggregate ID, recipient user ID/current verified email snapshot or resolver policy, JSON-safe payload, attempts, next attempt, lease, sent/failed timestamps. Business transaction inserts; delivery is asynchronous and idempotent. |
+| `activities` / `profile_activities` | Shared predefined catalog plus per-profile selections; replaces Interest IDs inside `preferences.preferred_activity_ids` as the canonical activity signal. |
+| `profile_custom_preferences` | `profile_id`, kind (`INTEREST`,`LANGUAGE`,`ACTIVITY`), display label, `normalized_key`, optional language proficiency, timestamps; unique `(profile_id, kind, normalized_key)`. Never creates shared catalog records. |
+| `matching_invitations` | Required fields from V2; store a canonical outer-trimmed plain-text `message`, `status`, 7-day `expires_at`, response/cancel/hide timestamps. Valid message has at most 500 maximal non-whitespace runs and at most 10,000 Unicode code points; backend enforces both and the canonical stored column has a defensive 10,000-character/code-point-equivalent PostgreSQL check. Store canonical pair keys or equivalent for reciprocal-PENDING protection. Partial unique index/constraint prevents more than one PENDING invitation per unordered pair. |
+| `matches` | `id`, two participant user/profile IDs, canonical `pair_low_user_id`/`pair_high_user_id`, `status=ACTIVE`, accepted invitation ID, score/breakdown snapshot, `activated_at`, semester ID. Service transaction verifies opposite student types at activation. Partial unique index allows at most one ACTIVE row per unordered pair; no uniqueness per participant. The existence of any ACTIVE row for a USER prevents future changes to that USER's `student_type`; no existing Match is rewritten. |
+| `buddy_conversations` | Exactly one row per ACTIVE Match (`match_id` unique), timestamps/semester ID. |
+| `buddy_messages` | `id`, `match_id` or conversation ID, sender USER, plain body, created/read/expires timestamps. Initial expiry = created+90d; first recipient read atomically sets `read_at` and `expires_at=min(read+30d, created+90d)`. |
+| `semesters` | Persisted cohort/reset boundary: ID, status, started/closed timestamps, reset operation ID, and a monotonic `student_accounts_created`/`first_student_created_at` marker updated in the same locked registration transaction and never decremented. Every new USER is also stamped with current semester/cohort ID. Restore blocking therefore survives later deletion of that new USER. |
+| `semester_backups` | ID, source semester/boundary, state (`CREATING`,`READY`,`RESTORE_BLOCKED_NEW_DATA`,`EXPIRED`,`FAILED`), private DB/avatar manifest locations/checksums/counts, created/verified/expires/restored metadata. |
+| `semester_operations` | Operation ID, type/reset/restore state, Admin actor, request/start/complete timestamps, backup ID/status/expiry, counts/result/restore actor/time. Must remain after USER deletion. |
+
+Concurrency rules: outgoing PENDING maximum 30 is enforced in a serializable/locked transaction (for example lock the sender account/advisory key, expire stale rows, count PENDING, insert). Reciprocal PENDING and ACTIVE unordered-pair uniqueness require database constraints in addition to service checks. Accept and a type-changing profile update use one documented stable participant-lock order: Accept revalidates opposite types before inserting ACTIVE, while profile update checks for any ACTIVE Match before persisting the new type. Neither race may commit a same-type ACTIVE relationship. Expired rows are treated as EXPIRED in every read/mutation even before the scheduled transition job runs.
+
+### 26.6 API contract changes
+
+All unsafe HTTP endpoints require authenticated session CSRF; all Buddy endpoints additionally require current USER + VERIFIED. Error envelopes remain `{detail: ...}` with stable machine-readable reason codes added where the UI must distinguish locks/conflicts.
+
+| Group | Planned endpoints |
+|---|---|
+| Verification/account | `POST /api/auth/email-verification/request`, `POST /api/auth/email-verification/confirm`, `PUT /api/auth/email`; `/api/auth/me` returns derived verification state/timestamp without token data |
+| Profile/update | Existing own-profile update keeps its current contract, but a request whose normalized `student_type` differs from the persisted value returns `409 Conflict` with reason `STUDENT_TYPE_LOCKED_ACTIVE_MATCH` when the USER has at least one ACTIVE Match. Unchanged type resubmission is allowed. The own-profile/readiness projection exposes a derived editable/locked state plus this reason so the UI can explain the restriction; frontend state never bypasses the backend check. Preference endpoints extend predefined/custom interests, languages/proficiency and activities; catalog reads remain authenticated. |
+| Recommendations | `GET /api/matching/recommendations` returns paginated safe profiles, server score/explanation and availability; no email |
+| Invitations | `POST /api/matching/invitations` trims leading/trailing whitespace, then validates `message`: words are maximal non-whitespace runs, maximum 500; the trimmed value is maximum 10,000 Unicode code points. Either overflow is rejected with a distinct stable validation reason. The request/OpenAPI schema documents both algorithms and boundary fixtures; JavaScript must count code points rather than UTF-16 code units. `GET .../incoming`; `GET .../sent`; `POST .../{id}/accept`; `.../decline`; `.../cancel`; `DELETE .../{id}` means hide accepted sender row only. All message values remain plain text. |
+| Current Buddies | `GET /api/matching/buddies`; no user unmatch/end/delete relationship endpoint |
+| Chat | `GET /api/chat/conversations/{match_id}/messages`, `POST` fallback send if retained, `POST .../read`; `WS /api/ws/chat/{match_id}` with authenticated origin-checked handshake |
+| Admin monitoring | `GET /api/admin/matching/stats`, participant/buddy-count/zero-Buddy paginated reads with safe projection; no run/publish/override/respond endpoints |
+| Semester management | preflight/counts, create reset request, confirm/re-auth and execute, list/get backups, restore, backup expiry/cleanup operations; destructive actions use CSRF, ADMIN, recent re-auth, operation idempotency and audit |
+
+Deep links are allowlisted internal routes only. Anonymous `Open Invitation` and `Start Chatting` links go to login with a validated relative `returnTo`, never an arbitrary origin. The server reauthorizes the target after login.
+
+### 26.7 Frontend changes
+
+- Reuse User Dashboard → Buddy Matching at `/user/matching`; make it a real page with Recommended Buddies, Matching Invitations, Sent Invitations and Current Buddies.
+- Replace the old readiness-only route gate with a page-level verified lock plus backend enforcement. An UNVERIFIED user sees status, Verify/Resend actions and cannot preload protected Buddy data.
+- Add Verified/Unverified state to profile/settings and an email-change flow that clearly relocks preserved Buddy/chat data until re-verification.
+- In own-profile edit, disable/lock `student_type` when backend profile/readiness state reports at least one ACTIVE Match and explain that the existing Buddy relationship requires opposite types. Still surface `STUDENT_TYPE_LOCKED_ACTIVE_MATCH` from a stale tab/race and refetch; the control is UX only.
+- Safe cards show avatar, display name, type, major, interests, languages, activities, score, explanation and availability; never email.
+- Invitation composer trims outer whitespace for submission, counts maximal non-whitespace runs, displays `x / 500 words`, and separately validates at most 10,000 Unicode code points. It uses the same shared contract fixtures as the backend and shows which limit failed; server validation remains authoritative.
+- Sent UI displays only PENDING and non-hidden ACCEPTED. Pending has Cancel, never Delete. Accepted has Start Chatting and Delete/hide.
+- Current Buddies supports multiple cards and Start Chatting. `/user/buddy` should redirect to or focus this section to preserve existing links without creating a second data model.
+- Add accessible text-only chat with reconnect/history/read states. Never use `dangerouslySetInnerHTML` for invitation/message content.
+- Replace Admin matching controls with monitoring tables/cards. Add guarded Semester Management UI with counts, detailed keep/delete warning, 30-day backup notice, explicit second confirmation phrase and re-auth.
+
+### 26.8 Security architecture and mandatory controls
+
+- Keep populated `.env*` ignored/untracked and every database, Redis, email, storage and backup credential server-only; no secret may use `VITE_*`. Run current-tree and full-history secret scanning before release, inspect the diff before every commit and rotate any credential ever exposed elsewhere.
+- Hash verification tokens with a purpose-separated keyed digest or strong digest over high-entropy random tokens; compare safely; 15-minute expiry, one-time use, supersession and no token/query logging. Rate-limit request/resend by account and transport IP without storing raw email in keys.
+- Treat legacy verification as evidence-based: absent an authoritative verification timestamp, set every legacy USER `email_verified_at` to NULL. Never synthesize it from the legacy boolean, account creation, last login, profile updates or activity. ADMIN bootstrap/login/RBAC remains a separate architecture path and must stay usable without a fake verification timestamp.
+- Apply per-user/IP rate limits to recommendation refresh, invitation send and message send. Make invitation limit/reciprocal/accept rules concurrency-safe at database level.
+- Enforce the `student_type` lock and opposite-type activation invariant in backend transactions with stable participant locking/revalidation. A disabled frontend field is not authorization; no repair job may mutate existing Matches and no Unmatch endpoint is added.
+- Authorization must be resource-based: invitation owner/recipient, ACTIVE Match participant, or ADMIN monitoring role. Email is not an authorization identifier.
+- WebSocket handshake validates allowed Origin, cookie session/current DB user, VERIFIED status and ACTIVE Match participation; authorize again on reconnect and close access when verification/account/match state changes. Do not accept bearer credentials in URL query strings.
+- Render invitation/message body as text and never use `dangerouslySetInnerHTML`. For invitation messages, trim leading/trailing whitespace; count words as maximal non-whitespace runs; reject more than 500 words or more than 10,000 Unicode code points server-side. Frontend counters are advisory and must share boundary fixtures with the backend.
+- Transactional outbox payloads/logs exclude secrets and unnecessary profile data. Delivery errors expose no provider response body to clients.
+- Reset requires ADMIN + CSRF + recent re-auth/step-up, explicit phrase, immutable operation ID, counts, exclusive maintenance/write barrier, verified DB and avatar backups, abort-on-backup-failure and post-reset verification. Backup bucket is private with least privilege and access audit.
+- Expired messages are filtered in every backend read even if cleanup lags. Cleanup and backup-expiry jobs are idempotent, observable and protected against deleting records outside exact retention predicates.
+- Production uses Secure HttpOnly SameSite cookies behind audited trusted proxies, exact CORS/CSRF origins, HTTPS/WSS, TLS Redis, least-privilege runtime DB credentials and separate migration credentials.
+
+### 26.9 Updated V2 task registry
+
+Every task below is **Planned** unless its task contract is explicitly marked **Done**. Existing implemented Auth/Profile/Storage/Audit components are dependencies to reuse, not claims that any other V2 behavior exists.
+
+| Task | Purpose | Strict dependencies | Acceptance summary | Required tests/gates |
+|---|---|---|---|---|
+| EMAIL-001 (**Done 2026-09-24**) | Verification persistence + legacy migration | AUTH-008/009 | Legacy USER→NULL absent evidence; ADMIN access preserved; digest-only one-use 15m token persistence | Migration/model/Admin-regression/security tests |
+| EMAIL-001A | Cryptographic verification token service | EMAIL-001 | High-entropy issue/digest/consume/supersede contract | Unit/property/replay tests |
+| MAIL-001 | Provider + transactional outbox | BE-004, EMAIL-001 | Commit independent of delivery; retry/idempotency | Fake-provider/lease/failure tests |
+| EMAIL-002 | Request/resend verification | EMAIL-001A, MAIL-001, AUTH-020 | Current address only; rate-limited; old token superseded | API/rate/concurrency tests |
+| EMAIL-003 | Confirm verification | EMAIL-001A | One valid token atomically stamps current email | Expiry/replay/race tests |
+| EMAIL-004 | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
+| EMAIL-005 | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
+| AUTH-V2-001 | Shared VERIFIED capability guard | EMAIL-001, BE-016 | Backend locks all Buddy/chat actions and candidacy | Dependency/matrix tests |
+| PREF-001 | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
+| PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
+| PREF-003 | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
+| PREF-004 | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
+| REC-001 | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
+| REC-002 | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
+| REC-003 | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
+| REC-004 | Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/availability and locked state | UI/a11y/contract tests |
+| BUDDY-001 | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
+| PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
+| PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
+| INV-001 | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
+| INV-002 | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
+| INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
+| INV-004 | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
+| INV-005 | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
+| INV-006 | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
+| INV-007 | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
+| INV-008 | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
+| INV-009 | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
+| BUDDY-002 | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
+| BUDDY-003 | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
+| CHAT-001 | Conversation/message persistence | BUDDY-001 | One conversation/Match; text messages and retention fields | Migration/model tests |
+| CHAT-002 | History/read/retention service | CHAT-001, AUTH-V2-001 | Participant-only reads; first-read retention formula | API/time/auth tests |
+| CHAT-003 | WebSocket + Redis realtime | CHAT-002, OPS-001 | Authenticated WSS, Redis Pub/Sub, reconnect recovery | Integration/multi-worker/security tests |
+| CHAT-004 | Text chat frontend | CHAT-003, BUDDY-003 | History/send/receive/read/reconnect; safe text rendering | UI/e2e/a11y tests |
+| CHAT-005 | Message cleanup job | CHAT-002, OPS-001 | Hard-delete expired; API never returns expired | Clock/job/idempotency tests |
+| ADMIN-V2-001 | Monitoring APIs | INV-006, BUDDY-002 | Counts by invitation state, Buddy counts, zero-Buddy users | RBAC/aggregate/privacy tests |
+| ADMIN-V2-002 | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
+| SEM-001 | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
+| SEM-002 | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
+| SEM-003 | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
+| SEM-004 | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
+| SEM-005 | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
+| SEM-006 | Restore + new-cohort block | SEM-005 | Exact restore; backend blocks after any new USER | Restore/idempotency/block tests |
+| SEM-007 | Semester Management UI | SEM-005/006, ADMIN-005 | Counts/warnings/phrase/re-auth/status/restore UX | UI/a11y/e2e tests |
+| OPS-001 | Local Redis/worker/config foundation | MAIL-001 | Local Redis, worker/scheduler, health/readiness, no heavyweight queue | Startup/failure/compose tests |
+| OPS-002 | Early staging infrastructure validation | EMAIL-003, OPS-001 | Real HTTPS cookie/CSRF/DB/Redis/Storage/email smoke | Staging smoke gate |
+| OPS-003 | Observability/backup/rollback runbooks | OPS-002 | Redacted logs, alerts, rollback and credential rotation | Game-day/tabletop gate |
+| ACCEPT-001 | Full V2 staging acceptance | All functional tasks, SEM-007, OPS-003 | Real two-user happy path + reset/restore/block scenarios | Signed acceptance record |
+| PROD-001 | Production release and verification | ACCEPT-001 | All release gates met; rollback point captured | Production smoke/monitoring gate |
+
+### 26.10 Full task contracts — Email, preferences and recommendations
+
+#### EMAIL-001 — Verification persistence and token model
+
+- **Status:** **Done 2026-09-24.** The implementation adds persistence/schema support only; token generation, validation and consumption remain owned by `EMAIL-001A`.
+- **Purpose:** Make the current verified email a timestamp-backed server fact.
+- **Scope / likely files:** `models/user.py`, new verification model, model exports, schemas and one Alembic revision. Audit result: the legacy boolean is written as false by USER registration and true by trusted CLI ADMIN bootstrap; admin list/detail only reads it, and no verification event timestamp is recorded. Therefore migrate every legacy USER to `email_verified_at=NULL` unless operators supply a separate authoritative timestamp source. Never convert `email_verified=true` into a fabricated timestamp. Handle ADMIN separately: keep current bootstrap/login/RBAC usable and independent of student verification; an ADMIN with no trustworthy timestamp may remain NULL.
+- **Dependencies / ownership:** AUTH-008/009; Backend + Database.
+- **Security:** verification status is evidence-based. Account creation, last login, profile update, activity history and the unaudited legacy boolean are forbidden timestamp sources. Use high-entropy tokens, digest only, no token repr/log/audit, 15-minute expiry, one use, email snapshot and supersession.
+- **Acceptance / DoD:** `email_verified_at` is nullable and authoritative for USER Buddy access; every legacy USER without an authoritative imported timestamp is UNVERIFIED after migration; ADMIN can still authenticate and use RBAC without a synthetic timestamp; constraints/indexes support one current usable token; downgrade/recovery and any evidence-import mechanism are documented; generated schema and docs agree.
+- **Tests/gates:** disposable PostgreSQL upgrade fixtures cover legacy USER false, legacy USER true and ADMIN true/false; both USER booleans become NULL absent evidence; no created/login/profile/activity timestamp is copied; an explicit authoritative timestamp fixture is preserved/imported; ADMIN login/RBAC regression passes; downgrade, expiry and secret-redaction tests pass.
+- **Non-goals:** sending email, UI, matching unlock.
+
+#### EMAIL-001A — Cryptographic verification token service
+
+- **Purpose:** Isolate secure issue, digest, validate, consume and supersede behavior from transport endpoints.
+- **Scope / likely files:** dedicated token service/value objects and model repository helpers; injectable UTC clock/random source for tests.
+- **Dependencies / ownership:** EMAIL-001; Backend.
+- **Security:** at least 32 random bytes from a CSPRNG, URL-safe encoding, purpose-separated digest, constant-safe comparison where applicable, no plaintext persistence/repr/log, 15-minute exact TTL.
+- **Acceptance / DoD:** issue returns plaintext once and persists only digest/email snapshot; consume is atomic one-use; newest issue supersedes prior tokens; expired/changed-email/deleted-user tokens fail generically.
+- **Tests/gates:** entropy/format, digest-not-plaintext, exact expiry, replay, supersession, concurrent consume and log-redaction tests.
+- **Non-goals:** HTTP endpoints or email delivery.
+
+#### MAIL-001 — Transactional email provider and outbox foundation
+
+- **Purpose:** Decouple committed business state from fallible delivery.
+- **Scope / likely files:** new email/outbox models, service/provider protocol, templates boundary, worker command, server-only config and docs.
+- **Dependencies / ownership:** BE-004, EMAIL-001; Backend + Database + Infrastructure.
+- **Security:** provider key server-only; recipient/body/provider errors redacted; leases and event idempotency keys; no arbitrary template selection.
+- **Acceptance / DoD:** transaction inserts outbox row; worker retries with bounded backoff and terminal observability; provider failure cannot roll back the originating state; no heavyweight broker added.
+- **Tests/gates:** fake-provider success/failure, duplicate delivery protection, lease recovery, config fail-closed and log-redaction tests.
+- **Non-goals:** marketing/bulk email or pricing commitment.
+
+#### EMAIL-002 — Request and resend verification
+
+- **Purpose:** Issue a safe 15-minute link to the current address.
+- **Scope / likely files:** auth router/schema/service, rate-limit policy, verification email template/outbox event, environment base URL.
+- **Dependencies / ownership:** EMAIL-001A, MAIL-001, AUTH-020; Backend.
+- **Security:** authenticated current USER, CSRF, per-user/IP rate limits, generic response, supersede old tokens, allowlisted HTTPS base URL.
+- **Acceptance / DoD:** first request and resend create at most one usable latest token and post-commit email event; already-verified behavior is explicit/idempotent; raw token never persists or logs.
+- **Tests/gates:** API, CSRF, rate, expiry, resend concurrency, outbox and sanitized-log tests.
+- **Non-goals:** verifying the token or changing email.
+
+#### EMAIL-003 — Confirm verification token
+
+- **Purpose:** Atomically verify only the token's current user/email snapshot.
+- **Scope / likely files:** auth endpoint/service/schema and frontend-safe redirect result contract.
+- **Dependencies / ownership:** EMAIL-001A; Backend + Database.
+- **Security:** constant-safe digest lookup/compare, one transaction, no open redirect, generic invalid/expired response.
+- **Acceptance / DoD:** one valid unexpired unused token sets `email_verified_at`, consumes/supersedes tokens and succeeds once; changed email, replay and race fail safely.
+- **Tests/gates:** exact 15-minute boundary, replay, simultaneous confirmations, changed-email and deleted/inactive account tests.
+- **Non-goals:** login or automatic invitation action.
+
+#### EMAIL-004 — Authenticated email change and re-verification
+
+- **Purpose:** Let a USER replace the login email without losing Buddy data.
+- **Scope / likely files:** auth schema/router/service, session projection and docs; update canonical email, clear timestamp, revoke tokens and enqueue verification.
+- **Dependencies / ownership:** EMAIL-001/002, existing sessions; Backend + Database.
+- **Security:** CSRF plus current-password or recent step-up verification, uniqueness protection, generic conflict, session policy explicitly tested.
+- **Acceptance / DoD:** verified or unverified USER can change to a valid unique address; verification clears atomically; invitations/Matches/chat remain; protected interactions lock immediately; notifications target only the verified current address.
+- **Tests/gates:** auth/CSRF, uniqueness/race, session reload, data-retention and re-unlock integration tests.
+- **Non-goals:** merging accounts or forwarding old-address mail.
+
+#### EMAIL-005 — Verified/Unverified and email-change UX
+
+- **Purpose:** Expose the backend state and safe recovery actions.
+- **Scope / likely files:** session parser, profile/settings pages, auth client, locale strings, confirmation route/page and tests.
+- **Dependencies / ownership:** EMAIL-002..004, AUTH-021; Frontend.
+- **Security:** no token persistence/analytics; safe internal return path; do not infer verification from a sent email.
+- **Acceptance / DoD:** status survives refresh/login; Verify/Resend handles throttle/expiry; email change immediately shows locked state; successful confirm refreshes session state.
+- **Tests/gates:** component/integration, EN/DE, keyboard/screen-reader, reload and safe-link tests.
+- **Non-goals:** Buddy feature implementation.
+
+#### AUTH-V2-001 — Shared VERIFIED Buddy capability guard
+
+- **Purpose:** Enforce the UNVERIFIED lock once for all Buddy/chat transports.
+- **Scope / likely files:** backend dependencies/policies, completion reason schema/service and frontend reason parser.
+- **Dependencies / ownership:** EMAIL-001, BE-016; Backend contract + Frontend integration.
+- **Security:** current database timestamp, role/account state and profile ownership; never trust JWT/client verification fields alone.
+- **Acceptance / DoD:** UNVERIFIED users cannot be recommended, receive new invitations, list/interact with invitations/Buddies, or read/send chat; preserved records unlock after reverify if still valid.
+- **Tests/gates:** endpoint permission matrix plus WebSocket dependency tests; no protected query executes before guard.
+- **Non-goals:** deleting or expiring preserved data on email change.
+
+#### PREF-001 — Activity and custom-preference persistence
+
+- **Purpose:** Represent all confirmed matching signals without polluting shared catalogs.
+- **Scope / likely files:** Activity/ProfileActivity/ProfileCustomPreference models, exports, seed strategy and migration from current preferred-activity IDs.
+- **Dependencies / ownership:** BE-009/010; Database + Backend.
+- **Security:** bounded lengths/counts, kind/proficiency checks, backend-only schema/grants, cascade with profile.
+- **Acceptance / DoD:** predefined activities are independent from Interests; custom values are profile-owned and unique by normalized key/kind; catalogs survive semester reset, custom rows do not.
+- **Tests/gates:** migration, constraint, cascade, seed idempotency and permission tests.
+- **Non-goals:** globalizing custom values or synonym/AI matching.
+
+#### PREF-002 — Normalized preference identity service
+
+- **Purpose:** Define the single deterministic identity rule shared by persistence, duplicate detection and scoring.
+- **Scope / likely files:** pure normalization/value-object service implementing NFKC → trim → collapse whitespace → Unicode casefold, with display-label validation.
+- **Dependencies / ownership:** PREF-001; Backend.
+- **Security:** bound input before/after normalization; reject empty/control-character output; never use locale-dependent comparison.
+- **Acceptance / DoD:** `Photography` equals `photography`; compatibility-equivalent Unicode/whitespace forms share a key; `Football` differs from `Soccer`; output is deterministic across supported runtime.
+- **Tests/gates:** Unicode normalization vectors, whitespace/case/property/idempotency and pathological input tests.
+- **Non-goals:** persistence, semantic translation, fuzzy matching or AI.
+
+#### PREF-003 — Preference services and owner APIs
+
+- **Purpose:** Persist/read predefined and custom interests, languages and activities consistently.
+- **Scope / likely files:** profile schemas/services/routes and readiness calculation using PREF-002 keys.
+- **Dependencies / ownership:** PREF-001/002, BE-012/015; Backend.
+- **Security:** owner-only mutations, CSRF, optimistic version, bounded arrays/labels and no unsafe reflection.
+- **Acceptance / DoD:** custom languages retain proficiency; combined selections round-trip deterministically; completion counts valid predefined + custom selections; duplicate normalized values are rejected/merged by contract.
+- **Tests/gates:** API/version/race/authorization/readiness and invalid-input tests.
+- **Non-goals:** Admin taxonomy UI or global catalog writes.
+
+#### PREF-004 — Custom preference tag/input/display UI
+
+- **Purpose:** Let users manage and view the three combined signal sets.
+- **Scope / likely files:** onboarding/profile form components, own-profile view, clients/types/locales.
+- **Dependencies / ownership:** PREF-003, FE-026/027/029; Frontend.
+- **Security:** render labels as text; client limits mirror but never replace server validation.
+- **Acceptance / DoD:** accessible add/remove/edit for predefined/custom values; duplicate normalized labels prevented/explained; reload round-trip preserves labels and proficiency.
+- **Tests/gates:** component, keyboard/a11y, normalization-contract and API integration tests.
+- **Non-goals:** public catalog creation or AI suggestions.
+
+#### REC-001 — V2 eligibility policy and safe matching profile
+
+- **Purpose:** Centralize candidate eligibility and privacy projection.
+- **Scope / likely files:** replace reservation stub, new matching policy/service/schema and avatar authorization extension.
+- **Dependencies / ownership:** AUTH-V2-001, PREF-003; Backend.
+- **Security:** active, non-deleted, complete, opted-in, VERIFIED, valid opposite types, no self; explicit allowlist DTO excludes email/auth/internal fields.
+- **Acceptance / DoD:** policy is reused by recommendation, send and Accept; having one or many ACTIVE Matches never disqualifies a user; availability is included only in the approved normalized display form.
+- **Tests/gates:** exhaustive eligibility matrix, privacy snapshot and multiple-Buddy regression tests.
+- **Non-goals:** score/ranking, reservation or Admin override.
+
+#### REC-002 — Deterministic V2 compatibility scoring
+
+- **Purpose:** Compute the confirmed server-owned score and explanation.
+- **Scope / likely files:** scoring service/value objects and fixtures using combined predefined/custom sets.
+- **Dependencies / ownership:** REC-001; Backend.
+- **Security:** consume safe normalized profile data, bound computation and explanation; no auth/contact data.
+- **Acceptance / DoD:** exact weights Interests 40%, Activities 35%, Availability 15%, Languages 5%, Major 5%; Jaccard for first two, normalized overlap for availability, exact code/custom-key language match, normalized major equality; total always 0..100 and deterministic.
+- **Tests/gates:** golden fixtures, symmetry/property tests, empty-set/Unicode/timezone/tie cases and exact-weight assertion.
+- **Non-goals:** greedy assignment, semantic inference, ML or missing-weight renormalization.
+
+#### REC-003 — Ranked recommendation API
+
+- **Purpose:** Return current compatible candidates without changing state.
+- **Scope / likely files:** matching router/service/query schemas, pagination and score explanations.
+- **Dependencies / ownership:** REC-002, AUTH-V2-001; Backend.
+- **Security:** verified guard, bounded pagination/rate limit, safe DTO only, no cache across users.
+- **Acceptance / DoD:** score-descending deterministic order with stable tie-break; excludes ineligible/same-type/self; includes already-matched users unless the same pair is ACTIVE; does not create Match/Invitation/run rows.
+- **Tests/gates:** API/RBAC/privacy/query-count/rate/determinism tests.
+- **Non-goals:** Admin approval, allocation, swiping or invite mutation.
+
+#### REC-004 — Recommended Buddies frontend section
+
+- **Purpose:** Present ranked safe profiles in the existing Buddy Matching page.
+- **Scope / likely files:** real `/user/matching` page, recommendation query/client/card/locales and route metadata; restore the existing accepted `UserDashboardPage` as the actual `/user/dashboard` destination instead of the current profile-edit redirect.
+- **Dependencies / ownership:** REC-003, EMAIL-005; Frontend.
+- **Security:** no email rendering/preload for locked users; explanation is structured text.
+- **Acceptance / DoD:** responsive accessible loading/error/empty/cards; score/explanation/availability render from server; Send Invitation opens the V2 composer; refresh/logout clears private cache; completed-profile login/onboarding lands on the real dashboard and can open Buddy Matching.
+- **Tests/gates:** component, a11y, route, schema rejection and mocked contract tests.
+- **Non-goals:** locally calculating scores or creating a new navigation concept.
+
+### 26.11 Full task contracts — Invitations and Current Buddies
+
+#### BUDDY-001 — ACTIVE Match persistence and unordered-pair uniqueness
+
+- **Purpose:** Persist accepted Buddy relationships while allowing multiple Buddies per user.
+- **Scope / likely files:** new Match model/status/schema, exports and Alembic migration; canonical unordered user pair and invitation provenance.
+- **Dependencies / ownership:** REC-002; Database + Backend.
+- **Security:** FKs to current users/profiles, backend-only grants, immutable participants after activation, score snapshot excludes sensitive data; service activation requires one VIETNAMESE and one INTERNATIONAL profile.
+- **Acceptance / DoD:** only ACTIVE is needed for MVP; no per-user reservation/unique constraint; database prevents a second ACTIVE row for the same unordered pair; both participant directions query efficiently; accepted types are revalidated at activation and no process rewrites existing Match participants/types.
+- **Tests/gates:** migration upgrade/downgrade, pair-order uniqueness, opposite/same-type activation, concurrent insert and multi-Buddy tests.
+- **Non-goals:** PROPOSED, ADMIN_APPROVED, user Unmatch/End Buddy or Admin activation.
+
+#### PROFILE-V2-001 — Backend `student_type` lock after ACTIVE Match
+
+- **Purpose:** Preserve the opposite-type invariant of every current Buddy relationship.
+- **Scope / likely files:** existing own-profile update schema/service/router plus a shared ACTIVE-Match policy/query and stable conflict mapping; coordinate participant locks with INV-005 Accept.
+- **Dependencies / ownership:** BUDDY-001, BE-012; Backend + Database.
+- **Security:** backend is authoritative. A request that changes the normalized persisted type must lock/recheck the USER's ACTIVE Matches in the same transaction; use the same stable participant lock order as Accept. Never trust a disabled frontend field.
+- **Acceptance / DoD:** with zero ACTIVE Matches, a valid type change still works; with one or many ACTIVE Matches, a changed type is rejected as `STUDENT_TYPE_LOCKED_ACTIVE_MATCH`; unchanged resubmission is allowed; existing Matches are unchanged; no Unmatch/End workaround is introduced. Reset deletes old USER accounts, so a new-cohort registration selects type from scratch.
+- **Tests/gates:** backend API/service tests cover zero/one/many ACTIVE Matches, both current types, unchanged resubmission, stale clients and authorization; deterministic Accept-vs-profile-update concurrency tests prove neither interleaving can commit a same-type ACTIVE Match.
+- **Non-goals:** automatically migrating Matches, editing the other participant, Unmatch/End Buddy, or carrying the old account into the next semester.
+
+#### PROFILE-V2-002 — Locked `student_type` frontend UX
+
+- **Purpose:** Explain the confirmed backend restriction before a user submits an impossible edit.
+- **Scope / likely files:** own-profile query/schema/client, profile edit field, help/error copy and locales; consume backend lock state/reason and conflict code.
+- **Dependencies / ownership:** PROFILE-V2-001, FE-029; Frontend.
+- **Security:** disabled/readonly UI is advisory only; submit handling must display the backend conflict and refetch after stale-tab/race responses.
+- **Acceptance / DoD:** a user with at least one ACTIVE Match sees the type field locked with an accessible explanation that current Buddies require opposite types; users without an ACTIVE Match can edit it; no Unmatch action or promise of automatic migration is shown.
+- **Tests/gates:** component/a11y/integration tests cover unlocked, locked, one/many Buddy-equivalent state, stale unlocked tab receiving `STUDENT_TYPE_LOCKED_ACTIVE_MATCH`, reload and localized explanation.
+- **Non-goals:** enforcing security in the browser or adding relationship-ending controls.
+
+#### INV-001 — Invitation model, migration and state machine
+
+- **Purpose:** Create the durable request/response business record.
+- **Scope / likely files:** MatchingInvitation model/enums/schema, model exports and Alembic migration with required fields/statuses, including a defensive PostgreSQL length check on the canonical trimmed message.
+- **Dependencies / ownership:** REC-001; Database + Backend.
+- **Security:** sender/recipient must differ; plain bounded message; indexed owners/status/expiry; backend-only tables.
+- **Acceptance / DoD:** PENDING/ACCEPTED/DECLINED/CANCELLED/EXPIRED transitions are explicit; unordered pair keys prevent reciprocal simultaneous PENDING; terminal timestamps agree with status; no hard delete in normal flow.
+- **Tests/gates:** model/migration/constraint/state-transition tests including both pair directions.
+- **Non-goals:** APIs, email delivery or Match creation.
+
+#### INV-002 — Seven-day expiry semantics and transition job
+
+- **Purpose:** Make invitation expiry authoritative even when the scheduler is delayed.
+- **Scope / likely files:** invitation service/query predicate and worker/scheduler task.
+- **Dependencies / ownership:** INV-001; Backend + Infrastructure.
+- **Security:** trusted UTC database/server time; idempotent bounded updates; no client timer authority.
+- **Acceptance / DoD:** PENDING becomes unusable at `created_at + 7 days`; reads/mutations treat it as EXPIRED before cleanup; job persists the status; sender may immediately invite again with no cooldown.
+- **Tests/gates:** exact-boundary/frozen-clock, delayed-job, concurrent Accept-vs-expire and retry tests.
+- **Non-goals:** deleting expired history or reminder email.
+
+#### INV-003 — Send invitation API and concurrency limits
+
+- **Purpose:** Let an eligible verified sender invite one eligible recommended recipient.
+- **Scope / likely files:** invitation POST schema/router/service, one documented validation helper with cross-layer fixtures, and per-user/IP rate-limit policy; enqueue outbox event in same transaction. Canonicalize by trimming leading/trailing whitespace; count words as maximal consecutive non-whitespace runs in the trimmed value; count Unicode code points in that same value.
+- **Dependencies / ownership:** INV-002, REC-003, MAIL-001; Backend + Database.
+- **Security:** auth/VERIFIED/CSRF, revalidate both users, server rejects more than 500 words as `INVITATION_MESSAGE_TOO_MANY_WORDS` and more than 10,000 Unicode code points as `INVITATION_MESSAGE_TOO_MANY_CODE_POINTS`; store/render plain text only; locks/advisory key protect count and pair.
+- **Acceptance / DoD:** the stored message is outer-trimmed; spaces, tabs and newlines only delimit runs, so `Hello my friend` is 3 words regardless of repeated spaces; exactly 500 words and exactly 10,000 code points are allowed, while 501/10,001 are rejected with the corresponding validation reason. Request 31 is rejected while only outgoing effective PENDING counts; no A→B and B→A PENDING race; ACTIVE same pair is rejected; successful DB commit survives email failure; response never includes recipient email.
+- **Tests/gates:** shared backend/frontend vectors cover repeated spaces, tabs, newlines, non-ASCII text, combining sequences and supplementary-plane emoji; 500/501-word and 10,000/10,001-code-point boundaries; HTML-looking text remains inert plain text. Ownership, rate, 30/31, reciprocal and concurrent transaction tests also pass.
+- **Non-goals:** auto-match, Admin approval or sender acceptance.
+
+#### INV-004 — Incoming and Sent Invitations read APIs
+
+- **Purpose:** Return exactly the user-visible invitation subsets and safe detail.
+- **Scope / likely files:** invitation GET routes/query services/schemas with pagination and current score/explanation calculation.
+- **Dependencies / ownership:** INV-002, REC-002, AUTH-V2-001; Backend.
+- **Security:** owner/recipient filters in query, no IDOR, no email/internal fields, private no-store responses.
+- **Acceptance / DoD:** incoming PENDING includes sender safe profile, availability, message, score/explanation, expiry/actions; sent returns only PENDING and unhidden ACCEPTED; declined/expired/cancelled never appear in normal sent UI.
+- **Tests/gates:** visibility/status/expiry/privacy/pagination and foreign-ID tests.
+- **Non-goals:** mutation or Admin listing.
+
+#### INV-005 — Atomic recipient Accept
+
+- **Purpose:** Make recipient consent the final action that creates the Buddy relationship.
+- **Scope / likely files:** accept endpoint/service, row locking, eligibility revalidation, ACTIVE Match and conversation creation transaction, accepted outbox event.
+- **Dependencies / ownership:** INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 when conversation creation is included; Backend + Database.
+- **Security:** current VERIFIED recipient ownership, CSRF, PENDING/not-expired, account/profile eligibility, opposite types, active-pair uniqueness, stable participant locking shared with profile update and safe idempotency.
+- **Acceptance / DoD:** one commit revalidates VIETNAMESE↔INTERNATIONAL, sets ACCEPTED/responded_at, creates exactly one ACTIVE Match and one conversation; concurrent/replayed accepts cannot duplicate; concurrent type edits cannot produce a same-type ACTIVE Match; sender need not accept; notification failure does not roll back.
+- **Tests/gates:** transaction rollback, IDOR, expired/ineligible/email-change, same-type, duplicate-pair, concurrent Accept and Accept-vs-type-update tests.
+- **Non-goals:** Admin or sender acceptance, global capacity or user unmatch.
+
+#### INV-006 — Decline, Cancel and accepted-row hide
+
+- **Purpose:** Complete the remaining authorized state transitions without destructive relationship deletion.
+- **Scope / likely files:** recipient decline, sender cancel and accepted sender hide endpoints/services.
+- **Dependencies / ownership:** INV-003/005; Backend + Database.
+- **Security:** strict actor ownership, CSRF, verified guard, state-conditional atomic updates and idempotent safe retries.
+- **Acceptance / DoD:** recipient alone PENDING→DECLINED; sender alone PENDING→CANCELLED; neither creates Match/chat; re-invite is immediately allowed; hide sets only `sender_hidden_at` on ACCEPTED and leaves invitation/Match/conversation/messages intact.
+- **Tests/gates:** permission/state/race/idempotency and data-retention tests.
+- **Non-goals:** deleting Pending, declining after Accept, deleting Buddy or chat.
+
+#### INV-007 — Invitation composer, Incoming and Sent UI
+
+- **Purpose:** Implement all invitation interactions inside Buddy Matching.
+- **Scope / likely files:** matching page sections/components, query/mutation clients, locales and safe word/code-point counter using the same contract fixtures as INV-003; code-point counting must not use JavaScript UTF-16 `.length` semantics.
+- **Dependencies / ownership:** INV-004..006, REC-004; Frontend.
+- **Security:** render body as text; no `dangerouslySetInnerHTML`; locked state makes no protected calls; conflict responses refetch.
+- **Acceptance / DoD:** composer trims outer whitespace for submission, shows `x / 500 words`, validates the separate 10,000-code-point ceiling, and gives the matching error when either limit is exceeded; repeated whitespace never increases the count beyond non-whitespace runs. Incoming Accept/Decline and sent Cancel work; PENDING has no Delete; ACCEPTED has Start Chatting/Delete-hide; hidden/declined/expired/cancelled disappear according to server result.
+- **Tests/gates:** component/a11y and shared contract vectors cover repeated whitespace, 500/501 words, 10,000/10,001 code points, emoji and inert HTML-looking text; duplicate-submit, stale conflict, reload and endpoint contract tests pass; source check forbids `dangerouslySetInnerHTML` in invitation rendering.
+- **Non-goals:** chat implementation or client-side state authority.
+
+#### INV-008 — Invitation email notification
+
+- **Purpose:** Notify the recipient after a committed invitation without coupling delivery to the transaction.
+- **Scope / likely files:** invitation email template/event/outbox handler and Open Invitation route contract.
+- **Dependencies / ownership:** INV-003, MAIL-001; Backend + Infrastructure.
+- **Security:** send only to the recipient's current VERIFIED email at delivery policy point; escape all template data; no message/token/signed URL in logs.
+- **Acceptance / DoD:** committed invitation enqueues exactly one idempotent event; CTA opens the correct invitation after authentication; provider failure retries and never removes/rolls back invitation; address change/unverified state is handled by the documented current-address resolver.
+- **Tests/gates:** template escaping, provider failure/retry, deduplication, recipient-address change and real staging delivery tests.
+- **Non-goals:** marketing mail, SMS or push notifications.
+
+#### INV-009 — Accepted email and safe authenticated deep links
+
+- **Purpose:** Notify the sender after Accept and route both email CTAs safely through login when needed.
+- **Scope / likely files:** accepted email template/event/handler, frontend login `returnTo` allowlist and invitation/conversation target routing.
+- **Dependencies / ownership:** INV-005, MAIL-001; Backend + Frontend + Infrastructure.
+- **Security:** sender's current VERIFIED email only; opaque target IDs; allowlist same-origin relative routes; server reauthorizes destination; no open redirect.
+- **Acceptance / DoD:** accepted commit enqueues one retryable event; CTA opens exact conversation when authenticated or login→conversation when anonymous; invitation CTA also uses the same validated mechanism; foreign/invalid targets fail closed.
+- **Tests/gates:** template/outbox, duplicate event, authenticated/anonymous links, changed-email suppression and open-redirect/IDOR tests.
+- **Non-goals:** automatic login, bearer token in URL or non-email notifications.
+
+#### BUDDY-002 — Current Buddies API
+
+- **Purpose:** Return all ACTIVE relationships for the verified participant.
+- **Scope / likely files:** matching router/query/schema, safe profile/availability/shared-signal projections and conversation link/ID.
+- **Dependencies / ownership:** BUDDY-001, INV-005, AUTH-V2-001; Backend.
+- **Security:** participant filter at query, no email/auth/internal fields, private no-store response, signed avatar authorization extended to active participants.
+- **Acceptance / DoD:** zero/one/many ACTIVE matches return deterministically; same Buddy cannot duplicate; email change locks but never deletes; each item points only to its correct conversation.
+- **Tests/gates:** multi-Buddy, IDOR/privacy, locked/unlocked and query-count tests.
+- **Non-goals:** Unmatch/End Buddy/Delete relationship.
+
+#### BUDDY-003 — Current Buddies UI and route compatibility
+
+- **Purpose:** Present multiple relationships and preserve the existing navigation surface.
+- **Scope / likely files:** Current Buddies matching-page section; `/user/buddy` redirect/focus behavior; cards and Start Chatting action.
+- **Dependencies / ownership:** BUDDY-002, INV-007; Frontend.
+- **Security:** use only safe DTO; clear cache on logout; no hidden contact fields.
+- **Acceptance / DoD:** accessible zero/one/many states; availability/shared explanation display; Start Chatting opens exact match conversation; no Unmatch/End/Delete Buddy control exists.
+- **Tests/gates:** routing, component/a11y, multi-Buddy and verification-lock tests.
+- **Non-goals:** separate Buddy data store or relationship mutation.
+
+### 26.12 Full task contracts — Chat and Admin monitoring
+
+#### CHAT-001 — Buddy conversation and message persistence
+
+- **Purpose:** Establish one durable 1:1 text conversation for each ACTIVE Match.
+- **Scope / likely files:** BuddyConversation/BuddyMessage models/enums, exports and Alembic migration; Match relationship and retention indexes.
+- **Dependencies / ownership:** BUDDY-001; Database + Backend.
+- **Security:** FK sender must be a participant enforced by service/trigger strategy; body bounds/plain text; backend-only grants; indexes support authorized time-ordered reads/cleanup.
+- **Acceptance / DoD:** one conversation per Match; fields include sender/body/created/read/expires; initial `expires_at=created_at+90d`; cascades/reset behavior documented without normal user delete.
+- **Tests/gates:** migration/model/constraint/index/cascade tests.
+- **Non-goals:** images, files, audio, voice, video, reactions or group chat.
+
+#### CHAT-002 — Authorized history, send fallback and first-read retention
+
+- **Purpose:** Make PostgreSQL the complete recoverable chat authority.
+- **Scope / likely files:** chat schemas/services/HTTP routes, cursor pagination, send/read transactions and retention helper.
+- **Dependencies / ownership:** CHAT-001, AUTH-V2-001; Backend.
+- **Security:** VERIFIED ACTIVE participant only; per-user send rate/size limits; safe text; expired predicate applied in every read; no foreign match enumeration.
+- **Acceptance / DoD:** ordered pagination and idempotent send key; first recipient read sets `read_at` once and `expires_at=min(read+30d, created+90d)`; never-read expires at +90d; later reads never extend retention.
+- **Tests/gates:** frozen-clock formula, sender-vs-recipient, pagination, IDOR, rate, duplicate send and expired-filter tests.
+- **Non-goals:** realtime transport or frontend.
+
+#### CHAT-003 — Authenticated FastAPI WebSocket and Redis Pub/Sub
+
+- **Purpose:** Deliver realtime messages across backend workers while retaining REST recovery.
+- **Scope / likely files:** async Redis config/client, WebSocket router/connection manager, origin/session authorization and publish/subscribe adapter; backend host/deployment docs.
+- **Dependencies / ownership:** CHAT-002, OPS-001; Backend + Infrastructure.
+- **Security:** cookie session handshake, exact Origin allowlist, current DB VERIFIED/ACTIVE participation, message/rate limits, reauthorization on reconnect/state change, no URL tokens.
+- **Acceptance / DoD:** two participants receive committed messages through WSS; outsider/unverified rejected; multi-worker delivery uses Redis; Redis outage degrades safely without losing committed DB messages; reconnect catches up via REST.
+- **Tests/gates:** WebSocket auth/origin, Redis integration/TLS config, two-worker pub/sub, disconnect/reconnect and outage tests.
+- **Non-goals:** Supabase Realtime, presence guarantees or typing indicators.
+
+#### CHAT-004 — Accessible text chat frontend
+
+- **Purpose:** Provide the actual 1:1 conversation experience.
+- **Scope / likely files:** chat page/route/client/hooks/components/locales; REST history + WSS state and read acknowledgement.
+- **Dependencies / ownership:** CHAT-003, BUDDY-003; Frontend.
+- **Security:** plain-text rendering, no HTML execution, no token URL/local persistence, verified lock and private cache cleanup.
+- **Acceptance / DoD:** correct conversation from Buddy/email CTA; history, send/receive, optimistic state reconciliation, reconnect/catch-up, first-read update, expired-message absence and accessible announcements work.
+- **Tests/gates:** component/a11y, malicious text, reconnect/duplicate event, logout/email-change lock and browser E2E tests.
+- **Non-goals:** attachments, media, calls, groups or permanent client archive.
+
+#### CHAT-005 — Expired-message cleanup job
+
+- **Purpose:** Enforce retention physically without relying on clients.
+- **Scope / likely files:** worker/scheduler cleanup service/command, batch/lease metrics and runbook.
+- **Dependencies / ownership:** CHAT-002, OPS-001; Backend + Infrastructure.
+- **Security:** exact server-time predicate, bounded batches, idempotency, least-privilege delete and redacted metrics.
+- **Acceptance / DoD:** expired messages are hard-deleted; non-expired rows are untouched; repeated/concurrent workers are safe; API filtering protects privacy if cleanup lags.
+- **Tests/gates:** clock/boundary, batch/concurrency, failure resume and disposable DB tests.
+- **Non-goals:** deleting conversations/Matches or manual user history deletion.
+
+#### ADMIN-V2-001 — Matching monitoring and safe participant APIs
+
+- **Purpose:** Give Admin operational visibility without decision power.
+- **Scope / likely files:** admin matching schemas/services/router for participants, verified count, invitation state totals, ACTIVE Match total, Buddy count per user and zero-Buddy users.
+- **Dependencies / ownership:** INV-006, BUDDY-002, existing AUTH-018/EVT-008; Backend.
+- **Security:** ADMIN-only, paginated bounded safe projection, audited sensitive detail reads, no email in matching-safe response unless existing user-management endpoint explicitly requires it.
+- **Acceptance / DoD:** counts reconcile to DB states including effective expiry; USER gets 403; no run/publish/override/respond mutation exists; multiple-Buddy counts are correct.
+- **Tests/gates:** RBAC, aggregate fixtures, expiration, privacy/pagination/query tests.
+- **Non-goals:** approving, activating, declining or manually changing a relationship.
+
+#### ADMIN-V2-002 — Monitoring-only Admin Matching UI
+
+- **Purpose:** Replace placeholder/old controls with accurate monitoring.
+- **Scope / likely files:** `/admin/matching` page, stats/cards/tables/filters/locales using existing AdminLayout/DataTable.
+- **Dependencies / ownership:** ADMIN-V2-001, ADMIN-003/004; Frontend.
+- **Security:** no mutation controls; safe DTO only; private cache/session handling.
+- **Acceptance / DoD:** participant/verification/invitation/ACTIVE/Buddy-count/zero-Buddy states render with loading/empty/error; old Run/Preview/Publish/Override controls are absent from UI and routes.
+- **Tests/gates:** component/a11y, role integration and explicit absence tests for superseded controls.
+- **Non-goals:** research algorithm dashboard or individual matching actions.
+
+### 26.13 Full task contracts — Semester management
+
+#### SEM-001 — Semester boundary, operation and backup metadata
+
+- **Purpose:** Persist the server-side cohort boundary and durable reset/restore state machine.
+- **Scope / likely files:** Semester, SemesterOperation, SemesterBackup models/enums/migration; stamp new USER with current semester at registration.
+- **Dependencies / ownership:** BUDDY-001, CHAT-001, existing User/Audit; Database + Backend.
+- **Security:** ADMIN actor attribution, immutable boundary timestamps/IDs, backend-only tables; operation log must survive student deletion.
+- **Acceptance / DoD:** current semester is unambiguous; every post-reset USER permanently flips a monotonic restore-block marker even if that USER is later deleted; backup states include CREATING/READY/RESTORE_BLOCKED_NEW_DATA/EXPIRED/FAILED; required audit fields persist.
+- **Tests/gates:** migration/invariant/concurrent registration/boundary and Admin-survival tests.
+- **Non-goals:** performing backup/reset/restore.
+
+#### SEM-002 — Restorable database backup adapter and manifest
+
+- **Purpose:** Export all and only pre-reset student-owned relational data needed for exact restore.
+- **Scope / likely files:** backup service/provider/command, private object location, manifest schema/checksum/counts and operator docs; use a provider-native snapshot/export where available plus application manifest.
+- **Dependencies / ownership:** SEM-001, OPS-003; Backend + Database + Infrastructure.
+- **Security:** encryption/private storage, least privilege, no output/log content, stable operation ID, separate backup credentials if provider requires.
+- **Acceptance / DoD:** backup is created before delete, includes accounts/profile/preferences/invitations/Matches/conversations/messages/outbox-owned records and relationship order; shared Admin/catalog/config rows are identified as restore references, not duplicated.
+- **Tests/gates:** disposable populated DB export/import, checksum/count reconciliation, partial failure/abort and access-control tests.
+- **Non-goals:** avatar binaries (SEM-003) or reset execution.
+
+#### SEM-003 — Private avatar object backup and restore manifest
+
+- **Purpose:** Back up actual avatar bytes with ownership and metadata.
+- **Scope / likely files:** Supabase Storage backup adapter/bucket configuration, object-copy/download-upload strategy, manifest linkage and restore helper.
+- **Dependencies / ownership:** SEM-001, EVS-003; Backend + Storage Infrastructure.
+- **Security:** dedicated private bucket/prefix, server-only credentials, checksums, exact managed-key validation, no signed URL persistence/logging.
+- **Acceptance / DoD:** every referenced student avatar binary/key/owner/mime/size/checksum is present and independently verifiable; missing/corrupt object fails backup; restore recreates objects and mappings.
+- **Tests/gates:** fake and staging Storage copy/checksum, missing object, rollback/retry and private-access tests.
+- **Non-goals:** backing up shared public event/slider media unless student-owned policy later changes.
+
+#### SEM-004 — Backup verification, 30-day retention and expiry
+
+- **Purpose:** Gate reset on a proven complete backup and enforce the retention window.
+- **Scope / likely files:** orchestration state transitions, verification reports, expiration/cleanup worker and admin read DTO.
+- **Dependencies / ownership:** SEM-002/003, OPS-001; Backend + Infrastructure.
+- **Security:** READY only after DB+avatar verification; cleanup exact to `expires_at`; private metadata access; audit every state transition.
+- **Acceptance / DoD:** any DB/avatar failure marks FAILED and aborts reset; successful backup expires exactly 30 days from reset completion; blocked restore remains retained until expiry; cleanup is idempotent/observable.
+- **Tests/gates:** fault injection, checksum/count mismatch, frozen-clock 30-day boundary and cleanup concurrency tests.
+- **Non-goals:** indefinite/archive retention or reset itself.
+
+#### SEM-005 — Safeguarded Semester Reset execution
+
+- **Purpose:** Remove USER accounts and all student-owned data only after verified backups.
+- **Scope / likely files:** preflight/count API, reset orchestration/service, maintenance/write barrier, storage deletion/reconciliation, operation audit and verification.
+- **Dependencies / ownership:** SEM-004, AUTH-018, EVT-008; Backend + Database + Storage + Operations.
+- **Security:** ADMIN + CSRF + recent re-auth, confirmation phrase, idempotency, exclusive barrier covering registration/profile/matching/chat writes, fail closed, no secret logs.
+- **Acceptance / DoD:** exact sequence warning→confirm→auth→DB backup→avatar backup→verify→barrier→delete→verify→new semester→reopen; USER accounts and all listed owned rows/avatars are gone; Admin/shared catalogs/config/migrations remain; no orphans.
+- **Tests/gates:** destructive test only on disposable staging/test environment, injected backup/delete failure, concurrent write attempts, counts/integrity and Admin-login-after-reset tests.
+- **Non-goals:** production execution during implementation, user-level unmatch or clearing shared catalogs.
+
+#### SEM-006 — Restore and new-cohort blocking
+
+- **Purpose:** Restore the pre-reset student dataset only while the new semester is still empty.
+- **Scope / likely files:** restore preflight/orchestration, DB import, avatar restore, reconciliation, backup state/audit updates and maintenance barrier.
+- **Dependencies / ownership:** SEM-005; Backend + Database + Storage + Operations.
+- **Security:** ADMIN + CSRF + recent re-auth, READY/unexpired backup, backend query of persisted boundary, idempotency, no merge/overwrite of a new cohort.
+- **Acceptance / DoD:** READY + zero post-boundary USER restores accounts/data/avatars/relationships exactly without duplicating Admin/catalogs; one post-reset USER atomically changes/returns RESTORE_BLOCKED_NEW_DATA and restore cannot delete/merge/overwrite it.
+- **Tests/gates:** complete restore, checksum/count verification, replay/failure recovery, concurrent registration-vs-restore and one-new-user block tests.
+- **Non-goals:** partial restore, cohort merge or overriding the block.
+
+#### SEM-007 — Admin Semester Management safety UI
+
+- **Purpose:** Make reset/backup/restore consequences explicit and hard to trigger accidentally.
+- **Scope / likely files:** Admin route/navigation/page, preflight counts, warning/keep-delete lists, phrase confirmation, re-auth dialog, operation progress, backup expiry/restore state.
+- **Dependencies / ownership:** SEM-005/006, ADMIN-005; Frontend.
+- **Security:** no optimistic success for destructive actions; phrase and credentials are not logged/persisted; server remains authoritative for block/readiness.
+- **Acceptance / DoD:** Admin sees affected counts, retained data, 30-day policy and explicit second confirmation; failure/abort/status survive reload; Restore disappears/blocks correctly after new USER; no generic one-click “Clear Database”.
+- **Tests/gates:** component/a11y, typed phrase, re-auth, reload/resume, blocked-state and safe staging E2E tests.
+- **Non-goals:** exposing backup downloads to browser or bypassing server checks.
+
+### 26.14 Full task contracts — Operations, staging and acceptance
+
+#### OPS-001 — Local Redis, worker/scheduler and readiness foundation
+
+- **Purpose:** Make realtime/outbox/expiry/cleanup dependencies reproducible locally and observable.
+- **Scope / likely files:** Docker Compose Redis service, async Redis/server config, worker/scheduler entry point, liveness/readiness checks and `.env.example`/README updates.
+- **Dependencies / ownership:** MAIL-001; Infrastructure + Backend.
+- **Security:** local-only bindings; production rejects non-TLS Redis; distinct prefixes/environments; credentials redacted; no reuse of auth secret.
+- **Acceptance / DoD:** one documented command set starts Postgres+Redis+API+worker+web; health distinguishes DB/Redis/email/storage dependencies; worker leases survive restart; config fails closed in production.
+- **Tests/gates:** compose validation, startup/readiness, Redis outage/recovery, config and worker smoke tests.
+- **Non-goals:** Kubernetes, Celery cluster or production provisioning.
+
+#### OPS-002 — Early staging infrastructure validation
+
+- **Purpose:** Validate deployment topology before the full V2 vertical slice hides infrastructure defects.
+- **Scope / likely files:** staging config/runbook only plus any separately authorized deployment manifests in its implementation session; Vercel `apps/web`, WebSocket-capable FastAPI host, staging DB/Redis/Storage/email.
+- **Dependencies / ownership:** EMAIL-003, OPS-001; Infrastructure + Operations.
+- **Security:** exact staging origins, HTTPS/WSS, Secure cookies, trusted proxy policy, least-privilege DB, separate migration credential, TLS Redis, private storage/backups, server-only keys.
+- **Acceptance / DoD:** deployed registration/login/refresh/logout/profile/avatar/verification work across real origins; SPA deep links, health/readiness, worker delivery and WSS handshake smoke pass; no production data/resources used.
+- **Tests/gates:** documented staging smoke evidence, migration backup/rollback dry run and config/secrets review.
+- **Non-goals:** declaring V2 functional or production ready.
+
+#### OPS-003 — Observability, rollback, recovery and credential runbooks
+
+- **Purpose:** Make failures diagnosable and recoverable before destructive/data-retention features ship.
+- **Scope / likely files:** operations documentation/config for structured redacted logs, error monitoring, metrics/alerts, deploy rollback, DB migration recovery, email/outbox, Redis/WSS and backup/restore runbooks.
+- **Dependencies / ownership:** OPS-002; Infrastructure + Operations.
+- **Security:** no secrets/tokens/signed URLs/messages in telemetry; least-privilege dashboard access; credential rotation procedure.
+- **Acceptance / DoD:** operators can detect API/worker/outbox/WSS/cleanup/backup failures; named rollback point and DB recovery decision tree exist; reset/restore runbook requires staging rehearsal.
+- **Tests/gates:** tabletop/game-day evidence for failed migration, Redis loss, email outage and backup failure; alert routing verified.
+- **Non-goals:** a specific paid observability vendor.
+
+#### ACCEPT-001 — Full Buddy Matching V2 staging acceptance
+
+- **Purpose:** Prove the complete product and recovery story on production-like infrastructure.
+- **Scope / likely files:** E2E fixtures/scripts and signed acceptance checklist; no new business behavior.
+- **Dependencies / ownership:** EMAIL/PREF/PROFILE/REC/INV/BUDDY/CHAT/ADMIN V2 tasks, SEM-007, CHAT-005, OPS-003; QA + Product + Engineering + Operations.
+- **Security:** dedicated test users/data; destructive scenarios only in isolated staging; secrets/redaction review and diff inspection.
+- **Acceptance / DoD:** production-like migration proves legacy USER rows are UNVERIFIED without authoritative timestamp evidence while ADMIN bootstrap/login remains usable. Real Vietnamese and International accounts verify real emails; recommendation/invitation email/Accept/accepted email/multiple Buddies/chat/read/retention/F5/logout/login work. Invitation composer/API agree on trimming, non-whitespace-run word counts and 500/501 plus 10,000/10,001-code-point boundaries, with inert plain-text rendering. After Accept, backend and stale-tab UI both reject a type change, the profile field is locked/explained, and existing Matches remain unchanged. Email change locks and reverify unlocks; Admin monitoring reconciles; reset backs up DB+avatars, deletes USER data, restores, then a second rehearsal proves restore blocked after a new USER. A completed reset/new cohort proves the deleted old account does not carry its type lock and a newly registered account can choose its type normally.
+- **Tests/gates:** all automated suites, migration/live Redis/Storage/email/WSS tests, browser E2E, accessibility smoke, shared message-validation fixtures, Accept-vs-type-update load/race tests and recorded manual evidence pass.
+- **Non-goals:** production deployment or synthetic-only acceptance.
+
+#### PROD-001 — Production release, smoke and rollback hold point
+
+- **Purpose:** Release only after every functional, security, infrastructure and operational gate is satisfied.
+- **Scope / likely files:** release checklist/change record; apply migrations with backup, deploy worker/backend/frontend, smoke, observe and retain rollback point.
+- **Dependencies / ownership:** ACCEPT-001 and explicit release approval; Operations + Engineering.
+- **Security:** final secret/history scan, credential rotation status, secure cookie/CORS/CSRF/proxy/TLS verification, private backup access and destructive-control review.
+- **Acceptance / DoD:** production smoke covers auth/profile/verification/recommendations/invitation/Current Buddies/chat/Admin read paths without destructive reset; monitoring stable through hold period; rollback/recovery owners are available. Semester Reset is not run in production merely to prove deployment.
+- **Tests/gates:** signed release approval, migration backup/check, health/WSS/email smoke, error-rate observation and rollback readiness.
+- **Non-goals:** using production as the first reset/restore test environment.
+
+### 26.15 Exact dependency graph and execution order
+
+Dependency graph (arrows mean “must complete before”):
+
+This graph shows V2 tasks; already-existing prerequisite IDs such as AUTH-008/009, BE-012, FE-029, EVS-003 and ADMIN-005 remain mandatory exactly as listed in each task contract.
+
+```text
+EMAIL-001 → EMAIL-001A
+EMAIL-001 → MAIL-001
+EMAIL-001 → AUTH-V2-001
+(EMAIL-001A + MAIL-001) → EMAIL-002
+EMAIL-001A → EMAIL-003
+(EMAIL-001 + EMAIL-002) → EMAIL-004
+(EMAIL-002 + EMAIL-003 + EMAIL-004) → EMAIL-005
+
+PREF-001 → PREF-002 → PREF-003 → PREF-004
+
+(AUTH-V2-001 + PREF-003) → REC-001 → REC-002 → REC-003
+(REC-003 + EMAIL-005) → REC-004
+REC-002 → BUDDY-001
+BUDDY-001 → PROFILE-V2-001 → PROFILE-V2-002
+BUDDY-001 → CHAT-001
+REC-001 → INV-001 → INV-002
+(INV-002 + REC-003 + MAIL-001) → INV-003
+(INV-002 + REC-002 + AUTH-V2-001) → INV-004
+INV-003 → INV-008
+(INV-003 + BUDDY-001 + PROFILE-V2-001 + CHAT-001) → INV-005
+INV-005 → INV-006
+(INV-004 + INV-005 + INV-006 + REC-004) → INV-007
+INV-005 → INV-009
+INV-005 → BUDDY-002
+(BUDDY-002 + INV-007) → BUDDY-003
+(CHAT-001 + AUTH-V2-001) → CHAT-002
+(CHAT-002 + OPS-001) → CHAT-003
+(CHAT-003 + BUDDY-003) → CHAT-004
+(CHAT-002 + OPS-001) → CHAT-005
+(INV-006 + BUDDY-002) → ADMIN-V2-001 → ADMIN-V2-002
+
+(BUDDY-001 + CHAT-001) → SEM-001
+(SEM-001 + OPS-003) → SEM-002
+(SEM-001 + EVS-003) → SEM-003
+(SEM-002 + SEM-003) → SEM-004
+(SEM-004 + AUTH-018 + EVT-008) → SEM-005 → SEM-006
+(SEM-005 + SEM-006 + ADMIN-005) → SEM-007
+
+MAIL-001 → OPS-001
+(EMAIL-003 + OPS-001) → OPS-002 → OPS-003
+
+All functional branches + CHAT-005 + ADMIN-V2-002 + SEM-007 + OPS-003
+  → ACCEPT-001 → PROD-001
+```
+
+Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-002; `PROFILE-V2-001` and `CHAT-001` then branch from it and both must finish before INV-005. INV-001/002/003/004 proceed in parallel with that persistence branch. INV-005 then uses the shared profile/participant locking policy and atomically creates the opposite-type ACTIVE Match and its one conversation. `PROFILE-V2-002` may proceed as soon as the backend profile contract is stable.
+
+Recommended topological delivery order:
+
+1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
+2. Complete `EMAIL-002..005` and `OPS-001..003`; in parallel complete `PREF-001..004`.
+3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
+4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
+5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
+6. Complete `SEM-001..007` with `OPS-003` before the database-backup/destructive staging gates.
+7. Converge all functional branches at `ACCEPT-001`; only then run `PROD-001` after explicit release approval.
+
+Parallelizable after contracts are frozen:
+
+- PREF-001/002/003 can run alongside EMAIL-001/001A/MAIL-001/EMAIL-002.
+- EMAIL-005 and PREF-004 can use contract fixtures after API schemas stabilize.
+- BUDDY-001→PROFILE-V2-001/CHAT-001 can run alongside INV-001→INV-004 after REC-001/002.
+- REC-004 can run alongside invitation persistence/API work.
+- INV-008 can proceed after send; after INV-005, INV-006/007/009, BUDDY-002/003 and CHAT-002 may branch; CHAT-003/004 follows CHAT-002 and OPS-001.
+- ADMIN-V2 and Semester branches can run in parallel after their listed data dependencies; Semester backup/reset work also requires OPS-003 before destructive staging acceptance.
+
+Final integration convergence: EMAIL-005 + PREF-004 + PROFILE-V2-002 + REC-004 + INV-007/008/009 + BUDDY-003 + CHAT-004/005 + ADMIN-V2-002 + SEM-007 + OPS-003 must all pass before ACCEPT-001.
+
+### 26.16 Deployment roadmap and gates
+
+#### Local development status
+
+**NOT READY for the Buddy Matching V2 flow.** Existing Auth/Profile foundations are usable, backend tests pass and frontend builds, but local V2 requires all functional migrations/services/UI, a local Redis service, worker/scheduler, email sandbox/provider, WebSocket transport, storage backup adapter and live migration/integration tests. Stabilize the default frontend test runner or document/enforce a resource-safe CI mode. Repair the host's npm installation separately; it is not a repository-code task.
+
+Local is considered stable only when:
+
+- Frontend typecheck/lint/tests/build pass in the same supported command path; Buddy page/chat flows, locked `student_type` UX and shared invitation-validation boundaries pass browser E2E.
+- Backend lint/mypy/unit/integration pass, including real disposable PostgreSQL legacy-verification migrations, message boundaries and Accept-vs-type-update concurrency tests.
+- Postgres is at the new head; Redis Pub/Sub/rate limits and worker leases pass; Supabase private avatar/backup behavior passes against a disposable project/emulator.
+- Verification/invitation/accepted emails deliver through a sandbox with safe links; provider failure/retry is proven.
+- WSS authentication, reconnect and multi-worker Redis delivery pass; retention/expiry jobs work with frozen clock and delayed-job cases.
+
+#### First staging milestone — concrete answer
+
+The **first reasonable staging deployment is OPS-002**, immediately after **EMAIL-003 + OPS-001** and existing Auth/Profile/avatar foundations pass locally. This is an early infrastructure-validation deployment, not a product release. Its purpose is to validate Vercel→FastAPI same-site cookie/CSRF topology, HTTPS, migrations, TLS Redis, private Supabase Storage, worker/outbox email delivery, deep links and WSS-capable hosting before building the remaining vertical slice.
+
+The **second mandatory staging milestone** is after the complete user vertical slice **through PROFILE-V2-002 and CHAT-004 plus INV-008/009 and ADMIN-V2-002**. It validates two real verified users from recommendation through invitation/email/Accept/Current Buddies/chat, including exact invitation boundaries and the post-Accept type lock. Staging remains incomplete until **SEM-007 + CHAT-005 + OPS-003** and ACCEPT-001 prove reset/backup/restore/blocking and retention.
+
+#### Staging prerequisites
+
+- **Frontend:** Vercel Root Directory `apps/web`; exact `VITE_API_URL`; mock Event Slider disabled where relevant; SPA rewrite/deep links; production build; HTTPS; security headers; no server secret in build variables.
+- **Backend:** production-like persistent/WebSocket-capable FastAPI host; public HTTPS API; WSS; exact CORS/CSRF origins; audited trusted proxy; Secure cookie topology compatible with frontend; liveness/readiness; worker process; migration command separated from runtime.
+- **Database:** isolated staging PostgreSQL; new Alembic head; pre-migration backup; restore rehearsal; least-privilege runtime and distinct migration credentials where required; connection/pool limits tested.
+- **Redis:** isolated TLS service with credentials/ACL/prefixes; rate limit + Pub/Sub + worker coordination checks; outage/reconnect behavior tested.
+- **Supabase:** isolated staging project/buckets; private profile and semester-backup storage; server-only key; 300-second avatar signed URL policy; backup object checksums/restore and access denial tested.
+- **Email:** verified sandbox/sender/domain as provider requires; server-only key; verification/invitation/accepted templates; canonical staging base URL; retry/dead-letter observability; no delivery to unintended real users.
+- **Chat:** host preserves WebSocket upgrades/timeouts; WSS origin/cookie auth; multi-worker Redis Pub/Sub and REST recovery tested.
+- **Observability/operations:** redacted structured logs, errors/alerts, health dashboards, outbox/job/cleanup/backup metrics, deployment rollback and DB recovery steps.
+
+#### Production timing and final release gate
+
+**Production is NOT READY.** The final production gate is **ACCEPT-001 completed on production-like staging, followed by explicit PROD-001 approval**. Unit tests alone can never satisfy this gate.
+
+Mandatory production release gates:
+
+- **Functional:** Register/Login/Logout/refresh; profile/avatar/custom preferences; evidence-only legacy USER verification migration with Admin access preserved; verification and email re-verification; recommendations with exact weights; invitation message trimming and exact 500-word/10,000-code-point limits; invitation/send email/Accept/Decline/Cancel/sent hide; post-Accept `student_type` lock; multiple Buddies; Current Buddies; accepted email; chat/read/retention/cleanup; Admin monitoring; full Semester Reset DB+avatar backup, restore and new-cohort blocking.
+- **Launch-scope integrity:** existing non-V2 P0 features (notably the Event/Event Slider/Admin Event track) must either pass their own acceptance gates or be explicitly excluded from the production launch; release navigation must not advertise placeholder routes as delivered features.
+- **Security:** current-tree/history secret scan and credential rotation; no tracked populated `.env`; bcrypt passwords; Secure HttpOnly cookies; exact CSRF/CORS/proxy; no synthesized legacy verification timestamps; backend-enforced type lock/opposite-type activation; authoritative invitation limits/plain-text rendering; verification/invitation/message rate limits; resource authorization and WSS Origin/auth; private backups; destructive phrase + recent re-auth + audit; diff inspection.
+- **Infrastructure:** production PostgreSQL and verified migration backup; least-privilege runtime/separate migration access; TLS Redis; private Supabase avatar and backup buckets; production email sender/provider; DNS/HTTPS; verified same-site cookie topology; WebSocket host; health/readiness and worker.
+- **Operational:** error/health/job/outbox/WSS/backup monitoring; rollback owners/procedure; migration recovery; credential rotation; backup restore and Semester Reset runbooks; staging game-day evidence.
+- **Acceptance:** legacy USER migration plus Admin-login regression; real Vietnamese + International accounts; two verified delivered emails; real invitation/Accept/chat; 500/501 and 10,000/10,001 message limits; backend/UI `student_type` lock and Accept/update race; refresh/F5/logout/login persistence; Admin reconciliation; safe destructive staging reset; DB+avatar backup/restore; new-cohort type selection; then restore-blocked-after-new-USER scenario.
+
+### 26.17 Cost and infrastructure impact
+
+No current provider price/free quota is asserted by this audit; verify official provider terms when provisioning.
+
+| Service category | Local | Staging | Practical production implication |
+|---|---|---|---|
+| FastAPI/WebSocket hosting | Developer machine | One always-reachable WSS-capable service | Avoid aggressive sleep/cold start for chat/workers; at least one persistent service/process allocation |
+| PostgreSQL | Docker volume | Isolated managed DB + backup | Managed durable DB, migration backup/recovery and enough connections/storage for messages |
+| Redis | New local container | Small TLS Redis | Shared TLS Redis for rate limits + Pub/Sub/coordination; ephemeral Pub/Sub is acceptable because PostgreSQL is truth |
+| Supabase Storage | Optional disposable project/emulator | Private avatar + backup buckets | Private object storage plus egress/capacity for 30-day avatar backups |
+| Transactional email | Local fake/sandbox | Provider sandbox/verified sender | Deliverability-capable provider/domain and retry volume |
+| Worker/scheduler | Local process | Separate process or supported background service | Continuously runnable outbox/expiry/cleanup process; may share code/deploy but not request lifecycle |
+| Semester backup storage | Local temporary test only | Private staging backup location | Encrypted/private DB export + avatar copies retained 30 days; capacity spikes near dataset size |
+
+Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with one web process plus one small worker; one PostgreSQL; one Redis shared by rate limits/realtime coordination; existing Supabase Storage with a new private backup bucket; one transactional email provider. Do not trade away TLS Redis, private backups, verified delivery, database backups or restore testing merely to stay on a free tier. Free/sleeping plans are acceptable only if they support WSS, worker execution, retention and the operational SLO needed for the actual launch.
+
+### 26.18 Deployment decision and recommended next task
+
+| Environment | Decision | Concrete blockers / milestone |
+|---|---|---|
+| **LOCAL** | **NOT READY (V2)** | `EMAIL-001` is complete; the remaining V2 tasks are planned. Redis Pub/Sub/worker/email/WebSocket and end-to-end flows remain absent. |
+| **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
+| **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
+
+**Next implementation task: `EMAIL-001A`.** `EMAIL-001` is complete and now provides the timestamp-backed USER verification state plus digest-only token persistence required by the cryptographic token service. `MAIL-001` and `AUTH-V2-001` retain their existing dependency paths. Do not start `EMAIL-001A` as part of the completed `EMAIL-001` implementation session.
+
+### 26.19 Documentation-change boundary
+
+The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. The subsequent `EMAIL-001` implementation is limited to its task contract: application model/schema projections, one migration and directly related tests. Runtime configuration, infrastructure and later-task behavior remain unchanged. The pre-existing untracked `TUN_9944.jpg` remains user-owned and untouched. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
+
+### 26.20 Confirmed product decisions — implementation requirements
+
+All three former stop gates were confirmed by the product owner on 2026-09-24. They are no longer unresolved questions:
+
+1. **`student_type` after ACTIVE Match.** Backend rejects a changed `student_type` whenever the USER has at least one ACTIVE Match. Frontend locks the field and explains why, but backend is the authority. Existing Matches are not changed or migrated, and no Unmatch/End Buddy feature is added. The type is therefore fixed for the remainder of that account's semester after its first ACTIVE Match. Semester Reset deletes old USER accounts; a new cohort registers and selects type normally. This requirement is implemented by `PROFILE-V2-001/002` and is a dependency of `INV-005`.
+2. **Invitation-message validation.** First trim leading/trailing whitespace. In the resulting value, a word is one maximal run of non-whitespace characters; `Hello my friend` is 3 words regardless of repeated separating spaces. Maximums are 500 words and 10,000 Unicode code points. Backend rejects either overflow and is the source of truth; frontend uses the same fixtures for counter/validation and displays the corresponding error. Message content stays plain text and is never rendered with `dangerouslySetInnerHTML`.
+3. **Legacy USER email verification migration.** Source provenance is limited to an initialization/status boolean: USER registration writes false, trusted CLI ADMIN bootstrap writes true, and current admin services read the flag; no trustworthy verification event timestamp exists. Therefore every legacy USER receives `email_verified_at=NULL` unless a separately auditable authoritative timestamp source is supplied. Never infer a timestamp from account creation, last login, profile update, activity history or the boolean itself. An old `true` is not converted into a fake time. ADMIN is handled separately: current Admin authentication/bootstrap/RBAC must remain usable and must not depend on student `email_verified_at`; an Admin without timestamp evidence may stay NULL. Correctness and Buddy-access security take priority over preserving legacy USER access.
+
+No additional business rule is implied by these confirmations. Any unrelated ambiguity remains subject to its existing task contract rather than being silently resolved here.

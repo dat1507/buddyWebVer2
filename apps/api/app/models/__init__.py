@@ -2,6 +2,7 @@
 
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.email_verification import EmailVerificationToken
 from app.models.event import (
     Event,
     EventMedia,
@@ -33,6 +34,7 @@ from app.models.user import User, UserRole
 __all__ = (
     "AuditLog",
     "Base",
+    "EmailVerificationToken",
     "Event",
     "EventMedia",
     "EventMediaProcessingStatus",

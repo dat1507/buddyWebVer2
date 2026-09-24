@@ -195,7 +195,7 @@ async def read_current_session(
     await check_user_rate_limit(request, current_user)
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
-    return SanitizedUserResponse.model_validate(current_user)
+    return SanitizedUserResponse.from_user(current_user)
 
 
 @router.get("/csrf", response_model=CsrfTokenResponse)
@@ -318,7 +318,7 @@ async def login_account(
     set_auth_cookies(response, token_pair, token_settings)
     set_csrf_cookie(response, session_csrf, csrf_settings)
     return LoginResponse(
-        user=SanitizedUserResponse.model_validate(user),
+        user=SanitizedUserResponse.from_user(user),
         csrf_token=session_csrf.value,
     )
 
@@ -371,7 +371,7 @@ async def refresh_session(
     set_auth_cookies(response, rotation.token_pair, token_settings)
     set_csrf_cookie(response, session_csrf, csrf_settings)
     return RefreshResponse(
-        user=SanitizedUserResponse.model_validate(rotation.user),
+        user=SanitizedUserResponse.from_user(rotation.user),
         csrf_token=session_csrf.value,
     )
 

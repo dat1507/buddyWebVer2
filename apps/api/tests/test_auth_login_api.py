@@ -154,6 +154,7 @@ async def test_login_sets_cookie_only_tokens_and_returns_a_sanitized_real_user(
         "email": "student@example.com",
         "role": "ADMIN",
         "email_verified": True,
+        "email_verified_at": None,
     }
     assert set(payload) == {"user", "csrf_token"}
     assert response.headers["cache-control"] == "no-store"

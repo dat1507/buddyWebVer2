@@ -22,6 +22,7 @@ from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pai
 TEST_USER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 TEST_PASSWORD_HASH = "$2b$12$iLQsp2jeX5jeoHycNLdy5.liN8K13POvlFVK/GUSa8uml6fCZEUW6"
 TEST_SIGNING_KEY = bytes(range(32))
+VERIFIED_AT = datetime(2026, 9, 24, 10, 0, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -51,6 +52,7 @@ def _user(*, role: UserRole = UserRole.USER) -> User:
         role=role,
         is_active=True,
         email_verified=True,
+        email_verified_at=VERIFIED_AT if role is UserRole.USER else None,
     )
 
 
@@ -93,6 +95,9 @@ async def test_me_returns_only_sanitized_current_database_user(current_role: Use
         "email": "student@example.com",
         "role": current_role.value,
         "email_verified": True,
+        "email_verified_at": (
+            "2026-09-24T10:00:00Z" if current_role is UserRole.USER else None
+        ),
     }
     assert response.headers["cache-control"] == "no-store"
     assert response.headers["pragma"] == "no-cache"
@@ -169,6 +174,28 @@ async def test_me_is_a_safe_read_that_does_not_require_csrf_or_profile_state() -
 
 
 @pytest.mark.anyio
+async def test_me_does_not_treat_a_legacy_true_user_boolean_as_verification() -> None:
+    settings = _settings()
+    current_user = _user()
+    current_user.email_verified = True
+    current_user.email_verified_at = None
+    _, session = _session(current_user)
+    _install_dependencies(session, settings)
+    pair = create_token_pair(TEST_USER_ID, UserRole.USER, settings)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+        cookies={DEVELOPMENT_ACCESS_COOKIE_NAME: pair.access_token},
+    ) as client:
+        response = await client.get("/api/auth/me")
+
+    assert response.status_code == 200
+    assert response.json()["email_verified"] is False
+    assert response.json()["email_verified_at"] is None
+
+
+@pytest.mark.anyio
 async def test_openapi_me_contract_has_no_input_or_secret_response_fields() -> None:
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -180,7 +207,13 @@ async def test_openapi_me_contract_has_no_input_or_secret_response_fields() -> N
     operation = document["paths"]["/api/auth/me"]["get"]
     response_schema = document["components"]["schemas"]["SanitizedUserResponse"]
     assert "requestBody" not in operation
-    assert set(response_schema["properties"]) == {"id", "email", "role", "email_verified"}
+    assert set(response_schema["properties"]) == {
+        "id",
+        "email",
+        "role",
+        "email_verified",
+        "email_verified_at",
+    }
     assert "password" not in response_schema["properties"]
     assert "password_hash" not in response_schema["properties"]
     assert "access_token" not in response_schema["properties"]

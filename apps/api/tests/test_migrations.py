@@ -44,9 +44,10 @@ def test_alembic_script_directory_is_loadable() -> None:
     storage_revision = script_directory.get_revision("0005_storage_buckets")
     profile_revision = script_directory.get_revision("0006_profile_catalogs")
     event_revision = script_directory.get_revision("0007_event_tables")
+    email_revision = script_directory.get_revision("0008_email_verification")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0007_event_tables"]
+    assert script_directory.get_heads() == ["0008_email_verification"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -59,6 +60,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert profile_revision.down_revision == "0005_storage_buckets"
     assert event_revision is not None
     assert event_revision.down_revision == "0006_profile_catalogs"
+    assert email_revision is not None
+    assert email_revision.down_revision == "0007_event_tables"
 
 
 def test_database_configuration_is_deferred() -> None:

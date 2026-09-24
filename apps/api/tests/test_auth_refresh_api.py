@@ -174,6 +174,7 @@ async def test_refresh_atomically_rotates_cookies_jti_csrf_and_current_role() ->
         "email": "student@example.com",
         "role": "ADMIN",
         "email_verified": True,
+        "email_verified_at": None,
     }
     assert set(body) == {"user", "csrf_token"}
     assert response.headers["cache-control"] == "no-store"

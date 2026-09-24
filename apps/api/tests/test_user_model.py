@@ -30,6 +30,7 @@ def test_user_table_uses_private_schema_and_inherits_audit_fields() -> None:
         "role",
         "is_active",
         "email_verified",
+        "email_verified_at",
         "last_login",
         "id",
         "created_at",
@@ -84,10 +85,11 @@ def test_user_role_uses_private_native_enum_and_least_privilege_default() -> Non
     assert str(cast(DefaultClause, role.server_default).arg) == UserRole.USER.value
 
 
-def test_user_state_defaults_and_last_login_contract() -> None:
+def test_user_state_defaults_and_verification_timestamp_contract() -> None:
     table = cast(Table, User.__table__)
     is_active = table.c.is_active
     email_verified = table.c.email_verified
+    email_verified_at = table.c.email_verified_at
     last_login = table.c.last_login
 
     assert isinstance(is_active.type, Boolean)
@@ -103,6 +105,12 @@ def test_user_state_defaults_and_last_login_contract() -> None:
     assert cast(ColumnDefault, email_verified.default).arg is False
     assert email_verified.server_default is not None
     assert str(cast(DefaultClause, email_verified.server_default).arg) == "false"
+
+    assert isinstance(email_verified_at.type, DateTime)
+    assert email_verified_at.type.timezone is True
+    assert email_verified_at.nullable is True
+    assert email_verified_at.default is None
+    assert email_verified_at.server_default is None
 
     assert isinstance(last_login.type, DateTime)
     assert last_login.type.timezone is True
@@ -132,7 +140,27 @@ def test_user_annotations_use_domain_python_types() -> None:
     assert get_args(annotations["role"]) == (UserRole,)
     assert get_args(annotations["is_active"]) == (bool,)
     assert get_args(annotations["email_verified"]) == (bool,)
+    assert get_args(annotations["email_verified_at"]) == (datetime | None,)
     assert get_args(annotations["last_login"]) == (datetime | None,)
+
+
+def test_current_email_verification_is_timestamp_backed_for_users_only() -> None:
+    verified_at = datetime.fromisoformat("2026-09-24T10:00:00+00:00")
+    legacy_true_user = User(role=UserRole.USER, email_verified=True, email_verified_at=None)
+    timestamped_user = User(
+        role=UserRole.USER,
+        email_verified=False,
+        email_verified_at=verified_at,
+    )
+    bootstrapped_admin = User(
+        role=UserRole.ADMIN,
+        email_verified=True,
+        email_verified_at=None,
+    )
+
+    assert legacy_true_user.is_current_email_verified is False
+    assert timestamped_user.is_current_email_verified is True
+    assert bootstrapped_admin.is_current_email_verified is True
 
 
 def test_postgresql_ddl_matches_user_contract() -> None:
@@ -149,6 +177,7 @@ def test_postgresql_ddl_matches_user_contract() -> None:
     assert "role app_private.user_role default 'user' not null" in table_ddl
     assert "is_active boolean default true not null" in table_ddl
     assert "email_verified boolean default false not null" in table_ddl
+    assert "email_verified_at timestamp with time zone" in table_ddl
     assert "last_login timestamp with time zone" in table_ddl
     assert "constraint uq_users_email unique (email)" in table_ddl
     assert "constraint ck_users_email_not_blank" in table_ddl

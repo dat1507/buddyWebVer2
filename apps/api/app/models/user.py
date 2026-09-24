@@ -67,7 +67,18 @@ class User(Base):
         default=False,
         server_default=false(),
     )
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     last_login: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
+
+    @property
+    def is_current_email_verified(self) -> bool:
+        """Return the authoritative USER state while preserving legacy ADMIN bootstrap UX."""
+        if self.role is UserRole.ADMIN:
+            return self.email_verified
+        return self.email_verified_at is not None
