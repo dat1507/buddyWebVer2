@@ -431,6 +431,72 @@
       }
     }
   },
+  "emailVerification": {
+    "status": {
+      "label": "Email verification status",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "verifiedDescription": "Your current email address is verified.",
+      "unverifiedDescription": "Verify your current email address to unlock Buddy Matching and chat.",
+      "manage": "Manage verification"
+    },
+    "settings": {
+      "eyebrow": "Account security",
+      "title": "Settings",
+      "subtitle": "Manage your current sign-in address and its verification status.",
+      "currentEmail": "Current email address",
+      "verificationTitle": "Email verification",
+      "verificationDescription": "Verification applies only to the current address shown below.",
+      "resend": "Send verification email",
+      "sending": "Sending…",
+      "requested": "A verification link was requested. Your account remains unverified until you confirm it.",
+      "changeTitle": "Change email address",
+      "changeDescription": "Changing your address immediately locks Buddy Matching and chat until the new address is verified.",
+      "newEmail": "New email address",
+      "newEmailPlaceholder": "new.address@example.com",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "change": "Change email",
+      "changing": "Changing…",
+      "changed": "Your email address was changed. Confirm the link sent to the new address to restore access.",
+      "validationEmailRequired": "Enter your new email address.",
+      "validationEmailInvalid": "Enter a valid email address.",
+      "validationPasswordRequired": "Enter your current password.",
+      "errors": {
+        "password": "The current password was not accepted.",
+        "conflict": "That email address cannot be used.",
+        "rateLimited": "Too many attempts. Wait before trying again.",
+        "session": "Your session changed. Sign in again before continuing.",
+        "network": "The server could not be reached. Check your connection and try again.",
+        "server": "This action is unavailable right now. Try again later."
+      }
+    },
+    "confirm": {
+      "eyebrow": "Email verification",
+      "title": "Confirm your email address",
+      "description": "Confirm this address to restore access to Buddy Matching and chat.",
+      "checkingSession": "Checking your session…",
+      "missingTitle": "Verification link unavailable",
+      "missing": "This verification link is missing a valid token. Request a new link from Settings.",
+      "signInTitle": "Sign in required",
+      "signIn": "Sign in as the student who requested this link in the new tab, then reload this tab. This page does not store the token.",
+      "signInAction": "Sign in in a new tab",
+      "wrongRoleTitle": "Student account required",
+      "wrongRole": "This link can only verify a student account.",
+      "submit": "Confirm email",
+      "confirming": "Confirming…",
+      "successTitle": "Email verified",
+      "success": "Your current email address is now verified.",
+      "continue": "Continue to your account",
+      "errors": {
+        "invalid": "This verification link is invalid, expired, or already used. Request a new link from Settings.",
+        "rateLimited": "Too many attempts. Wait before trying again.",
+        "session": "Your session changed. Sign in again, then reopen this link.",
+        "network": "The server could not be reached. Check your connection and try again.",
+        "server": "Email verification is unavailable right now. Try again later."
+      }
+    }
+  },
   "profile": {
     "eyebrow": "Your Buddy identity",
     "title": "My profile",

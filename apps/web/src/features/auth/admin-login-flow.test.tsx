@@ -16,6 +16,7 @@ const user = {
   email: 'student@example.com',
   role: 'USER',
   email_verified: false,
+  email_verified_at: null,
 }
 const admin = { ...user, role: 'ADMIN' }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })

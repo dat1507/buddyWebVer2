@@ -77,15 +77,20 @@ describe('FE-022 student sidebar navigation', () => {
       expect(editProfile).toHaveAttribute('href', '/user/profile/edit')
       expect(editProfile).not.toHaveAttribute('aria-disabled')
       expect(editProfile).toHaveAttribute('aria-current', 'page')
+      const settings = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.settings'),
+      })
+      expect(settings).toHaveAttribute('href', '/user/settings')
+      expect(settings).not.toHaveAttribute('aria-disabled')
       links
-        .filter((link) => link !== profile && link !== editProfile)
+        .filter((link) => link !== profile && link !== editProfile && link !== settings)
         .forEach((link) => {
           expect(link).toHaveAttribute('aria-disabled', 'true')
           expect(link).not.toHaveAttribute('href')
           expect(link).not.toHaveAttribute('tabindex')
           expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
         })
-      expect(nav.querySelectorAll('a')).toHaveLength(2)
+      expect(nav.querySelectorAll('a')).toHaveLength(3)
       expect(nav).not.toHaveTextContent(/Dashboard|Übersicht/)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
       expect(screen.getByRole('heading', { name: 'Fixture editor' })).toBeVisible()
@@ -96,7 +101,6 @@ describe('FE-022 student sidebar navigation', () => {
     ['/user/matching/preview', 'Buddy Matching'],
     ['/user/buddy/details', 'My Buddy'],
     ['/user/events/example', 'Events'],
-    ['/user/settings/session', 'Settings'],
   ])('marks the current route %s without enabling an unfinished destination', (path, label) => {
     renderNavigation(path)
     const nav = screen.getByRole('navigation')
@@ -105,6 +109,14 @@ describe('FE-022 student sidebar navigation', () => {
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
     expect(current).toHaveAttribute('aria-disabled', 'true')
     expect(current).not.toHaveAttribute('href')
+  })
+
+  it('keeps the released Settings link active on nested paths', () => {
+    renderNavigation('/user/settings/session')
+    const settings = screen.getByRole('link', { name: 'Settings' })
+    expect(settings).toHaveAttribute('href', '/user/settings')
+    expect(settings).toHaveAttribute('aria-current', 'page')
+    expect(settings).not.toHaveAttribute('aria-disabled')
   })
 
   it('puts Edit Profile first and omits the retired Dashboard item', () => {
@@ -151,7 +163,7 @@ describe('FE-022 student sidebar navigation', () => {
       fireEvent.click(within(nav).getByRole('link', { name: i18n.t('userNavigation.events') }))
       expect(screen.getByRole('heading', { name: 'Fixture events' })).toBeVisible()
       expect(screen.getByTestId('location').textContent).toBe('/user/events')
-      expect(nav.querySelectorAll('a')).toHaveLength(3)
+      expect(nav.querySelectorAll('a')).toHaveLength(4)
     },
   )
 

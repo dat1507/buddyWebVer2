@@ -11,6 +11,7 @@ const user = {
   email: 'student@example.com',
   role: 'USER' as const,
   email_verified: false,
+  email_verified_at: null,
 }
 const states: SessionStatus[] = ['unknown', 'loading', 'authenticated', 'unauthenticated']
 

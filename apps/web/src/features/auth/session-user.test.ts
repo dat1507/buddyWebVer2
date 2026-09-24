@@ -7,6 +7,7 @@ const user = {
   email: 'student@example.com',
   role: 'USER',
   email_verified: false,
+  email_verified_at: null,
 }
 
 describe('parseSessionUser', () => {
@@ -27,10 +28,22 @@ describe('parseSessionUser', () => {
     { ...user, email: 123 },
     { ...user, email_verified: 'false' },
     { ...user, email_verified: undefined },
+    { ...user, email_verified_at: 'not-a-timestamp' },
+    { ...user, email_verified: true, email_verified_at: null },
+    { ...user, email_verified: false, email_verified_at: '2026-09-24T12:30:00Z' },
     { user, csrf_token: 'test-only-csrf' },
   ])('rejects invalid wire data without reflecting its payload (%#)', (payload) => {
     expect(() => parseSessionUser(payload)).toThrowError(SessionUserValidationError)
     expect(() => parseSessionUser(payload)).toThrowError('Session user is invalid.')
+  })
+
+  it('keeps the authoritative verification timestamp across login and refresh parsing', () => {
+    const email_verified_at = '2026-09-24T12:30:00Z'
+    expect(parseSessionUser({ ...user, email_verified: true, email_verified_at })).toEqual({
+      ...user,
+      email_verified: true,
+      email_verified_at,
+    })
   })
 
   it('copies only the allowlisted fields and prevents external user mutation', () => {

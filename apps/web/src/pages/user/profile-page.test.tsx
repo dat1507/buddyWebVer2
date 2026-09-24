@@ -113,6 +113,13 @@ describe('FE-028 own profile view', () => {
     renderPage()
 
     const card = await screen.findByLabelText('Profile card for An')
+    expect(screen.getByRole('status', { name: 'Email verification status' })).toHaveTextContent(
+      'Unverified',
+    )
+    expect(screen.getByRole('link', { name: 'Manage verification' })).toHaveAttribute(
+      'href',
+      '/user/settings',
+    )
     expect(within(card).getByRole('heading', { name: 'An' })).toBeVisible()
     expect(within(card).getByText('Full name: Nguyen Van An')).toBeVisible()
     expect(within(card).getByText('Vietnamese student')).toBeVisible()

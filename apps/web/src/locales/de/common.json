@@ -431,6 +431,72 @@
       }
     }
   },
+  "emailVerification": {
+    "status": {
+      "label": "Status der E-Mail-Verifizierung",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "verifiedDescription": "Deine aktuelle E-Mail-Adresse ist verifiziert.",
+      "unverifiedDescription": "Verifiziere deine aktuelle E-Mail-Adresse, um Buddy-Matching und Chat freizuschalten.",
+      "manage": "Verifizierung verwalten"
+    },
+    "settings": {
+      "eyebrow": "Kontosicherheit",
+      "title": "Einstellungen",
+      "subtitle": "Verwalte deine aktuelle Anmeldeadresse und ihren Verifizierungsstatus.",
+      "currentEmail": "Aktuelle E-Mail-Adresse",
+      "verificationTitle": "E-Mail-Verifizierung",
+      "verificationDescription": "Die Verifizierung gilt nur für die unten angezeigte aktuelle Adresse.",
+      "resend": "Verifizierungs-E-Mail senden",
+      "sending": "Wird gesendet…",
+      "requested": "Ein Verifizierungslink wurde angefordert. Dein Konto bleibt unverifiziert, bis du ihn bestätigst.",
+      "changeTitle": "E-Mail-Adresse ändern",
+      "changeDescription": "Eine Änderung sperrt Buddy-Matching und Chat sofort, bis die neue Adresse verifiziert ist.",
+      "newEmail": "Neue E-Mail-Adresse",
+      "newEmailPlaceholder": "neue.adresse@example.com",
+      "currentPassword": "Aktuelles Passwort",
+      "currentPasswordPlaceholder": "Aktuelles Passwort eingeben",
+      "change": "E-Mail ändern",
+      "changing": "Wird geändert…",
+      "changed": "Deine E-Mail-Adresse wurde geändert. Bestätige den Link an die neue Adresse, um den Zugriff wiederherzustellen.",
+      "validationEmailRequired": "Gib deine neue E-Mail-Adresse ein.",
+      "validationEmailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
+      "validationPasswordRequired": "Gib dein aktuelles Passwort ein.",
+      "errors": {
+        "password": "Das aktuelle Passwort wurde nicht akzeptiert.",
+        "conflict": "Diese E-Mail-Adresse kann nicht verwendet werden.",
+        "rateLimited": "Zu viele Versuche. Warte, bevor du es erneut versuchst.",
+        "session": "Deine Sitzung hat sich geändert. Melde dich erneut an.",
+        "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.",
+        "server": "Diese Aktion ist derzeit nicht verfügbar. Versuche es später erneut."
+      }
+    },
+    "confirm": {
+      "eyebrow": "E-Mail-Verifizierung",
+      "title": "E-Mail-Adresse bestätigen",
+      "description": "Bestätige diese Adresse, um Buddy-Matching und Chat wieder freizuschalten.",
+      "checkingSession": "Deine Sitzung wird geprüft…",
+      "missingTitle": "Verifizierungslink nicht verfügbar",
+      "missing": "Diesem Verifizierungslink fehlt ein gültiges Token. Fordere unter Einstellungen einen neuen Link an.",
+      "signInTitle": "Anmeldung erforderlich",
+      "signIn": "Melde dich im neuen Tab als die Person an, die diesen Link angefordert hat, und lade dann diesen Tab neu. Diese Seite speichert das Token nicht.",
+      "signInAction": "In neuem Tab anmelden",
+      "wrongRoleTitle": "Studierendenkonto erforderlich",
+      "wrongRole": "Mit diesem Link kann nur ein Studierendenkonto verifiziert werden.",
+      "submit": "E-Mail bestätigen",
+      "confirming": "Wird bestätigt…",
+      "successTitle": "E-Mail verifiziert",
+      "success": "Deine aktuelle E-Mail-Adresse ist jetzt verifiziert.",
+      "continue": "Weiter zum Konto",
+      "errors": {
+        "invalid": "Dieser Verifizierungslink ist ungültig, abgelaufen oder wurde bereits verwendet. Fordere unter Einstellungen einen neuen an.",
+        "rateLimited": "Zu viele Versuche. Warte, bevor du es erneut versuchst.",
+        "session": "Deine Sitzung hat sich geändert. Melde dich erneut an und öffne den Link noch einmal.",
+        "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.",
+        "server": "Die E-Mail-Verifizierung ist derzeit nicht verfügbar. Versuche es später erneut."
+      }
+    }
+  },
   "profile": {
     "eyebrow": "Deine Buddy-Identität",
     "title": "Mein Profil",

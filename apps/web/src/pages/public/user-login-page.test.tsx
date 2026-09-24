@@ -79,6 +79,7 @@ describe('UserLoginPage', () => {
       email: 'student@example.com',
       role: 'USER' as const,
       email_verified: false,
+      email_verified_at: null,
     }
     const login = vi.spyOn(sessionClient, 'login').mockImplementation(async () => {
       useAuthStore.getState().setAuthenticated(user)

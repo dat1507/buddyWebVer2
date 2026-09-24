@@ -10,10 +10,11 @@ const user = {
   email: 'student@example.com',
   role: 'USER',
   email_verified: false,
+  email_verified_at: null,
 }
 const admin = { ...user, id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', role: 'ADMIN' }
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status })
-const session = (account = user, token = 'session-fixture') =>
+const session = (account: unknown = user, token = 'session-fixture') =>
   json({ user: account, csrf_token: token })
 const csrf = (token = 'session-fixture') => json({ csrf_token: token })
 function deferred<T>() {
@@ -461,5 +462,82 @@ describe('AUTH-021 session coordination', () => {
     expect(client.useFeedback.getState().pending).toBe(false)
     await bootstrap()
     expect(useAuthStore.getState().status).toBe('authenticated')
+  })
+
+  it('requests verification without changing the unverified session state', async () => {
+    await bootstrap()
+    fetch.mockResolvedValueOnce(json({ status: 'verification_requested' }))
+
+    await client.requestEmailVerification()
+
+    expect(fetch.mock.calls[2][0]).toBe('http://localhost:8000/api/auth/email-verification/request')
+    expect(fetch.mock.calls[2][1]).toMatchObject({
+      method: 'POST',
+      headers: { 'X-CSRF-Token': 'session-fixture' },
+    })
+    expect(useAuthStore.getState().user?.email_verified).toBe(false)
+  })
+
+  it('retains authoritative verified state through login and refresh', async () => {
+    const verified = {
+      ...user,
+      email_verified: true,
+      email_verified_at: '2026-09-24T12:30:00Z',
+    }
+    fetch
+      .mockResolvedValueOnce(json({}, 401))
+      .mockResolvedValueOnce(csrf('preauth'))
+      .mockResolvedValueOnce(session(verified, 'verified-session'))
+
+    await client.login({ email: user.email, password: 'fixture password' })
+    expect(useAuthStore.getState().user).toEqual(verified)
+
+    fetch.mockResolvedValueOnce(session(verified, 'refreshed-session'))
+    await client.refresh()
+    expect(useAuthStore.getState().user).toEqual(verified)
+  })
+
+  it('confirms an opaque token, reloads /me and installs the verified session projection', async () => {
+    await bootstrap()
+    cache.setQueryData(['profile', 'completion'], { matching_eligible: false })
+    const verified = {
+      ...user,
+      email_verified: true,
+      email_verified_at: '2026-09-24T12:30:00Z',
+    }
+    fetch
+      .mockResolvedValueOnce(json({ status: 'email_verified', redirect_to: '/user' }))
+      .mockResolvedValueOnce(json(verified))
+
+    await expect(client.confirmEmailVerification('opaque-fixture-token')).resolves.toBe('/user')
+
+    expect(JSON.parse(fetch.mock.calls[2][1]!.body as string)).toEqual({
+      token: 'opaque-fixture-token',
+    })
+    expect(fetch.mock.calls[3][0]).toBe('http://localhost:8000/api/auth/me')
+    expect(useAuthStore.getState().user).toEqual(verified)
+    expect(cache.getQueryState(['profile', 'completion'])?.isInvalidated).toBe(true)
+  })
+
+  it('changes email and immediately installs the returned unverified identity', async () => {
+    await bootstrap()
+    cache.setQueryData(['profile', 'completion'], { matching_eligible: true })
+    const changed = { ...user, email: 'replacement@example.com' }
+    fetch.mockResolvedValueOnce(json({ status: 'email_changed', user: changed }))
+
+    await expect(
+      client.changeEmail({
+        newEmail: ' replacement@example.com ',
+        currentPassword: 'fixture password',
+      }),
+    ).resolves.toEqual(changed)
+
+    expect(JSON.parse(fetch.mock.calls[2][1]!.body as string)).toEqual({
+      new_email: 'replacement@example.com',
+      current_password: 'fixture password',
+    })
+    expect(useAuthStore.getState().user).toEqual(changed)
+    expect(useAuthStore.getState().user?.email_verified).toBe(false)
+    expect(cache.getQueryState(['profile', 'completion'])?.isInvalidated).toBe(true)
   })
 })

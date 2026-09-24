@@ -6809,7 +6809,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | EMAIL-002 (**Done 2026-09-24**) | Request/resend verification | EMAIL-001A, MAIL-001, AUTH-020 | Current address only; rate-limited; old token superseded | API/rate/concurrency tests |
 | EMAIL-003 (**Done 2026-09-24**) | Confirm verification | EMAIL-001A | One valid token atomically stamps current email | Expiry/replay/race tests |
 | EMAIL-004 (**Done 2026-09-24**) | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
-| EMAIL-005 | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
+| EMAIL-005 (**Done 2026-09-24**) | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
 | AUTH-V2-001 (**Done 2026-09-24**) | Shared VERIFIED capability guard | EMAIL-001, BE-016 | Backend locks all Buddy/chat actions and candidacy | Dependency/matrix tests |
 | PREF-001 | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
 | PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
@@ -6923,6 +6923,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### EMAIL-005 — Verified/Unverified and email-change UX
 
+- **Status:** **Done 2026-09-24.** The frontend now preserves the timestamp-backed session projection, exposes verified/unverified state on profile/settings, supports resend and current-password email change, and confirms opaque URL tokens without persistence before refreshing `/auth/me` and using the fixed `/user` return path.
 - **Purpose:** Expose the backend state and safe recovery actions.
 - **Scope / likely files:** session parser, profile/settings pages, auth client, locale strings, confirmation route/page and tests.
 - **Dependencies / ownership:** EMAIL-002..004, AUTH-021; Frontend.
@@ -7499,11 +7500,11 @@ Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004` and `AUTH-V2-001` are complete; verification/change-email UX, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
+| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004`, `EMAIL-005` and `AUTH-V2-001` are complete; Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
 | **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `EMAIL-005`.** `EMAIL-004` is complete; `EMAIL-005` is next in the listed delivery order and its `EMAIL-002`/`EMAIL-003`/`EMAIL-004`/`AUTH-021` dependencies are complete. Do not start `EMAIL-005` as part of the completed `EMAIL-004` implementation session.
+**Next implementation task: `OPS-001`.** The email-verification branch through `EMAIL-005` is complete; `OPS-001` is the next unfinished task in the recommended delivery step and its `MAIL-001` dependency is complete. Do not start `OPS-001` as part of the completed `EMAIL-005` implementation session.
 
 ### 26.19 Documentation-change boundary
 

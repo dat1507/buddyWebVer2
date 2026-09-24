@@ -76,6 +76,7 @@ describe('AdminLoginPage', () => {
       email: 'admin@vgu.edu.vn',
       role: 'ADMIN' as const,
       email_verified: false,
+      email_verified_at: null,
     }
     const login = vi.spyOn(sessionClient, 'login').mockImplementation(async () => {
       useAuthStore.getState().setAuthenticated(admin)

@@ -6,6 +6,7 @@ import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
 import { ProfilePage } from '@/pages/user/profile-page'
 import { ProfileEditPage } from '@/pages/user/profile-edit-page'
+import { SettingsPage } from '@/pages/user/settings-page'
 
 type UserRoutePath =
   | 'profile'
@@ -61,7 +62,7 @@ const userRoutes: readonly UserRoute[] = [
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },
   { path: 'campus', title: 'Campus', kind: 'placeholder' },
   { path: 'events', title: 'Events', kind: 'placeholder' },
-  { path: 'settings', title: 'Settings', kind: 'placeholder' },
+  { path: 'settings', title: 'Settings', kind: 'page', Component: SettingsPage },
 ]
 
 export { userRoutes }

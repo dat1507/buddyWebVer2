@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { EmailVerificationStatus } from '@/features/auth/email-verification-status'
 import type { CatalogLocale } from '@/features/profile/profile-catalog'
 import type { OwnProfile } from '@/features/profile/profile'
 import {
@@ -203,6 +204,8 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
           </Link>
         </Button>
       </header>
+
+      <EmailVerificationStatus manage />
 
       <Card className="overflow-hidden" aria-label={t('profile.cardLabel', { name })}>
         <div className="h-36 bg-gradient-to-br from-zinc-950 via-zinc-900 to-vgu-orange/80" />

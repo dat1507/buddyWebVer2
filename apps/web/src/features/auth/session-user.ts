@@ -1,11 +1,23 @@
 import { z } from 'zod'
 
-const sessionUserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().min(1),
-  role: z.enum(['USER', 'ADMIN']),
-  email_verified: z.boolean(),
-})
+const sessionUserSchema = z
+  .object({
+    id: z.string().uuid(),
+    email: z.string().min(1),
+    role: z.enum(['USER', 'ADMIN']),
+    email_verified: z.boolean(),
+    email_verified_at: z
+      .string()
+      .datetime({ offset: true })
+      .nullable()
+      .optional()
+      .transform((value) => value ?? null),
+  })
+  .superRefine((user, context) => {
+    if (user.role === 'USER' && user.email_verified !== Boolean(user.email_verified_at)) {
+      context.addIssue({ code: 'custom', path: ['email_verified'], message: 'Invalid state.' })
+    }
+  })
 
 type SessionUser = Readonly<z.infer<typeof sessionUserSchema>>
 type UserRole = SessionUser['role']
@@ -21,7 +33,7 @@ function parseSessionUser(payload: unknown): SessionUser {
   try {
     const result = sessionUserSchema.safeParse(payload)
     if (result.success) {
-      // Zod strips unknown fields and creates a copy; freeze the four scalar presentation fields.
+      // Zod strips unknown fields and creates a copy; freeze the scalar presentation fields.
       return Object.freeze(result.data)
     }
   } catch {

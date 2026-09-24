@@ -183,6 +183,7 @@ describe('Navbar', () => {
       id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       email: 'student@example.com',
       email_verified: true,
+      email_verified_at: '2026-09-24T12:30:00Z',
       role,
     })
     renderNavbar()

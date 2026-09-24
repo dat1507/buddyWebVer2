@@ -13,6 +13,15 @@ import { useAuthStore } from '@/stores/auth-store'
 const csrfSchema = z.object({ csrf_token: z.string().min(1).max(1024) })
 const sessionSchema = csrfSchema.extend({ user: z.unknown() })
 const registrationSchema = z.object({ status: z.literal('registered') })
+const verificationRequestSchema = z.object({ status: z.literal('verification_requested') })
+const verificationConfirmSchema = z.object({
+  status: z.literal('email_verified'),
+  redirect_to: z.literal('/user'),
+})
+const emailChangeSchema = z.object({
+  status: z.literal('email_changed'),
+  user: z.unknown(),
+})
 type SessionAction = 'bootstrap' | 'login' | 'refresh' | 'logout'
 interface SessionFeedback {
   pending: boolean
@@ -28,6 +37,10 @@ interface LoginOptions {
 }
 interface Registration extends Credentials {
   consent: boolean
+}
+interface EmailChangeInput {
+  newEmail: string
+  currentPassword: string
 }
 
 class AdminLoginDeniedError extends Error {
@@ -306,9 +319,53 @@ function createSessionClient(cache: QueryClient) {
     }
   }
 
-  return { bootstrap, refresh, login, register, logout, authenticatedJson, useFeedback }
+  const requestEmailVerification = async (): Promise<void> => {
+    const result = verificationRequestSchema.safeParse(
+      await authenticatedJson('/auth/email-verification/request', { method: 'POST' }),
+    )
+    if (!result.success) throw new ApiError(200, 'invalidResponse')
+  }
+  const confirmEmailVerification = async (token: string): Promise<'/user'> => {
+    const result = verificationConfirmSchema.safeParse(
+      await authenticatedJson('/auth/email-verification/confirm', {
+        method: 'POST',
+        body: { token },
+      }),
+    )
+    if (!result.success) throw new ApiError(200, 'invalidResponse')
+    const generation = epoch
+    await installUser(await authenticatedJson('/auth/me'), generation)
+    await cache.invalidateQueries({ queryKey: ['profile', 'completion'] })
+    return result.data.redirect_to
+  }
+  const changeEmail = async (input: EmailChangeInput): Promise<SessionUser> => {
+    const generation = epoch
+    const result = emailChangeSchema.safeParse(
+      await authenticatedJson('/auth/email/change', {
+        method: 'POST',
+        body: { new_email: input.newEmail.trim(), current_password: input.currentPassword },
+      }),
+    )
+    if (!result.success) throw new ApiError(200, 'invalidResponse')
+    const user = await installUser(result.data.user, generation)
+    await cache.invalidateQueries({ queryKey: ['profile', 'completion'] })
+    return user
+  }
+
+  return {
+    bootstrap,
+    refresh,
+    login,
+    register,
+    logout,
+    authenticatedJson,
+    requestEmailVerification,
+    confirmEmailVerification,
+    changeEmail,
+    useFeedback,
+  }
 }
 
 const sessionClient = createSessionClient(queryClient)
 export { AdminLoginDeniedError, createSessionClient, sessionClient }
-export type { Credentials, LoginOptions, Registration }
+export type { Credentials, EmailChangeInput, LoginOptions, Registration }

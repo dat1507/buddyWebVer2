@@ -9,6 +9,7 @@ import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
 import { UserRegistrationPage } from '@/pages/public/user-registration-page'
+import { EmailVerificationPage } from '@/pages/public/email-verification-page'
 import { SessionControls } from '@/features/auth/session-controls'
 import { RoleGuard } from '@/features/auth/role-guard'
 import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
@@ -25,6 +26,7 @@ function App() {
           <Route path="adminLogin" element={<AdminLoginPage />} />
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
+          <Route path="verify-email" element={<EmailVerificationPage />} />
         </Route>
 
         <Route element={<RoleGuard requiredRole="USER" />}>
