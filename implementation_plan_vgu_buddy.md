@@ -6805,7 +6805,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 |---|---|---|---|---|
 | EMAIL-001 (**Done 2026-09-24**) | Verification persistence + legacy migration | AUTH-008/009 | Legacy USER→NULL absent evidence; ADMIN access preserved; digest-only one-use 15m token persistence | Migration/model/Admin-regression/security tests |
 | EMAIL-001A (**Done 2026-09-24**) | Cryptographic verification token service | EMAIL-001 | High-entropy issue/digest/consume/supersede contract | Unit/property/replay tests |
-| MAIL-001 | Provider + transactional outbox | BE-004, EMAIL-001 | Commit independent of delivery; retry/idempotency | Fake-provider/lease/failure tests |
+| MAIL-001 (**Done 2026-09-24**) | Provider + transactional outbox | BE-004, EMAIL-001 | Commit independent of delivery; retry/idempotency | Fake-provider/lease/failure tests |
 | EMAIL-002 | Request/resend verification | EMAIL-001A, MAIL-001, AUTH-020 | Current address only; rate-limited; old token superseded | API/rate/concurrency tests |
 | EMAIL-003 | Confirm verification | EMAIL-001A | One valid token atomically stamps current email | Expiry/replay/race tests |
 | EMAIL-004 | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
@@ -6879,6 +6879,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### MAIL-001 — Transactional email provider and outbox foundation
 
+- **Status:** **Done 2026-09-24.** The implementation adds the private outbox, provider-neutral contract with a Resend adapter, explicit template allowlist, bounded leased worker and server-only configuration. Feature-specific events/templates remain owned by their later tasks.
 - **Purpose:** Decouple committed business state from fallible delivery.
 - **Scope / likely files:** new email/outbox models, service/provider protocol, templates boundary, worker command, server-only config and docs.
 - **Dependencies / ownership:** BE-004, EMAIL-001; Backend + Database + Infrastructure.
@@ -7494,15 +7495,15 @@ Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | `EMAIL-001` and `EMAIL-001A` are complete; the remaining V2 tasks are planned. Redis Pub/Sub/worker/email/WebSocket and end-to-end flows remain absent. |
+| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A` and `MAIL-001` are complete; feature-specific email events, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
 | **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `MAIL-001`.** `EMAIL-001A` is complete and now provides the secure issue/digest/consume/supersede service required by later email verification endpoints. `MAIL-001` is next in the listed topological delivery order; `AUTH-V2-001` retains its independent dependency path. Do not start `MAIL-001` as part of the completed `EMAIL-001A` implementation session.
+**Next implementation task: `AUTH-V2-001`.** `MAIL-001` is complete and provides the transactional outbox/provider foundation required by later email events. `AUTH-V2-001` is the remaining task in the first listed dependency wave and establishes the shared VERIFIED capability guard before protected Buddy transports. Do not start `AUTH-V2-001` as part of the completed `MAIL-001` implementation session.
 
 ### 26.19 Documentation-change boundary
 
-The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. Subsequent implementations remain limited to their task contracts: `EMAIL-001` added application model/schema projections and one migration; `EMAIL-001A` adds only cryptographic token value objects, transaction-safe service helpers and directly related tests. Runtime configuration, infrastructure and later-task behavior remain unchanged. The pre-existing untracked `TUN_9944.jpg` remains user-owned and untouched. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
+The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. Subsequent implementations remain limited to their task contracts: `EMAIL-001` added application model/schema projections and one migration; `EMAIL-001A` added only cryptographic token value objects, transaction-safe service helpers and directly related tests; `MAIL-001` adds the private transactional outbox, provider/template boundaries, bounded worker, server-only email configuration, operations documentation and directly related tests. Feature-specific events/templates and later-task behavior remain unchanged. The pre-existing untracked `TUN_9944.jpg` remains user-owned and untouched. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
 
 ### 26.20 Confirmed product decisions — implementation requirements
 

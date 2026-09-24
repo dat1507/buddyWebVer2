@@ -71,6 +71,8 @@ the database URLs directly to the relevant Python process:
 - `SUPABASE_URL` and `SUPABASE_SECRET_KEY` are read only by the backend Storage service. The URL must
   use HTTPS outside localhost. The secret/service-role key must stay in the deployment secret
   manager and must never use a frontend `VITE_` prefix.
+- `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` are read only by the transactional email worker. Use a
+  send-only provider key and a verified sender identity; keep both out of frontend builds and Git.
 
 Remote URLs must use TLS. Port 6543 is treated as transaction pooling: SQLAlchemy's local pool and
 prepared-statement caches are disabled. Direct/session connections use a bounded application pool.
@@ -119,6 +121,35 @@ call `app.services.audit_logs.record_audit_log` with the same `AsyncSession` as 
 the endpoint commits once. The service flushes without committing, rejects non-Admin actors,
 normalizes JSON-safe values, and redacts credential/token/signed-URL and profile-content fields.
 Callers must not perform external network work inside that short database transaction.
+
+## Transactional email outbox
+
+Revision `0009_transactional_outbox` adds the private
+`app_private.transactional_outbox` table. A business service calls
+`app.services.email_outbox.enqueue_transactional_email` with its existing `AsyncSession`, then the
+caller commits the business change and outbox row together. Enqueue only flushes; it never commits
+or performs provider I/O. Payloads contain JSON-safe template inputs only. Do not persist raw
+verification tokens, credentials, rendered subjects/bodies or provider responses.
+
+The worker leases ready rows with `FOR UPDATE SKIP LOCKED`, commits the lease before provider I/O,
+and reuses the event idempotency key for every attempt. Retryable failures use bounded exponential
+backoff and become terminal after five attempts; `failed_at` and a sanitized `last_error_code`
+provide database observability. Expired five-minute leases are recoverable by another worker.
+Templates are a server-owned allowlist. The built-in registry remains empty until the later feature
+tasks add their reviewed event templates; clients cannot select a template.
+
+Configure `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` only in the worker process, then run:
+
+```bash
+python -m app.cli email-worker
+python -m app.cli email-worker --once --batch-size 20
+```
+
+The provider adapter sends plain text through a fixed HTTPS endpoint and suppresses response bodies,
+recipient addresses and rendered content from errors and representations. For disposable local
+acceptance, create an empty loopback database named `mail001_acceptance`, set
+`MAIL001_TEST_DATABASE_URL` only in the test process, and run
+`pytest -q tests/test_email_outbox_live.py`.
 
 ## Shared image storage
 

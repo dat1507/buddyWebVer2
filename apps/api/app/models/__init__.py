@@ -29,6 +29,7 @@ from app.models.profile_catalog import (
     ProfileLanguage,
 )
 from app.models.refresh_session import RefreshSession
+from app.models.transactional_outbox import TransactionalOutbox
 from app.models.user import User, UserRole
 
 __all__ = (
@@ -54,6 +55,7 @@ __all__ = (
     "RefreshSession",
     "StudentProfile",
     "StudentType",
+    "TransactionalOutbox",
     "User",
     "UserRole",
     "derive_event_phase",

@@ -8,16 +8,28 @@ import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from getpass import getpass
+from uuid import uuid4
 
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import (
     DatabaseConfigurationError,
+    EmailConfigurationError,
     StorageConfigurationError,
+    get_email_provider_settings,
     get_storage_settings,
 )
 from app.core.database import dispose_database_engine, get_session_factory
 from app.services.auth import AdminCreationError, create_admin
+from app.services.email_outbox import (
+    DEFAULT_OUTBOX_BATCH_SIZE,
+    MAX_OUTBOX_BATCH_SIZE,
+    OutboxValidationError,
+    OutboxWorkerReport,
+    default_email_template_registry,
+    process_transactional_outbox_batch,
+)
+from app.services.email_provider import ResendEmailProvider
 from app.services.image_storage import (
     ImageBucket,
     ImageStorageService,
@@ -33,6 +45,7 @@ DATABASE_ERROR_MESSAGE = "Admin account could not be created because the databas
 PASSWORD_INPUT_ERROR_MESSAGE = "Admin password input was cancelled."
 STORAGE_ERROR_MESSAGE = "Storage reconciliation could not be completed."
 STORAGE_CONFIGURATION_ERROR_MESSAGE = "Storage bucket configuration could not be completed."
+EMAIL_WORKER_ERROR_MESSAGE = "Transactional email worker could not be started or completed."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
 )
@@ -72,6 +85,27 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=24,
         help="Protect objects newer than this many hours (default: 24).",
+    )
+    email_worker_parser = commands.add_parser(
+        "email-worker",
+        help="Continuously process the transactional email outbox.",
+    )
+    email_worker_parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Process at most one bounded batch and exit.",
+    )
+    email_worker_parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_OUTBOX_BATCH_SIZE,
+        help=f"Rows per batch (default: {DEFAULT_OUTBOX_BATCH_SIZE}).",
+    )
+    email_worker_parser.add_argument(
+        "--poll-seconds",
+        type=float,
+        default=5.0,
+        help="Idle polling interval for continuous mode (default: 5).",
     )
     return parser
 
@@ -138,6 +172,34 @@ async def _configure_storage_command() -> int:
     return len(ImageBucket)
 
 
+async def _email_worker_command(
+    *,
+    once: bool,
+    batch_size: int,
+    poll_seconds: float,
+) -> OutboxWorkerReport:
+    if not 1 <= batch_size <= MAX_OUTBOX_BATCH_SIZE or poll_seconds < 0.1:
+        raise OutboxValidationError("Email worker bounds are invalid.")
+    provider = ResendEmailProvider(get_email_provider_settings())
+    templates = default_email_template_registry()
+    worker_id = f"email-worker-{uuid4()}"
+    try:
+        while True:
+            report = await process_transactional_outbox_batch(
+                get_session_factory(),
+                worker_id=worker_id,
+                provider=provider,
+                templates=templates,
+                batch_size=batch_size,
+            )
+            if once:
+                return report
+            if report.claimed == 0:
+                await asyncio.sleep(poll_seconds)
+    finally:
+        await dispose_database_engine()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse and execute one operational command with sanitized terminal failures."""
     raw_arguments = list(argv) if argv is not None else sys.argv[1:]
@@ -178,7 +240,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if arguments.command == "reconcile-storage":
         try:
-            report = asyncio.run(
+            storage_report = asyncio.run(
                 _reconcile_storage_command(
                     apply=arguments.apply,
                     minimum_age_hours=arguments.minimum_age_hours,
@@ -197,12 +259,38 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         mode = "apply" if arguments.apply else "dry-run"
         print(
-            f"Storage reconciliation ({mode}): scanned={report.scanned}, "
-            f"protected={report.protected}, candidates={report.candidates}, "
-            f"deleted={report.deleted}, failed={report.failed}, "
-            f"too_new={report.too_new}, unmanaged={report.unmanaged}"
+            f"Storage reconciliation ({mode}): scanned={storage_report.scanned}, "
+            f"protected={storage_report.protected}, candidates={storage_report.candidates}, "
+            f"deleted={storage_report.deleted}, failed={storage_report.failed}, "
+            f"too_new={storage_report.too_new}, unmanaged={storage_report.unmanaged}"
         )
-        return 1 if report.failed else 0
+        return 1 if storage_report.failed else 0
+
+    if arguments.command == "email-worker":
+        try:
+            email_report = asyncio.run(
+                _email_worker_command(
+                    once=arguments.once,
+                    batch_size=arguments.batch_size,
+                    poll_seconds=arguments.poll_seconds,
+                )
+            )
+        except (
+            DatabaseConfigurationError,
+            EmailConfigurationError,
+            OutboxValidationError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {EMAIL_WORKER_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Transactional email outbox: "
+            f"claimed={email_report.claimed}, sent={email_report.sent}, "
+            f"retry_scheduled={email_report.retry_scheduled}, "
+            f"terminal_failed={email_report.terminal_failed}, skipped={email_report.skipped}"
+        )
+        return 0 if email_report.terminal_failed == 0 else 1
 
     return 2  # pragma: no cover - argparse owns this invariant.
 

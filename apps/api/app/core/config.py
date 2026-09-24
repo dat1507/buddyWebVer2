@@ -18,6 +18,8 @@ AUTH_CSRF_SECRET_VARIABLE = "AUTH_CSRF_SECRET"
 AUTH_COOKIE_SECURE_VARIABLE = "AUTH_COOKIE_SECURE"
 SUPABASE_URL_VARIABLE = "SUPABASE_URL"
 SUPABASE_SECRET_KEY_VARIABLE = "SUPABASE_SECRET_KEY"
+RESEND_API_KEY_VARIABLE = "RESEND_API_KEY"
+EMAIL_FROM_ADDRESS_VARIABLE = "EMAIL_FROM_ADDRESS"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -38,6 +40,10 @@ class AuthConfigurationError(RuntimeError):
 
 class StorageConfigurationError(RuntimeError):
     """Raised when server-only Supabase Storage configuration is unsafe or invalid."""
+
+
+class EmailConfigurationError(RuntimeError):
+    """Raised when server-only transactional email configuration is missing or unsafe."""
 
 
 class RuntimeDatabaseSettings(BaseModel):
@@ -134,6 +140,31 @@ class StorageSettings(BaseModel):
         if not normalized:
             raise ValueError("Supabase secret key must not be empty.")
         return SecretStr(normalized)
+
+
+class EmailProviderSettings(BaseModel):
+    """Server-only Resend credential and verified sender identity."""
+
+    model_config = ConfigDict(frozen=True)
+
+    api_key: SecretStr = Field(repr=False)
+    from_address: str
+
+    @field_validator("api_key")
+    @classmethod
+    def validate_api_key(cls, value: SecretStr) -> SecretStr:
+        normalized = value.get_secret_value().strip()
+        if not normalized:
+            raise ValueError("Email provider API key must not be empty.")
+        return SecretStr(normalized)
+
+    @field_validator("from_address")
+    @classmethod
+    def validate_from_address(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized or len(normalized) > 320 or "\r" in normalized or "\n" in normalized:
+            raise ValueError("Email sender identity is unsafe or invalid.")
+        return normalized
 
 
 def _read_required_secret(variable_name: str) -> SecretStr:
@@ -309,3 +340,23 @@ def get_storage_settings() -> StorageSettings:
             "is not configured."
         )
     return StorageSettings(url=_read_supabase_url(), secret_key=SecretStr(raw_key.strip()))
+
+
+@lru_cache(maxsize=1)
+def get_email_provider_settings() -> EmailProviderSettings:
+    """Load Resend configuration without exposing its API key."""
+    raw_key = os.getenv(RESEND_API_KEY_VARIABLE)
+    from_address = os.getenv(EMAIL_FROM_ADDRESS_VARIABLE)
+    if raw_key is None or not raw_key.strip() or from_address is None or not from_address.strip():
+        raise EmailConfigurationError(
+            "Required server-only transactional email configuration is not configured."
+        )
+    try:
+        return EmailProviderSettings(
+            api_key=SecretStr(raw_key.strip()),
+            from_address=from_address,
+        )
+    except ValueError as error:
+        raise EmailConfigurationError(
+            "Server-only transactional email configuration is unsafe or invalid."
+        ) from error
