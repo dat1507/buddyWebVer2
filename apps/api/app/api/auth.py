@@ -22,6 +22,8 @@ from app.core.rate_limits import AuthRateLimiter, check_user_rate_limit, login_i
 from app.models import User, UserRole
 from app.schemas.auth import (
     CsrfTokenResponse,
+    EmailVerificationConfirmRequest,
+    EmailVerificationConfirmResponse,
     EmailVerificationRequestResponse,
     LoginRequest,
     LoginResponse,
@@ -47,6 +49,10 @@ from app.services.csrf import (
     verify_csrf_request,
     verify_csrf_token,
     verify_request_origin,
+)
+from app.services.email_verification import (
+    EmailVerificationTokenError,
+    confirm_email_verification_token,
 )
 from app.services.email_verification_requests import (
     EmailVerificationRequestError,
@@ -262,6 +268,50 @@ async def request_current_email_verification(
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return EmailVerificationRequestResponse()
+
+
+@router.post(
+    "/email-verification/confirm",
+    response_model=EmailVerificationConfirmResponse,
+    responses={
+        400: {"description": "Verification token is invalid or expired."},
+        403: {"description": "Authenticated USER session CSRF validation failed."},
+    },
+)
+async def confirm_current_email_verification(
+    payload: EmailVerificationConfirmRequest,
+    request: Request,
+    response: Response,
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    current_user: Annotated[User, Depends(require_current_user)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> EmailVerificationConfirmResponse:
+    """Atomically verify the authenticated USER's unchanged current email."""
+    await check_user_rate_limit(request, current_user)
+    try:
+        await confirm_email_verification_token(session, payload.token, current_user.id)
+        await session.commit()
+    except EmailVerificationTokenError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification token is invalid or expired.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except SQLAlchemyError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email verification is unavailable.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    return EmailVerificationConfirmResponse()
 
 
 @router.get("/csrf", response_model=CsrfTokenResponse)

@@ -67,6 +67,25 @@ class EmailVerificationRequestResponse(BaseModel):
     status: Literal["verification_requested"] = "verification_requested"
 
 
+class EmailVerificationConfirmRequest(BaseModel):
+    """Opaque one-use token from the verification link; redirects are not client-controlled."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    token: StrictStr = Field(
+        repr=False,
+        description="Opaque URL-safe email-verification token.",
+        json_schema_extra={"writeOnly": True},
+    )
+
+
+class EmailVerificationConfirmResponse(BaseModel):
+    """Successful confirmation with one fixed allowlisted frontend destination."""
+
+    status: Literal["email_verified"] = "email_verified"
+    redirect_to: Literal["/user"] = "/user"
+
+
 class LoginRequest(BaseModel):
     """Untrusted credentials for both student and administrator login pages."""
 

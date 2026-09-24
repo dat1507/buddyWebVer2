@@ -16,7 +16,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import EmailVerificationToken, User
+from app.models import EmailVerificationToken, User, UserRole
 
 EMAIL_VERIFICATION_TOKEN_BYTES: Final = 32
 EMAIL_VERIFICATION_TOKEN_TTL: Final = timedelta(minutes=15)
@@ -51,6 +51,14 @@ class ConsumedEmailVerificationToken:
     user_id: UUID
     email_snapshot: str
     consumed_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class ConfirmedEmailVerification:
+    """Non-secret result of atomically verifying one current USER email."""
+
+    user_id: UUID
+    email_verified_at: datetime
 
 
 def _system_utc_now() -> datetime:
@@ -205,4 +213,40 @@ async def consume_email_verification_token(
         user_id=user.id,
         email_snapshot=stored_token.email_snapshot,
         consumed_at=current_time,
+    )
+
+
+async def confirm_email_verification_token(
+    session: AsyncSession,
+    token: str,
+    expected_user_id: UUID,
+    *,
+    clock: Clock = _system_utc_now,
+) -> ConfirmedEmailVerification:
+    """Consume one token and stamp only its authenticated current USER/email owner."""
+    consumed = await consume_email_verification_token(session, token, clock=clock)
+    if consumed.user_id != expected_user_id:
+        raise _invalid_token()
+
+    user = await session.scalar(
+        select(User)
+        .where(User.id == consumed.user_id)
+        .execution_options(populate_existing=True)
+        .with_for_update()
+    )
+    if (
+        user is None
+        or user.role is not UserRole.USER
+        or not user.is_active
+        or user.deleted_at is not None
+        or user.email != consumed.email_snapshot
+        or user.email_verified_at is not None
+    ):
+        raise _invalid_token()
+
+    user.email_verified_at = consumed.consumed_at
+    await session.flush()
+    return ConfirmedEmailVerification(
+        user_id=user.id,
+        email_verified_at=consumed.consumed_at,
     )

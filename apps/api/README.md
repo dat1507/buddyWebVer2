@@ -163,6 +163,13 @@ per-user/IP rate limits. It always returns the same generic response for unverif
 verified USERs. For an unverified USER, token supersession and the sealed outbox event commit in one
 database transaction; delivery happens afterward.
 
+The verification page submits only the opaque token to
+`POST /api/auth/email-verification/confirm` using an authenticated current USER session and session
+CSRF. One valid, unexpired token atomically consumes itself and stamps the unchanged current email;
+expiry, replay, changed email, wrong session owner, and inactive/deleted accounts share one generic
+error. Success returns only `email_verified` plus the fixed internal `/user` destination. The API
+does not accept a redirect target and never returns or logs the token.
+
 ## Shared image storage
 
 After applying Alembic, run the idempotent server-only Storage API command with `SUPABASE_URL` and

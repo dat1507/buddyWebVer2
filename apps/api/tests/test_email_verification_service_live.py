@@ -1,4 +1,4 @@
-"""Opt-in concurrent EMAIL-001A acceptance on an empty disposable PostgreSQL database.
+"""Opt-in concurrent EMAIL-001A/EMAIL-003 acceptance on disposable PostgreSQL.
 
 Set EMAIL001A_TEST_DATABASE_URL to the privileged postgres role in a loopback-only
 database named email001a_acceptance. Never point it at development or production data.
@@ -31,6 +31,7 @@ from app.core.database import migration_database_url
 from app.models import EmailVerificationToken, User, UserRole
 from app.services.email_verification import (
     EmailVerificationTokenError,
+    confirm_email_verification_token,
     consume_email_verification_token,
     digest_email_verification_token,
     issue_email_verification_token,
@@ -64,6 +65,29 @@ async def _attempt_consume(
             )
             await session.commit()
             return "consumed"
+        except EmailVerificationTokenError:
+            await session.rollback()
+            return "rejected"
+        except Exception as exc:
+            await session.rollback()
+            return type(exc).__name__
+
+
+async def _attempt_confirm(
+    factory: async_sessionmaker[AsyncSession],
+    plaintext: str,
+    user_id: UUID,
+) -> str:
+    async with factory() as session:
+        try:
+            await confirm_email_verification_token(
+                session,
+                plaintext,
+                user_id,
+                clock=lambda: NOW + timedelta(minutes=5),
+            )
+            await session.commit()
+            return "confirmed"
         except EmailVerificationTokenError:
             await session.rollback()
             return "rejected"
@@ -178,6 +202,50 @@ async def _exercise_service(database_url: str) -> None:
                     clock=lambda: NOW + timedelta(minutes=4),
                 )
             await session.rollback()
+
+        stage = "seed a concurrent confirmation owner and token"
+        async with factory() as session:
+            confirmation_owner = User(
+                email="email003@example.invalid",
+                password_hash=TEST_PASSWORD_HASH,
+                role=UserRole.USER,
+                is_active=True,
+                email_verified=False,
+                email_verified_at=None,
+            )
+            session.add(confirmation_owner)
+            await session.commit()
+            confirmation_owner_id = confirmation_owner.id
+        async with factory() as session:
+            confirmation_token = await issue_email_verification_token(
+                session,
+                confirmation_owner_id,
+                clock=lambda: NOW + timedelta(minutes=4),
+            )
+            await session.commit()
+
+        stage = "race two token confirmations"
+        confirmation_outcomes = await asyncio.gather(
+            _attempt_confirm(factory, confirmation_token.token, confirmation_owner_id),
+            _attempt_confirm(factory, confirmation_token.token, confirmation_owner_id),
+        )
+        if sorted(confirmation_outcomes) != ["confirmed", "rejected"]:
+            stage = f"race two token confirmations ({', '.join(sorted(confirmation_outcomes))})"
+            raise AssertionError
+
+        stage = "verify one atomic confirmation winner"
+        async with factory() as session:
+            confirmed_user = await session.get(User, confirmation_owner_id)
+            confirmed_token = await session.scalar(
+                select(EmailVerificationToken).where(
+                    EmailVerificationToken.token_digest
+                    == digest_email_verification_token(confirmation_token.token)
+                )
+            )
+            assert confirmed_user is not None
+            assert confirmed_user.email_verified_at == NOW + timedelta(minutes=5)
+            assert confirmed_token is not None
+            assert confirmed_token.consumed_at == NOW + timedelta(minutes=5)
     except Exception:
         raise _ServiceExerciseError(stage) from None
     finally:
