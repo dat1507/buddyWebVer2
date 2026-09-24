@@ -86,6 +86,26 @@ class EmailVerificationConfirmResponse(BaseModel):
     redirect_to: Literal["/user"] = "/user"
 
 
+class EmailChangeRequest(BaseModel):
+    """Current-password authorization and the replacement canonical address."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    new_email: StrictStr
+    current_password: StrictStr = Field(
+        repr=False,
+        json_schema_extra={"writeOnly": True},
+    )
+
+    @field_validator("new_email")
+    @classmethod
+    def validate_new_email(cls, value: str) -> str:
+        try:
+            return canonicalize_email(value)
+        except EmailValidationError as error:
+            raise ValueError("Email address is invalid.") from error
+
+
 class LoginRequest(BaseModel):
     """Untrusted credentials for both student and administrator login pages."""
 
@@ -116,6 +136,13 @@ class SanitizedUserResponse(BaseModel):
             email_verified=user.is_current_email_verified,
             email_verified_at=user.email_verified_at,
         )
+
+
+class EmailChangeResponse(BaseModel):
+    """Updated session projection after relocking the replacement address."""
+
+    status: Literal["email_changed"] = "email_changed"
+    user: SanitizedUserResponse
 
 
 class LoginResponse(BaseModel):

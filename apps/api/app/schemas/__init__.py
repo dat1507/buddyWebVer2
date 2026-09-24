@@ -9,6 +9,8 @@ from app.schemas.admin_user import (
 )
 from app.schemas.auth import (
     CsrfTokenResponse,
+    EmailChangeRequest,
+    EmailChangeResponse,
     EmailVerificationConfirmRequest,
     EmailVerificationConfirmResponse,
     EmailVerificationRequestResponse,
@@ -60,6 +62,8 @@ __all__ = [
     "AdminUserListResponse",
     "AdminUserSummary",
     "CsrfTokenResponse",
+    "EmailChangeRequest",
+    "EmailChangeResponse",
     "EmailVerificationConfirmRequest",
     "EmailVerificationConfirmResponse",
     "EmailVerificationRequestResponse",

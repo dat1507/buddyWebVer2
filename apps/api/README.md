@@ -170,6 +170,15 @@ expiry, replay, changed email, wrong session owner, and inactive/deleted account
 error. Success returns only `email_verified` plus the fixed internal `/user` destination. The API
 does not accept a redirect target and never returns or logs the token.
 
+An authenticated current USER changes their address with `POST /api/auth/email/change`, providing
+only `new_email` and `current_password` under session CSRF and the shared per-user/IP limits. The
+backend canonicalizes the unique replacement, verifies the current password, clears
+`email_verified_at`, supersedes the prior verification token, and enqueues a verification message
+to the replacement address in one transaction. Duplicate/same-address conflicts are generic. The
+response returns the refreshed sanitized user projection; existing cookie sessions remain valid and
+reload from current database state, while Buddy capabilities lock immediately until confirmation.
+The operation keeps the same User ID and does not delete profile or future Buddy/chat records.
+
 ## Shared image storage
 
 After applying Alembic, run the idempotent server-only Storage API command with `SUPABASE_URL` and

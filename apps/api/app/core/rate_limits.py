@@ -43,6 +43,7 @@ AUTH_ENDPOINTS = frozenset(
         ("POST", "/api/auth/login"),
         ("POST", "/api/auth/refresh"),
         ("POST", "/api/auth/logout"),
+        ("POST", "/api/auth/email/change"),
         ("POST", "/api/auth/email-verification/request"),
         ("POST", "/api/auth/email-verification/confirm"),
     }

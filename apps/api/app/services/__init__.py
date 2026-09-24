@@ -34,6 +34,14 @@ from app.services.csrf import (
     verify_csrf_request,
     verify_csrf_token,
 )
+from app.services.email_changes import (
+    EmailChangeAuthenticationError,
+    EmailChangeConflictError,
+    EmailChangeError,
+    EmailChangePasswordError,
+    EmailChangeResult,
+    change_current_user_email,
+)
 from app.services.email_outbox import (
     DEFAULT_OUTBOX_BATCH_SIZE,
     MAX_DELIVERY_ATTEMPTS,
@@ -201,6 +209,11 @@ __all__ = [
     "EmailVerificationTemplate",
     "EmailDelivery",
     "EmailDeliveryError",
+    "EmailChangeAuthenticationError",
+    "EmailChangeConflictError",
+    "EmailChangeError",
+    "EmailChangePasswordError",
+    "EmailChangeResult",
     "EmailProvider",
     "EmailProviderResponse",
     "EmailProviderTransport",
@@ -252,6 +265,7 @@ __all__ = [
     "consume_email_verification_token",
     "confirm_email_verification_token",
     "claim_transactional_outbox",
+    "change_current_user_email",
     "cleanup_deleted_event_media",
     "create_event_draft",
     "create_preauth_csrf_token",

@@ -22,6 +22,8 @@ from app.core.rate_limits import AuthRateLimiter, check_user_rate_limit, login_i
 from app.models import User, UserRole
 from app.schemas.auth import (
     CsrfTokenResponse,
+    EmailChangeRequest,
+    EmailChangeResponse,
     EmailVerificationConfirmRequest,
     EmailVerificationConfirmResponse,
     EmailVerificationRequestResponse,
@@ -49,6 +51,12 @@ from app.services.csrf import (
     verify_csrf_request,
     verify_csrf_token,
     verify_request_origin,
+)
+from app.services.email_changes import (
+    EmailChangeAuthenticationError,
+    EmailChangeConflictError,
+    EmailChangePasswordError,
+    change_current_user_email,
 )
 from app.services.email_verification import (
     EmailVerificationTokenError,
@@ -224,6 +232,76 @@ async def read_current_session(
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return SanitizedUserResponse.from_user(current_user)
+
+
+@router.post(
+    "/email/change",
+    response_model=EmailChangeResponse,
+    responses={
+        400: {"description": "Current-password confirmation failed."},
+        401: {"description": "The email change could not be authorized."},
+        403: {"description": "Authenticated USER session CSRF validation failed."},
+        409: {"description": "The replacement address conflicts with an account."},
+    },
+)
+async def change_current_email(
+    payload: EmailChangeRequest,
+    request: Request,
+    response: Response,
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    current_user: Annotated[User, Depends(require_current_user)],
+    delivery_settings: Annotated[
+        EmailVerificationDeliverySettings,
+        Depends(require_email_verification_delivery_settings),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> EmailChangeResponse:
+    """Replace the authenticated USER's email and immediately require re-verification."""
+    await check_user_rate_limit(request, current_user)
+    try:
+        result = await change_current_user_email(
+            session,
+            current_user.id,
+            payload.new_email,
+            payload.current_password,
+            delivery_settings,
+        )
+        await session.commit()
+    except EmailChangeAuthenticationError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email change could not be authorized.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except EmailChangePasswordError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email change could not be authorized.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except EmailChangeConflictError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email address could not be changed.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except SQLAlchemyError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email change is unavailable.",
+            headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+        ) from error
+    except Exception:
+        await session.rollback()
+        raise
+
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Pragma"] = "no-cache"
+    return EmailChangeResponse(user=SanitizedUserResponse.from_user(result.user))
 
 
 @router.post(
