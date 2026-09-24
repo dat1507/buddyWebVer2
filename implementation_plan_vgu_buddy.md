@@ -6810,7 +6810,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | EMAIL-003 | Confirm verification | EMAIL-001A | One valid token atomically stamps current email | Expiry/replay/race tests |
 | EMAIL-004 | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
 | EMAIL-005 | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
-| AUTH-V2-001 | Shared VERIFIED capability guard | EMAIL-001, BE-016 | Backend locks all Buddy/chat actions and candidacy | Dependency/matrix tests |
+| AUTH-V2-001 (**Done 2026-09-24**) | Shared VERIFIED capability guard | EMAIL-001, BE-016 | Backend locks all Buddy/chat actions and candidacy | Dependency/matrix tests |
 | PREF-001 | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
 | PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
 | PREF-003 | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
@@ -6930,6 +6930,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### AUTH-V2-001 — Shared VERIFIED Buddy capability guard
 
+- **Status:** **Done 2026-09-24.** The implementation adds one current-database USER/profile capability policy, reusable HTTP and WebSocket dependencies, the `EMAIL_VERIFICATION_REQUIRED` completion reason and its frontend parser/localization. Later Buddy/chat tasks remain responsible for attaching the guard to their own transports and resource queries.
 - **Purpose:** Enforce the UNVERIFIED lock once for all Buddy/chat transports.
 - **Scope / likely files:** backend dependencies/policies, completion reason schema/service and frontend reason parser.
 - **Dependencies / ownership:** EMAIL-001, BE-016; Backend contract + Frontend integration.
@@ -7495,11 +7496,11 @@ Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A` and `MAIL-001` are complete; feature-specific email events, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
+| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` are complete; feature-specific email events, Redis Pub/Sub, realtime WebSocket and end-to-end flows remain absent. |
 | **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `AUTH-V2-001`.** `MAIL-001` is complete and provides the transactional outbox/provider foundation required by later email events. `AUTH-V2-001` is the remaining task in the first listed dependency wave and establishes the shared VERIFIED capability guard before protected Buddy transports. Do not start `AUTH-V2-001` as part of the completed `MAIL-001` implementation session.
+**Next implementation task: `EMAIL-002`.** `AUTH-V2-001` is complete and establishes the shared current-database VERIFIED capability guard for later Buddy/chat transports. `EMAIL-002` is next in the listed delivery order, and its `EMAIL-001A`, `MAIL-001` and `AUTH-020` dependencies are complete. Do not start `EMAIL-002` as part of the completed `AUTH-V2-001` implementation session.
 
 ### 26.19 Documentation-change boundary
 

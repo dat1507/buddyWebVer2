@@ -15,6 +15,11 @@ from app.services.auth import (
     register_user,
     verify_user_role,
 )
+from app.services.buddy_access import (
+    BuddyCapabilityError,
+    VerifiedBuddyPrincipal,
+    get_verified_buddy_principal,
+)
 from app.services.csrf import (
     CSRF_HEADER_NAME,
     PREAUTH_CSRF_TTL,
@@ -173,6 +178,7 @@ __all__ = [
     "AccountRegistrationError",
     "AdminCreationError",
     "AuthenticationError",
+    "BuddyCapabilityError",
     "CsrfToken",
     "CsrfTokenClaims",
     "CsrfValidationError",
@@ -224,6 +230,7 @@ __all__ = [
     "TokenPair",
     "TokenValidationError",
     "UrllibEmailProviderTransport",
+    "VerifiedBuddyPrincipal",
     "access_cookie_name",
     "clear_auth_cookies",
     "clear_csrf_cookie",
@@ -246,6 +253,7 @@ __all__ = [
     "enqueue_transactional_email",
     "issue_email_verification_token",
     "get_event",
+    "get_verified_buddy_principal",
     "get_or_create_own_profile",
     "get_or_create_own_profile_for_update",
     "prepare_refresh_rotation",

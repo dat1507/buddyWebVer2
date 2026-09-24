@@ -113,13 +113,18 @@ def derive_profile_completion(
         reasons.append(MatchingIneligibilityReason.ACCOUNT_INACTIVE)
     if owner.deleted_at is not None:
         reasons.append(MatchingIneligibilityReason.ACCOUNT_DELETED)
+    if owner.role is UserRole.USER and owner.email_verified_at is None:
+        reasons.append(MatchingIneligibilityReason.EMAIL_VERIFICATION_REQUIRED)
     if not profile.matching_opt_in:
         reasons.append(MatchingIneligibilityReason.MATCHING_OPT_IN_REQUIRED)
     if active_reservation_count > 0:
         reasons.append(MatchingIneligibilityReason.ACTIVE_MATCH_RESERVATION)
 
     account_is_eligible = (
-        owner.role is UserRole.USER and owner.is_active and owner.deleted_at is None
+        owner.role is UserRole.USER
+        and owner.is_active
+        and owner.deleted_at is None
+        and owner.email_verified_at is not None
     )
     return ProfileCompletionResponse(
         status=status,

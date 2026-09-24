@@ -37,6 +37,7 @@ def _user(**overrides: object) -> User:
         "role": UserRole.USER,
         "is_active": True,
         "email_verified": False,
+        "email_verified_at": datetime(2026, 9, 24, tzinfo=UTC),
     }
     values.update(overrides)
     return User(**values)
@@ -120,6 +121,16 @@ def test_all_required_groups_produce_complete_and_eligible_profile() -> None:
     assert completion.missing_fields == []
     assert completion.matching_eligible is True
     assert completion.reasons == []
+
+
+def test_unverified_current_email_adds_reason_and_blocks_matching() -> None:
+    completion = _derive(owner=_user(email_verified=True, email_verified_at=None))
+
+    assert completion.status is ProfileCompletionStatus.COMPLETE
+    assert completion.matching_eligible is False
+    assert completion.reasons == [
+        MatchingIneligibilityReason.EMAIL_VERIFICATION_REQUIRED
+    ]
 
 
 @pytest.mark.parametrize(

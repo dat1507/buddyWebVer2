@@ -500,6 +500,7 @@
       "PROFILE_INCOMPLETE": "Complete every required profile detail before starting a new match.",
       "ACCOUNT_INACTIVE": "Your account must be active before starting a new match.",
       "ACCOUNT_DELETED": "This account cannot start a new match.",
+      "EMAIL_VERIFICATION_REQUIRED": "Verify your current email address before using Buddy matching or chat.",
       "MATCHING_OPT_IN_REQUIRED": "Turn on matching when you are ready to find a buddy.",
       "ACTIVE_MATCH_RESERVATION": "A proposed, accepted or active match already reserves this profile."
     },
