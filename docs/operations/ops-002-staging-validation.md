@@ -62,7 +62,12 @@ caller to spoof its client address.
    the expected pre-migration state, then run migrations to head and record representative app
    schema row counts/checksums. A full Supabase dump contains managed schemas, roles and extensions,
    so a partial restore into ordinary PostgreSQL is not evidence for this gate. Never restore over
-   the active staging database for this test.
+   the active staging database for this test. On a newly provisioned Supabase target, inventory the
+   archive first and preserve the platform-provisioned managed schemas instead of overwriting them;
+   restore every portable application-owned object. A genuine pre-migration baseline may contain
+   zero portable application objects. In that case, record the zero-object inventory, verify the
+   clean baseline and managed schemas, and prove recovery by migrating to head, downgrading, and
+   restoring/re-applying migrations on that disposable target.
 3. Run `python -m alembic -c pyproject.toml upgrade head` with only the migration credential.
 4. Start API and worker with only the runtime credential; confirm the runtime role cannot perform
    migration-owner DDL.

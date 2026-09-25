@@ -30,6 +30,7 @@ No production resource or data was used.
 | WSS trusted Origin | PASS | `/api/health/ws` accepted the exact staging frontend Origin and returned the fixed liveness payload. |
 | WSS unrelated Origin | PASS | `/api/health/ws` rejected an unrelated Origin during handshake. |
 | Trusted proxy policy | PASS | Deployed image configuration enables proxy headers only for loopback (`127.0.0.1`), not a wildcard. |
+| Backup restore/rollback rehearsal | PASS | Disposable Supabase-compatible project preserved provider-managed schemas, restored every portable application object, migrated to head, downgraded to zero application tables, then restored/re-applied migrations to head. |
 | Local focused backend tests | PASS | Infrastructure-health and local-TLS tests: 7 passed. Ruff and mypy passed for affected backend code. |
 | Local focused frontend tests | PASS | API URL/proxy tests: 13 passed. |
 | Container/config gate | PASS | API Docker image built with the audited command; Compose configuration validation passed. |
@@ -48,8 +49,28 @@ not promoted to PASS by that earlier smoke.
 - State: created before the application migration and contains Supabase-managed schemas, roles,
   and extensions. A restore into ordinary PostgreSQL would not satisfy the gate.
 
-The active staging database was not modified. A full restore and migration rehearsal remains
-pending on a separate disposable Supabase-compatible target.
+### Disposable restore rehearsal
+
+- Completed: `2026-09-25T12:49:01Z`
+- Disposable project ref: `wxhluiwxholhndlcwyen`
+- Connection: Session Pooler port 5432 with `sslmode=require`; client evidence reported TLSv1.3
+  with cipher `TLS_AES_256_GCM_SHA384`
+- Archive inventory: 527 Supabase-managed entries and zero portable application entries. The fresh
+  target's managed schemas were intentionally preserved; no provider-managed object was blindly
+  overwritten.
+- Pre-migration verification: PostgreSQL 17; `auth`, `storage`, `realtime`, and `extensions`
+  present; `app_private` and `alembic_version` absent.
+- Safe restore result: PASS. All portable application payload (zero objects for this genuine
+  pre-migration baseline) was selected; the clean pre-migration state and four managed schemas were
+  unchanged.
+- Migration verification: `0009_transactional_outbox`; 14 application tables; representative row
+  counts were users 0, interests 13, languages 8, and transactional outbox 0.
+- Rollback verification: downgrade to base left zero application tables.
+- Recovery verification: safe restore followed by a second upgrade returned to
+  `0009_transactional_outbox` with 14 application tables.
+
+The active staging database was not connected to or modified during this rehearsal. The password,
+connection string, and raw client output were not persisted.
 
 ## Remaining mandatory evidence
 
@@ -58,8 +79,6 @@ pending on a separate disposable Supabase-compatible target.
 - Authenticated refresh/F5/logout, profile read/update, avatar upload/private authenticated read,
   anonymous denial, and persistence checks.
 - Controlled Redis outage showing fail-closed behavior followed by recovery.
-- Full backup restore into a disposable Supabase-compatible target, verification of the restored
-  pre-migration state, migration to head, and rollback/recovery decision evidence.
 
 These items require external service access or an explicitly approved paid worker and remain
 blockers. No secret, token, cookie value, verification URL, credential, message body, or raw
