@@ -215,7 +215,7 @@ The cost/quota tables below are historical estimates, not verified current guara
 | **Total** | | **$0/month** | Cold start on backend is only tradeoff |
 
 > [!TIP]
-> **$0/month is achievable.** The only noticeable tradeoff is Render's free tier cold start (~30s after 15min inactivity). For a student project, this is acceptable. Upgrade to Render Starter ($7/month) when you need always-on backend for demos or interviews.
+> **$0/month is achievable.** The only noticeable tradeoff is Render's free tier cold start (~30s after 15min inactivity). For a student project, this is acceptable.
 
 ---
 
@@ -6672,7 +6672,6 @@ Audit performed 2026-09-24 before documentation edits.
 | Branch | `main` |
 | HEAD | `fa190f4191921b643b67acf84c96f1777870c212` (`chore(security): harden deploy readiness and prioritize matching`) |
 | Remote | `origin https://github.com/dat1507/buddyWebVer2.git` (fetch/push) |
-| Initial worktree | Dirty only because user-owned untracked `TUN_9944.jpg` exists; preserved and out of scope |
 | Instructions | No `AGENTS.md` found in the repository |
 | Scope | Audit and planning only; no application source, migration, dependency, resource or deployment change |
 
@@ -7550,7 +7549,7 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 
 ### 26.19 Documentation-change boundary
 
-The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. Subsequent implementations remain limited to their task contracts: `EMAIL-001` added application model/schema projections and one migration; `EMAIL-001A` added only cryptographic token value objects, transaction-safe service helpers and directly related tests; `MAIL-001` added the private transactional outbox, provider/template boundaries, bounded worker, server-only email configuration, operations documentation and directly related tests; `OPS-001` added only the local Redis/Compose process foundation, async Redis configuration, health/readiness, lightweight worker recovery wiring and directly related tests/documentation. Feature-specific events/templates and later-task behavior remain unchanged. The pre-existing untracked `TUN_9944.jpg` remains user-owned and untouched. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
+The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. Subsequent implementations remain limited to their task contracts: `EMAIL-001` added application model/schema projections and one migration; `EMAIL-001A` added only cryptographic token value objects, transaction-safe service helpers and directly related tests; `MAIL-001` added the private transactional outbox, provider/template boundaries, bounded worker, server-only email configuration, operations documentation and directly related tests; `OPS-001` added only the local Redis/Compose process foundation, async Redis configuration, health/readiness, lightweight worker recovery wiring and directly related tests/documentation. Feature-specific events/templates and later-task behavior remain unchanged. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
 
 ### 26.20 Confirmed product decisions — implementation requirements
 
