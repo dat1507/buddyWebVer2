@@ -6690,10 +6690,10 @@ Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests 
 | Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
 | Matching frontend | **Placeholder / conflict** | `/user/matching`, `/user/buddy`, `/admin/matching` are placeholders in route registries; current `/user/matching` gate uses old `matching_eligible` including reservation logic | Reuse the Buddy Matching navigation concept. Replace with four V2 sections and a server-backed UNVERIFIED lock; `/user/buddy` may redirect to/focus Current Buddies. |
 | Dashboard routing | **Partial / conflict** | `user-dashboard-page.tsx` exists, but `App.tsx` redirects both `/user` and `/user/dashboard` to `/user/profile/edit` | Fix/re-accept intended post-onboarding navigation in a separately scoped integration task or fold it into REC-004; do not claim the dashboard flow is release-ready. |
-| Email delivery | **Missing** | No provider dependency, SMTP client, email abstraction, template, outbox, worker or retry code/config | Introduce a small provider interface plus PostgreSQL transactional outbox and bounded worker; delivery failure never rolls back invitations/matches. |
+| Email delivery | **Implemented foundation** | `MAIL-001` supplies the Resend provider boundary, allowlisted templates, sealed PostgreSQL transactional outbox, bounded leased worker, retry/idempotency semantics and server-only configuration | Retain Resend and the transactional outbox. Deploy the existing worker separately from the request process; delivery failure never rolls back invitations/matches. |
 | Chat/realtime | **Missing** | No conversation/message models, chat API or WebSocket route. `websockets` is only an indirect Uvicorn dependency | Add FastAPI WebSocket endpoint, persistent PostgreSQL messages and Redis Pub/Sub. Do not add Supabase Realtime. |
 | Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
-| Background work | **Implemented foundation** | A separately runnable lightweight polling worker consumes the leased PostgreSQL transactional outbox; Compose restart policy provides process recovery while PostgreSQL leases remain authoritative | Reuse the process/lease pattern for later expiry and cleanup jobs without adding a heavyweight queue framework. |
+| Background work | **Implemented foundation** | `python -m app.cli email-worker` consumes leased PostgreSQL outbox rows; the current idle default is 5 seconds, Compose provides local process recovery and PostgreSQL leases remain authoritative | Deploy the email worker on a dedicated free-tier VM. Audit 15/30-second idle polling against tests and measured traffic before changing the current 5-second contract; reuse the lease pattern for later jobs without adding a heavyweight queue framework. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
 | Admin auth/user views/audit | **Partial** | Admin CLI, role protection, `/api/admin/users`, audited detail/photo reads exist; overview statistics are em dashes; audit log is append-only but Admin-linked with `ON DELETE RESTRICT` | Reuse RBAC, tables/components and redaction. Add monitoring-only matching stats and dedicated reset-operation audit that survives student deletion. |
 | Frontend deployment | **Partial** | Vite production build passes; `apps/web/vercel.json` supplies SPA rewrite and basic security headers; `VITE_API_URL` exists | Vercel Root Directory must be `apps/web`; validate HTTPS, exact API URL and deep links on staging. Current separate-site cookies need a verified same-site topology. |
@@ -6849,7 +6849,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | SEM-006 | Restore + new-cohort block | SEM-005 | Exact restore; backend blocks after any new USER | Restore/idempotency/block tests |
 | SEM-007 | Semester Management UI | SEM-005/006, ADMIN-005 | Counts/warnings/phrase/re-auth/status/restore UX | UI/a11y/e2e tests |
 | OPS-001 | Local Redis/worker/config foundation | MAIL-001 | Local Redis, worker/scheduler, health/readiness, no heavyweight queue | Startup/failure/compose tests |
-| OPS-002 | Early staging infrastructure validation | EMAIL-003, OPS-001 | Real HTTPS cookie/CSRF/DB/Redis/Storage/email smoke | Staging smoke gate |
+| OPS-002 | Early staging infrastructure validation + free-tier email-worker acceptance | EMAIL-003, OPS-001 | Existing staging topology plus a GCP `e2-micro` worker that passes allowance, IPv6, functional/restart, security, billing and 24-hour egress gates | Restore rehearsal + free-worker acceptance record |
 | OPS-003 | Observability/backup/rollback runbooks | OPS-002 | Redacted logs, alerts, rollback and credential rotation | Game-day/tabletop gate |
 | ACCEPT-001 | Full V2 staging acceptance | All functional tasks, SEM-007, OPS-003 | Real two-user happy path + reset/restore/block scenarios | Signed acceptance record |
 | PROD-001 | Production release and verification | ACCEPT-001 | All release gates met; rollback point captured | Production smoke/monitoring gate |
@@ -7325,13 +7325,50 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### OPS-002 — Early staging infrastructure validation
 
-- **Purpose:** Validate deployment topology before the full V2 vertical slice hides infrastructure defects.
-- **Scope / likely files:** staging config/runbook only plus any separately authorized deployment manifests in its implementation session; Vercel `apps/web`, WebSocket-capable FastAPI host, staging DB/Redis/Storage/email.
-- **Dependencies / ownership:** EMAIL-003, OPS-001; Infrastructure + Operations.
-- **Security:** exact staging origins, HTTPS/WSS, Secure cookies, trusted proxy policy, least-privilege DB, separate migration credential, TLS Redis, private storage/backups, server-only keys.
-- **Acceptance / DoD:** deployed registration/login/refresh/logout/profile/avatar/verification work across real origins; SPA deep links, health/readiness, worker delivery and WSS handshake smoke pass; no production data/resources used.
-- **Tests/gates:** documented staging smoke evidence, migration backup/rollback dry run and config/secrets review.
-- **Non-goals:** declaring V2 functional or production ready.
+- **Status:** **READY FOR FREE-WORKER PROVISIONING; BLOCKED / IN ACCEPTANCE until every gate below, including the 24-hour egress gate, passes.** The disposable restore rehearsal and migration/rollback gates have recorded PASS evidence; the GCP allowance/IPv6/worker/egress gates remain unexecuted.
+- **Purpose:** Validate deployment topology before the full V2 vertical slice hides infrastructure defects, and replace the rejected paid Render Background Worker with a cost-gated free worker without changing email behavior.
+- **Scope / likely files:** staging config/runbook and acceptance evidence only, plus separately authorized GCP deployment artifacts in the later implementation session. Keep Vercel `apps/web`, the existing WebSocket-capable FastAPI host, Supabase PostgreSQL/Storage, TLS Redis, Resend and the PostgreSQL transactional outbox. Do not move FastAPI, frontend, PostgreSQL or Redis onto the email-worker VM.
+- **Dependencies / ownership:** EMAIL-003, OPS-001; Infrastructure + Operations. Downstream, OPS-003 depends directly on OPS-002; SEM-002 depends on OPS-003 and therefore SEM-004..007 and ACCEPT-001 depend indirectly on this gate. Invitation/accepted email tasks retain their MAIL-001 dependencies and their functional requirements; this deployment decision does not remove or weaken them.
+- **Approved primary target:** Google Compute Engine, `us-west1` / `us-west1-b`, `e2-micro`, STANDARD/non-preemptible, Ubuntu 24.04 LTS x86-64, 30 GB `pd-standard`, no GPU/TPU/Local SSD, no external IPv4, ephemeral external IPv6, no Cloud NAT, no load balancer and no managed GCP database. This VM runs only `python -m app.cli email-worker`.
+- **Database path:** use the existing least-privilege runtime role (for example `vgu_buddy_runtime`) over the Supabase direct IPv6 endpoint `db.<project-ref>.supabase.co:5432` with mandatory TLS. Never use migration/admin credentials, hardcode or commit credentials, print secrets, or replace the transactional outbox to accommodate GCP. An IPv4-only pooler is not a valid path when the VM has no IPv4 outbound.
+- **GCP allowance gate before provisioning:** confirm an active Cloud Billing account; current Google Free Tier eligibility/terms in the selected region; no other VM consuming the applicable `e2-micro` allowance; total `pd-standard` within the current allowance; no snapshot schedule, external IPv4, Cloud NAT, GPU/TPU or automatic paid add-on; and a project-specific budget alert. A budget alert is not a hard spending cap. Never describe the result as guaranteed `$0`; the approved wording is **expected `$0/month` while remaining inside Free Tier limits and passing all gates**.
+- **IPv6 connectivity gate before long-running deployment:** at provision time, `db.<project-ref>.supabase.co` must have an AAAA record and complete a real PostgreSQL-over-IPv6 TLS connection with the runtime role and without an IPv4 add-on. `api.resend.com` must have an AAAA record and complete real HTTPS/TLS over IPv6. If either gate fails, STOP; do not add external IPv4, Cloud NAT, a paid proxy, paid worker or paid networking. Mark GCP BLOCKED and make Oracle Cloud Free Tier the first fallback audit; do not provision Oracle automatically.
+- **Worker polling audit:** retain the current 5-second default until source contract, focused tests and traffic measurements show that 15 or 30 seconds preserves lease recovery, retry timing, idempotency, concurrency correctness and acceptable verification/matching-email UX. If safe, record and separately implement the selected interval; otherwise retain 5 seconds and use measured traffic for the capacity decision. OPS-002 planning does not authorize a code/config change.
+- **Systemd baseline:** code `/opt/vgu-buddy`, virtualenv `/opt/vgu-buddy/apps/api/.venv`, runtime user `vgu-worker` with `/usr/sbin/nologin`, root-owned immutable/reviewed code and virtualenv, and `/etc/vgu-buddy/email-worker.env` owned `root:root` mode `0600`. Enter secrets directly with a safe method such as `sudoedit`; never use Git, startup metadata, command-line arguments or shell history. Use local size-limited journald and omit Cloud Logging/Ops Agent unless a later explicit need/cost review approves it. Test application file-write requirements before using `ProtectSystem=strict`; document any incompatibility instead of silently weakening hardening.
+- **Network/security:** use a custom dual-stack VPC/subnet when required; deny inbound IPv6 by default; open no HTTP/HTTPS listener; use IAP/internal IPv4 for SSH/admin; enable OS Login and least privilege; do not attach the Compute Engine default service account when the worker needs no Google API. Keep exact staging origins, HTTPS/WSS, Secure cookies, trusted proxy policy, separate migration credential, TLS Redis, private storage/backups and server-only keys for the rest of staging.
+- **Functional/restart gate:** deploy only an immutable reviewed commit; enqueue a real verification email job; prove Resend delivery, single-use verification, retry/idempotency, lease recovery after service and VM restart, transactional-outbox consistency and absence of secret leakage. Confirm no paid GCP resource was accidentally created.
+- **24-hour egress/billing gate:** install and record `vnstat`; acceptance is runtime TX `<= 25 MiB/day`, projecting `<= ~750 MiB/month`. Also inspect Google Billing Reports for unexpected paid resources. If TX is `> 25 MiB/day`, stop the worker or VM, investigate traffic and audit Oracle Free Tier if needed; never add paid networking/resources automatically.
+- **Scale/capacity assumption:** plan for approximately 150 registered users per semester and judge readiness from measured workload, not account count alone. Monitor worker outbound traffic, RAM/CPU and restart stability; monitor Resend Free quota and bursts around semester start, verification, invitation and acceptance mail; monitor Supabase DB size, Storage, egress, avatar usage and chat growth. A quota risk is a blocker/capacity report, not approval to upgrade. Do not move away from Supabase while quotas remain sufficient.
+- **Avatar/bandwidth dependency note:** preserve client/server crop, resize and compression where the current architecture supports it; avoid unnecessary full-resolution images in recommendation lists and prefer thumbnails/optimized delivery when implemented. Avatar optimization is not implemented by OPS-002 and requires its own scoped task if audit finds a gap.
+- **Failure decision tree:** follow this exact order; Render paid worker is not a fallback. Only if both free approaches fail may a new explicit decision gate report the technical cause, monthly cost, alternatives and trade-offs; paid infrastructure requires owner approval.
+
+  ```text
+  GCP Free Tier
+      ↓
+  Free Tier allowance PASS?
+      ├─ NO → Oracle Free Tier audit
+      └─ YES
+            ↓
+  Supabase IPv6 PASS?
+            ├─ NO → Oracle audit
+            └─ YES
+                  ↓
+  Resend IPv6 PASS?
+                  ├─ NO → Oracle audit
+                  └─ YES
+                        ↓
+  Provision worker
+                        ↓
+  Functional email acceptance
+                        ↓
+  Restart acceptance
+                        ↓
+  24h egress <=25 MiB/day and billing PASS?
+                        ├─ NO → stop + audit + Oracle option
+                        └─ YES → GCP free worker approved
+  ```
+- **Acceptance / Definition of Done:** disposable restore rehearsal PASS; migration/restore gates PASS; GCP prerequisites PASS; Supabase direct DB IPv6+TLS PASS; Resend API IPv6+TLS PASS; worker runs a reviewed immutable commit; a real job is enqueued and delivered; retry/idempotency, VM/service restart recovery and transactional-outbox consistency PASS; no secret leak or accidental paid GCP resource; 24-hour egress PASS; Billing Report has no unexpected paid resource; and sanitized evidence is recorded. Starting the worker is insufficient: until the 24-hour gate passes, OPS-002 remains **BLOCKED / IN ACCEPTANCE**.
+- **Non-goals:** changing application email semantics; removing Resend, verification, invitation/acceptance mail, transactional outbox, retry or idempotency; changing polling interval in this documentation task; provisioning GCP/Oracle; moving other services to the VM; declaring V2 functional/production ready; or approving paid infrastructure.
 
 #### OPS-003 — Observability, rollback, recovery and credential runbooks
 
@@ -7420,7 +7457,7 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. Complete `EMAIL-002..005` and `OPS-001..003`; in parallel complete `PREF-001..004`.
+2. Complete `EMAIL-002..005` and `OPS-001`; then run OPS-002 in this order: preserve recorded restore/migration evidence → verify GCP allowance → verify Supabase and Resend IPv6/TLS → provision the isolated worker → functional/restart acceptance → 24-hour egress/billing acceptance. Complete OPS-003 only after OPS-002 is DONE. In parallel, complete `PREF-001..004`.
 3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
@@ -7435,6 +7472,8 @@ Parallelizable after contracts are frozen:
 - REC-004 can run alongside invitation persistence/API work.
 - INV-008 can proceed after send; after INV-005, INV-006/007/009, BUDDY-002/003 and CHAT-002 may branch; CHAT-003/004 follows CHAT-002 and OPS-001.
 - ADMIN-V2 and Semester branches can run in parallel after their listed data dependencies; Semester backup/reset work also requires OPS-003 before destructive staging acceptance.
+
+The task-level dependency graph is unchanged by the worker-provider decision: `MAIL-001 → OPS-001 → OPS-002 → OPS-003`. The new order is entirely inside OPS-002. If a GCP gate fails, pause this chain for the Oracle Cloud Free Tier audit; do not substitute a paid Render worker.
 
 Final integration convergence: EMAIL-005 + PREF-004 + PROFILE-V2-002 + REC-004 + INV-007/008/009 + BUDDY-003 + CHAT-004/005 + ADMIN-V2-002 + SEM-007 + OPS-003 must all pass before ACCEPT-001.
 
@@ -7461,13 +7500,14 @@ The **second mandatory staging milestone** is after the complete user vertical s
 #### Staging prerequisites
 
 - **Frontend:** Vercel Root Directory `apps/web`; exact `VITE_API_URL`; mock Event Slider disabled where relevant; SPA rewrite/deep links; production build; HTTPS; security headers; no server secret in build variables.
-- **Backend:** production-like persistent/WebSocket-capable FastAPI host; public HTTPS API; WSS; exact CORS/CSRF origins; audited trusted proxy; Secure cookie topology compatible with frontend; liveness/readiness; worker process; migration command separated from runtime.
-- **Database:** isolated staging PostgreSQL; new Alembic head; pre-migration backup; restore rehearsal; least-privilege runtime and distinct migration credentials where required; connection/pool limits tested.
+- **Backend:** production-like persistent/WebSocket-capable FastAPI host; public HTTPS API; WSS; exact CORS/CSRF origins; audited trusted proxy; Secure cookie topology compatible with frontend; liveness/readiness; migration command separated from runtime. The request service does not host or impersonate the worker.
+- **Worker:** isolated GCP Free Tier candidate defined by OPS-002; no external IPv4/NAT/paid add-on; direct Supabase IPv6+TLS and Resend IPv6+TLS gates; hardened systemd service; reviewed commit; restart/lease recovery; 24-hour `vnstat` and Billing Report acceptance. Oracle Cloud Free Tier audit is the first fallback.
+- **Database:** isolated staging PostgreSQL; new Alembic head; pre-migration backup; restore rehearsal; least-privilege runtime and distinct migration credentials where required; connection/pool limits tested. The worker uses the Supabase direct IPv6 endpoint with the runtime role, never the migration/admin role.
 - **Redis:** isolated TLS service with credentials/ACL/prefixes; rate limit + Pub/Sub + worker coordination checks; outage/reconnect behavior tested.
 - **Supabase:** isolated staging project/buckets; private profile and semester-backup storage; server-only key; 300-second avatar signed URL policy; backup object checksums/restore and access denial tested.
 - **Email:** verified sandbox/sender/domain as provider requires; server-only key; verification/invitation/accepted templates; canonical staging base URL; retry/dead-letter observability; no delivery to unintended real users.
 - **Chat:** host preserves WebSocket upgrades/timeouts; WSS origin/cookie auth; multi-worker Redis Pub/Sub and REST recovery tested.
-- **Observability/operations:** redacted structured logs, errors/alerts, health dashboards, outbox/job/cleanup/backup metrics, deployment rollback and DB recovery steps.
+- **Observability/operations:** redacted structured logs, errors/alerts, health dashboards, outbox/job/cleanup/backup metrics, deployment rollback and DB recovery steps; local size-limited journald plus `vnstat` for the worker; Google Billing Reports and a project budget alert, noting that an alert is not a hard spending cap.
 
 #### Production timing and final release gate
 
@@ -7493,20 +7533,20 @@ No current provider price/free quota is asserted by this audit; verify official 
 | Redis | New local container | Small TLS Redis | Shared TLS Redis for rate limits + Pub/Sub/coordination; ephemeral Pub/Sub is acceptable because PostgreSQL is truth |
 | Supabase Storage | Optional disposable project/emulator | Private avatar + backup buckets | Private object storage plus egress/capacity for 30-day avatar backups |
 | Transactional email | Local fake/sandbox | Provider sandbox/verified sender | Deliverability-capable provider/domain and retry volume |
-| Worker/scheduler | Local process | Separate process or supported background service | Continuously runnable outbox/expiry/cleanup process; may share code/deploy but not request lifecycle |
+| Worker/scheduler | Local process | Dedicated GCP `e2-micro` Free Tier candidate after allowance + IPv6 gates | Email worker only; expected `$0/month` while inside current Free Tier limits and all gates pass; 24-hour TX must remain `<=25 MiB/day`; Oracle Free Tier audit is the first fallback |
 | Semester backup storage | Local temporary test only | Private staging backup location | Encrypted/private DB export + avatar copies retained 30 days; capacity spikes near dataset size |
 
-Maximum-savings architecture: keep Vercel for the SPA; one FastAPI codebase with one web process plus one small worker; one PostgreSQL; one Redis shared by rate limits/realtime coordination; existing Supabase Storage with a new private backup bucket; one transactional email provider. Do not trade away TLS Redis, private backups, verified delivery, database backups or restore testing merely to stay on a free tier. Free/sleeping plans are acceptable only if they support WSS, worker execution, retention and the operational SLO needed for the actual launch.
+Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request service on its WebSocket-capable host; run only the existing email worker on the gated GCP `e2-micro`; keep Supabase PostgreSQL/Storage, TLS Redis and Resend. Do not trade away TLS, private backups, verified delivery, database backups, restore testing or outbox correctness merely to stay on a free tier. The GCP worker is never described as guaranteed `$0`; it is expected `$0/month` only while current Free Tier limits and all measured gates pass.
 
 ### 26.18 Deployment decision and recommended next task
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
 | **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004`, `EMAIL-005`, `AUTH-V2-001` and `OPS-001` are complete; realtime Redis Pub/Sub/WebSocket and end-to-end flows remain absent. |
-| **STAGING** | **NOT READY NOW; first deploy after OPS-002 prerequisites** | First staging milestone follows EMAIL-003 + OPS-001 for infrastructure validation. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
+| **STAGING** | **OPS-002 READY FOR FREE-WORKER PROVISIONING; BLOCKED / IN ACCEPTANCE** | Restore/migration rehearsal is recorded; GCP allowance, Supabase/Resend IPv6, real worker delivery/restart and 24-hour egress/billing gates remain. Full vertical-slice staging still follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `OPS-002`.** Its `EMAIL-003` and `OPS-001` dependencies are complete; it is the plan's first staging infrastructure-validation gate. Do not start `OPS-002` as part of the completed `OPS-001` implementation session.
+**Next implementation task: `OPS-002` GCP free-tier allowance and IPv6 preflight.** Its `EMAIL-003` and `OPS-001` dependencies plus restore rehearsal are complete. Verify the current allowance and both Supabase/Resend IPv6+TLS paths before provisioning anything; a failed gate opens the Oracle Cloud Free Tier audit and authorizes no paid fallback.
 
 ### 26.19 Documentation-change boundary
 
