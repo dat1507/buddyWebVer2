@@ -92,8 +92,9 @@ tokens, cookies, signed URLs, email addresses or provider response bodies.
 
 The once-per-minute job is approximately 43,200 invocations per 30-day month against the current
 500,000 Free Edge invocation allowance. Monitor database size, Storage, egress, function limits and
-Resend quota; report pressure rather than enabling a paid plan. Capacity is based on measured
-verification/invitation volume, not the approximate 150-user account count alone.
+Resend's current 3,000/month and 100/day Free quota; report pressure rather than enabling a paid
+plan. Capacity is based on measured verification/invitation volume, not the approximate 150-user
+account count alone. A 150-user same-day verification burst exceeds the Free daily allowance.
 
 OPS-002 is complete only when backup/rollback, migration, application smoke and deployed email
 acceptance all pass and sanitized evidence is recorded. Local/fake tests do not replace the deployed

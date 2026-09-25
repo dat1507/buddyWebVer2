@@ -101,5 +101,8 @@ current Free allowance is 500,000 Edge invocations/month. The hosted Edge limits
 150 seconds wall clock, 2 seconds CPU per request and 256 MB memory. This bounded I/O worker is
 designed to stay below those limits; quota monitoring remains required. Supabase documents Cron as
 available through its hosted `pg_cron` module and supports scheduled Edge calls through `pg_net`.
-There is no mandatory monthly worker charge while the Supabase project and Resend account remain on
-their Free plans and within their quotas. No automatic paid upgrade is authorized.
+Resend Free currently allows 3,000 emails/month and 100/day. Approximately 150 registered users is
+compatible only when transactional mail is distributed below that daily limit; onboarding all 150
+users on one day is not a Free-plan-supported workload. There is no mandatory monthly worker charge
+while the Supabase project and Resend account remain on their Free plans and within those quotas. No
+automatic paid upgrade is authorized.
