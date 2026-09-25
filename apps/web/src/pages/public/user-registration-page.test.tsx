@@ -60,6 +60,54 @@ describe('UserRegistrationPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['seven characters', '1234567', 'Use at least 8 characters for your password.'],
+    [
+      'more than 72 UTF-8 bytes',
+      `${'é'.repeat(36)}a`,
+      'Your password must not exceed 72 UTF-8 bytes.',
+    ],
+  ])('rejects %s', (_caseName, password, expectedMessage) => {
+    const register = vi.spyOn(sessionClient, 'register').mockResolvedValue()
+    renderRegistrationRoute()
+
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'student@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: 'Create student account' }))
+
+    expect(screen.getByText(expectedMessage)).toBeVisible()
+    expect(screen.getByLabelText('Password')).toHaveFocus()
+    expect(register).not.toHaveBeenCalled()
+    register.mockRestore()
+  })
+
+  it.each([
+    ['eight characters', '12345678'],
+    ['72 ASCII UTF-8 bytes', 'a'.repeat(72)],
+    ['72 non-ASCII UTF-8 bytes', 'é'.repeat(36)],
+  ])('accepts %s', async (_caseName, password) => {
+    const register = vi.spyOn(sessionClient, 'register').mockResolvedValue()
+    renderRegistrationRoute()
+
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'student@example.com' },
+    })
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: password } })
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: 'Create student account' }))
+
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeVisible()
+    expect(register).toHaveBeenCalledWith({
+      email: 'student@example.com',
+      password,
+      consent: true,
+    })
+    register.mockRestore()
+  })
+
   it('requires explicit consent before submitting registration', () => {
     renderRegistrationRoute()
 

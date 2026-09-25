@@ -3168,7 +3168,7 @@ explicit for frontend integration in AUTH-021.
   returns the same generic `403` before the database dependency is opened.
 - [x] The strict request schema accepts only `email`, `password`, and JSON boolean `consent: true`;
   missing/false/string consent and extra fields such as `role` fail validation before mutation.
-- [x] Email uses the shared canonical identity contract. Passwords require at least 15 characters,
+- [x] Email uses the shared canonical identity contract. Passwords require at least 8 characters,
   permit Unicode/whitespace without trimming or normalization, and reject values over bcrypt's
   72-byte UTF-8 limit rather than truncating them.
 - [x] Validation responses retain field/type/message diagnostics but omit raw `input` and validator
@@ -3203,9 +3203,10 @@ explicit for frontend integration in AUTH-021.
 - The endpoint deliberately does not log a user in. AUTH-014 owns login and AUTH-015 owns persisted
   refresh-session rotation/reuse detection; issuing partial session state during registration would
   cross those transaction and security boundaries.
-- OWASP's no-MFA baseline informed the 15-character minimum. The existing bcrypt architecture
-  requires the stricter technical ceiling of 72 UTF-8 bytes; all character classes, including
-  Unicode and whitespace, otherwise remain allowed without composition rules.
+- Public STUDENT registration uses the confirmed 8-character product minimum. The existing bcrypt
+  architecture retains the stricter technical ceiling of 72 UTF-8 bytes; all character classes,
+  including Unicode and whitespace, otherwise remain allowed without composition rules. The ADMIN
+  provisioning policy remains a separate 15-character minimum.
 - The mandatory consent boolean is a registration gate, not a claimed legal audit ledger. Durable
   consent version/time/source evidence requires a dedicated product contract and migration if the
   applicable privacy policy later requires it.

@@ -194,9 +194,9 @@ async def test_invalid_csrf_is_rejected_before_opening_a_database_session() -> N
     "changes",
     [
         {"email": "not-an-email"},
-        {"password": "too-short"},
+        {"password": "x" * 7},
         {"password": "x" * 73},
-        {"password": "🔒" * 19},
+        {"password": ("é" * 36) + "a"},
         {"consent": False},
         {"consent": "true"},
         {"role": "ADMIN"},
@@ -239,7 +239,7 @@ def test_registration_request_does_not_expose_password_in_repr() -> None:
     assert TEST_PASSWORD not in repr(request)
 
 
-@pytest.mark.parametrize("password", ["x" * 15, "🔒" * 18, " " * 15])
+@pytest.mark.parametrize("password", ["x" * 8, "x" * 72, "é" * 36, " " * 8])
 def test_registration_password_policy_accepts_length_boundary_unicode_and_whitespace(
     password: str,
 ) -> None:

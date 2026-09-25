@@ -197,7 +197,7 @@
         "emailRequired": "Gib deine E-Mail-Adresse ein.",
         "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
         "passwordRequired": "Gib ein Passwort ein.",
-        "passwordMinimum": "Verwende mindestens 15 Zeichen für dein Passwort.",
+        "passwordMinimum": "Verwende mindestens 8 Zeichen für dein Passwort.",
         "passwordMaximum": "Dein Passwort darf 72 UTF-8-Bytes nicht überschreiten.",
         "consentRequired": "Für die Kontoerstellung ist deine Zustimmung erforderlich."
       }

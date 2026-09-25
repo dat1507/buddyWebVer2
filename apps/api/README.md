@@ -260,7 +260,7 @@ Bcrypt accepts at most 72 bytes. The service measures the UTF-8 encoded value, a
 bytes, and rejects longer values instead of truncating them. Hash creation raises
 `PasswordHashingError` for an empty or overlong password; verification fails closed with `False`
 for those candidates and for malformed stored hashes. The registration schema adds the product
-minimum of 15 characters while preserving this shared technical maximum; future password-change
+minimum of 8 characters while preserving this shared technical maximum; future password-change
 schemas must enforce the same boundary.
 
 ## Authentication service
@@ -384,7 +384,7 @@ login, reload recovery and logout PASS. Database inspection confirms new USER an
 exact trusted `Origin` (or the existing safe Referer fallback). Invalid CSRF evidence returns the
 same sanitized `403` before a database session is opened.
 
-Passwords must contain at least 15 characters and no more than 72 UTF-8 bytes. Unicode and
+Passwords must contain at least 8 characters and no more than 72 UTF-8 bytes. Unicode and
 whitespace are preserved; the API does not trim, normalize, silently truncate, or impose
 composition rules. Request-validation responses omit raw input values so a rejected password is
 not reflected in the response.

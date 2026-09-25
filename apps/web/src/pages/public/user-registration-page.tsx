@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
+import {
+  BCRYPT_MAX_PASSWORD_BYTES,
+  MIN_REGISTRATION_PASSWORD_CHARACTERS,
+  registrationPasswordUtf8Bytes,
+} from '@/features/auth/password-policy'
 import { sessionClient } from '@/features/auth/session-client'
 import { useAuthSubmission } from '@/features/auth/use-auth-submission'
 
@@ -50,9 +55,9 @@ function UserRegistrationPage() {
 
     if (!passwordInput?.value) {
       nextErrors.password = t('auth.register.validation.passwordRequired')
-    } else if ([...passwordInput.value].length < 15) {
+    } else if ([...passwordInput.value].length < MIN_REGISTRATION_PASSWORD_CHARACTERS) {
       nextErrors.password = t('auth.register.validation.passwordMinimum')
-    } else if (new TextEncoder().encode(passwordInput.value).length > 72) {
+    } else if (registrationPasswordUtf8Bytes(passwordInput.value) > BCRYPT_MAX_PASSWORD_BYTES) {
       nextErrors.password = t('auth.register.validation.passwordMaximum')
     }
 

@@ -197,7 +197,7 @@
         "emailRequired": "Enter your email address.",
         "emailInvalid": "Enter a valid email address.",
         "passwordRequired": "Enter a password.",
-        "passwordMinimum": "Use at least 15 characters for your password.",
+        "passwordMinimum": "Use at least 8 characters for your password.",
         "passwordMaximum": "Your password must not exceed 72 UTF-8 bytes.",
         "consentRequired": "Consent is required to create an account."
       }

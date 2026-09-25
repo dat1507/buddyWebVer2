@@ -131,7 +131,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     },
   )
 
-  it.each(['short', '😀'.repeat(19)])(
+  it.each(['x'.repeat(7), '😀'.repeat(19)])(
     'validates the actual backend password boundary',
     (password) => {
       renderRoute('/register')

@@ -10,7 +10,7 @@ from app.models import User, UserRole
 from app.services.auth import EmailValidationError, canonicalize_email
 from app.services.passwords import BCRYPT_MAX_PASSWORD_BYTES
 
-MIN_REGISTRATION_PASSWORD_CHARACTERS: Final = 15
+MIN_REGISTRATION_PASSWORD_CHARACTERS: Final = 8
 
 
 class CsrfTokenResponse(BaseModel):
