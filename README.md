@@ -132,6 +132,19 @@ must use the internal host `postgres`; `DATABASE_URL` remains the least-privileg
 must use `LOCAL_RUNTIME_DATABASE_PASSWORD`, while `DATABASE_MIGRATION_URL` remains the privileged
 migration role. Never commit this file.
 
+Create the ignored localhost certificate bundle once, then trust only its public local CA in the
+current user's development trust store. On Windows PowerShell:
+
+```powershell
+apps/api/.venv/Scripts/python.exe scripts/generate_local_tls.py
+certutil -user -addstore Root .local/tls/vgu-buddy-local-ca.crt
+```
+
+The CA private key remains under ignored `.local/tls` and must never be reused for staging or
+production. Local browser traffic uses one origin, `https://localhost:5173`; Vite terminates TLS and
+proxies `/api` (including WebSocket upgrades) to the internal API service. The backend keeps the
+HTTPS-only verification-link invariant and uses Secure cookies locally.
+
 From the repository root, validate and start PostgreSQL, Redis, migration, API, leased outbox
 worker and Vite web server with one command set:
 
@@ -139,6 +152,10 @@ worker and Vite web server with one command set:
 docker compose --env-file apps/api/.env config --quiet
 docker compose --env-file apps/api/.env up --build -d --wait
 ```
+
+Run this command from the repository root without a different project name. Compose then uses the
+directory-derived `buddywebver2` project and preserves the existing `buddywebver2_postgres_data`
+volume.
 
 All published ports bind to loopback. API liveness is `/api/health/live`; readiness is
 `/api/health/ready` and reports separate sanitized database, Redis, email and Storage states.
@@ -218,6 +235,9 @@ the API and email worker plus an exact HTTPS `PUBLIC_APP_BASE_URL`; neither valu
 
 The repository is suitable for a staging deployment after those environment resources are supplied,
 but no production deployment is configured or claimed.
+
+OPS-002 staging topology, backup/rollback rehearsal, WSS and end-to-end smoke requirements are in
+[docs/operations/ops-002-staging-validation.md](docs/operations/ops-002-staging-validation.md).
 
 ## Development Status and Roadmap
 

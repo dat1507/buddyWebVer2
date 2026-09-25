@@ -28,6 +28,15 @@ describe('credentialed JSON transport', () => {
     )
   })
 
+  it('supports the same-origin API path used by the HTTPS development proxy', async () => {
+    vi.stubEnv('VITE_API_URL', '/api')
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ status: 'alive' })))
+    vi.stubGlobal('fetch', fetch)
+
+    await expect(getJson('/health/live')).resolves.toEqual({ status: 'alive' })
+    expect(fetch.mock.calls[0][0]).toBe('/api/health/live')
+  })
+
   it('sends JSON and CSRF for unsafe requests and accepts an empty logout response', async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
     vi.stubGlobal('fetch', fetch)

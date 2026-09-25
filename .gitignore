@@ -56,4 +56,5 @@ htmlcov/
 
 # ── Misc ──
 *.local
+.local/
 .vercel

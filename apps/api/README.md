@@ -607,7 +607,8 @@ database round trip.
 For full-stack Compose, configure sandbox email/Storage values and use internal database host
 `postgres` in both database URLs. Set a unique `LOCAL_RUNTIME_DATABASE_PASSWORD` and use the same
 value in the runtime URL; the post-migration setup container assigns it without placing it in argv.
-Then run:
+From the repository root, first generate and trust the ignored local CA as documented in the root
+README. Then run:
 
 ```bash
 docker compose --env-file apps/api/.env config --quiet
@@ -615,7 +616,10 @@ docker compose --env-file apps/api/.env up --build -d --wait
 ```
 
 This starts migration, API, the lightweight polling worker/scheduler and web app without a separate
-queue framework. Stop services with `docker compose --env-file apps/api/.env down`; adding
+queue framework. The browser entrypoint is `https://localhost:5173`; its same-origin `/api` proxy
+preserves Secure cookies, exact CSRF/CORS origins, HTTPS verification links and WebSocket upgrades.
+Run Compose from the repository root so its directory-derived `buddywebver2` project reuses the
+existing named volumes. Stop services with `docker compose --env-file apps/api/.env down`; adding
 `--volumes` permanently removes both local database and Redis data.
 
 Run the schema boundary migration with:
@@ -640,6 +644,9 @@ or appear in frontend code.
 the focused SQL probe. `GET /api/health/ready` checks a real database round trip and Redis PING,
 then reports fixed, sanitized configuration states for email and Storage. It returns 503 until all
 four dependencies are ready and never returns endpoints, credentials or provider diagnostics.
+`WSS /api/health/ws` is a fixed infrastructure probe: it accepts only an exact configured browser
+Origin, sends one fixed liveness object and closes. It does not expose application data or replace
+the authenticated chat endpoint owned by CHAT-003.
 
 `REDIS_URL` and `REDIS_KEY_PREFIX` configure the shared async Redis boundary used by readiness and
 future coordination. Local/test may use `redis://`; production accepts only `rediss://`. Both the

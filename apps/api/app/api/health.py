@@ -2,11 +2,12 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import CorsSettings, get_cors_settings
 from app.core.database import get_database_session
 from app.schemas.health import (
     DatabaseHealthResponse,
@@ -24,6 +25,19 @@ router = APIRouter(prefix="/api/health", tags=["health"])
 async def liveness() -> LivenessResponse:
     """Report process liveness without touching external dependencies."""
     return LivenessResponse()
+
+
+@router.websocket("/ws")
+async def websocket_liveness(
+    websocket: WebSocket,
+    settings: Annotated[CorsSettings, Depends(get_cors_settings)],
+) -> None:
+    """Prove WebSocket upgrade support only for an exact trusted browser origin."""
+    if websocket.headers.get("origin") not in settings.allowed_origins:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
+    await websocket.accept()
+    await websocket.send_json({"status": "alive"})
+    await websocket.close()
 
 
 @router.get(
