@@ -1,4 +1,4 @@
-# VGU Student Companion Platform — Complete Implementation Plan v2.4
+# VGU Student Companion Platform — Complete Implementation Plan v2.5
 
 > **Transforming VGU Buddy Program Website → VGU Student Companion Platform**
 > A production-quality student companion system with research-depth in matching algorithms, RAG systems, and interactive campus features.
@@ -7,6 +7,8 @@
 >
 > **v2.1 Changes**: Event Slider is admin-managed dynamic content backed by PostgreSQL/API and Supabase Storage. Frontend mock data is development-only.
 
+> **v2.5 — 2026-09-26, MAIL-001 deployment audit:** The repository implementation and current official provider documentation were re-audited without changing application code, migrations or infrastructure. Production email delivery is controlled by `application/backend → app_private.transactional_outbox → Supabase Cron (one minute) → Supabase Edge Function email-worker → Resend`. Google Cloud VM/e2-micro, a paid Render Background Worker and any always-on hosted Python email worker are rejected alternatives, not production dependencies. The Python worker remains only for local development, debugging and a manually activated fallback after Cron is disabled. OPS-002 remains incomplete until account-owned configuration, migration `0010`, deployment and staging acceptance A–F pass.
+>
 > **v2.4 — 2026-09-24, confirmed Buddy Matching V2 contracts:** Part 26 is the controlling source for Email Verification, custom preferences, recommendations, invitations, ACTIVE Buddy relationships, chat, Admin matching monitoring, Semester Reset/Restore, and their deployment gates. It incorporates the confirmed `student_type` lock, exact invitation-message limits, and evidence-only legacy verification migration. It supersedes every unimplemented v2.2 assumption involving global reservation, greedy 1:1 assignment, MatchingRun/Admin preview/publish/manual override, PROPOSED/ADMIN_APPROVED matching, or two-party acceptance. Historical completed task records remain unchanged. No feature code or migration was implemented by this amendment.
 
 ---
@@ -201,21 +203,21 @@ graph LR
 | **Gemini API** | LLM for RAG generation |
 | **RAGAS** | RAG evaluation framework |
 
-### Infrastructure — Free Hosting Strategy
+### Infrastructure — Historical Free Hosting Estimate (superseded by Part 26)
 
-The cost/quota tables below are historical estimates, not verified current guarantees. Recheck provider terms and quotas at deployment; the architecture does not depend on those exact free-tier numbers.
+The cost/quota table below is a historical estimate, not a current deployment decision or guarantee. Part 26 controls the current architecture and verified quotas. Recheck provider terms at every deployment; Free plans can change or be withdrawn.
 
 | Service | Plan | Monthly Cost | Tradeoff |
 |---------|------|-------------|----------|
 | **Vercel** | Hobby (Free) | $0 | Frontend, no limits for personal projects |
-| **Render** | Free tier | $0 | Backend spins down after 15min inactivity (cold start ~30s) |
+| **FastAPI host** | Provider not selected here | Unverified | Must support the API/WebSocket contract; it is separate from scheduled email delivery |
 | **Supabase** | Free tier | $0 | 500MB DB, 1GB storage, 50K monthly active users |
 | **GitHub Actions** | Free tier | $0 | 2000 min/month CI/CD |
 | **Gemini API** | Free tier | $0 | 15 RPM, 1M tokens/day |
-| **Total** | | **$0/month** | Cold start on backend is only tradeoff |
+| **Total** | | **Not established by this historical table** | See Part 26.17 |
 
 > [!TIP]
-> **$0/month is achievable.** The only noticeable tradeoff is Render's free tier cold start (~30s after 15min inactivity). For a student project, this is acceptable.
+> Do not use this historical table to approve a provider or a paid upgrade. Part 26 contains the current cost and deployment gates.
 
 ---
 
@@ -234,7 +236,7 @@ graph TB
         WEB --> ADASH[Admin Dashboard]
     end
 
-    subgraph "Backend - Render"
+    subgraph "Backend - WebSocket-capable host"
         API[FastAPI]
         MW[Auth + RBAC Middleware]
         API --> MW
@@ -402,17 +404,17 @@ graph TB
         GHA[GitHub Actions CI/CD]
     end
 
-    subgraph "Production - All Free Tier"
+    subgraph "Production - provider choices gated by Part 26"
         VERCEL[Vercel - Frontend]
-        RENDER[Render - Backend]
+        APIHOST[FastAPI + WebSocket host]
         SUPA[(Supabase - PostgreSQL + pgvector)]
     end
 
     REPO --> GHA
     GHA -->|Deploy Frontend| VERCEL
-    GHA -->|Deploy Backend| RENDER
-    RENDER --> SUPA
-    VERCEL -->|API Calls| RENDER
+    GHA -->|Deploy Backend| APIHOST
+    APIHOST --> SUPA
+    VERCEL -->|API Calls| APIHOST
 ```
 
 ---
@@ -963,7 +965,7 @@ Layer 3: Database Constraints
 - **Route guards**: `ProtectedRoute` and `RoleGuard` show a neutral pending state while session status is `unknown` or `loading`; they redirect only after `/api/auth/me` resolves, preventing reload-time redirect flicker.
 - **API client**: All API calls use a single client configured with `credentials: "include"`. A 401 may trigger one single-flight refresh attempt and one request retry; refresh failure clears in-memory session state and redirects through the normal unauthenticated flow.
 - **CSRF**: `GET /api/auth/csrf` establishes a pre-auth CSRF context and returns a signed double-submit value; successful login rotates it and binds the replacement to the refresh session. The readable CSRF value is held in memory and sent as `X-CSRF-Token` on every state-changing request, including register, login, refresh, logout, uploads, and Admin mutations. The backend also validates `Origin`/`Referer`; safe methods never change state.
-- **CORS/deployment**: Production must expose the API on the same site as the frontend, preferably through a Vercel `/api` reverse proxy to Render or an equivalent first-party API host. Credentialed CORS uses an explicit origin allowlist and explicit methods/headers—never `*`. Frontend environment configuration points to the same-site API boundary.
+- **CORS/deployment**: Production must expose the API on the same site as the frontend, preferably through a Vercel `/api` reverse proxy to a WebSocket-capable first-party API host. Credentialed CORS uses an explicit origin allowlist and explicit methods/headers—never `*`. Frontend environment configuration points to the same-site API boundary.
 - **RBAC boundary**: Frontend `RoleGuard` is UX only. Every protected backend route derives identity and role solely from the verified access-cookie JWT and enforces `require_auth`/`require_role`; no role value supplied by the client is trusted.
 - **Cache/logout**: Auth responses use `Cache-Control: no-store`. Logout revokes/invalidates the refresh session, clears both auth cookies and the CSRF cookie, and clears the frontend session state.
 
@@ -1066,18 +1068,18 @@ historical task branches/history remain intact; they are not the workflow for su
 - Frontend/backend deployment configuration and release gates
 ```
 
-### Hosting: $0/month Strategy
+### Hosting: historical estimate (superseded by Part 26)
 
 | Service | What | Free Tier Limits |
 |---------|------|-----------------|
 | **Vercel** | Frontend | Unlimited for personal, 100GB bandwidth |
-| **Render** | Backend (Docker) | 750 hours/month, sleeps after 15min idle |
+| **FastAPI host** | Backend + WebSocket | Provider and quota not selected by this historical section |
 | **Supabase** | PostgreSQL + pgvector | 500MB DB, 1GB file storage, 50K MAU |
 | **GitHub Actions** | CI/CD | 2000 min/month |
 | **Gemini API** | LLM | 15 RPM, 1M tokens/day |
 
 > [!TIP]
-> When Render cold starts (~30s), add a loading indicator on the frontend. For interview demos, hit the API 1 minute before to "warm up" the server.
+> Select and validate the API/WebSocket host under the Part 26 staging gates. Do not infer a current free-tier entitlement from this historical section.
 
 ---
 
@@ -2098,7 +2100,7 @@ src/
 - Updated architecture diagrams, security controls, API permissions, test cases, task descriptions, dependencies, and the Part 22 assessment to use one cookie-based session contract.
 - Defined Zustand as a non-persisted view of sanitized session state, restored from `/api/auth/me`; the backend remains the sole authorization authority.
 - Added the signed, session-bound double-submit CSRF contract and explicit Origin/Referer validation because SameSite alone is defense in depth, not the complete CSRF control.
-- Required a same-site production API boundary, preferably a Vercel `/api` reverse proxy to Render, plus exact credentialed CORS configuration for any cross-origin development or deployment topology.
+- Required a same-site production API boundary, preferably a Vercel `/api` reverse proxy to a WebSocket-capable API host, plus exact credentialed CORS configuration for any cross-origin development or deployment topology.
 - Added `AUTH-011A` so CSRF service and endpoint work is independently testable before register/login/refresh mutations are implemented.
 - Decision basis: OWASP advises against storing session identifiers in Web Storage and recommends HttpOnly cookies; OWASP also recommends CSRF tokens in addition to SameSite for general deployments. MDN documents cookie credential behavior and secure cookie attributes, while FastAPI requires explicit origins/methods/headers when credentialed CORS is enabled.
 - No runtime source or dependency was changed in this architecture-only task. Prettier, ESLint, strict type-check, all 80 Frontend tests, and production build pass; the existing Vite chunk-size advisory remains non-blocking.
@@ -4479,7 +4481,7 @@ vgu-student-companion/
 | Tech stack | ✅ Confirmed: FastAPI + React/TS + Supabase |
 | Database | ✅ Supabase managed PostgreSQL + pgvector |
 | Repository | ✅ New repository: `vgu-student-companion` |
-| Hosting budget | ✅ $0/month with Vercel + Render + Supabase free tiers |
+| Hosting budget | Superseded: provider cost and quota approval is controlled by Part 26.17; no paid fallback is automatic |
 | Vietnamese language | ✅ Not needed. EN/DE only |
 | RBAC | ✅ USER + ADMIN roles, integrated throughout |
 | Event Slider ownership | ✅ Admin-managed dynamic entity with optional Event link; never production-hard-coded |
@@ -6656,7 +6658,7 @@ Verification consulted official documentation on 2026-09-12:
 - [Securing the Data API](https://supabase.com/docs/guides/api/securing-your-api): grants and RLS are separate controls.
 - [Data API default-exposure changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically): direct ORM connections are distinct from Data API exposure. Inspect actual grants instead of relying on defaults.
 
-These references support platform boundaries; proposed size limits, eligibility fields, matching weights and recap structure are project design decisions. No live Supabase instance, deployment, legal compliance certification or current provider pricing was audited.
+These references support platform boundaries; proposed size limits, eligibility fields, matching weights and recap structure are project design decisions. The v2.5 audit in Part 26 rechecked current official Supabase Cron/Edge limits and Resend quotas, but did not inspect a live account, deploy infrastructure or provide legal/compliance certification.
 
 ---
 
@@ -6664,18 +6666,18 @@ These references support platform boundaries; proposed size limits, eligibility 
 
 ### 26.1 Workspace verification and audit boundary
 
-Audit performed 2026-09-24 before documentation edits.
+Audit refreshed 2026-09-26 before this documentation-only amendment.
 
 | Item | Verified state |
 |---|---|
 | Workspace / Git root | `C:\Users\phuoc\Downloads\buddyWebVer2` / `C:/Users/phuoc/Downloads/buddyWebVer2` |
 | Branch | `main` |
-| HEAD | `fa190f4191921b643b67acf84c96f1777870c212` (`chore(security): harden deploy readiness and prioritize matching`) |
+| HEAD inspected before documentation edits | `35186ee90b42474dad3421286c554dd0878192a4` (`docs(mail): record Resend free daily limit`) |
 | Remote | `origin https://github.com/dat1507/buddyWebVer2.git` (fetch/push) |
 | Instructions | No `AGENTS.md` found in the repository |
-| Scope | Audit and planning only; no application source, migration, dependency, resource or deployment change |
+| Scope | Audit and planning only; only `implementation_plan_vgu_buddy.md` may change. No application source, migration, dependency, account setting, secret, resource or deployment change is authorized by this amendment. |
 
-Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests skipped**; Ruff and strict mypy pass. Frontend direct TypeScript build and Vite production build pass, with the existing >500 kB chunk warning. The default parallel Vitest run produced 8 timeouts/failures on this host; all seven affected files passed serially (**67/67**), so CI/test-runner resource stability remains a gate. `npm` itself is broken in this local user installation (missing global `npm-cli.js`), while repository-local Node binaries work. `pip-audit` could not create/upgrade its isolated environment; dependency audit is therefore not freshly established by this audit. No live PostgreSQL, TLS Redis, deployed backend, email provider, WebSocket host, backup or restore system was exercised.
+The v2.5 audit re-read the MAIL-001/EMAIL source, migrations `0008`/`0009`/`0010`, Edge Function/Cron SQL, tests and operations runbook and inspected Git state/diff. Focused Python MAIL/EMAIL/model/migration tests passed **68/68**; the host has no Deno executable, so `core.test.ts` was not freshly rerun in this documentation-only audit. No live Supabase project, provider delivery, account secret, PostgreSQL migration, TLS Redis, WebSocket host, backup or restore system was exercised; those remain staging/account-owner gates.
 
 ### 26.2 Current source audit
 
@@ -6683,21 +6685,21 @@ Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests 
 |---|---|---|---|
 | Register/Login/Logout/Refresh/`/me` | **Implemented** | `app/api/auth.py`, `services/auth.py`, `services/refresh_sessions.py`, `services/tokens.py`; frontend `features/auth/session-client.ts` | Reuse cookie session, rotation, sanitized session projection and client bootstrap. Registration creates an unverified USER and no session. |
 | CSRF / protected routes / roles | **Implemented** | Signed origin-bound double-submit CSRF in `services/csrf.py`; persisted role checks in `api/dependencies.py`; `RoleGuard`/`ProtectedRoute` are presentation gates | Reuse for every unsafe HTTP API; add a verified-user backend dependency for matching/chat. WebSocket auth needs a separate handshake/origin design. |
-| Email identity | **Partial / conflict** | `models/user.py` has `email_verified: bool`; registration sets USER=false, the trusted Admin CLI bootstrap sets ADMIN=true, and admin list/detail services only project the flag. No production code records a verification event/timestamp; no `email_verified_at`, email-change API or verification workflow exists | Replace the USER verification source of truth with nullable `email_verified_at`. Migrate every legacy USER to NULL unless an authoritative external timestamp import is supplied; never infer time from this boolean or other activity. Keep Admin login/RBAC independent from student verification so migration cannot lock Admin out. Changing USER email must atomically clear verification. |
+| Email identity | **Implemented; deployed acceptance pending** | `0008_email_verification.py`, `models/user.py`, `models/email_verification.py`, `services/email_verification*.py`, auth APIs and frontend verification/email-change UX implement nullable `email_verified_at`, digest-only one-use tokens, 15-minute expiry, resend and change-email re-verification | Reuse unchanged. `EMAIL-001..005` and `AUTH-V2-001` are code-complete; live delivery/confirmation remains part of OPS-002 acceptance. ADMIN login/RBAC remains independent from the USER verification timestamp. |
 | Profile identity/completion | **Implemented foundation** | `StudentProfile`, `ProfilePhoto`, StudentType, interests/languages, availability, preferences, opt-in; backend-derived completion in `services/profile_completion.py` | Reuse profile, type, avatar, availability and opt-in. Update eligibility: VERIFIED required; remove the reservation rule. |
 | Custom preferences | **Missing / partial conflict** | Only predefined Interest and Language relations exist. Preferred activity IDs are stored inside profile JSON and validated against `Interest`, not an Activity catalog. No custom labels/normalization exist | Add Activity catalog/relation and profile-owned custom preference rows normalized by NFKC → trim → whitespace collapse → Unicode casefold. Do not create global catalog rows. |
 | Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
 | Matching frontend | **Placeholder / conflict** | `/user/matching`, `/user/buddy`, `/admin/matching` are placeholders in route registries; current `/user/matching` gate uses old `matching_eligible` including reservation logic | Reuse the Buddy Matching navigation concept. Replace with four V2 sections and a server-backed UNVERIFIED lock; `/user/buddy` may redirect to/focus Current Buddies. |
 | Dashboard routing | **Partial / conflict** | `user-dashboard-page.tsx` exists, but `App.tsx` redirects both `/user` and `/user/dashboard` to `/user/profile/edit` | Fix/re-accept intended post-onboarding navigation in a separately scoped integration task or fold it into REC-004; do not claim the dashboard flow is release-ready. |
-| Email delivery | **Implemented foundation** | `MAIL-001` supplies the Resend provider boundary, allowlisted templates, sealed PostgreSQL transactional outbox, bounded leased worker, retry/idempotency semantics and server-only configuration | Retain Resend and the transactional outbox. Hosted delivery uses Supabase Cron -> Edge Function -> Resend; delivery failure never rolls back invitations/matches. |
+| Email delivery | **Repository implementation complete; deployed acceptance pending** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. |
 | Chat/realtime | **Missing** | No conversation/message models, chat API or WebSocket route. `websockets` is only an indirect Uvicorn dependency | Add FastAPI WebSocket endpoint, persistent PostgreSQL messages and Redis Pub/Sub. Do not add Supabase Realtime. |
 | Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
-| Background work | **Implemented foundation** | `python -m app.cli email-worker` remains local/debug/fallback; the hosted Edge worker reuses the same PostgreSQL leases, retry and idempotency contract | Schedule the bounded Edge worker once per minute with Supabase Cron. Keep the Python worker until deployed acceptance passes; do not run both as production schedulers. |
+| Background work | **Repository implementation complete; deployed acceptance pending** | `python -m app.cli email-worker` is retained for local/debug/manual fallback; the Edge worker and Cron SQL reuse the same PostgreSQL leases, retry and idempotency contract | Production schedules only the bounded Edge worker once per minute with Supabase Cron. Disable/unschedule Cron before manually starting the Python fallback; never operate both schedulers concurrently. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
 | Admin auth/user views/audit | **Partial** | Admin CLI, role protection, `/api/admin/users`, audited detail/photo reads exist; overview statistics are em dashes; audit log is append-only but Admin-linked with `ON DELETE RESTRICT` | Reuse RBAC, tables/components and redaction. Add monitoring-only matching stats and dedicated reset-operation audit that survives student deletion. |
 | Frontend deployment | **Partial** | Vite production build passes; `apps/web/vercel.json` supplies SPA rewrite and basic security headers; `VITE_API_URL` exists | Vercel Root Directory must be `apps/web`; validate HTTPS, exact API URL and deep links on staging. Current separate-site cookies need a verified same-site topology. |
 | Backend/DB deployment | **Partial / not deployed** | FastAPI package, separated runtime/migration URLs, local container images and DB/Redis/email/storage readiness exist; no staging/production deployment manifest or IaC | Provision a WebSocket-capable host, trusted proxy config and rollback/recovery; validate the existing probes and migrations in OPS-002 staging. |
-| Secrets | **Partial assurance** | `.env` and `.env.local` are ignored/untracked; only templates are tracked. Targeted current/history scan found no Google/GitHub/AWS/private-key signatures; actual ignored values were not read | Require provider/Redis/backup secrets in server secret manager, rotation procedure and a release-time full secret scan. This audit is not a guarantee about credentials exposed outside Git. |
+| Secrets | **Repository boundary implemented; account configuration pending** | `.env` and `.env.local` are ignored/untracked; only templates are tracked. Edge code reads six named server-side secrets and Cron reads two Vault entries; source does not require a Supabase service-role key | Enter values only in Supabase Edge Function Secrets/Vault or another approved server-side store. Never paste values into chat, Git, logs or evidence. Release still requires a fresh secret scan and rotation procedure. |
 
 ### 26.3 Conflicts with the old implementation plan
 
@@ -6716,7 +6718,7 @@ Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests 
 | Safe buddy view hides raw availability | No buddy DTO exists | Availability time may be shown | Create one explicit safe matching DTO that includes normalized display availability but excludes email/auth/internal fields. |
 | `Match` has PROPOSED/rejected/completed/Admin fields | Not implemented | Accept creates ACTIVE; no user Unmatch; semester reset ends lifecycle | New minimal ACTIVE Match model with unordered-pair uniqueness and invitation provenance. |
 | “Conversation/chat” in ERD means AI assistant | No peer chat exists | One peer conversation per ACTIVE Match, text only | Add separate BuddyConversation/BuddyMessage tables and `CHAT-*`. |
-| `$0/month`/specific free quotas | Historical, unverified | Do not guess current pricing | Treat all provider pricing as deployment-time verification; list service categories and practical tradeoffs only. |
+| `$0/month` asserted as permanent | Historical estimates were not a guarantee | Current official docs were rechecked on 2026-09-26; Free quotas currently cover the proposed mail schedule, but terms can change and workload spikes can exceed them | Record dated assumptions in 26.17, monitor actual use and revalidate before deployment. A limit failure blocks deployment; it does not authorize a paid fallback. |
 
 ### 26.4 Final Buddy Matching V2 architecture
 
@@ -6732,6 +6734,26 @@ Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests 
 - Admin sees monitoring data and safe profile fields only. Admin cannot create, approve, publish, accept, decline or override an individual relationship.
 - Semester Reset is a separately authorized, backed-up, audited system operation. It removes USER-owned data/accounts, keeps ADMIN/shared catalogs/configuration and establishes a persisted cohort boundary.
 
+Current production email path (the Python path is deliberately outside normal production scheduling):
+
+```mermaid
+flowchart LR
+    APP[Application / FastAPI transaction] --> OUTBOX[(app_private.transactional_outbox)]
+    CRON[Supabase Cron<br/>every 1 minute] --> EDGE[Supabase Edge Function<br/>email-worker]
+    EDGE -->|atomic bounded claim| OUTBOX
+    EDGE -->|Idempotency-Key = stable outbox key| RESEND[Resend]
+    PY[Python email worker<br/>local / debug / manual fallback] -. only after Cron is disabled .-> OUTBOX
+```
+
+The mail transport contract is fixed as follows:
+
+- `idempotency_key` is unique in the outbox. Claiming is one atomic statement using `FOR UPDATE SKIP LOCKED`; the default batch is 20 and callers cannot exceed 100.
+- Each invocation has a unique lease owner. Claim writes a five-minute lease; complete/fail updates require the same owner. Two normally overlapping Edge invocations therefore receive disjoint rows and cannot both send the same claimed row.
+- The Edge Function delivers at most five claimed rows concurrently. A failed row is retried up to five total attempts with 1/2/4/8-minute delays; an expired lease becomes claimable for recovery.
+- Resend receives the stable outbox idempotency key. This protects the sent-but-not-finalized/lost-acknowledgement case within Resend's documented 24-hour retention window.
+- This is not an absolute exactly-once claim. PostgreSQL prevents concurrent ownership, and Resend suppresses retries inside its retention window; an outage or unresolved acknowledgement older than that window may still permit a duplicate and must remain observable/recoverable.
+- Application commits never depend on provider availability. Terminal failure remains recorded with sanitized state for operator action; it cannot roll back the originating verification, invitation or Match transaction.
+
 ### 26.5 Data model changes (planning contract; no migration in this task)
 
 | Model/table | Required shape and constraints |
@@ -6739,7 +6761,7 @@ Verification snapshot: backend `pytest -q` = **645 passed, 15 opt-in live tests 
 | `users` amendment | Add nullable `email_verified_at timestamptz`; USER verification derives from a non-null timestamp for the current email. Migration sets every legacy USER to NULL unless an authoritative verification timestamp source is explicitly imported. Do not derive a timestamp from `email_verified`, creation time, last login, profile update or activity. The legacy boolean is only an initialization/status flag: USER registration writes false and Admin CLI bootstrap writes true. ADMIN authentication/RBAC must not depend on `email_verified_at`; preserve bootstrap access without manufacturing a timestamp. USER email change and timestamp clear are atomic. Keep role/is_active/deleted_at. |
 | `student_profiles` amendment | No new relationship lifecycle column is required. `student_type` remains editable only while its USER has zero ACTIVE Matches. Profile update and invitation Accept enforce the invariant transactionally through the ACTIVE Match query/participant locks; a frontend editable flag is derived, never stored as authority. |
 | `email_verification_tokens` | `id`, `user_id`, token digest only, `email_snapshot`, `created_at`, `expires_at` (15 minutes), `consumed_at`, `superseded_at`; one-use and never logged. New issue supersedes earlier active tokens. |
-| `transactional_outbox` | Event type, aggregate ID, recipient user ID/current verified email snapshot or resolver policy, JSON-safe payload, attempts, next attempt, lease, sent/failed timestamps. Business transaction inserts; delivery is asynchronous and idempotent. |
+| `app_private.transactional_outbox` (**implemented by `0009`**) | Base UUID/timestamp/soft-delete fields plus `event_type`, `aggregate_id`, nullable `recipient_user_id`, `recipient_email`, unique `idempotency_key`, object-only JSONB `payload`, non-negative `attempts`, `next_attempt_at`, paired `lease_owner`/`lease_expires_at`, mutually exclusive `sent_at`/`failed_at`, `provider_message_id` and sanitized `last_error_code`. Ready/lease indexes support bounded claims. Business transactions insert; delivery is asynchronous. Migration `0010` exposes only `SECURITY INVOKER` claim/complete/fail functions to `vgu_buddy_runtime`. |
 | `activities` / `profile_activities` | Shared predefined catalog plus per-profile selections; replaces Interest IDs inside `preferences.preferred_activity_ids` as the canonical activity signal. |
 | `profile_custom_preferences` | `profile_id`, kind (`INTEREST`,`LANGUAGE`,`ACTIVITY`), display label, `normalized_key`, optional language proficiency, timestamps; unique `(profile_id, kind, normalized_key)`. Never creates shared catalog records. |
 | `matching_invitations` | Required fields from V2; store a canonical outer-trimmed plain-text `message`, `status`, 7-day `expires_at`, response/cancel/hide timestamps. Valid message has at most 500 maximal non-whitespace runs and at most 10,000 Unicode code points; backend enforces both and the canonical stored column has a defensive 10,000-character/code-point-equivalent PostgreSQL check. Store canonical pair keys or equivalent for reciprocal-PENDING protection. Partial unique index/constraint prevents more than one PENDING invitation per unordered pair. |
@@ -6879,13 +6901,13 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### MAIL-001 — Transactional email provider and outbox foundation
 
-- **Status:** **Done 2026-09-24.** The implementation adds the private outbox, provider-neutral contract with a Resend adapter, explicit template allowlist, bounded leased worker and server-only configuration. Feature-specific events/templates remain owned by their later tasks.
+- **Status:** **Done 2026-09-24; hosted transport repository work added 2026-09-25 under OPS-002.** MAIL-001 adds the private outbox, provider-neutral contract with a Resend adapter, explicit template allowlist, bounded leased Python worker and server-only configuration. OPS-002 reuses those contracts through migration `0010`, the Edge Function and Cron SQL; it does not rewrite MAIL-001. Only `email_verification.requested` is implemented today. Invitation and accepted templates/events remain owned by INV-008/009.
 - **Purpose:** Decouple committed business state from fallible delivery.
-- **Scope / likely files:** new email/outbox models, service/provider protocol, templates boundary, worker command, server-only config and docs.
+- **Scope / source:** `models/transactional_outbox.py`, migrations `0009`/`0010`, `services/email_outbox.py`, `services/email_provider.py`, worker command, `supabase/functions/email-worker`, `supabase/cron/email-worker.sql`, server-only config and `docs/operations/supabase-email-worker.md`.
 - **Dependencies / ownership:** BE-004, EMAIL-001; Backend + Database + Infrastructure.
-- **Security:** provider key server-only; recipient/body/provider errors redacted; leases and event idempotency keys; no arbitrary template selection.
-- **Acceptance / DoD:** transaction inserts outbox row; worker retries with bounded backoff and terminal observability; provider failure cannot roll back the originating state; no heavyweight broker added.
-- **Tests/gates:** fake-provider success/failure, duplicate delivery protection, lease recovery, config fail-closed and log-redaction tests.
+- **Security:** provider key server-only; recipient/body/provider errors redacted; unique event idempotency keys; no arbitrary template selection; private schema and function execute rights are withheld from PUBLIC and the Supabase `anon`, `authenticated` and `service_role` Data API roles.
+- **Acceptance / DoD:** transaction inserts one outbox row; default batch 20/max 100, five-minute owner lease, max five attempts, 1/2/4/8-minute retry and terminal observability are preserved; provider failure cannot roll back originating state; no heavyweight broker or always-on hosted email process is added.
+- **Tests/gates:** fake-provider success/failure, unique-key duplicate prevention, overlapping `SKIP LOCKED` claims, owner-only finalization, lease recovery, bounded batch, retry/terminal states, config fail-closed and log-redaction tests.
 - **Non-goals:** marketing/bulk email or pricing commitment.
 
 #### EMAIL-002 — Request and resend verification
@@ -7324,20 +7346,22 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### OPS-002 — Early staging infrastructure validation
 
-- **Status:** **READY FOR SUPABASE EMAIL-WORKER DEPLOYMENT; BLOCKED / IN ACCEPTANCE until deployed gates pass.** The disposable restore rehearsal and prior migration/rollback gates have recorded PASS evidence; account-owner secret entry and deployed Edge acceptance remain unexecuted.
-- **Purpose:** Validate deployment topology before the full V2 vertical slice hides infrastructure defects, and replace both the rejected paid Render Background Worker and GCP VM design with a Free-plan scheduled worker without changing email behavior.
-- **Scope / likely files:** preserve the existing PostgreSQL transactional outbox and Python worker; add least-privilege SQL claim/finalize entry points, Supabase Edge Function, one-minute Cron schedule, tests and operations documentation. Keep Vercel `apps/web`, the WebSocket-capable FastAPI host, Supabase PostgreSQL/Storage, TLS Redis and Resend.
+- **Status:** **REPOSITORY IMPLEMENTATION COMPLETE; BLOCKED / IN ACCEPTANCE until deployed gates pass.** Commit `bdd105a` added migration `0010`, the Edge Function, one-minute Cron SQL, tests and runbook; `35186ee` recorded the current Resend daily limit. The disposable restore rehearsal and prior migration/rollback gates have PASS evidence. Migration `0010` has not been applied to the target project, account-owner secrets/Vault values are not configured by this audit, and deployed A–F/real-delivery evidence does not exist; therefore OPS-002 is not DONE.
+- **Purpose:** Validate the scheduled Free-plan topology before the full V2 vertical slice hides infrastructure defects, without changing email behavior. **Rejected alternatives:** Google Cloud e2-micro/VM requires a one-time prepayment and adds unnecessary VM/patching/process complexity at roughly 150 users; a Render Background Worker requires a paid worker. Neither is a current deployment dependency or authorized fallback.
+- **Scope / implemented files:** preserve the existing PostgreSQL transactional outbox and Python worker; use the least-privilege SQL claim/finalize entry points in migration `0010`, `supabase/functions/email-worker`, `supabase/cron/email-worker.sql`, focused tests and `docs/operations/supabase-email-worker.md`. Keep Vercel `apps/web`, the WebSocket-capable FastAPI host, Supabase PostgreSQL/Storage, TLS Redis and Resend.
 - **Dependencies / ownership:** EMAIL-003, OPS-001; Infrastructure + Operations. Downstream, OPS-003 depends directly on OPS-002; SEM-002 depends on OPS-003 and therefore SEM-004..007 and ACCEPT-001 depend indirectly on this gate. Invitation/accepted email tasks retain their MAIL-001 dependencies and their functional requirements; this deployment decision does not remove or weaken them.
-- **Approved primary target:** Supabase Cron (`* * * * *`) -> Supabase `email-worker` Edge Function -> Resend. There is no continuously running hosted process. The Python worker remains available only for local development, debugging and fallback until this path passes acceptance.
-- **Database path:** the Edge Function uses the Supabase transaction pooler with mandatory TLS and the existing `vgu_buddy_runtime` role. Never use the migration owner, `postgres`, a Supabase service-role/secret key, a public `SECURITY DEFINER` RPC, hardcoded credentials or committed `.env` values.
-- **Atomicity/concurrency:** one `SECURITY INVOKER` database function claims at most 20 ready rows using `FOR UPDATE SKIP LOCKED` and writes five-minute leases in the same statement. Every invocation has a unique owner; success/failure transitions require that owner. The lease exceeds the Free-plan 150-second wall-clock limit, so overlapping one-minute invocations cannot send the same row. Resend receives the stable outbox idempotency key to cover a lost acknowledgement before finalization.
-- **Retry/recovery:** preserve five attempts and 1/2/4/8-minute backoff. Expired leases return to the queue. Provider and template failures retain sanitized error codes. The Python fallback must not run concurrently with production Cron.
-- **Secrets:** store `OUTBOX_DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`, `PUBLIC_APP_BASE_URL`, `EMAIL_VERIFICATION_SEALING_KEY` and `EMAIL_WORKER_CRON_SECRET` in Edge Function Secrets. Store project URL and the matching Cron secret in Supabase Vault. Do not copy values into chat, Git, logs or evidence.
-- **Free-plan gate:** current official limits are 500,000 Edge invocations/month, 150-second wall clock, 2-second CPU and 256 MB memory. A one-minute schedule is approximately 43,200 invocations in a 30-day month. Resend Free permits 3,000 emails/month and 100/day, so approximately 150 registered users is viable only when delivery is spread below the daily cap; 150 same-day verifications are not. There is no mandatory monthly worker fee while Supabase/Resend remain on Free plans and within quota; no paid upgrade is authorized.
-- **Functional gate:** deploy a reviewed commit; prove empty queue, real verification delivery and one-use confirmation, retry, idempotency, two-invocation overlap, 20-row batch bound, expired-lease recovery, outbox consistency and absence of secret leakage. Invitation and accepted-email gates remain pending until INV-008/009 implement their events/templates.
+- **Approved primary target:** application/backend -> `app_private.transactional_outbox` -> Supabase Cron (`* * * * *`) -> Supabase `email-worker` Edge Function -> Resend. There is no continuously running hosted email process. The Python worker remains available for local development, debugging and manual fallback; disable/unschedule Cron before starting it.
+- **Database path:** `OUTBOX_DATABASE_URL` is the Supabase **transaction-pooler** URI with mandatory TLS and the existing custom `vgu_buddy_runtime` database role. Never use the migration owner, `postgres`, DB password for an administrative role, or a Supabase service-role/secret API key. Migration `0010` uses `SECURITY INVOKER`, revokes function access from PUBLIC/`anon`/`authenticated`/`service_role`, and grants execute only to `vgu_buddy_runtime`; the private table/functions are not a browser/Data API surface.
+- **Atomicity/concurrency proof:** `claim_transactional_email_outbox` accepts `1..100`, defaults to 20, and atomically selects ready rows with `FOR UPDATE SKIP LOCKED` and writes a five-minute lease. Every Edge invocation generates a unique owner; complete/fail requires that exact owner. Simultaneous invocations lock/skip the same candidate and therefore receive disjoint claims. The committed five-minute lease is longer than the 150-second hosted Edge wall-clock limit, preventing a normally overlapping invocation from reclaiming the row. Resend receives the stable unique outbox idempotency key for a sent-but-not-finalized acknowledgement gap. This proves overlap safety, not unbounded distributed exactly-once: Resend retains keys for 24 hours, so an outage/uncertain acknowledgement beyond that window can still duplicate and must alert an operator.
+- **Bounded delivery/retry/recovery:** default batch 20, database/function maximum 100 and Edge delivery concurrency five. Preserve five total attempts and 1/2/4/8-minute backoff. Expired leases return to the queue; non-retryable errors or the fifth failed attempt become terminal `failed_at` rows with sanitized error codes. The originating business transaction remains committed.
+- **Edge Function Secrets (six):** `OUTBOX_DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS`, `PUBLIC_APP_BASE_URL`, `EMAIL_VERIFICATION_SEALING_KEY`, `EMAIL_WORKER_CRON_SECRET`. `EMAIL_VERIFICATION_SEALING_KEY` must be exactly the same value used by the backend/API to AES-GCM seal verification payloads; `PUBLIC_APP_BASE_URL` must be the canonical public application origin.
+- **Supabase Vault (two):** `buddy_project_url` and `buddy_email_worker_cron_secret`. `buddy_email_worker_cron_secret` must be exactly the same value as Edge secret `EMAIL_WORKER_CRON_SECRET`; it is sent only as `x-cron-secret`. Enter every value directly in the Dashboard/server-side secret store—never in chat, Git, tracked `.env`, logs, screenshots or acceptance evidence.
+- **Free-plan gate (official docs rechecked 2026-09-26):** Supabase Cron and scheduled Edge HTTP calls are available; Free includes 500,000 Edge invocations/month with 150-second wall clock, 2-second CPU and 256 MB memory. A one-minute schedule is approximately 43,200 invocations in a 30-day month. Resend Free permits 3,000 emails/month and 100/day, so approximately 150 registered users per semester is viable only when delivery is spread below the daily cap; 150 same-day verifications are not. The mail path has no mandatory monthly charge while both accounts remain on Free plans and inside every quota. Free availability/terms are not guaranteed forever; a quota/term failure blocks deployment and never authorizes automatic paid service.
+- **Required staging acceptance A–F:** **A Empty queue** returns zero counts; **B Normal email delivery** sends one real verification email and the 15-minute link confirms once; **C Idempotency** retries the same outbox key and observes one provider delivery; **D Retry after failure** records a retryable failure/backoff and later succeeds without an extra delivery; **E Concurrent executions** starts two authenticated Edge calls together and proves one ready row is claimed/sent once; **F Bounded batch** queues more than 20 ready rows and proves one default invocation claims exactly 20. Also prove expired-lease recovery, terminal failure state, outbox consistency, sanitized responses/logs and absence of secret leakage. Invitation/accepted-email delivery remains pending until INV-008/009 implement those events/templates.
+- **Observability/fallback:** record `cron.job_run_details`; Edge invocation status/runtime and redacted logs; sanitized outbox counts/state (`ready`, leased, retry, `sent_at`, terminal `failed_at`, error code only); and Resend delivery status keyed by non-secret provider/outbox identifiers. Disable/unschedule the Cron job before a manual Python fallback run, then re-enable only after the fallback stops and leases/state are reconciled.
 - **Scale/capacity assumption:** plan for approximately 150 registered users per semester and judge readiness from measured workload, not account count alone. Monitor Supabase invocation/CPU/wall-clock/database/egress quotas and Resend Free quota, especially around semester-start bursts. A quota risk is a blocker/capacity report, not approval to upgrade.
 - **Avatar/bandwidth dependency note:** preserve client/server crop, resize and compression where the current architecture supports it; avoid unnecessary full-resolution images in recommendation lists and prefer thumbnails/optimized delivery when implemented. Avatar optimization is not implemented by OPS-002 and requires its own scoped task if audit finds a gap.
-- **Acceptance / Definition of Done:** disposable restore rehearsal PASS; migration/restore gates PASS; new migration and Edge deployment PASS; all six mail tests PASS locally and against staging where applicable; real verification PASS; Free-plan usage and secret handling verified; and sanitized evidence recorded. Local tests alone do not complete OPS-002.
+- **Acceptance / Definition of Done:** disposable restore rehearsal PASS; migration/restore gates PASS; migration `0010` and Edge/Cron deployment PASS; A–F PASS locally and on staging where applicable; the full verification request -> email -> confirm-once -> replay-rejected flow PASS; Free-plan usage and secret handling verified; and sanitized evidence recorded. Local/repository tests alone do not complete OPS-002.
 - **Non-goals:** rewriting the outbox; removing the Python fallback before acceptance; implementing invitation/accepted templates early; changing unrelated services; declaring V2 production ready; or approving paid infrastructure.
 
 #### OPS-003 — Observability, rollback, recovery and credential runbooks
@@ -7363,7 +7387,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 #### PROD-001 — Production release, smoke and rollback hold point
 
 - **Purpose:** Release only after every functional, security, infrastructure and operational gate is satisfied.
-- **Scope / likely files:** release checklist/change record; apply migrations with backup, deploy worker/backend/frontend, smoke, observe and retain rollback point.
+- **Scope / likely files:** release checklist/change record; apply migrations with backup, deploy the Cron/Edge email transport plus backend/frontend, smoke, observe and retain rollback point. No always-on hosted Python email worker is part of PROD-001.
 - **Dependencies / ownership:** ACCEPT-001 and explicit release approval; Operations + Engineering.
 - **Security:** final secret/history scan, credential rotation status, secure cookie/CORS/CSRF/proxy/TLS verification, private backup access and destructive-control review.
 - **Acceptance / DoD:** production smoke covers auth/profile/verification/recommendations/invitation/Current Buddies/chat/Admin read paths without destructive reset; monitoring stable through hold period; rollback/recovery owners are available. Semester Reset is not run in production merely to prove deployment.
@@ -7427,7 +7451,7 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. Complete `EMAIL-002..005` and `OPS-001`; then run OPS-002 in this order: preserve recorded restore/migration evidence → apply the Edge claim migration → enter Supabase secrets/Vault values → deploy the Edge Function → enable one-minute Cron → functional/concurrency/Free-plan acceptance. Complete OPS-003 only after OPS-002 is DONE. In parallel, complete `PREF-001..004`.
+2. `EMAIL-002..005`, `OPS-001` and the OPS-002 repository implementation are complete. Resume OPS-002 in this exact order: account owner confirms the project remains on Free and enables Cron/`pg_net` as required → enters the six Edge Function Secrets and two Vault values without exposing them → preserve the backup/restore evidence and apply migration `0010` with the migration credential → deploy the reviewed `email-worker` with the committed custom secret authentication (`verify_jwt=false`) → run the case-sensitive one-minute Cron SQL → execute acceptance A–F plus the full verification request/delivery/confirm/replay flow → record sanitized evidence and only then mark OPS-002 DONE. Complete OPS-003 afterward. In parallel, `PREF-001..004` may proceed.
 3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
@@ -7463,7 +7487,7 @@ Local is considered stable only when:
 
 #### First staging milestone — concrete answer
 
-The **first reasonable staging deployment is OPS-002**, immediately after **EMAIL-003 + OPS-001** and existing Auth/Profile/avatar foundations pass locally. This is an early infrastructure-validation deployment, not a product release. Its purpose is to validate Vercel→FastAPI same-site cookie/CSRF topology, HTTPS, migrations, TLS Redis, private Supabase Storage, worker/outbox email delivery, deep links and WSS-capable hosting before building the remaining vertical slice.
+The **first reasonable staging deployment is OPS-002**, immediately after **EMAIL-003 + OPS-001** and existing Auth/Profile/avatar foundations pass locally. This is an early infrastructure-validation deployment, not a product release. Its purpose is to validate Vercel→FastAPI same-site cookie/CSRF topology, HTTPS, migrations, TLS Redis, private Supabase Storage, Cron/Edge/outbox email delivery, deep links and WSS-capable hosting before building the remaining vertical slice.
 
 The **second mandatory staging milestone** is after the complete user vertical slice **through PROFILE-V2-002 and CHAT-004 plus INV-008/009 and ADMIN-V2-002**. It validates two real verified users from recommendation through invitation/email/Accept/Current Buddies/chat, including exact invitation boundaries and the post-Accept type lock. Staging remains incomplete until **SEM-007 + CHAT-005 + OPS-003** and ACCEPT-001 prove reset/backup/restore/blocking and retention.
 
@@ -7488,17 +7512,19 @@ Mandatory production release gates:
 - **Functional:** Register/Login/Logout/refresh; profile/avatar/custom preferences; evidence-only legacy USER verification migration with Admin access preserved; verification and email re-verification; recommendations with exact weights; invitation message trimming and exact 500-word/10,000-code-point limits; invitation/send email/Accept/Decline/Cancel/sent hide; post-Accept `student_type` lock; multiple Buddies; Current Buddies; accepted email; chat/read/retention/cleanup; Admin monitoring; full Semester Reset DB+avatar backup, restore and new-cohort blocking.
 - **Launch-scope integrity:** existing non-V2 P0 features (notably the Event/Event Slider/Admin Event track) must either pass their own acceptance gates or be explicitly excluded from the production launch; release navigation must not advertise placeholder routes as delivered features.
 - **Security:** current-tree/history secret scan and credential rotation; no tracked populated `.env`; bcrypt passwords; Secure HttpOnly cookies; exact CSRF/CORS/proxy; no synthesized legacy verification timestamps; backend-enforced type lock/opposite-type activation; authoritative invitation limits/plain-text rendering; verification/invitation/message rate limits; resource authorization and WSS Origin/auth; private backups; destructive phrase + recent re-auth + audit; diff inspection.
-- **Infrastructure:** production PostgreSQL and verified migration backup; least-privilege runtime/separate migration access; TLS Redis; private Supabase avatar and backup buckets; production email sender/provider; DNS/HTTPS; verified same-site cookie topology; WebSocket host; health/readiness and worker.
+- **Infrastructure:** production PostgreSQL and verified migration backup; least-privilege runtime/separate migration access; TLS Redis; private Supabase avatar and backup buckets; production email sender/provider; DNS/HTTPS; verified same-site cookie topology; WebSocket host; health/readiness plus the Cron/Edge email transport.
 - **Operational:** error/health/job/outbox/WSS/backup monitoring; rollback owners/procedure; migration recovery; credential rotation; backup restore and Semester Reset runbooks; staging game-day evidence.
 - **Acceptance:** legacy USER migration plus Admin-login regression; real Vietnamese + International accounts; two verified delivered emails; real invitation/Accept/chat; 500/501 and 10,000/10,001 message limits; backend/UI `student_type` lock and Accept/update race; refresh/F5/logout/login persistence; Admin reconciliation; safe destructive staging reset; DB+avatar backup/restore; new-cohort type selection; then restore-blocked-after-new-USER scenario.
 
 ### 26.17 Cost and infrastructure impact
 
-Provider terms remain subject to change and must be rechecked before deployment. As verified on 2026-09-25, Supabase Free includes 500,000 Edge invocations/month; a one-minute schedule uses approximately 43,200 in a 30-day month and has no mandatory worker charge while all Free quotas are respected.
+Provider terms remain subject to change and must be rechecked before deployment. As verified from official documentation on 2026-09-26, Supabase Free includes 500,000 Edge invocations/month; a one-minute schedule uses approximately 43,200 in a 30-day month and has no mandatory mail-worker charge while all Supabase and Resend Free quotas are respected. This dated finding is not a promise that Free plans remain available forever.
+
+Official sources checked for this decision: [Supabase Cron](https://supabase.com/docs/guides/cron), [Scheduling Edge Functions](https://supabase.com/docs/guides/functions/schedule-functions), [Edge Function limits](https://supabase.com/docs/guides/functions/limits), [Edge Function pricing](https://supabase.com/docs/guides/functions/pricing), [Resend pricing](https://resend.com/pricing) and [Resend idempotency retention](https://resend.com/changelog/idempotency-keys). The Supabase breaking-change scan also confirms jobs must be created/changed through `cron.schedule`/`cron.alter_job`, not direct writes to `cron.job`; the committed Cron SQL uses `cron.schedule` and remains compliant.
 
 | Service category | Local | Staging | Practical production implication |
 |---|---|---|---|
-| FastAPI/WebSocket hosting | Developer machine | One always-reachable WSS-capable service | Avoid aggressive sleep/cold start for chat/workers; at least one persistent service/process allocation |
+| FastAPI/WebSocket hosting | Developer machine | One WSS-capable request/realtime service | Chat hosting is a separate decision; transactional email does not require this service to run a mail loop or keep a Python worker alive |
 | PostgreSQL | Docker volume | Isolated managed DB + backup | Managed durable DB, migration backup/recovery and enough connections/storage for messages |
 | Redis | New local container | Small TLS Redis | Shared TLS Redis for rate limits + Pub/Sub/coordination; ephemeral Pub/Sub is acceptable because PostgreSQL is truth |
 | Supabase Storage | Optional disposable project/emulator | Private avatar + backup buckets | Private object storage plus egress/capacity for 30-day avatar backups |
@@ -7513,14 +7539,14 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
 | **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004`, `EMAIL-005`, `AUTH-V2-001` and `OPS-001` are complete; realtime Redis Pub/Sub/WebSocket and end-to-end flows remain absent. |
-| **STAGING** | **OPS-002 READY FOR SUPABASE EMAIL-WORKER DEPLOYMENT; BLOCKED / IN ACCEPTANCE** | Restore/migration rehearsal is recorded; account-owner secrets, migration `0010`, Edge/Cron deployment and real delivery/concurrency/Free-plan evidence remain. Full vertical-slice staging still follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
+| **STAGING** | **OPS-002 REPOSITORY WORK COMPLETE; BLOCKED / IN ACCEPTANCE** | Restore/migration rehearsal is recorded; account-owner Free-plan/extension confirmation, six Edge secrets, two Vault values, migration `0010`, Edge/Cron deployment and real A–F/verification evidence remain. Full vertical-slice staging still follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next implementation task: `OPS-002` Supabase email-worker deployment and staging acceptance.** Its `EMAIL-003` and `OPS-001` dependencies plus restore rehearsal are complete. An account owner must enter Edge Function Secrets and Vault values directly before deployment; no paid fallback is authorized.
+**Next step: account-owner Supabase configuration for `OPS-002`.** In the target project, open **Edge Functions -> Secrets** and add the six exact names listed in 26.14; then open **Project Settings -> Vault** and add `buddy_project_url` plus `buddy_email_worker_cron_secret`. The sealing key must match the backend value and both Cron-secret locations must match each other. Do not send values through chat. Stop after configuration and obtain owner confirmation before migration/deployment; no paid fallback is authorized.
 
 ### 26.19 Documentation-change boundary
 
-The v2.4 planning amendment itself changed only `implementation_plan_vgu_buddy.md`. Subsequent implementations remain limited to their task contracts: `EMAIL-001` added application model/schema projections and one migration; `EMAIL-001A` added only cryptographic token value objects, transaction-safe service helpers and directly related tests; `MAIL-001` added the private transactional outbox, provider/template boundaries, bounded worker, server-only email configuration, operations documentation and directly related tests; `OPS-001` added only the local Redis/Compose process foundation, async Redis configuration, health/readiness, lightweight worker recovery wiring and directly related tests/documentation. Feature-specific events/templates and later-task behavior remain unchanged. Before committing, inspect the final diff and confirm that no generated build/cache artifact became tracked.
+The v2.5 audit/amendment changes only `implementation_plan_vgu_buddy.md`; it documents, but does not reimplement, the repository work already committed in `bdd105a` and `35186ee`. `MAIL-001` retains the private transactional outbox, provider/template boundaries, bounded Python fallback and server-only configuration. OPS-002 adds only the least-privilege Edge claim/finalize functions, scheduled Edge transport, Cron SQL, tests and runbook. Feature-specific invitation/accepted events/templates and all later-task behavior remain unchanged. Before committing, inspect the final diff and confirm that no generated build/cache artifact or secret became tracked.
 
 ### 26.20 Confirmed product decisions — implementation requirements
 
