@@ -1,0 +1,4 @@
+project_id = "vgu-buddy"
+
+[functions.email-worker]
+verify_jwt = false

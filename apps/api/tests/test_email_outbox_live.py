@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import pytest
 from alembic.config import Config
 from pydantic import SecretStr
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -310,6 +310,71 @@ async def _assert_downgrade(database_url: str) -> None:
         await engine.dispose()
 
 
+async def _claim_edge_jobs(
+    factory: async_sessionmaker[AsyncSession],
+    worker_id: str,
+) -> list[Mapping[str, object]]:
+    async with factory() as session:
+        await session.execute(text("SET LOCAL ROLE vgu_buddy_runtime"))
+        result = await session.execute(
+            text(
+                "SELECT id, event_type, recipient_email, idempotency_key, payload "
+                "FROM app_private.claim_transactional_email_outbox(:worker_id, 20)"
+            ),
+            {"worker_id": worker_id},
+        )
+        rows: list[Mapping[str, object]] = [dict(row) for row in result.mappings().all()]
+        await session.commit()
+        return rows
+
+
+async def _assert_edge_database_claim_contract(database_url: str) -> None:
+    """Prove two database-backed Edge claims cannot acquire the same ready row."""
+    engine = create_async_engine(database_url, poolclass=NullPool)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with factory() as session:
+            user_id = await session.scalar(select(User.id).limit(1))
+        assert user_id is not None
+
+        empty = await _claim_edge_jobs(factory, "edge-empty-live")
+        assert empty == []
+
+        outbox_id = await _enqueue(
+            factory,
+            user_id=user_id,
+            event_type="TEST_EVENT",
+            key="TEST_EVENT/edge-concurrent-live",
+            at=datetime.now(UTC) - timedelta(minutes=1),
+        )
+        claims = await asyncio.gather(
+            _claim_edge_jobs(factory, "edge-live-one"),
+            _claim_edge_jobs(factory, "edge-live-two"),
+        )
+        claimed = [row for worker_rows in claims for row in worker_rows]
+        assert [row["id"] for row in claimed] == [outbox_id]
+
+        owner = "edge-live-one" if claims[0] else "edge-live-two"
+        async with factory() as session:
+            await session.execute(text("SET LOCAL ROLE vgu_buddy_runtime"))
+            outcome = await session.scalar(
+                text(
+                    "SELECT app_private.complete_transactional_email_outbox("
+                    ":outbox_id, :worker_id, :provider_message_id)"
+                ),
+                {
+                    "outbox_id": outbox_id,
+                    "worker_id": owner,
+                    "provider_message_id": "edge-live-provider-message",
+                },
+            )
+            await session.commit()
+        assert outcome == "sent"
+        assert await _claim_edge_jobs(factory, "edge-live-after-complete") == []
+    finally:
+        await engine.dispose()
+
+
 def test_live_outbox_upgrade_delivery_downgrade_and_reupgrade(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -339,6 +404,8 @@ def test_live_outbox_upgrade_delivery_downgrade_and_reupgrade(
         command.upgrade(config, "head")
         stage = "verify MAIL-001 delivery contract"
         asyncio.run(_assert_delivery_contract(async_database_url))
+        stage = "verify Edge worker atomic claim contract"
+        asyncio.run(_assert_edge_database_claim_contract(async_database_url))
         stage = "downgrade MAIL-001"
         command.downgrade(config, "0008_email_verification")
         asyncio.run(_assert_downgrade(async_database_url))

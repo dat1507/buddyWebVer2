@@ -1,12 +1,12 @@
 # OPS-002 staging evidence — 2026-09-25
 
-Status: **BLOCKED / IN ACCEPTANCE — READY FOR FREE-WORKER PROVISIONING**. This is partial evidence
+Status: **BLOCKED / IN ACCEPTANCE — READY FOR SUPABASE EMAIL-WORKER DEPLOYMENT**. This is partial evidence
 for the early staging infrastructure gate; it does not mark OPS-002 complete.
 
-The worker deployment decision was amended on 2026-09-25: a paid Render Background Worker is removed
-from the plan. Resend and the PostgreSQL transactional outbox remain. The primary target is the gated
-Google Compute Engine `e2-micro` design in the OPS-002 runbook; Oracle Cloud Free Tier audit is the
-first fallback when an allowance, IPv6 or egress gate fails.
+The worker deployment decision was amended again on 2026-09-25: neither a Google Cloud VM nor a paid
+Render Background Worker remains in the plan. Resend and the PostgreSQL transactional outbox remain;
+the target is Supabase Cron -> Edge Function -> Resend. The Python worker is retained only for local
+development, debugging and fallback until deployed acceptance passes.
 
 ## Deployment under test
 
@@ -19,7 +19,8 @@ first fallback when an allowance, IPv6 or egress gate fails.
   `profile-images` bucket
 - Redis: isolated TLS Upstash database `vgu-buddy-staging`, Singapore
 - Email sender: Resend with verified staging sending domain
-- Reported migration head: `0009_transactional_outbox`
+- Reported migration head at rehearsal time: `0009_transactional_outbox`; the new deployment target
+  requires `0010_edge_email_outbox_functions` before acceptance.
 
 No production resource or data was used.
 
@@ -79,20 +80,17 @@ connection string, and raw client output were not persisted.
 
 ## Remaining mandatory evidence
 
-- GCP Free Tier/billing allowance and resource-shape preflight, including a project budget alert
-  whose evidence notes that it is not a hard spending cap.
-- Supabase direct database AAAA plus real PostgreSQL IPv6/TLS with the runtime role, and Resend AAAA
-  plus real HTTPS/TLS over IPv6, before any long-running worker deployment.
-- A separate GCP staging email worker running an immutable reviewed commit, a delivered Resend
-  message, one successful verification, generic replay failure, retry/idempotency and worker
-  lease/service/VM restart recovery.
-- A 24-hour `vnstat` window with runtime TX `<=25 MiB/day`, plus Google Billing Reports showing no
-  unexpected paid resource.
+- Apply migration `0010_edge_email_outbox_functions` and deploy the reviewed `email-worker` Edge
+  Function using only the least-privilege runtime database role and Supabase-managed secrets.
+- Enable Supabase Cron/`pg_net`, store the two Cron values in Vault, and schedule the one-minute job.
+- Record empty-queue, real verification delivery, single-use confirmation, idempotency,
+  retry/recovery, two-invocation overlap and bounded-20 acceptance.
+- Confirm the Supabase project and Resend account remain on Free plans and measured usage remains
+  inside their quotas; no paid add-on or automatic upgrade is authorized.
 - Authenticated refresh/F5/logout, profile read/update, avatar upload/private authenticated read,
   anonymous denial, and persistence checks.
 - Controlled Redis outage showing fail-closed behavior followed by recovery.
 
-These items require a separately authorized free-tier provisioning/acceptance session and remain
-blockers. A failed GCP allowance, IPv6 or egress gate stops the GCP path and opens the Oracle Cloud
-Free Tier audit; it does not authorize paid infrastructure. No secret, token, cookie value,
-verification URL, credential, message body, or raw authorization header is recorded here.
+These items require account-owner secret entry and deployed staging acceptance and remain blockers.
+No secret, token, cookie value, verification URL, credential, message body or raw authorization
+header is recorded here.

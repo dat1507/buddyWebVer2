@@ -233,6 +233,12 @@ accepted production topology.
 Email verification additionally requires a server-only `EMAIL_VERIFICATION_SEALING_KEY` in both
 the API and email worker plus an exact HTTPS `PUBLIC_APP_BASE_URL`; neither value belongs in `VITE_*`.
 
+Hosted transactional email uses the existing PostgreSQL outbox through **Supabase Cron -> Supabase
+Edge Function -> Resend**. It does not require a Google Cloud VM or paid Render worker. The Python
+worker remains available for local development, debugging and fallback, but must not run alongside
+the hosted Cron schedule. Deployment, secrets and acceptance are documented in
+[docs/operations/supabase-email-worker.md](docs/operations/supabase-email-worker.md).
+
 The repository is suitable for a staging deployment after those environment resources are supplied,
 but no production deployment is configured or claimed.
 
