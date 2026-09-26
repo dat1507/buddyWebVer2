@@ -22,9 +22,13 @@ from app.models.profile import (
     StudentType,
 )
 from app.models.profile_catalog import (
+    Activity,
     Interest,
     Language,
     LanguageProficiency,
+    PreferenceKind,
+    ProfileActivity,
+    ProfileCustomPreference,
     ProfileInterest,
     ProfileLanguage,
 )
@@ -33,6 +37,7 @@ from app.models.transactional_outbox import TransactionalOutbox
 from app.models.user import User, UserRole
 
 __all__ = (
+    "Activity",
     "AuditLog",
     "Base",
     "EmailVerificationToken",
@@ -48,6 +53,9 @@ __all__ = (
     "Interest",
     "Language",
     "LanguageProficiency",
+    "PreferenceKind",
+    "ProfileActivity",
+    "ProfileCustomPreference",
     "ProfilePhoto",
     "ProfilePhotoProcessingStatus",
     "ProfileInterest",

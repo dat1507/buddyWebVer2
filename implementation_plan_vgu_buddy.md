@@ -6836,7 +6836,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | EMAIL-004 (**Done 2026-09-24**) | Change email + reverify | EMAIL-001, EMAIL-002 | Unique new email; clears verification; data retained | Auth/CSRF/session/data tests |
 | EMAIL-005 (**Done 2026-09-24**) | Verification/change-email UX | EMAIL-002..004, AUTH-021 | Accurate Verified/Unverified UX and safe links | Component/integration/a11y tests |
 | AUTH-V2-001 (**Done 2026-09-24**) | Shared VERIFIED capability guard | EMAIL-001, BE-016 | Backend locks all Buddy/chat actions and candidacy | Dependency/matrix tests |
-| PREF-001 | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
+| PREF-001 (**Done 2026-09-27**) | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
 | PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
 | PREF-003 | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
 | PREF-004 | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
@@ -6970,6 +6970,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### PREF-001 — Activity and custom-preference persistence
 
+- **Status:** **Done 2026-09-27.** Revision `0011_preference_persistence` adds the independent Activity catalog, profile/activity relation and profile-owned custom preference persistence with least-privilege backend access.
 - **Purpose:** Represent all confirmed matching signals without polluting shared catalogs.
 - **Scope / likely files:** Activity/ProfileActivity/ProfileCustomPreference models, exports, seed strategy and migration from current preferred-activity IDs.
 - **Dependencies / ownership:** BE-009/010; Database + Backend.
@@ -6977,6 +6978,22 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 - **Acceptance / DoD:** predefined activities are independent from Interests; custom values are profile-owned and unique by normalized key/kind; catalogs survive semester reset, custom rows do not.
 - **Tests/gates:** migration, constraint, cascade, seed idempotency and permission tests.
 - **Non-goals:** globalizing custom values or synonym/AI matching.
+
+**Implementation:** `Activity` is a separate localized shared catalog and `ProfileActivity` uses a
+unique profile/catalog pair with profile cascade and catalog restrict semantics.
+`ProfileCustomPreference` stores only profile-owned `INTEREST`, `LANGUAGE` or `ACTIVITY` values,
+bounded display/normalized fields, scoped language proficiency and unique
+`(profile_id, kind, normalized_key)` identity. The migration snapshots every legacy Interest row
+that could have supplied `preferences.preferred_activity_ids` into the independent Activity catalog
+while preserving stable IDs/labels and materializes profile selections; malformed or orphaned legacy
+values fail the migration instead of being discarded. Catalog seed/import is idempotent, and the new
+tables revoke browser/Data API access before granting only the required runtime operations.
+
+**Verification (2026-09-27):** Model/offline migration tests and the guarded disposable PostgreSQL
+upgrade/constraint/cascade/permission/downgrade/re-upgrade acceptance pass. Full backend: 805 passed /
+20 configured live skips; Ruff, strict mypy (154 files), dependency consistency/audit, Alembic
+history/head/check, package build and Compose validation pass. No dependency, API or frontend change
+was added.
 
 #### PREF-002 — Normalized preference identity service
 
