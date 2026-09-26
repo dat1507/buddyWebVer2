@@ -21,15 +21,25 @@ from app.core.config import (
 )
 from app.core.database import get_database_session
 from app.main import app
-from app.models import Interest, Language, User, UserRole
-from app.schemas.profile_catalog import ProfileLanguageUpdate
+from app.models import Activity, Interest, Language, LanguageProficiency, User, UserRole
+from app.schemas.profile_catalog import (
+    CustomLanguageSelection,
+    CustomPreferenceSelection,
+    ProfileLanguageSelection,
+    ProfileLanguageUpdate,
+)
 from app.services.csrf import CSRF_HEADER_NAME, create_session_csrf_token, csrf_cookie_name
-from app.services.profile_catalogs import ProfileInterestMutation, ProfileLanguageMutation
+from app.services.profile_catalogs import (
+    ProfileInterestMutation,
+    ProfileLanguageMutation,
+    ProfilePreferenceSnapshot,
+)
 from app.services.profiles import ProfileValidationError, ProfileVersionConflictError
 from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
 
 USER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 INTEREST_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
+ACTIVITY_ID = UUID("cccccccc-cccc-4ccc-8ccc-cccccccccccc")
 SIGNING_KEY = bytes(range(32))
 
 
@@ -421,12 +431,235 @@ async def test_openapi_exposes_bounded_catalog_and_relation_contracts() -> None:
 
     assert set(document["paths"]["/api/interests"]) == {"get"}
     assert set(document["paths"]["/api/languages"]) == {"get"}
+    assert set(document["paths"]["/api/activities"]) == {"get"}
     assert set(document["paths"]["/api/profile/interests"]) == {"put"}
     assert set(document["paths"]["/api/profile/languages"]) == {"put"}
+    assert set(document["paths"]["/api/profile/activities"]) == {"put"}
+    assert set(document["paths"]["/api/profile/preferences"]) == {"get", "put"}
     interest_update = document["components"]["schemas"]["ProfileInterestUpdate"]
     language_update = document["components"]["schemas"]["ProfileLanguageUpdate"]
     assert interest_update["properties"]["interest_ids"]["maxItems"] == 20
     assert language_update["properties"]["languages"]["maxItems"] == 10
+    preference_update = document["components"]["schemas"]["ProfilePreferenceUpdate"]
+    assert preference_update["properties"]["custom_interests"]["maxItems"] == 20
+    assert preference_update["properties"]["custom_languages"]["maxItems"] == 10
+    assert preference_update["properties"]["custom_activities"]["maxItems"] == 20
     profile_fields = document["components"]["schemas"]["OwnProfileResponse"]["properties"]
     assert {"interest_ids", "languages"}.issubset(profile_fields)
     assert {"user_id", "role", "password_hash"}.isdisjoint(profile_fields)
+
+
+@pytest.mark.anyio
+async def test_activity_catalog_uses_independent_selectable_items(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, session = _session(_user())
+    cookies, _headers = _install(session)
+    activity = Activity(
+        id=ACTIVITY_ID,
+        code="hiking",
+        label_en="Hiking",
+        label_de="Wandern",
+    )
+    service = AsyncMock(return_value=(activity,))
+    monkeypatch.setattr(catalog_api, "list_active_activities", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.get("/api/activities?locale=de")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "locale": "de",
+        "items": [
+            {
+                "id": str(ACTIVITY_ID),
+                "code": "hiking",
+                "label": "Wandern",
+            }
+        ],
+    }
+    service.assert_awaited_once_with(session)
+
+
+def _preference_snapshot(*, version: int = 4) -> ProfilePreferenceSnapshot:
+    return ProfilePreferenceSnapshot(
+        version=version,
+        interest_ids=(INTEREST_ID,),
+        custom_interests=(CustomPreferenceSelection(label="Formula 1"),),
+        languages=(
+            ProfileLanguageSelection(
+                language_code="de",
+                proficiency=LanguageProficiency.FLUENT,
+            ),
+        ),
+        custom_languages=(
+            CustomLanguageSelection(
+                label="Swiss German",
+                proficiency=LanguageProficiency.INTERMEDIATE,
+            ),
+        ),
+        activity_ids=(ACTIVITY_ID,),
+        custom_activities=(CustomPreferenceSelection(label="Night Kayaking"),),
+    )
+
+
+def _preference_payload() -> dict[str, object]:
+    return {
+        "version": 3,
+        "interest_ids": [str(INTEREST_ID)],
+        "custom_interests": [{"label": "Formula 1"}],
+        "languages": [{"language_code": "de", "proficiency": "fluent"}],
+        "custom_languages": [
+            {"label": "Swiss German", "proficiency": "intermediate"}
+        ],
+        "activity_ids": [str(ACTIVITY_ID)],
+        "custom_activities": [{"label": "Night Kayaking"}],
+    }
+
+
+@pytest.mark.anyio
+async def test_owner_combined_preference_update_commits_typed_safe_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    actor = _user()
+    mock, session = _session(actor)
+    cookies, headers = _install(session)
+    service = AsyncMock(return_value=_preference_snapshot())
+    monkeypatch.setattr(catalog_api, "replace_own_preferences", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile/preferences",
+            headers=headers,
+            json=_preference_payload(),
+        )
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    assert response.json() == {
+        "version": 4,
+        "interest_ids": [str(INTEREST_ID)],
+        "custom_interests": [{"label": "Formula 1"}],
+        "languages": [{"language_code": "de", "proficiency": "fluent"}],
+        "custom_languages": [
+            {"label": "Swiss German", "proficiency": "intermediate"}
+        ],
+        "activity_ids": [str(ACTIVITY_ID)],
+        "custom_activities": [{"label": "Night Kayaking"}],
+    }
+    assert "normalized" not in response.text
+    service.assert_awaited_once()
+    await_args = service.await_args
+    assert await_args is not None
+    assert await_args.args[0:2] == (session, actor)
+    mock.commit.assert_awaited_once_with()
+    mock.rollback.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_owner_reads_complete_preference_projection_without_csrf(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    actor = _user()
+    mock, session = _session(actor)
+    cookies, _headers = _install(session)
+    service = AsyncMock(return_value=_preference_snapshot())
+    monkeypatch.setattr(catalog_api, "get_own_preference_snapshot", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.get("/api/profile/preferences")
+
+    assert response.status_code == 200
+    assert response.json()["custom_languages"] == [
+        {"label": "Swiss German", "proficiency": "intermediate"}
+    ]
+    assert "normalized_key" not in response.text
+    service.assert_awaited_once_with(session, actor)
+    mock.commit.assert_awaited_once_with()
+
+
+@pytest.mark.anyio
+async def test_combined_preference_mutation_requires_valid_csrf(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, session = _session(_user())
+    cookies, _headers = _install(session)
+    service = AsyncMock()
+    monkeypatch.setattr(catalog_api, "replace_own_preferences", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile/preferences",
+            json=_preference_payload(),
+        )
+
+    assert response.status_code == 403
+    service.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_duplicate_error_is_stable_and_does_not_leak_internal_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock, session = _session(_user())
+    cookies, headers = _install(session)
+    service = AsyncMock(
+        side_effect=ProfileValidationError(
+            "normalized_key violates uq_profile_custom_preferences_profile_kind_key"
+        )
+    )
+    monkeypatch.setattr(catalog_api, "replace_own_preferences", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile/preferences",
+            headers=headers,
+            json=_preference_payload(),
+        )
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Profile preferences are invalid."}
+    assert "normalized_key" not in response.text
+    assert "uq_profile" not in response.text
+    mock.rollback.assert_awaited_once_with()
+    mock.commit.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_non_user_and_anonymous_cannot_access_owner_preference_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, session = _session(_user(role=UserRole.ADMIN))
+    admin_cookies, admin_headers = _install(session, token_role=UserRole.ADMIN)
+    service = AsyncMock()
+    monkeypatch.setattr(catalog_api, "replace_own_preferences", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=admin_cookies
+    ) as client:
+        admin_response = await client.put(
+            "/api/profile/preferences",
+            headers=admin_headers,
+            json=_preference_payload(),
+        )
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        anonymous_response = await client.put(
+            "/api/profile/preferences",
+            json=_preference_payload(),
+        )
+
+    assert admin_response.status_code == 403
+    assert anonymous_response.status_code == 401
+    service.assert_not_awaited()

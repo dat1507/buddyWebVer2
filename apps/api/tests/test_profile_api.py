@@ -249,7 +249,14 @@ async def test_get_attaches_normalized_catalog_selections_for_resume() -> None:
     interest_result.all.return_value = [interest_id]
     language_result = MagicMock()
     language_result.all.return_value = [language]
-    mock.scalars.side_effect = [interest_result, language_result]
+    empty_result = MagicMock()
+    empty_result.all.return_value = []
+    mock.scalars.side_effect = [
+        empty_result,
+        interest_result,
+        language_result,
+        empty_result,
+    ]
     _install(session)
     cookies, _headers = _session_evidence()
 

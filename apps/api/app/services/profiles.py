@@ -10,8 +10,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Interest, StudentProfile, User, UserRole
+from app.models import StudentProfile, User, UserRole
 from app.schemas.profile import ProfilePreferences, ProfileUpdate, WeeklyAvailability
+from app.services.preference_storage import (
+    list_selectable_activities,
+    read_profile_activity_ids,
+    replace_profile_activity_ids,
+)
 
 POSTGRES_UNIQUE_VIOLATION: Final = "23505"
 _MUTABLE_FIELDS: Final = frozenset(
@@ -123,30 +128,6 @@ def _availability_value(value: WeeklyAvailability) -> dict[str, object]:
     }
 
 
-def _preferences_value(value: ProfilePreferences) -> dict[str, object]:
-    return {
-        "preferred_activity_ids": [str(activity_id) for activity_id in value.preferred_activity_ids]
-    }
-
-
-async def _validate_preferred_activities(
-    session: AsyncSession,
-    preferences: ProfilePreferences,
-) -> None:
-    requested_ids = set(preferences.preferred_activity_ids)
-    if not requested_ids:
-        return
-    result = await session.scalars(
-        select(Interest.id).where(
-            Interest.id.in_(requested_ids),
-            Interest.is_active.is_(True),
-            Interest.deleted_at.is_(None),
-        )
-    )
-    if set(result.all()) != requested_ids:
-        raise ProfileValidationError("Profile preferences are invalid.")
-
-
 def _update_values(update: ProfileUpdate) -> dict[str, object | None]:
     changes: dict[str, object | None] = {}
     for field_name in update.model_fields_set.intersection(_MUTABLE_FIELDS):
@@ -154,7 +135,7 @@ def _update_values(update: ProfileUpdate) -> dict[str, object | None]:
         if isinstance(value, WeeklyAvailability):
             changes[field_name] = _availability_value(value)
         elif isinstance(value, ProfilePreferences):
-            changes[field_name] = _preferences_value(value)
+            continue
         else:
             changes[field_name] = value
     return changes
@@ -176,11 +157,24 @@ async def update_own_profile(
     if arrival_date is not None and departure_date is not None and departure_date < arrival_date:
         raise ProfileValidationError("Profile dates are invalid.")
 
+    requested_activity_ids: set[UUID] | None = None
+    existing_activity_ids: tuple[UUID, ...] = ()
     if "preferences" in update.model_fields_set and update.preferences is not None:
-        await _validate_preferred_activities(session, update.preferences)
+        requested_activity_ids = set(update.preferences.preferred_activity_ids)
+        selectable = await list_selectable_activities(session)
+        if not requested_activity_ids.issubset({activity.id for activity in selectable}):
+            raise ProfileValidationError("Profile preferences are invalid.")
+        existing_activity_ids = await read_profile_activity_ids(session, profile.id)
 
     for field_name, value in changes.items():
         setattr(profile, field_name, value)
+    if requested_activity_ids is not None:
+        await replace_profile_activity_ids(
+            session,
+            profile.id,
+            requested_activity_ids,
+            existing=existing_activity_ids,
+        )
     profile.version += 1
     await session.flush()
     return profile

@@ -14,7 +14,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import StudentProfile, StudentType, User, UserRole
+from app.models import Activity, StudentProfile, StudentType, User, UserRole
 from app.schemas import ProfileUpdate
 from app.services import (
     ProfileAccessError,
@@ -230,11 +230,19 @@ async def test_update_normalizes_availability_and_validates_active_activity_ids(
     owner = _user()
     profile = _profile(owner, version=3)
     activity_id = uuid4()
+    activity = Activity(
+        id=activity_id,
+        code="night-market",
+        label_en="Night market",
+        label_de="Nachtmarkt",
+    )
     mock, session = _session()
     mock.scalar.return_value = profile
     catalog_result = MagicMock()
-    catalog_result.all.return_value = [activity_id]
-    mock.scalars.return_value = catalog_result
+    catalog_result.all.return_value = [activity]
+    existing_result = MagicMock()
+    existing_result.all.return_value = []
+    mock.scalars.side_effect = [catalog_result, existing_result]
     update = ProfileUpdate.model_validate(
         {
             "version": 3,
@@ -255,9 +263,13 @@ async def test_update_normalizes_availability_and_validates_active_activity_ids(
             {"weekday": 6, "start_minute": 0, "end_minute": 60},
         ],
     }
-    assert profile.preferences == {"preferred_activity_ids": [str(activity_id)]}
+    assert profile.preferences is None
     assert profile.version == 4
-    mock.scalars.assert_awaited_once()
+    assert mock.scalars.await_count == 2
+    attached = list(mock.add_all.call_args.args[0])
+    assert [(item.profile_id, item.activity_id) for item in attached] == [
+        (profile.id, activity_id)
+    ]
 
 
 @pytest.mark.anyio

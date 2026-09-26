@@ -102,10 +102,18 @@ async def test_catalog_reads_filter_inactive_values_and_use_stable_order() -> No
 async def test_interest_replacement_is_exact_versioned_and_preserves_unrelated_fields() -> None:
     profile = _profile()
     old_interest_id = uuid4()
+    interest = Interest(
+        id=INTEREST_ID,
+        code="music",
+        label_en="Music",
+        label_de="Musik",
+        category="culture",
+    )
     mock, session = _session(profile)
     mock.scalars.side_effect = [
-        _result([INTEREST_ID]),
+        _result([interest]),
         _result([old_interest_id]),
+        _result([]),
     ]
 
     result = await replace_own_interests(
@@ -129,8 +137,19 @@ async def test_interest_replacement_is_exact_versioned_and_preserves_unrelated_f
 @pytest.mark.anyio
 async def test_identical_interest_replacement_is_a_noop_without_version_churn() -> None:
     profile = _profile()
+    interest = Interest(
+        id=INTEREST_ID,
+        code="music",
+        label_en="Music",
+        label_de="Musik",
+        category="culture",
+    )
     mock, session = _session(profile)
-    mock.scalars.side_effect = [_result([INTEREST_ID]), _result([INTEREST_ID])]
+    mock.scalars.side_effect = [
+        _result([interest]),
+        _result([INTEREST_ID]),
+        _result([]),
+    ]
 
     result = await replace_own_interests(
         session,
@@ -188,8 +207,14 @@ async def test_language_replacement_validates_codes_and_updates_proficiency_atom
         language_code="en",
         proficiency=LanguageProficiency.BEGINNER,
     )
+    english = Language(code="en", label_en="English", label_de="Englisch")
+    german = Language(code="de", label_en="German", label_de="Deutsch")
     mock, session = _session(profile)
-    mock.scalars.side_effect = [_result(["de", "en"]), _result([old])]
+    mock.scalars.side_effect = [
+        _result([german, english]),
+        _result([old]),
+        _result([]),
+    ]
     payload = ProfileLanguageUpdate.model_validate(
         {
             "version": 5,
@@ -242,13 +267,19 @@ async def test_owner_selection_read_returns_canonical_relations() -> None:
         proficiency=LanguageProficiency.FLUENT,
     )
     mock, session = _session(profile)
-    mock.scalars.side_effect = [_result([INTEREST_ID]), _result([language])]
+    mock.scalars.side_effect = [
+        _result([]),
+        _result([INTEREST_ID]),
+        _result([language]),
+        _result([]),
+    ]
 
     result = await get_own_catalog_selections(session, _owner(), profile)
 
     assert result.interest_ids == (INTEREST_ID,)
     assert result.languages[0].language_code == "en"
     assert result.languages[0].proficiency is LanguageProficiency.FLUENT
+    assert result.activity_ids == ()
 
 
 @pytest.mark.anyio

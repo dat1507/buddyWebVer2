@@ -7,8 +7,10 @@ from pydantic import ValidationError
 
 from app.models import LanguageProficiency
 from app.schemas.profile_catalog import (
+    ProfileActivityUpdate,
     ProfileInterestUpdate,
     ProfileLanguageUpdate,
+    ProfilePreferenceUpdate,
 )
 
 
@@ -96,3 +98,49 @@ def test_relation_updates_require_a_positive_strict_version(payload: dict[str, o
         ProfileInterestUpdate.model_validate(payload)
     with pytest.raises(ValidationError):
         ProfileLanguageUpdate.model_validate(payload)
+
+
+def test_custom_inputs_are_prebounded_and_combined_group_limits_are_enforced() -> None:
+    with pytest.raises(ValidationError, match="at most 255"):
+        ProfileInterestUpdate.model_validate(
+            {
+                "version": 1,
+                "interest_ids": [],
+                "custom_interests": [{"label": "x" * 256}],
+            }
+        )
+
+    with pytest.raises(ValidationError, match="selection limit"):
+        ProfileActivityUpdate.model_validate(
+            {
+                "version": 1,
+                "activity_ids": [str(uuid4()) for _ in range(20)],
+                "custom_activities": [{"label": "Extra"}],
+            }
+        )
+
+
+def test_combined_preference_update_requires_all_groups_and_valid_proficiency() -> None:
+    payload = {
+        "version": 1,
+        "interest_ids": [],
+        "custom_interests": [{"label": "Formula 1"}],
+        "languages": [],
+        "custom_languages": [
+            {"label": "Swiss German", "proficiency": "intermediate"}
+        ],
+        "activity_ids": [],
+        "custom_activities": [],
+    }
+    update = ProfilePreferenceUpdate.model_validate(payload)
+    assert update.custom_languages[0].proficiency is LanguageProficiency.INTERMEDIATE
+
+    invalid = dict(payload)
+    invalid["custom_languages"] = [{"label": "Swiss German", "proficiency": "expert"}]
+    with pytest.raises(ValidationError, match="Input should be"):
+        ProfilePreferenceUpdate.model_validate(invalid)
+
+    missing_group = dict(payload)
+    del missing_group["activity_ids"]
+    with pytest.raises(ValidationError, match="Field required"):
+        ProfilePreferenceUpdate.model_validate(missing_group)

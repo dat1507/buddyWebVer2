@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import (
     Interest,
     Language,
+    PreferenceKind,
+    ProfileCustomPreference,
     ProfileInterest,
     ProfileLanguage,
     ProfilePhoto,
@@ -25,6 +27,7 @@ from app.schemas.profile_completion import (
     ProfileCompletionStatus,
     ProfileMissingField,
 )
+from app.services.preference_identity import normalize_preference_key
 from app.services.profiles import ProfileAccessError, get_or_create_own_profile_for_update
 
 
@@ -54,8 +57,9 @@ async def _count_ready_avatars(session: AsyncSession, profile_id: UUID) -> int:
 
 
 async def _count_valid_interests(session: AsyncSession, profile_id: UUID) -> int:
-    value = await session.scalar(
-        select(func.count(ProfileInterest.interest_id))
+    selected = await session.scalars(
+        select(Interest)
+        .select_from(ProfileInterest)
         .join(Interest, Interest.id == ProfileInterest.interest_id)
         .where(
             ProfileInterest.profile_id == profile_id,
@@ -63,19 +67,46 @@ async def _count_valid_interests(session: AsyncSession, profile_id: UUID) -> int
             Interest.deleted_at.is_(None),
         )
     )
-    return int(value or 0)
+    custom = await session.scalars(
+        select(ProfileCustomPreference.normalized_key).where(
+            ProfileCustomPreference.profile_id == profile_id,
+            ProfileCustomPreference.kind == PreferenceKind.INTEREST,
+            ProfileCustomPreference.deleted_at.is_(None),
+        )
+    )
+    selected_catalog = tuple(selected.all())
+    catalog_keys = {
+        normalize_preference_key(label)
+        for item in selected_catalog
+        for label in (item.label_en, item.label_de)
+    }
+    return len(selected_catalog) + len(set(custom.all()).difference(catalog_keys))
 
 
 async def _count_valid_languages(session: AsyncSession, profile_id: UUID) -> int:
-    value = await session.scalar(
-        select(func.count(ProfileLanguage.language_code))
+    selected = await session.scalars(
+        select(Language)
+        .select_from(ProfileLanguage)
         .join(Language, Language.code == ProfileLanguage.language_code)
         .where(
             ProfileLanguage.profile_id == profile_id,
             Language.is_active.is_(True),
         )
     )
-    return int(value or 0)
+    custom = await session.scalars(
+        select(ProfileCustomPreference.normalized_key).where(
+            ProfileCustomPreference.profile_id == profile_id,
+            ProfileCustomPreference.kind == PreferenceKind.LANGUAGE,
+            ProfileCustomPreference.deleted_at.is_(None),
+        )
+    )
+    selected_catalog = tuple(selected.all())
+    catalog_keys = {
+        normalize_preference_key(label)
+        for item in selected_catalog
+        for label in (item.label_en, item.label_de)
+    }
+    return len(selected_catalog) + len(set(custom.all()).difference(catalog_keys))
 
 
 def derive_profile_completion(

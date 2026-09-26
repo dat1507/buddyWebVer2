@@ -12,6 +12,7 @@ from app.schemas import (
     OwnProfileResponse,
     ProfileCompletionResponse,
     ProfilePhotoResponse,
+    ProfilePreferences,
     ProfileUpdate,
 )
 from app.services.csrf import CsrfTokenClaims
@@ -80,10 +81,16 @@ async def _own_profile_response(
 ) -> OwnProfileResponse:
     response = OwnProfileResponse.model_validate(profile)
     selections = await get_own_catalog_selections(session, current_user, profile)
+    preferences = response.preferences
+    if selections.activity_ids or preferences is not None:
+        preferences = ProfilePreferences(
+            preferred_activity_ids=list(selections.activity_ids)
+        )
     response = response.model_copy(
         update={
             "interest_ids": list(selections.interest_ids),
             "languages": list(selections.languages),
+            "preferences": preferences,
         }
     )
     avatar = await get_own_avatar(session, current_user)

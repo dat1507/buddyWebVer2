@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
@@ -11,7 +12,7 @@ import pytest
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import StudentProfile, StudentType, User, UserRole
+from app.models import Interest, Language, StudentProfile, StudentType, User, UserRole
 from app.schemas.profile_completion import (
     MatchingIneligibilityReason,
     ProfileCompletionResponse,
@@ -27,6 +28,22 @@ from app.services.profile_completion import (
 
 USER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 PROFILE_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
+
+
+def _result(values: Sequence[object]) -> MagicMock:
+    result = MagicMock()
+    result.all.return_value = values
+    return result
+
+
+def _interest(identifier: int, code: str) -> Interest:
+    return Interest(
+        id=UUID(int=identifier),
+        code=code,
+        label_en=code.title(),
+        label_de=f"{code.title()} DE",
+        category="test",
+    )
 
 
 def _user(**overrides: object) -> User:
@@ -216,7 +233,15 @@ async def test_service_filters_invalid_relations_and_records_first_completion_mi
 ) -> None:
     profile = _profile(onboarding_completed_at=None)
     mock = MagicMock(spec=AsyncSession)
-    mock.scalar = AsyncMock(side_effect=[profile, 1, 2, 1])
+    mock.scalar = AsyncMock(side_effect=[profile, 1])
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _result([_interest(1, "music"), _interest(2, "travel")]),
+            _result([]),
+            _result([Language(code="en", label_en="English", label_de="Englisch")]),
+            _result([]),
+        ]
+    )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
     reservation_reader = AsyncMock(return_value=0)
@@ -228,11 +253,10 @@ async def test_service_filters_invalid_relations_and_records_first_completion_mi
     assert profile.onboarding_completed_at is not None
     mock.flush.assert_awaited_once_with()
     reservation_reader.assert_awaited_once_with(session, PROFILE_ID)
-    statements = [
-        call.args[0].compile(dialect=make_url("postgresql+asyncpg://").get_dialect()())
-        for call in mock.scalar.await_args_list[1:]
-    ]
-    avatar_sql, interest_sql, language_sql = (str(statement).lower() for statement in statements)
+    dialect = make_url("postgresql+asyncpg://").get_dialect()()
+    avatar_sql = str(mock.scalar.await_args_list[1].args[0].compile(dialect=dialect)).lower()
+    interest_sql = str(mock.scalars.await_args_list[0].args[0].compile(dialect=dialect)).lower()
+    language_sql = str(mock.scalars.await_args_list[2].args[0].compile(dialect=dialect)).lower()
     assert "profile_photos.is_avatar is true" in avatar_sql
     assert "profile_photos.processing_status" in avatar_sql
     assert "profile_photos.deleted_at is null" in avatar_sql
@@ -249,7 +273,15 @@ async def test_draft_to_complete_transition_preserves_historical_milestone_after
 ) -> None:
     profile = _profile(onboarding_completed_at=None)
     mock = MagicMock(spec=AsyncSession)
-    mock.scalar = AsyncMock(side_effect=[profile, 1, 1, 1])
+    mock.scalar = AsyncMock(side_effect=[profile, 1])
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _result([_interest(1, "music")]),
+            _result([]),
+            _result([Language(code="en", label_en="English", label_de="Englisch")]),
+            _result([]),
+        ]
+    )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
     monkeypatch.setattr(
@@ -274,7 +306,15 @@ async def test_existing_completion_milestone_is_not_rewritten() -> None:
     milestone = datetime(2026, 9, 19, tzinfo=UTC)
     profile = _profile(onboarding_completed_at=milestone)
     mock = MagicMock(spec=AsyncSession)
-    mock.scalar = AsyncMock(side_effect=[profile, 1, 1, 1])
+    mock.scalar = AsyncMock(side_effect=[profile, 1])
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _result([_interest(1, "music")]),
+            _result([]),
+            _result([Language(code="en", label_en="English", label_de="Englisch")]),
+            _result([]),
+        ]
+    )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
 
@@ -283,3 +323,74 @@ async def test_existing_completion_milestone_is_not_rewritten() -> None:
     assert completion.status is ProfileCompletionStatus.COMPLETE
     assert profile.onboarding_completed_at == milestone
     mock.flush.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_completion_counts_custom_signals_without_duplicate_or_activity_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = _profile(onboarding_completed_at=None)
+    interests = [_interest(index, f"interest-{index}") for index in range(1, 21)]
+    languages = [
+        Language(
+            code=f"qaa-{index:02d}",
+            label_en=f"Language {index}",
+            label_de=f"Sprache {index}",
+        )
+        for index in range(1, 11)
+    ]
+    mock = MagicMock(spec=AsyncSession)
+    mock.scalar = AsyncMock(side_effect=[profile, 1])
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _result(interests),
+            _result(["interest-1"]),
+            _result(languages),
+            _result(["language 1"]),
+        ]
+    )
+    mock.flush = AsyncMock()
+    session = cast(AsyncSession, mock)
+    monkeypatch.setattr(
+        completion_service,
+        "count_active_match_reservations",
+        AsyncMock(return_value=0),
+    )
+
+    completion = await get_own_profile_completion(session, _user())
+
+    assert completion.status is ProfileCompletionStatus.COMPLETE
+    assert completion.percentage == 100
+    assert mock.scalars.await_count == 4
+    rendered = "\n".join(str(call.args[0]).lower() for call in mock.scalars.await_args_list)
+    assert "profile_activities" not in rendered
+
+
+@pytest.mark.anyio
+async def test_custom_only_interest_and_language_satisfy_existing_completion_groups(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = _profile(onboarding_completed_at=None)
+    mock = MagicMock(spec=AsyncSession)
+    mock.scalar = AsyncMock(side_effect=[profile, 1])
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _result([]),
+            _result(["formula 1"]),
+            _result([]),
+            _result(["swiss german"]),
+        ]
+    )
+    mock.flush = AsyncMock()
+    session = cast(AsyncSession, mock)
+    monkeypatch.setattr(
+        completion_service,
+        "count_active_match_reservations",
+        AsyncMock(return_value=0),
+    )
+
+    completion = await get_own_profile_completion(session, _user())
+
+    assert completion.status is ProfileCompletionStatus.COMPLETE
+    assert completion.missing_fields == []
+    assert completion.percentage == 100
