@@ -26,12 +26,10 @@ function EmailVerificationPage() {
   const status = useAuthStore((state) => state.status)
   const user = useAuthStore((state) => state.user)
   const submission = useAuthSubmission()
-  const verified = user?.role === 'USER' && user.email_verified
 
-  const title =
-    verified || submission.success
-      ? t('emailVerification.confirm.successTitle')
-      : t('emailVerification.confirm.title')
+  const title = submission.success
+    ? t('emailVerification.confirm.successTitle')
+    : t('emailVerification.confirm.title')
 
   return (
     <main className="flex min-h-[calc(100svh-4rem)] items-center justify-center bg-muted/30 px-4 py-12">
@@ -82,7 +80,7 @@ function EmailVerificationPage() {
                 {t('emailVerification.confirm.wrongRole')}
               </p>
             </div>
-          ) : verified || submission.success ? (
+          ) : submission.success ? (
             <div className="space-y-4" role="status">
               <BadgeCheck className="mx-auto size-8 text-emerald-600" aria-hidden="true" />
               <p className="text-sm leading-6 text-muted-foreground">

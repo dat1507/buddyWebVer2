@@ -77,6 +77,24 @@ describe('EMAIL-005 email confirmation UX', () => {
     expect(storage).not.toHaveBeenCalled()
   })
 
+  it('replays a token through the API when the current account is already verified', async () => {
+    useAuthStore.getState().setAuthenticated({
+      ...user,
+      email_verified: true,
+      email_verified_at: '2026-09-24T12:30:00Z',
+    })
+    const confirm = vi
+      .spyOn(sessionClient, 'confirmEmailVerification')
+      .mockRejectedValue(new ApiError(400, 'server'))
+    renderPage('/verify-email?token=already-consumed-fixture-token')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm email' }))
+
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith('already-consumed-fixture-token'))
+    expect(screen.getByRole('alert')).toHaveTextContent(/invalid, expired, or already used/i)
+    expect(document.body).not.toHaveTextContent('already-consumed-fixture-token')
+  })
+
   it('rejects missing or ambiguous query tokens before any API call', () => {
     const confirm = vi.spyOn(sessionClient, 'confirmEmailVerification').mockResolvedValue('/user')
     const first = renderPage('/verify-email')
