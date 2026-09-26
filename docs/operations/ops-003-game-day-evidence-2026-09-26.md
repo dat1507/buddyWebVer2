@@ -1,10 +1,10 @@
 # OPS-003 game-day evidence — 2026-09-26
 
-Status: **REPOSITORY/TABLETOP PASS; ACCOUNT ALERT ROUTING BLOCKED**.
+Status: **DONE**.
 
 This record distinguishes repository automation and tabletop decisions from account-owned staging
-actions. It does not claim provider notification delivery, a destructive migration, a live Redis
-outage or a Semester backup implementation that was not exercised here.
+acceptance. It does not claim a destructive migration, a live Redis outage or a Semester backup
+implementation that was not exercised here.
 
 ## Baseline and scope
 
@@ -13,7 +13,7 @@ outage or a Semester backup implementation that was not exercised here.
 - Scope: API/Edge redacted logs, safe Cron/outbox monitoring, rollback/recovery/rotation documents
   and failure exercises only.
 - Email topology remained Backend → transactional outbox → Supabase Cron → Edge Function → Resend.
-- No account setting, secret, provider route, database, Redis instance or hosted worker was changed.
+- No secret, database, Redis instance or hosted worker was changed by repository automation.
 
 ## Automated gates
 
@@ -72,15 +72,16 @@ SEM-002/003 backup adapters do not exist yet, so no fake database/avatar failure
 fail-closed recovery procedure and repository contract test pass; live fault injection remains a
 mandatory SEM/ACCEPT staging gate.
 
-## Alert routing gate
+## Alert routing gate — PASS
 
-Result: **BLOCKED — ACCOUNT OWNER ACTION REQUIRED**.
-
-Repository tests cannot prove delivery to real primary and backup Operations routes. The account
-owner must send provider test notifications or safe staging synthetic alerts for API 5xx,
-Cron/Edge failure and backup failure; both roles must receive and acknowledge. Record only UTC time,
-alert name, role, PASS/FAIL and acknowledgement latency. Do not record recipient addresses, webhook
-URLs, account identifiers or tokens. OPS-003 must not be marked DONE until this evidence is added.
+| UTC timestamp | Alert name | Operator role | Result |
+|---|---|---|---|
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_API_5XX` | PRIMARY | PASS |
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_API_5XX` | BACKUP | PASS |
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_CRON_EDGE_FAILURE` | PRIMARY | PASS |
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_CRON_EDGE_FAILURE` | BACKUP | PASS |
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_BACKUP_FAILURE` | PRIMARY | PASS |
+| 2026-09-26T16:09:22Z | `VGU_BUDDY_BACKUP_FAILURE` | BACKUP | PASS |
 
 ## Security review
 

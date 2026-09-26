@@ -7,7 +7,7 @@
 >
 > **v2.1 Changes**: Event Slider is admin-managed dynamic content backed by PostgreSQL/API and Supabase Storage. Frontend mock data is development-only.
 
-> **v2.6 — 2026-09-26, OPS-002 completion and OPS-003 operations audit:** Sanitized staging evidence now records migration `0010`, the single one-minute Cron job, scheduled Edge HTTP 200, A–F, real verification delivery/confirm/replay rejection, Free-plan/capacity checks and the remaining application/Redis smoke gates as passed. OPS-002 is **DONE**. OPS-003 adds fixed-field redacted API/Edge logs, read-only Cron/outbox monitoring, alert thresholds, deployment rollback, DB migration recovery, email/Redis/backup recovery and credential-rotation runbooks plus repository game-day evidence. Account-specific primary/backup alert delivery must still be verified before OPS-003 is DONE.
+> **v2.6 — 2026-09-26, OPS-002 and OPS-003 completion:** Sanitized staging evidence records migration `0010`, the single one-minute Cron job, scheduled Edge HTTP 200, A–F, real verification delivery/confirm/replay rejection, Free-plan/capacity checks and the remaining application/Redis smoke gates as passed. OPS-002 is **DONE**. OPS-003 adds fixed-field redacted API/Edge logs, read-only Cron/outbox monitoring, alert thresholds, deployment rollback, DB migration recovery, email/Redis/backup recovery and credential-rotation runbooks plus repository game-day evidence. Sanitized primary/backup alert-routing acceptance is recorded; OPS-003 is **DONE**.
 >
 > **v2.5 — 2026-09-26, MAIL-001 deployment audit (historical state, superseded by v2.6):** The repository implementation and current official provider documentation were re-audited without changing application code, migrations or infrastructure. Production email delivery is controlled by `application/backend → app_private.transactional_outbox → Supabase Cron (one minute) → Supabase Edge Function email-worker → Resend`. Google Cloud VM/e2-micro, a paid Render Background Worker and any always-on hosted Python email worker are rejected alternatives, not production dependencies. The Python worker remains only for local development, debugging and a manually activated fallback after Cron is disabled. At that audit timestamp OPS-002 still awaited account-owned deployment acceptance; the completed state is recorded by v2.6 and the OPS-002 evidence.
 >
@@ -6679,7 +6679,7 @@ Audit refreshed 2026-09-26 from current `origin/main` before OPS-003 implementat
 | Instructions | No `AGENTS.md` found in the repository |
 | Scope | OPS-002 evidence/status reconciliation and OPS-003 observability/runbooks/tests only. No PREF/REC/INV/BUDDY/CHAT feature work, account secret, infrastructure resource or paid service change is authorized. |
 
-The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source, migrations `0008`/`0009`/`0010`, Edge Function/Cron SQL, current tests and every operations document. OPS-002's deployed account actions are accepted only from the sanitized staging evidence and owner completion statement; no secret value or provider response was copied into this repository. OPS-003 repository gates exercise redaction, failure/recovery logic and runbook contracts locally. Provider alert delivery remains an explicit account-owner gate rather than a simulated PASS.
+The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source, migrations `0008`/`0009`/`0010`, Edge Function/Cron SQL, current tests and every operations document. OPS-002's deployed account actions are accepted only from the sanitized staging evidence and owner completion statement; no secret value or provider response was copied into this repository. OPS-003 repository gates exercise redaction, failure/recovery logic and runbook contracts locally. Primary and backup alert delivery and acknowledgement are accepted from the sanitized account-owner evidence rather than a simulated result.
 
 ### 26.2 Current source audit
 
@@ -6701,7 +6701,7 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Admin auth/user views/audit | **Partial** | Admin CLI, role protection, `/api/admin/users`, audited detail/photo reads exist; overview statistics are em dashes; audit log is append-only but Admin-linked with `ON DELETE RESTRICT` | Reuse RBAC, tables/components and redaction. Add monitoring-only matching stats and dedicated reset-operation audit that survives student deletion. |
 | Frontend deployment | **Partial** | Vite production build passes; `apps/web/vercel.json` supplies SPA rewrite and basic security headers; `VITE_API_URL` exists | Vercel Root Directory must be `apps/web`; validate HTTPS, exact API URL and deep links on staging. Current separate-site cookies need a verified same-site topology. |
 | Backend/DB deployment | **Staging foundation accepted; production pending** | FastAPI staging, separated runtime/migration roles, migration `0010`, DB/Redis/email/storage readiness, WSS upgrade and trusted proxy gates are recorded in OPS-002 evidence | Keep the accepted staging topology. OPS-003 supplies rollback/recovery; production still requires the later V2 and ACCEPT-001 gates. |
-| Observability/operations | **OPS-003 repository implementation complete; alert route acceptance pending** | Fixed-field API/Edge JSON logs, sanitized Cron/outbox SQL and `docs/operations/ops-003-*` cover alerting, rollback, migration/email/Redis/backup recovery and rotation | Verify primary and backup provider alert delivery with account-owner access; do not simulate PASS. |
+| Observability/operations | **OPS-003 DONE — 2026-09-26** | Fixed-field API/Edge JSON logs, sanitized Cron/outbox SQL and `docs/operations/ops-003-*` cover alerting, rollback, migration/email/Redis/backup recovery, rotation and primary/backup alert-routing acceptance | Preserve the redacted evidence boundary; continue to monitor the accepted staging routes. |
 | Secrets | **Staging configured; repository boundary preserved** | `.env` and `.env.local` remain ignored/untracked; only templates are tracked. Edge reads six server-side secrets and Cron reads two Vault entries; source does not require a Supabase service-role key | Keep values only in server-side stores. OPS-003 defines rotation order without recording values; production still requires a fresh secret scan and rotation acceptance. |
 
 ### 26.3 Conflicts with the old implementation plan
@@ -7369,7 +7369,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 
 #### OPS-003 — Observability, rollback, recovery and credential runbooks
 
-- **Status:** **REPOSITORY IMPLEMENTATION COMPLETE; BLOCKED ON ACCOUNT-SPECIFIC ALERT ROUTING.** Fixed-field redacted API/Edge JSON events, sanitized Cron/outbox monitoring SQL, alert thresholds, deployment rollback, DB migration decision tree, email/Redis/backup recovery, credential rotation and repository tabletop evidence are present. An account owner must prove primary and backup notification delivery/acknowledgement without committing destinations or tokens before OPS-003 can be marked DONE.
+- **Status:** **DONE — 2026-09-26.** Fixed-field redacted API/Edge JSON events, sanitized Cron/outbox monitoring SQL, alert thresholds, deployment rollback, DB migration decision tree, email/Redis/backup recovery, credential rotation and repository tabletop evidence are present. Account-owner evidence records PASS for primary and backup delivery and acknowledgement across API 5xx, Cron/Edge failure and backup failure without committing destinations or credentials.
 - **Purpose:** Make failures diagnosable and recoverable before destructive/data-retention features ship.
 - **Scope / likely files:** operations documentation/config for structured redacted logs, error monitoring, metrics/alerts, deploy rollback, DB migration recovery, email/outbox, Redis/WSS and backup/restore runbooks.
 - **Dependencies / ownership:** OPS-002; Infrastructure + Operations.
@@ -7455,7 +7455,7 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. `EMAIL-002..005`, `OPS-001` and `OPS-002` are complete. Complete OPS-003 by verifying the account-owned primary/backup alert routes; its repository observability, recovery, rotation and tabletop work is implemented. In parallel, `PREF-001..004` may proceed.
+2. `EMAIL-002..005`, `OPS-001`, `OPS-002` and `OPS-003` are complete. Proceed with `PREF-001..004` in dependency order.
 3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
@@ -7543,10 +7543,10 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
 | **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004`, `EMAIL-005`, `AUTH-V2-001` and `OPS-001` are complete; realtime Redis Pub/Sub/WebSocket and end-to-end flows remain absent. |
-| **STAGING** | **OPS-002 DONE; OPS-003 ALERT ROUTING PENDING** | Early infrastructure, restore/migration, Edge/Cron A–F and real verification acceptance passed. Primary/backup provider alert delivery still needs account-owner verification. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
+| **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: account-owner alert routing acceptance for `OPS-003`.** Use the current monitoring provider's test-notification feature or a safe staging synthetic alert for API 5xx, Cron/Edge failure and backup failure. Confirm delivery and acknowledgement by the primary and backup Operations roles; record only UTC time, alert name, role, result and latency. Do not put destination addresses, webhook URLs, account IDs or tokens in Git/chat. After this gate passes, mark OPS-003 DONE; `PREF-001` is the next unimplemented functional task in the recommended order.
+**Next step: `PREF-001`.** OPS-003 alert-routing acceptance is complete with sanitized primary/backup PASS evidence. `PREF-001` is the next unimplemented functional task in the recommended order.
 
 ### 26.19 Documentation-change boundary
 

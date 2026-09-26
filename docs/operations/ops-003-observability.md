@@ -95,16 +95,16 @@ verified. Any backup failure, missing/corrupt object, count/checksum mismatch or
 fail-closed and pages the operator. A restore remains under the maintenance barrier until all counts,
 checksums and required references reconcile.
 
-## Alert routing and account-specific acceptance gate
+## Alert routing and account-specific acceptance
 
 Route Critical/High alerts to the primary Operations on-call and a distinct backup operator; route
 security-origin failures to the security owner as well. Medium alerts may use the Operations queue.
 The roles, acknowledgement time and escalation path belong in the private provider configuration,
 not Git.
 
-Alert routing verification is account-specific and cannot be satisfied by repository tests. An
-account owner must use the provider's test-notification feature (or a non-production synthetic alert)
-for API 5xx, Cron/Edge failure and backup failure, then record only UTC time, alert name, route role,
-delivery result and acknowledgement latency in the OPS-003 evidence file. Do not record recipient
-addresses, webhook URLs or integration tokens. OPS-003 remains blocked until primary and backup
-routing both receive and acknowledge the test.
+Alert routing verification is account-specific and cannot be satisfied by repository tests. The
+account owner used provider test notifications or safe staging synthetic alerts for API 5xx,
+Cron/Edge failure and backup failure. The sanitized OPS-003 evidence records only UTC time, alert
+name, route role and result; no acknowledgement latency was provided. Recipient addresses, webhook
+URLs and integration tokens remain outside Git. Primary and backup routing both received and
+acknowledged the tests, so this acceptance gate is complete.
