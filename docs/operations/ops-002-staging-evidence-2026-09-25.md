@@ -1,7 +1,7 @@
 # OPS-002 staging evidence — 2026-09-25
 
-Status: **BLOCKED / IN ACCEPTANCE — READY FOR SUPABASE EMAIL-WORKER DEPLOYMENT**. This is partial evidence
-for the early staging infrastructure gate; it does not mark OPS-002 complete.
+Status: **BLOCKED / IN ACCEPTANCE — SUPABASE EMAIL-WORKER ACCEPTANCE PASSED**. This is partial
+evidence for the staging infrastructure gate; it does not mark all of OPS-002 complete.
 
 The worker deployment decision was amended again on 2026-09-25: neither a Google Cloud VM nor a paid
 Render Background Worker remains in the plan. Resend and the PostgreSQL transactional outbox remain;
@@ -78,19 +78,38 @@ not promoted to PASS by that earlier smoke.
 The active staging database was not connected to or modified during this rehearsal. The password,
 connection string, and raw client output were not persisted.
 
-## Remaining mandatory evidence
+## Remaining OPS-002 evidence
 
-- Apply migration `0010_edge_email_outbox_functions` and deploy the reviewed `email-worker` Edge
-  Function using only the least-privilege runtime database role and Supabase-managed secrets.
-- Enable Supabase Cron/`pg_net`, store the two Cron values in Vault, and schedule the one-minute job.
-- Record empty-queue, real verification delivery, single-use confirmation, idempotency,
-  retry/recovery, two-invocation overlap and bounded-20 acceptance.
 - Confirm the Supabase project and Resend account remain on Free plans and measured usage remains
   inside their quotas; no paid add-on or automatic upgrade is authorized.
 - Authenticated refresh/F5/logout, profile read/update, avatar upload/private authenticated read,
   anonymous denial, and persistence checks.
 - Controlled Redis outage showing fail-closed behavior followed by recovery.
 
-These items require account-owner secret entry and deployed staging acceptance and remain blockers.
-No secret, token, cookie value, verification URL, credential, message body or raw authorization
-header is recorded here.
+These non-mail items remain OPS-002 blockers. No secret, token, cookie value, verification URL,
+credential, message body or raw authorization header is recorded here.
+
+## Supabase email-worker acceptance — 2026-09-26
+
+- Migration `0010_edge_email_outbox_functions` is applied and the deployed `email-worker` uses the
+  least-privilege runtime database role through the TLS transaction pooler.
+- Exactly one active Cron job exists: `vgu-buddy-email-worker-every-minute`, scheduled as
+  `* * * * *`. A scheduled run after the controlled acceptance window succeeded and its Edge HTTP
+  response was `200` with an empty ready queue.
+- A manual empty-queue invocation returned zero counts.
+- A new designated staging verification request produced one outbox row, was delivered by Cron,
+  reached the staging mailbox, verified the USER once and rejected token replay with the same
+  generic invalid/expired/already-used response used for other token failures.
+- Retrying the completed job with the same idempotency key increased its attempt count without a
+  second mailbox delivery; the provider identity remained stable.
+- A simulated retryable failure released its lease, entered the one-minute retry window and later
+  recovered to `SENT`; the successful finalization cleared the lease and sanitized error state.
+- Two overlapping authenticated Edge invocations both returned HTTP `200`, while their combined
+  result was exactly one claim and one send for the single ready row.
+- With 21 non-deliverable acceptance events ready, one invocation claimed exactly 20. Those 20 and
+  the remaining row finalized without contacting the email provider; the ready queue returned to
+  zero before Cron was re-enabled.
+- The Python worker was not run during hosted acceptance. It remains local/debug/fallback tooling
+  and is not a deployment dependency.
+- No credential, recipient, payload, plaintext token, verification URL or provider message ID was
+  persisted in this evidence.
