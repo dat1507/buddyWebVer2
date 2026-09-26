@@ -6997,6 +6997,7 @@ was added.
 
 #### PREF-002 — Normalized preference identity service
 
+- **Status:** **Done 2026-09-27.** The backend now owns one bounded, deterministic preference identity contract with a display-safe label and an NFKC/whitespace/casefold key; PREF-003/PREF-004 remain unimplemented.
 - **Purpose:** Define the single deterministic identity rule shared by persistence, duplicate detection and scoring.
 - **Scope / likely files:** pure normalization/value-object service implementing NFKC → trim → collapse whitespace → Unicode casefold, with display-label validation.
 - **Dependencies / ownership:** PREF-001; Backend.
