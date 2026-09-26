@@ -7005,6 +7005,20 @@ was added.
 - **Tests/gates:** Unicode normalization vectors, whitespace/case/property/idempotency and pathological input tests.
 - **Non-goals:** persistence, semantic translation, fuzzy matching or AI.
 
+**Implementation:** `PreferenceIdentity` is an immutable value object that returns the cleaned
+display label separately from the deterministic comparison key. Display labels preserve valid
+Unicode and casing while trimming/collapsing whitespace; keys apply NFKC, trim/collapse whitespace
+and Unicode casefold in that order. The service reuses the PREF-001 120/255-character storage
+bounds, rejects oversized input before normalization and rejects empty, unsafe control/format and
+post-normalization oversized values. It has no database, locale, timezone or external-service
+dependency.
+
+**Verification (2026-09-27):** Golden Unicode/casefold/NFKC/whitespace, immutability, idempotency,
+pathological-input and PREF-001 identity-compatibility tests pass. Full backend: 836 passed / 20
+configured live skips; Ruff, strict mypy (156 files), dependency consistency/audit, Alembic
+history/head, package build and Compose validation pass. No migration, persistence, API or frontend
+change was added.
+
 #### PREF-003 — Preference services and owner APIs
 
 - **Purpose:** Persist/read predefined and custom interests, languages and activities consistently.

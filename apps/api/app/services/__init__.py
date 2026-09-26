@@ -135,6 +135,13 @@ from app.services.passwords import (
     hash_password,
     verify_password,
 )
+from app.services.preference_identity import (
+    MAX_CUSTOM_PREFERENCE_INPUT_LENGTH,
+    PreferenceIdentity,
+    PreferenceIdentityError,
+    normalize_preference_identity,
+    normalize_preference_key,
+)
 from app.services.profiles import (
     ProfileAccessError,
     ProfileValidationError,
@@ -172,6 +179,7 @@ __all__ = [
     "MAX_EMAIL_LOCAL_PART_LENGTH",
     "MAX_EMAIL_LENGTH",
     "MIN_ADMIN_PASSWORD_CHARACTERS",
+    "MAX_CUSTOM_PREFERENCE_INPUT_LENGTH",
     "CSRF_HEADER_NAME",
     "PREAUTH_CSRF_TTL",
     "SESSION_CSRF_TTL",
@@ -237,6 +245,8 @@ __all__ = [
     "OutboxValidationError",
     "OutboxWorkerReport",
     "PasswordHashingError",
+    "PreferenceIdentity",
+    "PreferenceIdentityError",
     "PreparedImage",
     "ProfileAccessError",
     "ProfileValidationError",
@@ -282,6 +292,8 @@ __all__ = [
     "hash_password",
     "enqueue_transactional_email",
     "issue_email_verification_token",
+    "normalize_preference_identity",
+    "normalize_preference_key",
     "request_email_verification",
     "seal_email_verification_token",
     "get_event",

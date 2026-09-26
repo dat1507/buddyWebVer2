@@ -22,6 +22,8 @@ from app.models.profile import (
     StudentType,
 )
 from app.models.profile_catalog import (
+    MAX_CUSTOM_PREFERENCE_DISPLAY_LABEL_LENGTH,
+    MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH,
     Activity,
     Interest,
     Language,
@@ -53,6 +55,8 @@ __all__ = (
     "Interest",
     "Language",
     "LanguageProficiency",
+    "MAX_CUSTOM_PREFERENCE_DISPLAY_LABEL_LENGTH",
+    "MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH",
     "PreferenceKind",
     "ProfileActivity",
     "ProfileCustomPreference",

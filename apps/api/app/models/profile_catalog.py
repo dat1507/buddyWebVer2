@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Final
 from uuid import UUID
 
 from sqlalchemy import (
@@ -20,6 +21,9 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.core.database import APPLICATION_SCHEMA
 from app.models.base import Base
+
+MAX_CUSTOM_PREFERENCE_DISPLAY_LABEL_LENGTH: Final = 120
+MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH: Final = 255
 
 
 class _CatalogKeyBase(DeclarativeBase):
@@ -213,11 +217,13 @@ class ProfileCustomPreference(Base):
     __tablename__ = "profile_custom_preferences"
     __table_args__ = (
         CheckConstraint(
-            "char_length(btrim(display_label)) BETWEEN 1 AND 120",
+            "char_length(btrim(display_label)) BETWEEN 1 AND "
+            f"{MAX_CUSTOM_PREFERENCE_DISPLAY_LABEL_LENGTH}",
             name="ck_profile_custom_preferences_display_label_length",
         ),
         CheckConstraint(
-            "char_length(normalized_key) BETWEEN 1 AND 255 "
+            "char_length(normalized_key) BETWEEN 1 AND "
+            f"{MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH} "
             "AND normalized_key = btrim(normalized_key)",
             name="ck_profile_custom_preferences_normalized_key_length",
         ),
