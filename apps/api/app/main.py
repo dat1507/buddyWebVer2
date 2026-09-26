@@ -21,6 +21,7 @@ from app.core.config import (
     get_cors_settings,
 )
 from app.core.database import dispose_database_engine
+from app.core.observability import ApiObservabilityMiddleware
 from app.core.rate_limits import AuthRateLimitMiddleware, close_auth_rate_limiter
 from app.core.redis import close_redis_client
 from app.services.csrf import CsrfValidationError
@@ -47,13 +48,14 @@ app = FastAPI(
 
 cors_settings = get_cors_settings()
 app.add_middleware(AuthRateLimitMiddleware)
+app.add_middleware(ApiObservabilityMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=list(cors_settings.allowed_origins),
     allow_credentials=True,
     allow_methods=list(CORS_ALLOWED_METHODS),
     allow_headers=list(CORS_ALLOWED_HEADERS),
-    expose_headers=["Retry-After"],
+    expose_headers=["Retry-After", "X-Request-ID"],
 )
 
 app.include_router(health_router)

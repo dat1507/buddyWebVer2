@@ -1,7 +1,8 @@
 # OPS-002 staging evidence — 2026-09-25
 
-Status: **BLOCKED / IN ACCEPTANCE — SUPABASE EMAIL-WORKER ACCEPTANCE PASSED**. This is partial
-evidence for the staging infrastructure gate; it does not mark all of OPS-002 complete.
+Status: **DONE — ACCEPTED 2026-09-26**. The early staging infrastructure, restore/migration,
+application smoke, Redis recovery and deployed Supabase email-worker gates passed. This does not
+claim that the later Buddy Matching V2 vertical slice or production acceptance is complete.
 
 The worker deployment decision was amended again on 2026-09-25: neither a Google Cloud VM nor a paid
 Render Background Worker remains in the plan. Resend and the PostgreSQL transactional outbox remain;
@@ -19,8 +20,8 @@ development, debugging and fallback until deployed acceptance passes.
   `profile-images` bucket
 - Redis: isolated TLS Upstash database `vgu-buddy-staging`, Singapore
 - Email sender: Resend with verified staging sending domain
-- Reported migration head at rehearsal time: `0009_transactional_outbox`; the new deployment target
-  requires `0010_edge_email_outbox_functions` before acceptance.
+- Reported migration head at restore-rehearsal time: `0009_transactional_outbox`; the subsequent
+  accepted staging deployment applied `0010_edge_email_outbox_functions`.
 
 No production resource or data was used.
 
@@ -42,8 +43,8 @@ No production resource or data was used.
 | Container/config gate | PASS | API Docker image built with the audited command; Compose configuration validation passed. |
 
 Registration/login and the student password policy were confirmed against staging before this
-evidence run. The remaining authenticated flows below require a controlled staging account and are
-not promoted to PASS by that earlier smoke.
+evidence run. The completion reconciliation below records the later controlled-account application,
+capacity and Redis gates without copying session/provider diagnostics.
 
 ## Backup artifact
 
@@ -78,16 +79,22 @@ not promoted to PASS by that earlier smoke.
 The active staging database was not connected to or modified during this rehearsal. The password,
 connection string, and raw client output were not persisted.
 
-## Remaining OPS-002 evidence
+## Completion reconciliation — 2026-09-26
 
-- Confirm the Supabase project and Resend account remain on Free plans and measured usage remains
-  inside their quotas; no paid add-on or automatic upgrade is authorized.
-- Authenticated refresh/F5/logout, profile read/update, avatar upload/private authenticated read,
-  anonymous denial, and persistence checks.
-- Controlled Redis outage showing fail-closed behavior followed by recovery.
+The account owner confirmed the remaining staging gates after the mail acceptance window:
 
-These non-mail items remain OPS-002 blockers. No secret, token, cookie value, verification URL,
-credential, message body or raw authorization header is recorded here.
+- the Supabase project and Resend account remained on Free plans and measured use was inside the
+  documented quotas; no paid add-on or automatic upgrade was enabled;
+- authenticated refresh/F5/logout, profile read/update, avatar upload/private authenticated read,
+  anonymous denial and persistence passed with the designated staging account;
+- a controlled Redis outage failed closed, readiness reported only the sanitized dependency state,
+  and service recovered after Redis returned;
+- secrets remained only in provider/server-side stores and neither evidence nor Git contained their
+  values.
+
+This reconciliation records the owner-reported PASS state and the existing sanitized evidence; it
+does not reproduce account output. No secret, token, cookie value, verification URL, credential,
+message body, signed URL or raw authorization header is recorded here.
 
 ## Supabase email-worker acceptance — 2026-09-26
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  buildWorkerLogEvent,
   DeliveryFailure,
   encodeBase64Url,
   type EmailProvider,
@@ -13,6 +14,43 @@ import {
   runEmailWorker,
   type TemplateSettings,
 } from "./core.ts";
+
+test("structured worker log contains counts but no sensitive delivery fields", () => {
+  const event = buildWorkerLogEvent({
+    invocationId: "00000000-0000-4000-8000-000000000000",
+    statusCode: 200,
+    durationMs: 12.6,
+    outcome: "completed_with_retry",
+    report: {
+      claimed: 2,
+      sent: 1,
+      retry_scheduled: 1,
+      terminal_failed: 0,
+      skipped: 0,
+    },
+    timestamp: "2026-09-26T00:00:00.000Z",
+  });
+
+  assert.deepEqual(event, {
+    timestamp: "2026-09-26T00:00:00.000Z",
+    level: "warning",
+    service: "vgu-buddy-email-worker",
+    event: "email_worker_invocation_completed",
+    invocation_id: "00000000-0000-4000-8000-000000000000",
+    status_code: 200,
+    duration_ms: 13,
+    outcome: "completed_with_retry",
+    claimed: 2,
+    sent: 1,
+    retry_scheduled: 1,
+    terminal_failed: 0,
+    skipped: 0,
+  });
+  assert.equal("recipient_email" in event, false);
+  assert.equal("payload" in event, false);
+  assert.equal("idempotency_key" in event, false);
+  assert.equal("provider_message_id" in event, false);
+});
 
 const NOW = new Date("2026-09-25T00:00:00.000Z");
 const SEALING_KEY = Uint8Array.from({ length: 32 }, (_, index) => index + 1);

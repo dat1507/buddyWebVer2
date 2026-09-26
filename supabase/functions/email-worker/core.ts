@@ -60,6 +60,48 @@ export interface WorkerReport {
   skipped: number;
 }
 
+export type WorkerOutcome =
+  | "completed"
+  | "completed_with_retry"
+  | "completed_with_terminal_failure"
+  | "method_not_allowed"
+  | "configuration_unavailable"
+  | "unauthorized"
+  | "worker_unavailable";
+
+export function buildWorkerLogEvent(input: {
+  invocationId: string;
+  statusCode: number;
+  durationMs: number;
+  outcome: WorkerOutcome;
+  report?: WorkerReport;
+  timestamp?: string;
+}): Record<string, string | number> {
+  const event: Record<string, string | number> = {
+    timestamp: input.timestamp ?? new Date().toISOString(),
+    level:
+      input.statusCode >= 500 || (input.report?.terminal_failed ?? 0) > 0
+        ? "error"
+        : input.statusCode >= 400 || (input.report?.retry_scheduled ?? 0) > 0
+          ? "warning"
+          : "info",
+    service: "vgu-buddy-email-worker",
+    event: "email_worker_invocation_completed",
+    invocation_id: input.invocationId,
+    status_code: input.statusCode,
+    duration_ms: Math.max(0, Math.round(input.durationMs)),
+    outcome: input.outcome,
+  };
+  if (input.report !== undefined) {
+    event.claimed = input.report.claimed;
+    event.sent = input.report.sent;
+    event.retry_scheduled = input.report.retry_scheduled;
+    event.terminal_failed = input.report.terminal_failed;
+    event.skipped = input.report.skipped;
+  }
+  return event;
+}
+
 export class DeliveryFailure extends Error {
   readonly retryable: boolean;
   readonly errorCode: string;

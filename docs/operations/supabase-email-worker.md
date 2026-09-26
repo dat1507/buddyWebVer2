@@ -94,6 +94,13 @@ failed invocation needs no always-on process: an unfinalized row becomes eligibl
 five-minute lease, and provider-side idempotency covers the acknowledgement gap. Disable the Cron
 job before any manual fallback worker is started.
 
+The function emits one fixed-field JSON `email_worker_invocation_completed` event containing only
+status, duration, controlled outcome and aggregate counts. Use the read-only
+[`email-worker-health.sql`](../../supabase/monitoring/email-worker-health.sql) snapshot and the
+[OPS-003 observability runbook](ops-003-observability.md). For provider outage, terminal-row
+reconciliation or fallback activation, follow the [OPS-003 recovery runbook](ops-003-recovery.md);
+do not inspect or log recipient, payload, verification link, idempotency key or provider ID.
+
 ## Free-plan capacity
 
 At one invocation per minute, Cron produces about 43,200 Edge invocations in a 30-day month. The
