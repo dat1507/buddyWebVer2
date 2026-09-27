@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Self
 from uuid import UUID
 
@@ -92,3 +93,48 @@ class SafeMatchingProfile(BaseModel):
         max_length=MAX_PROFILE_ACTIVITY_SELECTIONS,
     )
     availability: WeeklyAvailability | None
+
+
+class CompatibilitySignalExplanation(BaseModel):
+    """Public numeric contribution for one compatibility signal."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    similarity: float = Field(ge=0, le=1)
+    weight: int = Field(ge=0, le=100)
+    points: float = Field(ge=0, le=100)
+
+
+class CompatibilityExplanation(BaseModel):
+    """Safe structured explanation with no raw or normalized preference identities."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    interests: CompatibilitySignalExplanation
+    activities: CompatibilitySignalExplanation
+    availability: CompatibilitySignalExplanation
+    languages: CompatibilitySignalExplanation
+    major: CompatibilitySignalExplanation
+
+
+class MatchingRecommendation(BaseModel):
+    """One ranked, privacy-safe candidate and its server-owned score."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    profile: SafeMatchingProfile
+    score: int = Field(ge=0, le=100)
+    explanation: CompatibilityExplanation
+
+
+class MatchingRecommendationListResponse(BaseModel):
+    """One deterministic page of the current recommendation ranking."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[MatchingRecommendation]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=50)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
+    reference_week_start: date

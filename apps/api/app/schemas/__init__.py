@@ -28,6 +28,10 @@ from app.schemas.event import (
     EventStatusUpdate,
 )
 from app.schemas.matching import (
+    CompatibilityExplanation,
+    CompatibilitySignalExplanation,
+    MatchingRecommendation,
+    MatchingRecommendationListResponse,
     SafeMatchingAvatar,
     SafeMatchingLanguage,
     SafeMatchingPreference,
@@ -86,6 +90,8 @@ __all__ = [
     "EmailVerificationConfirmResponse",
     "EmailVerificationRequestResponse",
     "CatalogLocale",
+    "CompatibilityExplanation",
+    "CompatibilitySignalExplanation",
     "CustomLanguageInput",
     "CustomLanguageSelection",
     "CustomPreferenceInput",
@@ -101,6 +107,8 @@ __all__ = [
     "EventStatusUpdate",
     "OwnProfileResponse",
     "MatchingIneligibilityReason",
+    "MatchingRecommendation",
+    "MatchingRecommendationListResponse",
     "ProfileCompletionResponse",
     "ProfileCompletionStatus",
     "ProfileMissingField",

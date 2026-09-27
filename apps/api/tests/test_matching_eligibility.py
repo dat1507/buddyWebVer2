@@ -40,6 +40,7 @@ from app.services.matching_eligibility import (
     get_eligible_candidate_avatar,
     get_eligible_matching_principal,
     list_eligible_matching_profiles,
+    load_matching_scoring_profiles,
     matching_pair_is_eligible,
 )
 
@@ -358,6 +359,62 @@ async def test_empty_candidate_batch_does_not_issue_preference_queries() -> None
 
     assert result == ()
     mock.execute.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_scoring_context_projects_current_and_candidates_in_fixed_query_count() -> None:
+    current_profile = _profile()
+    candidate_profile = _candidate_profile(
+        profile_id=CANDIDATE_PROFILE_ID,
+        display_name="Alex",
+    )
+    current_avatar = _avatar(CURRENT_PROFILE_ID, UUID(int=PHOTO_ID.int + 1))
+    candidate_avatar = _avatar(CANDIDATE_PROFILE_ID, PHOTO_ID)
+    interest = Interest(
+        id=INTEREST_ID,
+        code="music",
+        label_en="Music",
+        label_de="Musik",
+        category="culture",
+    )
+    language = Language(code="en", label_en="English", label_de="Englisch")
+    mock = MagicMock(spec=AsyncSession)
+    mock.execute = AsyncMock(
+        side_effect=[
+            _tuple_result([(current_profile, current_avatar)]),
+            _tuple_result([(candidate_profile, candidate_avatar)]),
+            _tuple_result(
+                [
+                    (CURRENT_PROFILE_ID, interest),
+                    (CANDIDATE_PROFILE_ID, interest),
+                ]
+            ),
+            _tuple_result(
+                [
+                    (CURRENT_PROFILE_ID, language, LanguageProficiency.NATIVE),
+                    (CANDIDATE_PROFILE_ID, language, LanguageProficiency.FLUENT),
+                ]
+            ),
+            _tuple_result([]),
+            _scalar_result([]),
+        ]
+    )
+
+    current, candidates = await load_matching_scoring_profiles(
+        cast(AsyncSession, mock),
+        _principal(),
+        locale="en",
+        candidate_limit=501,
+    )
+
+    assert mock.execute.await_count == 6
+    assert current is not None
+    assert current.id == CURRENT_PROFILE_ID
+    assert len(candidates) == 1
+    assert candidates[0].profile.id == CANDIDATE_PROFILE_ID
+    assert candidates[0].principal.user_id == candidate_profile.user_id
+    assert candidates[0].principal.student_type is StudentType.INTERNATIONAL
+    assert str(candidate_profile.user_id) not in repr(candidates[0])
 
 
 @pytest.mark.anyio

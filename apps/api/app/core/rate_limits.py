@@ -48,6 +48,8 @@ AUTH_ENDPOINTS = frozenset(
         ("POST", "/api/auth/email-verification/confirm"),
     }
 )
+RECOMMENDATION_ENDPOINTS = frozenset({("GET", "/api/matching/recommendations")})
+RATE_LIMITED_ENDPOINTS = AUTH_ENDPOINTS | RECOMMENDATION_ENDPOINTS
 _NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}
 _T = TypeVar("_T")
 
@@ -236,7 +238,7 @@ class AuthRateLimitMiddleware:
         root_path = scope.get("root_path", "")
         if root_path and path.startswith(f"{root_path}/"):
             path = path[len(root_path) :]
-        if (scope["method"], path.rstrip("/")) not in AUTH_ENDPOINTS:
+        if (scope["method"], path.rstrip("/")) not in RATE_LIMITED_ENDPOINTS:
             await self.app(scope, receive, send)
             return
         request = Request(scope)

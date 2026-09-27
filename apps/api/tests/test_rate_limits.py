@@ -28,7 +28,7 @@ from app.core.config import (
 )
 from app.core.database import get_database_session
 from app.core.rate_limits import (
-    AUTH_ENDPOINTS,
+    RATE_LIMITED_ENDPOINTS,
     RateLimitExceeded,
     RateLimitUnavailable,
     check_user_rate_limit,
@@ -116,8 +116,8 @@ async def test_current_database_role_exact_http_quota(role: UserRole, allowed: i
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(("method", "path"), sorted(AUTH_ENDPOINTS))
-async def test_every_included_auth_route_is_guarded_before_dependencies(
+@pytest.mark.parametrize(("method", "path"), sorted(RATE_LIMITED_ENDPOINTS))
+async def test_every_included_rate_limited_route_is_guarded_before_dependencies(
     method: str, path: str
 ) -> None:
     limiter = get_auth_rate_limiter()

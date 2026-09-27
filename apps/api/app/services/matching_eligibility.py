@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import cast
 from uuid import UUID
 
@@ -50,6 +50,14 @@ class EligibleMatchingPrincipal:
     user_id: UUID
     profile_id: UUID
     student_type: StudentType
+
+
+@dataclass(frozen=True, slots=True)
+class EligibleMatchingCandidate:
+    """Internal eligible principal paired with its public-safe projection."""
+
+    principal: EligibleMatchingPrincipal = field(repr=False)
+    profile: SafeMatchingProfile
 
 
 async def get_eligible_matching_principal(
@@ -360,6 +368,72 @@ async def list_eligible_matching_profiles(
     result = await session.execute(eligible_candidate_statement(current, limit=limit))
     rows = cast(tuple[tuple[StudentProfile, ProfilePhoto], ...], tuple(result.tuples().all()))
     return await _project_safe_profiles(session, rows, locale=locale)
+
+
+async def load_matching_scoring_profiles(
+    session: AsyncSession,
+    current: EligibleMatchingPrincipal,
+    *,
+    locale: CatalogLocale,
+    candidate_limit: int,
+) -> tuple[SafeMatchingProfile | None, tuple[EligibleMatchingCandidate, ...]]:
+    """Load the current profile and one bounded eligible pool with fixed query count."""
+    if candidate_limit < 1:
+        raise ValueError("Candidate query limit must be positive.")
+
+    current_result = await session.execute(
+        select(StudentProfile, ProfilePhoto)
+        .join(
+            ProfilePhoto,
+            (ProfilePhoto.profile_id == StudentProfile.id)
+            & ProfilePhoto.is_avatar.is_(True)
+            & (ProfilePhoto.processing_status == ProfilePhotoProcessingStatus.READY)
+            & ProfilePhoto.deleted_at.is_(None),
+        )
+        .where(
+            StudentProfile.id == current.profile_id,
+            StudentProfile.user_id == current.user_id,
+            StudentProfile.student_type == current.student_type,
+            StudentProfile.deleted_at.is_(None),
+        )
+    )
+    current_rows = cast(
+        tuple[tuple[StudentProfile, ProfilePhoto], ...],
+        tuple(current_result.tuples().all()),
+    )
+    if len(current_rows) != 1:
+        return None, ()
+
+    candidate_result = await session.execute(
+        eligible_candidate_statement(current, limit=candidate_limit)
+    )
+    candidate_rows = cast(
+        tuple[tuple[StudentProfile, ProfilePhoto], ...],
+        tuple(candidate_result.tuples().all()),
+    )
+    projected = await _project_safe_profiles(
+        session,
+        current_rows + candidate_rows,
+        locale=locale,
+    )
+    if not projected or projected[0].id != current.profile_id:
+        return None, ()
+    candidates = tuple(
+        EligibleMatchingCandidate(
+            principal=EligibleMatchingPrincipal(
+                user_id=profile.user_id,
+                profile_id=profile.id,
+                student_type=safe_profile.student_type,
+            ),
+            profile=safe_profile,
+        )
+        for (profile, _avatar), safe_profile in zip(
+            candidate_rows,
+            projected[1:],
+            strict=True,
+        )
+    )
+    return projected[0], candidates
 
 
 async def get_eligible_candidate_avatar(
