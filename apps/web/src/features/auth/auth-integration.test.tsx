@@ -204,7 +204,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     expect(await screen.findByRole('alert')).toBeVisible()
     expect(useAuthStore.getState().user).toBeNull()
     fireEvent.click(mainButton('Try again'))
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(useAuthStore.getState().role).toBe('USER')
   })
 

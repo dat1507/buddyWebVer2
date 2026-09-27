@@ -113,12 +113,12 @@ describe('FE-022 navigation in the real guarded App', () => {
     },
   )
 
-  it('redirects the retired Dashboard URL to the profile editor', async () => {
+  it('renders the restored Dashboard URL without discarding its URL', async () => {
     useAuthStore.getState().setAuthenticated(user)
     renderApp('/user/dashboard?view=details#photo')
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
-    expect(screen.queryByText('Dashboard')).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard?view=details#photo')
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page')
   })
 
   it.each(['unknown', 'loading'] as const)('does not mount USER navigation during %s', (status) => {

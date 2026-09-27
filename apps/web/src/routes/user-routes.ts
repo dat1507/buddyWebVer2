@@ -4,11 +4,14 @@ import type { ProfileReadinessRequirement } from '@/features/profile/profile-rea
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
+import { MatchingPage } from '@/pages/user/matching-page'
 import { ProfilePage } from '@/pages/user/profile-page'
 import { ProfileEditPage } from '@/pages/user/profile-edit-page'
 import { SettingsPage } from '@/pages/user/settings-page'
+import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
 
 type UserRoutePath =
+  | 'dashboard'
   | 'profile'
   | 'profile/edit'
   | 'onboarding'
@@ -29,6 +32,7 @@ type UserRoute = {
 
 // Routing and navigation share delivery status. Add a page component only when its task is done.
 const userRoutes: readonly UserRoute[] = [
+  { path: 'dashboard', title: 'Dashboard', kind: 'page', Component: UserDashboardPage },
   { path: 'profile', title: 'Profile', kind: 'page', Component: ProfilePage },
   { path: 'profile/edit', title: 'Edit profile', kind: 'page', Component: ProfileEditPage },
   {
@@ -55,8 +59,9 @@ const userRoutes: readonly UserRoute[] = [
   {
     path: 'matching',
     title: 'Buddy matching',
-    readiness: 'matchingEligible',
-    kind: 'placeholder',
+    readiness: 'complete',
+    kind: 'page',
+    Component: MatchingPage,
   },
   { path: 'buddy', title: 'My Buddy', kind: 'placeholder' },
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },

@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  LayoutDashboard,
   HeartHandshake,
   Settings,
   SquarePen,
@@ -23,6 +24,7 @@ const definitions: readonly {
   Icon: LucideIcon
   end?: boolean
 }[] = [
+  { id: 'dashboard', route: 'dashboard', Icon: LayoutDashboard, end: true },
   { id: 'editProfile', route: 'profile/edit', Icon: SquarePen },
   { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
   { id: 'matching', route: 'matching', Icon: Users },

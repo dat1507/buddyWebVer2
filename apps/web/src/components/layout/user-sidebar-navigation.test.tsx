@@ -10,13 +10,14 @@ const locales = [
   [
     'en',
     'Student navigation',
-    ['Edit Profile', 'My Profile', 'Buddy Matching', 'My Buddy', 'Events', 'Settings'],
+    ['Dashboard', 'Edit Profile', 'My Profile', 'Buddy Matching', 'My Buddy', 'Events', 'Settings'],
   ],
   [
     'de',
     'Studierendennavigation',
     [
       'Profil bearbeiten',
+      'Übersicht',
       'Mein Profil',
       'Buddy-Matching',
       'Mein Buddy',
@@ -66,7 +67,7 @@ describe('FE-022 student sidebar navigation', () => {
       renderNavigation()
       const nav = screen.getByRole('navigation', { name: navLabel })
       const links = within(nav).getAllByRole('link')
-      expect(links).toHaveLength(6)
+      expect(links).toHaveLength(7)
       labels.forEach((label) => expect(within(nav).getByText(label)).toBeVisible())
       const profile = within(nav).getByRole('link', { name: i18n.t('userNavigation.myProfile') })
       expect(profile).toHaveAttribute('href', '/user/profile')
@@ -77,28 +78,41 @@ describe('FE-022 student sidebar navigation', () => {
       expect(editProfile).toHaveAttribute('href', '/user/profile/edit')
       expect(editProfile).not.toHaveAttribute('aria-disabled')
       expect(editProfile).toHaveAttribute('aria-current', 'page')
+      const dashboard = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.dashboard'),
+      })
+      expect(dashboard).toHaveAttribute('href', '/user/dashboard')
+      const matching = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.matching'),
+      })
+      expect(matching).toHaveAttribute('href', '/user/matching')
       const settings = within(nav).getByRole('link', {
         name: i18n.t('userNavigation.settings'),
       })
       expect(settings).toHaveAttribute('href', '/user/settings')
       expect(settings).not.toHaveAttribute('aria-disabled')
       links
-        .filter((link) => link !== profile && link !== editProfile && link !== settings)
+        .filter(
+          (link) =>
+            link !== dashboard &&
+            link !== profile &&
+            link !== editProfile &&
+            link !== matching &&
+            link !== settings,
+        )
         .forEach((link) => {
           expect(link).toHaveAttribute('aria-disabled', 'true')
           expect(link).not.toHaveAttribute('href')
           expect(link).not.toHaveAttribute('tabindex')
           expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
         })
-      expect(nav.querySelectorAll('a')).toHaveLength(3)
-      expect(nav).not.toHaveTextContent(/Dashboard|Übersicht/)
+      expect(nav.querySelectorAll('a')).toHaveLength(5)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
       expect(screen.getByRole('heading', { name: 'Fixture editor' })).toBeVisible()
     },
   )
 
   it.each([
-    ['/user/matching/preview', 'Buddy Matching'],
     ['/user/buddy/details', 'My Buddy'],
     ['/user/events/example', 'Events'],
   ])('marks the current route %s without enabling an unfinished destination', (path, label) => {
@@ -111,6 +125,14 @@ describe('FE-022 student sidebar navigation', () => {
     expect(current).not.toHaveAttribute('href')
   })
 
+  it('exposes Buddy Matching as a released native link on nested paths', () => {
+    renderNavigation('/user/matching/preview')
+    const matching = screen.getByRole('link', { name: 'Buddy Matching' })
+    expect(matching).toHaveAttribute('href', '/user/matching')
+    expect(matching).toHaveAttribute('aria-current', 'page')
+    expect(matching).not.toHaveAttribute('aria-disabled')
+  })
+
   it('keeps the released Settings link active on nested paths', () => {
     renderNavigation('/user/settings/session')
     const settings = screen.getByRole('link', { name: 'Settings' })
@@ -119,11 +141,14 @@ describe('FE-022 student sidebar navigation', () => {
     expect(settings).not.toHaveAttribute('aria-disabled')
   })
 
-  it('puts Edit Profile first and omits the retired Dashboard item', () => {
+  it('puts the restored Dashboard first', () => {
     renderNavigation('/user/profile/edit?source=test#content')
     const nav = screen.getByRole('navigation')
-    expect(within(nav).getAllByRole('link')[0]).toHaveTextContent('Edit Profile')
-    expect(within(nav).queryByText('Dashboard')).not.toBeInTheDocument()
+    expect(within(nav).getAllByRole('link')[0]).toHaveTextContent('Dashboard')
+    expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+      'href',
+      '/user/dashboard',
+    )
   })
 
   it('exposes the released profile page as the current native link', () => {
@@ -163,7 +188,7 @@ describe('FE-022 student sidebar navigation', () => {
       fireEvent.click(within(nav).getByRole('link', { name: i18n.t('userNavigation.events') }))
       expect(screen.getByRole('heading', { name: 'Fixture events' })).toBeVisible()
       expect(screen.getByTestId('location').textContent).toBe('/user/events')
-      expect(nav.querySelectorAll('a')).toHaveLength(4)
+      expect(nav.querySelectorAll('a')).toHaveLength(6)
     },
   )
 
@@ -180,14 +205,14 @@ describe('FE-022 student sidebar navigation', () => {
     renderNavigation('/user/profile/edit', releasedItems)
     const editProfile = screen.getByRole('link', { name: 'Edit Profile' })
     editProfile.focus()
-    const matching = screen.getByRole('link', { name: /Buddy Matching/ })
-    matching.focus()
+    const buddy = screen.getByRole('link', { name: /My Buddy/ })
+    buddy.focus()
     expect(editProfile).toHaveFocus()
-    fireEvent.click(matching)
+    fireEvent.click(buddy)
     expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit')
-    expect(matching).toHaveAttribute('aria-disabled', 'true')
-    expect(matching).not.toHaveAttribute('href')
-    expect(matching).not.toHaveAttribute('aria-current')
+    expect(buddy).toHaveAttribute('aria-disabled', 'true')
+    expect(buddy).not.toHaveAttribute('href')
+    expect(buddy).not.toHaveAttribute('aria-current')
   })
 
   it('updates navigation labels and descriptions without replacing the current item', async () => {

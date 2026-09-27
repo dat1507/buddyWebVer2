@@ -6,10 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
+import { matchingClient } from '@/features/matching/matching-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeOwnProfile } from '@/test/profile'
+import { recommendationList } from '@/test/recommendations'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -57,6 +59,12 @@ describe('FE-038 profile readiness routing', () => {
       defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
     })
     client.setQueryData(['profile', 'own'], completeOwnProfile)
+    vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue({
+      ...recommendationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
     vi.stubGlobal('fetch', fetch)
@@ -88,7 +96,7 @@ describe('FE-038 profile readiness routing', () => {
       </QueryClientProvider>,
     )
 
-  it('routes incomplete and complete USER sessions from login to the profile editor', async () => {
+  it('routes incomplete and complete USER sessions from login to the real dashboard', async () => {
     const authenticatedJson = vi
       .spyOn(sessionClient, 'authenticatedJson')
       .mockImplementation(async (path) => {
@@ -99,8 +107,8 @@ describe('FE-038 profile readiness routing', () => {
     useAuthStore.getState().setAuthenticated(user)
     const incompleteView = renderApp('/login')
 
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
     incompleteView.unmount()
     client.clear()
     client.setQueryData(['profile', 'own'], completeOwnProfile)
@@ -111,8 +119,8 @@ describe('FE-038 profile readiness routing', () => {
     })
     renderApp('/login')
 
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/dashboard')
   })
 
   it('lets ADMIN bypass student readiness without requesting profile completion', async () => {
@@ -125,7 +133,7 @@ describe('FE-038 profile readiness routing', () => {
     expect(authenticatedJson).not.toHaveBeenCalled()
   })
 
-  it('blocks direct matching entry when the server says the USER is ineligible', async () => {
+  it('renders the read-only matching lock without requesting recommendations when ineligible', async () => {
     vi.spyOn(sessionClient, 'authenticatedJson').mockImplementation(async (path) => {
       if (path === '/profile/completion') {
         return {
@@ -139,8 +147,9 @@ describe('FE-038 profile readiness routing', () => {
     useAuthStore.getState().setAuthenticated(user)
     renderApp('/user/matching')
 
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/user/profile/edit')
+    expect(await screen.findByRole('heading', { name: 'Recommendations are locked' })).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
+    expect(matchingClient.readRecommendations).not.toHaveBeenCalled()
     expect(screen.queryByText('This area is not available yet.')).not.toBeInTheDocument()
   })
 
@@ -157,7 +166,7 @@ describe('FE-038 profile readiness routing', () => {
     ).not.toBeInTheDocument()
 
     await act(async () => completion.resolve(complete))
-    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Recommended Buddies' })).toBeVisible()
   })
 
   it('shows retryable failure in place without treating a network error as incomplete', async () => {
@@ -176,7 +185,7 @@ describe('FE-038 profile readiness routing', () => {
     ).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Recommended Buddies' })).toBeVisible()
   })
 
   it('does not request readiness until reload bootstrap has resolved /auth/me', async () => {
@@ -195,7 +204,7 @@ describe('FE-038 profile readiness routing', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
 
     await act(async () => me.resolve(json(user)))
-    expect(await screen.findByRole('heading', { name: 'Buddy matching' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Recommended Buddies' })).toBeVisible()
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',

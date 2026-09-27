@@ -31,7 +31,7 @@ function Navbar() {
   const signInMenuRef = useRef<HTMLElement>(null)
   const status = useAuthStore((state) => state.status)
   const role = useAuthStore((state) => state.role)
-  const workspacePath = role === 'ADMIN' ? '/admin/dashboard' : '/user/profile/edit'
+  const workspacePath = role === 'ADMIN' ? '/admin/dashboard' : '/user/dashboard'
 
   useModalIsolation(drawerOverlayRef, isMenuOpen)
 

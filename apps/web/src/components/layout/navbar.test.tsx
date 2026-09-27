@@ -176,7 +176,7 @@ describe('Navbar', () => {
   })
 
   it.each([
-    ['USER', '/user/profile/edit'],
+    ['USER', '/user/dashboard'],
     ['ADMIN', '/admin/dashboard'],
   ] as const)('shows an authenticated %s workspace action without guest actions', (role, href) => {
     useAuthStore.getState().setAuthenticated({

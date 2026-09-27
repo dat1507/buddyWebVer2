@@ -180,15 +180,15 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
           name:
             role === 'USER'
               ? language === 'en'
-                ? 'Edit profile'
-                : 'Profil bearbeiten'
+                ? 'Dashboard'
+                : 'Übersicht'
               : language === 'en'
                 ? 'Admin overview'
                 : 'Administrationsübersicht',
         }),
       ).toBeVisible()
       expect(location()).toEqual({
-        pathname: role === 'USER' ? '/user/profile/edit' : '/admin/dashboard',
+        pathname: role === 'USER' ? '/user/dashboard' : '/admin/dashboard',
         search: '',
         hash: '',
         state: null,
@@ -216,7 +216,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       renderApp()
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(fetch).not.toHaveBeenCalled()
@@ -252,9 +252,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       })
       expectNoPrivate()
       submit()
-      expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+      expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
       expect(location()).toEqual({
-        pathname: '/user/profile/edit',
+        pathname: '/user/dashboard',
         search: '',
         hash: '',
         state: null,
@@ -324,7 +324,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     submit()
     expect(await screen.findByRole('alert')).toBeVisible()
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(fetch.mock.calls[5][1]).toMatchObject({ headers: { 'X-CSRF-Token': 'retry' } })
     expect(fetch).toHaveBeenCalledTimes(6)
   })
@@ -411,7 +411,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(useAuthStore.getState().user?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
@@ -442,7 +442,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Edit profile' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
         }),
       ).toBeVisible()
       expect(fetch).toHaveBeenCalledTimes(2)
@@ -465,7 +465,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     } finally {
       await act(async () => me.resolve(json(user)))
     }
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(document.querySelector('[data-layout="admin"]')).toBeNull()
     expect(fetch).toHaveBeenCalledTimes(4)
   })

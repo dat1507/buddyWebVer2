@@ -144,7 +144,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
   })
 
   it.each([
-    ['/user', '/user/profile/edit', 'USER', 'Edit profile'],
+    ['/user', '/user/dashboard', 'USER', 'Dashboard'],
     ['/admin', '/admin/dashboard', 'ADMIN', 'Admin overview'],
   ])(
     'verified identity at %s keeps the existing dashboard index navigation',

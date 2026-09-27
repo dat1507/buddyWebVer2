@@ -6691,8 +6691,8 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Profile identity/completion | **Implemented foundation** | `StudentProfile`, `ProfilePhoto`, StudentType, interests/languages, availability, preferences, opt-in; backend-derived completion in `services/profile_completion.py` | Reuse profile, type, avatar, availability and opt-in. Update eligibility: VERIFIED required; remove the reservation rule. |
 | Custom preferences | **Missing / partial conflict** | Only predefined Interest and Language relations exist. Preferred activity IDs are stored inside profile JSON and validated against `Interest`, not an Activity catalog. No custom labels/normalization exist | Add Activity catalog/relation and profile-owned custom preference rows normalized by NFKC → trim → whitespace collapse → Unicode casefold. Do not create global catalog rows. |
 | Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
-| Matching frontend | **Placeholder / conflict** | `/user/matching`, `/user/buddy`, `/admin/matching` are placeholders in route registries; current `/user/matching` gate uses old `matching_eligible` including reservation logic | Reuse the Buddy Matching navigation concept. Replace with four V2 sections and a server-backed UNVERIFIED lock; `/user/buddy` may redirect to/focus Current Buddies. |
-| Dashboard routing | **Partial / conflict** | `user-dashboard-page.tsx` exists, but `App.tsx` redirects both `/user` and `/user/dashboard` to `/user/profile/edit` | Fix/re-accept intended post-onboarding navigation in a separately scoped integration task or fold it into REC-004; do not claim the dashboard flow is release-ready. |
+| Matching frontend | **REC-004 read-only section implemented** | `/user/matching` now consumes the REC-003 recommendation API through a strict privacy-safe client contract and renders gated recommendations, structured compatibility, preferences, availability and complete loading/empty/error/pagination states. Invitation, Current Buddies and Admin matching sections remain unimplemented. | Reuse this read-only section in INV-007/BUDDY-003; only those later tasks may add their real actions and sections. `/user/buddy` remains reserved for BUDDY-003 route compatibility. |
+| Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
 | Chat/realtime | **Missing** | No conversation/message models, chat API or WebSocket route. `websockets` is only an indirect Uvicorn dependency | Add FastAPI WebSocket endpoint, persistent PostgreSQL messages and Redis Pub/Sub. Do not add Supabase Realtime. |
 | Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
@@ -6843,7 +6843,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | REC-001 (**Done 2026-09-27**) | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
 | REC-002 (**Done 2026-09-27**) | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
 | REC-003 (**Done 2026-09-27**) | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
-| REC-004 | Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/availability and locked state | UI/a11y/contract tests |
+| REC-004 (**Done 2026-09-27**) | Read-only Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/profile/preferences/availability plus locked/loading/empty/error/pagination states; no invitation action | UI/a11y/contract tests |
 | BUDDY-001 | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
 | PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
 | PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
@@ -7080,9 +7080,7 @@ and Activity save/F5 round-trips, proficiency changes, removals, active predefin
 (`photography`/`Photography`), normalized custom duplicate rejection (`Formula 1` variants), observed
 PUT persistence and sanitized client-visible errors.
 
-**Next development task:** `REC-004` — Recommended Buddies frontend section. Its declared
-dependencies `REC-003` and `EMAIL-005` are DONE. Do not implement REC-004 unless explicitly
-requested.
+**REC-004 handoff:** Completed below after its declared `REC-003` and `EMAIL-005` dependencies.
 
 #### REC-001 — V2 eligibility policy and safe matching profile
 
@@ -7151,13 +7149,35 @@ requested.
 
 #### REC-004 — Recommended Buddies frontend section
 
-- **Purpose:** Present ranked safe profiles in the existing Buddy Matching page.
-- **Scope / likely files:** real `/user/matching` page, recommendation query/client/card/locales and route metadata; restore the existing accepted `UserDashboardPage` as the actual `/user/dashboard` destination instead of the current profile-edit redirect.
+- **Status:** **Done 2026-09-27.** The real `/user/matching` route now presents the current REC-003 recommendation result as a read-only, responsive and localized experience; invitation behavior remains exclusively owned by INV-007.
+- **Purpose:** Present the ranked safe-profile recommendations as a read-only section in the existing Buddy Matching page.
+- **Scope / likely files:** real `/user/matching` page, `GET /api/matching/recommendations` query/client, read-only recommendation cards, compatibility/profile/preference/availability presentation, loading/empty/error states, locales and route metadata; restore the existing accepted `UserDashboardPage` as the actual `/user/dashboard` destination instead of the current profile-edit redirect.
 - **Dependencies / ownership:** REC-003, EMAIL-005; Frontend.
 - **Security:** no email rendering/preload for locked users; explanation is structured text.
-- **Acceptance / DoD:** responsive accessible loading/error/empty/cards; score/explanation/availability render from server; Send Invitation opens the V2 composer; refresh/logout clears private cache; completed-profile login/onboarding lands on the real dashboard and can open Buddy Matching.
+- **Acceptance / DoD:** responsive accessible loading/error/empty/cards; recommendation order, compatibility explanation, safe profile/preferences and availability render from the current server contract; refresh/logout clears private cache; completed-profile login/onboarding lands on the real dashboard and can open Buddy Matching. REC-004 exposes no invitation composer, send mutation or apparently functional `Send Invitation` control before the invitation client/backend flow exists.
 - **Tests/gates:** component, a11y, route, schema rejection and mocked contract tests.
-- **Non-goals:** locally calculating scores or creating a new navigation concept.
+- **Non-goals:** locally calculating scores, creating a new navigation concept, invitation composition/sending, or any fake/local invitation behavior.
+
+**Implementation:** A strict fail-closed client schema consumes only the current privacy-safe REC-003
+DTO and preserves server order, score, explanation and pagination. The page renders candidate avatar
+fallbacks, display name/type/major, predefined and custom Interests/Languages/proficiency/Activities,
+weekly availability and all five server-provided compatibility contributions. Initial/loading-next,
+empty, sanitized error/retry, locked eligibility and end-of-results states are distinct. Matching
+queries are disabled while locked; both recommendation and signed-avatar query roots are removed by
+the existing private-cache logout/account-switch boundary. The restored dashboard is now the USER
+index/login/workspace/completed-onboarding destination and exposes the existing Buddy Matching
+navigation. No invitation control, mutation, composer or local score/ranking logic was added.
+
+**Verification (2026-09-27):** REC-004 contract/client/component/route/navigation/auth regression
+tests pass; full frontend **560 passed / 57 files**. Prettier, ESLint, strict TypeScript, production
+build and production dependency audit pass with zero known vulnerabilities; only the existing
+non-blocking >500 kB chunk advisory remains. Local HTTPS smoke confirms the application loads and an
+anonymous direct `/user/matching` request is gated back to `/login`. No dependency, backend,
+database or migration change was required; Alembic head remains `0011_preference_persistence`.
+
+**Next development task:** `INV-001` — Invitation persistence/state machine. Its declared REC-001
+dependency is DONE. `Send Invitation` and the real V2 composer remain deferred until `INV-007`,
+after INV-004..006 and REC-004 are complete.
 
 ### 26.11 Full task contracts — Invitations and Current Buddies
 
@@ -7253,11 +7273,11 @@ requested.
 
 #### INV-007 — Invitation composer, Incoming and Sent UI
 
-- **Purpose:** Implement all invitation interactions inside Buddy Matching.
-- **Scope / likely files:** matching page sections/components, query/mutation clients, locales and safe word/code-point counter using the same contract fixtures as INV-003; code-point counting must not use JavaScript UTF-16 `.length` semantics.
+- **Purpose:** Add the real invitation interaction layer to the read-only Buddy Matching experience delivered by REC-004.
+- **Scope / likely files:** extend recommendation cards with the real `Send Invitation` entry point, matching-page composer/Incoming/Sent components, query/mutation clients, locales and safe word/code-point counter using the same contract fixtures as INV-003; code-point counting must not use JavaScript UTF-16 `.length` semantics.
 - **Dependencies / ownership:** INV-004..006, REC-004; Frontend.
 - **Security:** render body as text; no `dangerouslySetInnerHTML`; locked state makes no protected calls; conflict responses refetch.
-- **Acceptance / DoD:** composer trims outer whitespace for submission, shows `x / 500 words`, validates the separate 10,000-code-point ceiling, and gives the matching error when either limit is exceeded; repeated whitespace never increases the count beyond non-whitespace runs. Incoming Accept/Decline and sent Cancel work; PENDING has no Delete; ACCEPTED has Start Chatting/Delete-hide; hidden/declined/expired/cancelled disappear according to server result.
+- **Acceptance / DoD:** `Send Invitation` on a recommendation opens the V2 composer backed by the implemented invitation client/API; composer trims outer whitespace for submission, shows `x / 500 words`, validates the separate 10,000-code-point ceiling, and gives the matching error when either limit is exceeded; repeated whitespace never increases the count beyond non-whitespace runs. Incoming Accept/Decline and sent Cancel work; PENDING has no Delete; ACCEPTED has Start Chatting/Delete-hide; hidden/declined/expired/cancelled disappear according to server result.
 - **Tests/gates:** component/a11y and shared contract vectors cover repeated whitespace, 500/501 words, 10,000/10,001 code points, emoji and inert HTML-looking text; duplicate-submit, stale conflict, reload and endpoint contract tests pass; source check forbids `dangerouslySetInnerHTML` in invitation rendering.
 - **Non-goals:** chat implementation or client-side state authority.
 
