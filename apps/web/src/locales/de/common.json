@@ -349,10 +349,12 @@
       "loadingProfile": "Dein gespeichertes Profil wird geladen…",
       "loadingInterests": "Interessen werden geladen…",
       "loadingLanguages": "Sprachen werden geladen…",
+      "loadingPreferences": "Deine gespeicherte Präferenzauswahl wird geladen…",
       "profileErrorTitle": "Dein Profil konnte nicht geladen werden",
       "profileError": "Wir konnten deine gespeicherte Auswahl nicht laden. Versuche es erneut, bevor du Änderungen vornimmst.",
       "interestsError": "Der Interessenkatalog konnte nicht geladen werden.",
       "languagesError": "Der Sprachkatalog konnte nicht geladen werden.",
+      "preferencesError": "Deine gespeicherte Präferenzauswahl konnte nicht geladen werden.",
       "retry": "Erneut versuchen",
       "save": "Schritt 2 speichern",
       "saving": "Wird gespeichert…",
@@ -401,6 +403,9 @@
       "loadingProfile": "Dein gespeichertes Profil wird geladen…",
       "profileErrorTitle": "Dein Profil konnte nicht geladen werden",
       "profileError": "Wir konnten deine gespeicherte Verfügbarkeit und Präferenzen nicht laden. Versuche es erneut, bevor du Änderungen vornimmst.",
+      "loadingPreferenceSelections": "Deine gespeicherten Aktivitäten werden geladen…",
+      "preferenceSelectionsErrorTitle": "Deine Aktivitäten konnten nicht geladen werden",
+      "preferenceSelectionsError": "Wir konnten deine gespeicherten Aktivitäten nicht laden. Versuche es erneut, bevor du Änderungen vornimmst.",
       "retry": "Erneut versuchen",
       "finish": "Speichern und Onboarding abschließen",
       "saving": "Wird gespeichert…",
@@ -429,6 +434,31 @@
         "slotLength": "Ein Zeitfenster darf nicht zur gleichen Zeit beginnen und enden.",
         "unavailableActivities": "Entferne nicht verfügbare gespeicherte Aktivitäten, bevor du abschließt."
       }
+    }
+  },
+  "preferenceTags": {
+    "customBadge": "Benutzerdefiniert",
+    "remove": "Benutzerdefinierten Wert {{label}} entfernen",
+    "invalid": "Gib eine sichere Bezeichnung mit 1 bis 120 Zeichen ein.",
+    "duplicate": "Dieser benutzerdefinierte Wert ist bereits ausgewählt.",
+    "predefinedCollision": "Dies entspricht einer vorhandenen vordefinierten Option. Wähle stattdessen diese Option aus.",
+    "limitReached": "Entferne eine Auswahl, bevor du einen weiteren benutzerdefinierten Wert hinzufügst.",
+    "characterCount": "{{count}} von {{maximum}} Eingabezeichen",
+    "interest": {
+      "inputLabel": "Benutzerdefiniertes Interesse hinzufügen",
+      "placeholder": "Zum Beispiel Formel 1",
+      "add": "Eigenes Interesse hinzufügen"
+    },
+    "language": {
+      "inputLabel": "Benutzerdefinierte Sprache hinzufügen",
+      "placeholder": "Zum Beispiel Schweizerdeutsch",
+      "add": "Eigene Sprache hinzufügen",
+      "proficiency": "Sprachniveau"
+    },
+    "activity": {
+      "inputLabel": "Benutzerdefinierte Aktivität hinzufügen",
+      "placeholder": "Zum Beispiel Nachtkajakfahren",
+      "add": "Eigene Aktivität hinzufügen"
     }
   },
   "emailVerification": {
@@ -528,13 +558,21 @@
     "languagesError": "Der Sprachkatalog konnte nicht geladen werden.",
     "noLanguages": "Noch keine Sprachen hinzugefügt.",
     "languagesLabel": "Gesprochene Sprachen",
+    "activitiesTitle": "Bevorzugte Aktivitäten",
+    "loadingActivities": "Aktivitäten werden geladen…",
+    "activitiesError": "Der Aktivitätskatalog konnte nicht geladen werden.",
+    "noActivities": "Noch keine bevorzugten Aktivitäten hinzugefügt.",
+    "activitiesLabel": "Bevorzugte Aktivitäten",
+    "unavailableActivity": "Nicht verfügbare Aktivität",
+    "loadingPreferences": "Präferenzauswahl wird geladen…",
+    "preferencesError": "Deine Präferenzauswahl konnte nicht geladen werden.",
     "detailsTitle": "Profildetails",
     "major": "Studiengang",
     "studyYear": "Studienjahr",
     "studyYearValue": "Jahr {{year}}",
     "nationality": "Nationalität",
     "notAdded": "Nicht hinzugefügt",
-    "privateNote": "Hier werden nur Profilinformationen angezeigt. Matching-Präferenzen und Verfügbarkeit bleiben privat.",
+    "privateNote": "Diese eigene Profilansicht enthält deine Präferenzübersicht. Deine Verfügbarkeit bleibt privat.",
     "loading": "Dein Profil wird geladen…",
     "loadErrorTitle": "Dein Profil konnte nicht geladen werden",
     "loadError": "Wir konnten dein gespeichertes Profil nicht laden. Versuche es erneut."

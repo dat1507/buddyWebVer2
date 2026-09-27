@@ -10,6 +10,8 @@ const profileCatalogQueryKeys = {
     [...profileQueryKeys.all, 'catalogs', 'interests', locale] as const,
   languages: (locale: CatalogLocale) =>
     [...profileQueryKeys.all, 'catalogs', 'languages', locale] as const,
+  activities: (locale: CatalogLocale) =>
+    [...profileQueryKeys.all, 'catalogs', 'activities', locale] as const,
 }
 
 function useInterestCatalog(locale: CatalogLocale) {
@@ -26,4 +28,11 @@ function useLanguageCatalog(locale: CatalogLocale) {
   })
 }
 
-export { profileCatalogQueryKeys, useInterestCatalog, useLanguageCatalog }
+function useActivityCatalog(locale: CatalogLocale) {
+  return useQuery({
+    queryKey: profileCatalogQueryKeys.activities(locale),
+    queryFn: ({ signal }) => profileClient.readActivities(locale, signal),
+  })
+}
+
+export { profileCatalogQueryKeys, useActivityCatalog, useInterestCatalog, useLanguageCatalog }

@@ -5,11 +5,18 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import type {
-  CatalogLocale,
-  LanguageProficiency,
-  ProfileLanguageSelection,
+import {
+  MAX_INTERESTS,
+  MAX_LANGUAGES,
+  type CatalogLocale,
+  type CustomLanguageSelection,
+  type CustomPreferenceSelection,
+  type LanguageProficiency,
+  type ProfileLanguageSelection,
+  type ProfilePreferenceSnapshot,
 } from '@/features/profile/profile-catalog'
+import type { PreferenceTagMessages } from '@/features/profile/preference-tag-input'
+import { PreferenceTagInput } from '@/features/profile/preference-tag-input'
 import type { OwnProfile } from '@/features/profile/profile'
 import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import {
@@ -18,13 +25,12 @@ import {
 } from '@/features/profile/queries/use-profile-catalogs'
 import {
   useOwnProfile,
-  useUpdateProfileSelections,
+  useProfilePreferences,
+  useUpdateProfilePreferences,
 } from '@/features/profile/queries/use-own-profile'
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
-const MAX_INTERESTS = 20
-const MAX_LANGUAGES = 10
 const PROFICIENCIES: readonly LanguageProficiency[] = [
   'native',
   'fluent',
@@ -39,6 +45,15 @@ function selectedValuesMatch(left: readonly string[], right: readonly string[]):
   return left.length === right.length && left.every((value) => right.includes(value))
 }
 
+function customSelectionsMatch(
+  left: readonly CustomPreferenceSelection[],
+  right: readonly CustomPreferenceSelection[],
+): boolean {
+  return (
+    left.length === right.length && left.every(({ label }, index) => right[index]?.label === label)
+  )
+}
+
 function languageSelectionsMatch(
   left: readonly ProfileLanguageSelection[],
   right: readonly ProfileLanguageSelection[],
@@ -49,6 +64,19 @@ function languageSelectionsMatch(
       (selection) =>
         selection.language_code === language_code && selection.proficiency === proficiency,
     ),
+  )
+}
+
+function customLanguagesMatch(
+  left: readonly CustomLanguageSelection[],
+  right: readonly CustomLanguageSelection[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every(
+      ({ label, proficiency }, index) =>
+        right[index]?.label === label && right[index]?.proficiency === proficiency,
+    )
   )
 }
 
@@ -89,26 +117,39 @@ function CatalogError({
   )
 }
 
-function OnboardingInterestsForm({
-  profile,
-  mode = 'onboarding',
+function OnboardingInterestsEditor({
+  preferences,
+  mode,
   onReload,
+  reloadPreferences,
 }: {
-  profile: OwnProfile
-  mode?: ProfileFormMode
+  preferences: ProfilePreferenceSnapshot
+  mode: ProfileFormMode
   onReload?: ReloadOwnProfile
+  reloadPreferences: () => Promise<ProfilePreferenceSnapshot | undefined>
 }) {
   const { t, i18n } = useTranslation()
   const locale = catalogLocale(i18n.resolvedLanguage)
+  const alternateLocale: CatalogLocale = locale === 'en' ? 'de' : 'en'
   const interests = useInterestCatalog(locale)
+  const alternateInterests = useInterestCatalog(alternateLocale)
   const languages = useLanguageCatalog(locale)
-  const saveSelections = useUpdateProfileSelections()
+  const alternateLanguages = useLanguageCatalog(alternateLocale)
+  const savePreferences = useUpdateProfilePreferences()
   const [selectedInterestIds, setSelectedInterestIds] = useState<string[]>(() => [
-    ...profile.interest_ids,
+    ...preferences.interest_ids,
   ])
-  const [selectedLanguages, setSelectedLanguages] = useState<ProfileLanguageSelection[]>(() =>
-    profile.languages.map((selection) => ({ ...selection })),
+  const [customInterests, setCustomInterests] = useState<CustomPreferenceSelection[]>(() =>
+    preferences.custom_interests.map((selection) => ({ ...selection })),
   )
+  const [selectedLanguages, setSelectedLanguages] = useState<ProfileLanguageSelection[]>(() =>
+    preferences.languages.map((selection) => ({ ...selection })),
+  )
+  const [customLanguages, setCustomLanguages] = useState<CustomLanguageSelection[]>(() =>
+    preferences.custom_languages.map((selection) => ({ ...selection })),
+  )
+  const [newLanguageProficiency, setNewLanguageProficiency] =
+    useState<LanguageProficiency>('beginner')
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
   const [reloading, setReloading] = useState(false)
@@ -125,17 +166,40 @@ function OnboardingInterestsForm({
       }) ?? [],
     [interests.data?.items, locale, normalizedSearch],
   )
+  const interestCollisionLabels = [
+    ...(interests.data?.items.map(({ label }) => label) ?? []),
+    ...(alternateInterests.data?.items.map(({ label }) => label) ?? []),
+  ]
+  const languageCollisionLabels = [
+    ...(languages.data?.items.map(({ label }) => label) ?? []),
+    ...(alternateLanguages.data?.items.map(({ label }) => label) ?? []),
+  ]
+  const interestCount = selectedInterestIds.length + customInterests.length
+  const languageCount = selectedLanguages.length + customLanguages.length
+
+  const tagMessages = (kind: 'interest' | 'language'): PreferenceTagMessages => ({
+    inputLabel: t(`preferenceTags.${kind}.inputLabel`),
+    placeholder: t(`preferenceTags.${kind}.placeholder`),
+    add: t(`preferenceTags.${kind}.add`),
+    customBadge: t('preferenceTags.customBadge'),
+    remove: (label) => t('preferenceTags.remove', { label }),
+    invalid: t('preferenceTags.invalid'),
+    duplicate: t('preferenceTags.duplicate'),
+    predefinedCollision: t('preferenceTags.predefinedCollision'),
+    limitReached: t('preferenceTags.limitReached'),
+    characterCount: (count, maximum) => t('preferenceTags.characterCount', { count, maximum }),
+  })
 
   const clearFeedback = () => {
     setSaved(false)
-    saveSelections.reset()
+    savePreferences.reset()
   }
 
   const toggleInterest = (interestId: string) => {
     clearFeedback()
     setSelectedInterestIds((current) => {
       if (current.includes(interestId)) return current.filter((id) => id !== interestId)
-      if (current.length >= MAX_INTERESTS) return current
+      if (current.length + customInterests.length >= MAX_INTERESTS) return current
       return [...current, interestId]
     })
   }
@@ -146,7 +210,7 @@ function OnboardingInterestsForm({
       if (current.some(({ language_code }) => language_code === languageCode)) {
         return current.filter(({ language_code }) => language_code !== languageCode)
       }
-      if (current.length >= MAX_LANGUAGES) return current
+      if (current.length + customLanguages.length >= MAX_LANGUAGES) return current
       return [...current, { language_code: languageCode, proficiency: 'beginner' }]
     })
   }
@@ -162,28 +226,35 @@ function OnboardingInterestsForm({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (saveSelections.isPending || !interests.data || !languages.data) return
+    if (savePreferences.isPending || (!interests.data && !languages.data)) return
 
-    const updateInterests = !selectedValuesMatch(selectedInterestIds, profile.interest_ids)
-    const updateLanguages = !languageSelectionsMatch(selectedLanguages, profile.languages)
-    if (!updateInterests && !updateLanguages) {
-      saveSelections.reset()
+    const unchanged =
+      selectedValuesMatch(selectedInterestIds, preferences.interest_ids) &&
+      customSelectionsMatch(customInterests, preferences.custom_interests) &&
+      languageSelectionsMatch(selectedLanguages, preferences.languages) &&
+      customLanguagesMatch(customLanguages, preferences.custom_languages)
+    if (unchanged) {
+      savePreferences.reset()
       setSaved(true)
       return
     }
 
-    saveSelections.mutate(
+    savePreferences.mutate(
       {
-        version: profile.version,
-        interestIds: selectedInterestIds,
+        version: preferences.version,
+        interest_ids: selectedInterestIds,
+        custom_interests: customInterests,
         languages: selectedLanguages,
-        updateInterests,
-        updateLanguages,
+        custom_languages: customLanguages,
+        activity_ids: [...preferences.activity_ids],
+        custom_activities: preferences.custom_activities.map((selection) => ({ ...selection })),
       },
       {
         onSuccess: (result) => {
           setSelectedInterestIds([...result.interest_ids])
+          setCustomInterests(result.custom_interests.map((selection) => ({ ...selection })))
           setSelectedLanguages(result.languages.map((selection) => ({ ...selection })))
+          setCustomLanguages(result.custom_languages.map((selection) => ({ ...selection })))
           setSaved(true)
         },
       },
@@ -191,26 +262,28 @@ function OnboardingInterestsForm({
   }
 
   const saveError =
-    saveSelections.error instanceof ApiError && saveSelections.error.code === 'validation'
+    savePreferences.error instanceof ApiError && savePreferences.error.code === 'validation'
       ? t('onboarding.compatibility.serverValidation')
-      : saveSelections.error instanceof ApiError && saveSelections.error.code === 'conflict'
+      : savePreferences.error instanceof ApiError && savePreferences.error.code === 'conflict'
         ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.compatibility.conflict')
         : t('onboarding.compatibility.saveError')
   const hasConflict =
-    saveSelections.error instanceof ApiError && saveSelections.error.code === 'conflict'
-  const catalogsReady = Boolean(interests.data && languages.data)
+    savePreferences.error instanceof ApiError && savePreferences.error.code === 'conflict'
+  const hasEditableCatalog = Boolean(interests.data || languages.data)
 
   const reloadSavedProfile = async () => {
     if (!onReload || reloading) return
     setReloading(true)
-    const refreshedProfile = await onReload()
+    const [, refreshedPreferences] = await Promise.all([onReload(), reloadPreferences()])
     setReloading(false)
-    if (!refreshedProfile) return
-    setSelectedInterestIds([...refreshedProfile.interest_ids])
-    setSelectedLanguages(refreshedProfile.languages.map((selection) => ({ ...selection })))
+    if (!refreshedPreferences) return
+    setSelectedInterestIds([...refreshedPreferences.interest_ids])
+    setCustomInterests(refreshedPreferences.custom_interests.map((selection) => ({ ...selection })))
+    setSelectedLanguages(refreshedPreferences.languages.map((selection) => ({ ...selection })))
+    setCustomLanguages(refreshedPreferences.custom_languages.map((selection) => ({ ...selection })))
     setSearch('')
     setSaved(false)
-    saveSelections.reset()
+    savePreferences.reset()
   }
 
   const titleId =
@@ -239,7 +312,7 @@ function OnboardingInterestsForm({
         </Typography>
       </header>
 
-      <form className="space-y-6" aria-busy={saveSelections.isPending} onSubmit={handleSubmit}>
+      <form className="space-y-6" aria-busy={savePreferences.isPending} onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
             <CardTitle>{t('onboarding.compatibility.interestsTitle')}</CardTitle>
@@ -280,7 +353,7 @@ function OnboardingInterestsForm({
 
                 <p id="interest-limit" className="text-sm text-muted-foreground" aria-live="polite">
                   {t('onboarding.compatibility.interestCount', {
-                    count: selectedInterestIds.length,
+                    count: interestCount,
                     maximum: MAX_INTERESTS,
                   })}
                 </p>
@@ -298,8 +371,7 @@ function OnboardingInterestsForm({
                     {filteredInterests.map((interest) => {
                       const checked = selectedInterestIds.includes(interest.id)
                       const disabled =
-                        saveSelections.isPending ||
-                        (!checked && selectedInterestIds.length >= MAX_INTERESTS)
+                        savePreferences.isPending || (!checked && interestCount >= MAX_INTERESTS)
                       return (
                         <label
                           key={interest.id}
@@ -319,12 +391,33 @@ function OnboardingInterestsForm({
                             className="size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
                             onChange={() => toggleInterest(interest.id)}
                           />
-                          <span className="min-w-0 text-sm font-medium">{interest.label}</span>
+                          <span className="min-w-0 break-words text-sm font-medium">
+                            {interest.label}
+                          </span>
                         </label>
                       )
                     })}
                   </div>
                 )}
+
+                <PreferenceTagInput
+                  values={customInterests}
+                  collisionLabels={interestCollisionLabels}
+                  selectedCount={interestCount}
+                  maximum={MAX_INTERESTS}
+                  disabled={savePreferences.isPending}
+                  messages={tagMessages('interest')}
+                  onAdd={(label) => {
+                    clearFeedback()
+                    setCustomInterests((current) => [...current, { label }])
+                  }}
+                  onRemove={(index) => {
+                    clearFeedback()
+                    setCustomInterests((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }}
+                />
               </>
             )}
           </CardContent>
@@ -346,86 +439,161 @@ function OnboardingInterestsForm({
                 retry={t('onboarding.compatibility.retry')}
                 onRetry={() => void languages.refetch()}
               />
-            ) : languages.data.items.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
-                {t('onboarding.compatibility.noLanguages')}
-              </p>
             ) : (
               <>
                 <p id="language-limit" className="text-sm text-muted-foreground" aria-live="polite">
                   {t('onboarding.compatibility.languageCount', {
-                    count: selectedLanguages.length,
+                    count: languageCount,
                     maximum: MAX_LANGUAGES,
                   })}
                 </p>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {languages.data.items.map((language) => {
-                    const selection = selectedLanguages.find(
-                      ({ language_code }) => language_code === language.code,
-                    )
-                    const disabled =
-                      saveSelections.isPending ||
-                      (!selection && selectedLanguages.length >= MAX_LANGUAGES)
-                    return (
-                      <div
-                        key={language.code}
-                        className={cn(
-                          'space-y-3 rounded-xl border border-border p-4 transition',
-                          selection && 'border-vgu-orange bg-vgu-orange/5',
-                        )}
-                      >
-                        <label
+                {languages.data.items.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
+                    {t('onboarding.compatibility.noLanguages')}
+                  </p>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {languages.data.items.map((language) => {
+                      const selection = selectedLanguages.find(
+                        ({ language_code }) => language_code === language.code,
+                      )
+                      const disabled =
+                        savePreferences.isPending || (!selection && languageCount >= MAX_LANGUAGES)
+                      return (
+                        <div
+                          key={language.code}
                           className={cn(
-                            'flex cursor-pointer items-center gap-3',
-                            disabled && 'cursor-not-allowed opacity-60',
+                            'space-y-3 rounded-xl border border-border p-4 transition',
+                            selection && 'border-vgu-orange bg-vgu-orange/5',
                           )}
                         >
-                          <input
-                            type="checkbox"
-                            name="language"
-                            value={language.code}
-                            checked={Boolean(selection)}
-                            disabled={disabled}
-                            aria-describedby="language-limit"
-                            className="size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
-                            onChange={() => toggleLanguage(language.code)}
-                          />
-                          <span className="text-sm font-semibold">{language.label}</span>
-                        </label>
-                        {selection ? (
-                          <div className="space-y-2">
-                            <label
-                              htmlFor={`proficiency-${language.code}`}
-                              className="text-sm text-muted-foreground"
-                            >
-                              {t('onboarding.compatibility.proficiencyFor', {
-                                language: language.label,
-                              })}
-                            </label>
-                            <select
-                              id={`proficiency-${language.code}`}
-                              value={selection.proficiency}
-                              disabled={saveSelections.isPending}
-                              className={inputClassName}
-                              onChange={(event) =>
-                                setProficiency(
-                                  language.code,
-                                  event.target.value as LanguageProficiency,
-                                )
-                              }
-                            >
-                              {PROFICIENCIES.map((proficiency) => (
-                                <option key={proficiency} value={proficiency}>
-                                  {t(`onboarding.compatibility.proficiencies.${proficiency}`)}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : null}
-                      </div>
+                          <label
+                            className={cn(
+                              'flex cursor-pointer items-center gap-3',
+                              disabled && 'cursor-not-allowed opacity-60',
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              name="language"
+                              value={language.code}
+                              checked={Boolean(selection)}
+                              disabled={disabled}
+                              aria-describedby="language-limit"
+                              className="size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
+                              onChange={() => toggleLanguage(language.code)}
+                            />
+                            <span className="text-sm font-semibold">{language.label}</span>
+                          </label>
+                          {selection ? (
+                            <div className="space-y-2">
+                              <label
+                                htmlFor={`proficiency-${language.code}`}
+                                className="text-sm text-muted-foreground"
+                              >
+                                {t('onboarding.compatibility.proficiencyFor', {
+                                  language: language.label,
+                                })}
+                              </label>
+                              <select
+                                id={`proficiency-${language.code}`}
+                                value={selection.proficiency}
+                                disabled={savePreferences.isPending}
+                                className={inputClassName}
+                                onChange={(event) =>
+                                  setProficiency(
+                                    language.code,
+                                    event.target.value as LanguageProficiency,
+                                  )
+                                }
+                              >
+                                {PROFICIENCIES.map((proficiency) => (
+                                  <option key={proficiency} value={proficiency}>
+                                    {t(`onboarding.compatibility.proficiencies.${proficiency}`)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <PreferenceTagInput
+                  values={customLanguages}
+                  collisionLabels={languageCollisionLabels}
+                  selectedCount={languageCount}
+                  maximum={MAX_LANGUAGES}
+                  disabled={savePreferences.isPending}
+                  messages={tagMessages('language')}
+                  inputAccessory={
+                    <label className="space-y-2 text-sm font-medium">
+                      <span>{t('preferenceTags.language.proficiency')}</span>
+                      <select
+                        value={newLanguageProficiency}
+                        disabled={savePreferences.isPending || languageCount >= MAX_LANGUAGES}
+                        className={cn(inputClassName, 'sm:w-44')}
+                        onChange={(event) =>
+                          setNewLanguageProficiency(event.target.value as LanguageProficiency)
+                        }
+                      >
+                        {PROFICIENCIES.map((proficiency) => (
+                          <option key={proficiency} value={proficiency}>
+                            {t(`onboarding.compatibility.proficiencies.${proficiency}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  }
+                  renderValueControl={(value, index) => (
+                    <label className="ml-auto">
+                      <span className="sr-only">
+                        {t('onboarding.compatibility.proficiencyFor', {
+                          language: value.label,
+                        })}
+                      </span>
+                      <select
+                        value={value.proficiency}
+                        disabled={savePreferences.isPending}
+                        className="h-9 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
+                        onChange={(event) => {
+                          clearFeedback()
+                          setCustomLanguages((current) =>
+                            current.map((selection, itemIndex) =>
+                              itemIndex === index
+                                ? {
+                                    ...selection,
+                                    proficiency: event.target.value as LanguageProficiency,
+                                  }
+                                : selection,
+                            ),
+                          )
+                        }}
+                      >
+                        {PROFICIENCIES.map((proficiency) => (
+                          <option key={proficiency} value={proficiency}>
+                            {t(`onboarding.compatibility.proficiencies.${proficiency}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  onAdd={(label) => {
+                    clearFeedback()
+                    setCustomLanguages((current) => [
+                      ...current,
+                      { label, proficiency: newLanguageProficiency },
+                    ])
+                  }}
+                  onRemove={(index) => {
+                    clearFeedback()
+                    setCustomLanguages((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
                     )
-                  })}
-                </div>
+                  }}
+                />
               </>
             )}
           </CardContent>
@@ -445,7 +613,7 @@ function OnboardingInterestsForm({
                     : 'onboarding.compatibility.saved',
                 )}
               </p>
-            ) : saveSelections.isError ? (
+            ) : savePreferences.isError ? (
               <div className="space-y-2">
                 <p className="text-sm text-destructive" role="alert">
                   {saveError}
@@ -466,10 +634,10 @@ function OnboardingInterestsForm({
           </div>
           <Button
             type="submit"
-            disabled={saveSelections.isPending || !catalogsReady}
+            disabled={savePreferences.isPending || !hasEditableCatalog}
             className="sm:min-w-40"
           >
-            {saveSelections.isPending
+            {savePreferences.isPending
               ? t('onboarding.compatibility.saving')
               : t(
                   mode === 'edit'
@@ -480,6 +648,53 @@ function OnboardingInterestsForm({
         </div>
       </form>
     </section>
+  )
+}
+
+function OnboardingInterestsForm({
+  profile,
+  mode = 'onboarding',
+  onReload,
+}: {
+  profile: OwnProfile
+  mode?: ProfileFormMode
+  onReload?: ReloadOwnProfile
+}) {
+  const { t } = useTranslation()
+  const preferences = useProfilePreferences()
+
+  if (preferences.isPending) {
+    return (
+      <section className="py-6" aria-busy="true">
+        <CatalogLoading label={t('onboarding.compatibility.loadingPreferences')} />
+      </section>
+    )
+  }
+  if (preferences.isError) {
+    return (
+      <section className="py-6">
+        <CatalogError
+          message={t('onboarding.compatibility.preferencesError')}
+          retry={t('onboarding.compatibility.retry')}
+          onRetry={() => void preferences.refetch()}
+        />
+      </section>
+    )
+  }
+
+  const reloadPreferences = async () => {
+    const result = await preferences.refetch()
+    return result.isError ? undefined : result.data
+  }
+
+  return (
+    <OnboardingInterestsEditor
+      key={profile.id}
+      preferences={preferences.data}
+      mode={mode}
+      onReload={onReload}
+      reloadPreferences={reloadPreferences}
+    />
   )
 }
 

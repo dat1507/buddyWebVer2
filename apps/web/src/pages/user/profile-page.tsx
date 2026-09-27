@@ -1,4 +1,12 @@
-import { GraduationCap, Languages, LoaderCircle, MapPin, Pencil, Sparkles } from 'lucide-react'
+import {
+  Bike,
+  GraduationCap,
+  Languages,
+  LoaderCircle,
+  MapPin,
+  Pencil,
+  Sparkles,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -6,13 +14,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { EmailVerificationStatus } from '@/features/auth/email-verification-status'
-import type { CatalogLocale } from '@/features/profile/profile-catalog'
+import type { CatalogLocale, ProfilePreferenceSnapshot } from '@/features/profile/profile-catalog'
 import type { OwnProfile } from '@/features/profile/profile'
 import {
+  useActivityCatalog,
   useInterestCatalog,
   useLanguageCatalog,
 } from '@/features/profile/queries/use-profile-catalogs'
-import { useOwnProfile } from '@/features/profile/queries/use-own-profile'
+import { useOwnProfile, useProfilePreferences } from '@/features/profile/queries/use-own-profile'
 import { useProfilePhotoUrl } from '@/features/profile/queries/use-profile-photo-url'
 
 function catalogLocale(language: string | undefined): CatalogLocale {
@@ -90,7 +99,36 @@ function ProfileDetail({ label, value }: { label: string; value: string | null }
   )
 }
 
-function InterestList({ profile, locale }: { profile: OwnProfile; locale: CatalogLocale }) {
+function CustomBadge() {
+  const { t } = useTranslation()
+  return (
+    <span className="rounded-full bg-vgu-orange/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-vgu-orange-dark dark:text-vgu-orange">
+      {t('preferenceTags.customBadge')}
+    </span>
+  )
+}
+
+function PreferenceLoadError({ retry }: { retry: () => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-destructive" role="alert">
+        {t('profile.preferencesError')}
+      </p>
+      <Button type="button" size="sm" variant="outline" onClick={retry}>
+        {t('profile.retry')}
+      </Button>
+    </div>
+  )
+}
+
+function InterestList({
+  preferences,
+  locale,
+}: {
+  preferences: ProfilePreferenceSnapshot
+  locale: CatalogLocale
+}) {
   const { t } = useTranslation()
   const catalog = useInterestCatalog(locale)
 
@@ -109,14 +147,14 @@ function InterestList({ profile, locale }: { profile: OwnProfile; locale: Catalo
       </div>
     )
   }
-  if (profile.interest_ids.length === 0) {
+  if (preferences.interest_ids.length === 0 && preferences.custom_interests.length === 0) {
     return <p className="text-sm text-muted-foreground">{t('profile.noInterests')}</p>
   }
 
   const labels = new Map(catalog.data.items.map((item) => [item.id, item.label]))
   return (
     <ul className="flex flex-wrap gap-2" aria-label={t('profile.interestsLabel')}>
-      {profile.interest_ids.map((interestId) => (
+      {preferences.interest_ids.map((interestId) => (
         <li
           key={interestId}
           className="rounded-full border border-vgu-orange/30 bg-vgu-orange/10 px-3 py-1.5 text-sm font-medium"
@@ -124,11 +162,26 @@ function InterestList({ profile, locale }: { profile: OwnProfile; locale: Catalo
           {labels.get(interestId) ?? t('profile.unavailableInterest')}
         </li>
       ))}
+      {preferences.custom_interests.map(({ label }) => (
+        <li
+          key={`custom-${label}`}
+          className="flex max-w-full items-center gap-2 rounded-xl border border-vgu-orange/40 bg-vgu-orange/10 px-3 py-1.5 text-sm font-medium"
+        >
+          <CustomBadge />
+          <span className="min-w-0 break-words">{label}</span>
+        </li>
+      ))}
     </ul>
   )
 }
 
-function LanguageList({ profile, locale }: { profile: OwnProfile; locale: CatalogLocale }) {
+function LanguageList({
+  preferences,
+  locale,
+}: {
+  preferences: ProfilePreferenceSnapshot
+  locale: CatalogLocale
+}) {
   const { t } = useTranslation()
   const catalog = useLanguageCatalog(locale)
 
@@ -147,14 +200,14 @@ function LanguageList({ profile, locale }: { profile: OwnProfile; locale: Catalo
       </div>
     )
   }
-  if (profile.languages.length === 0) {
+  if (preferences.languages.length === 0 && preferences.custom_languages.length === 0) {
     return <p className="text-sm text-muted-foreground">{t('profile.noLanguages')}</p>
   }
 
   const labels = new Map(catalog.data.items.map((item) => [item.code, item.label]))
   return (
     <ul className="grid gap-3 sm:grid-cols-2" aria-label={t('profile.languagesLabel')}>
-      {profile.languages.map(({ language_code, proficiency }) => (
+      {preferences.languages.map(({ language_code, proficiency }) => (
         <li
           key={language_code}
           className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/60 p-3"
@@ -167,6 +220,71 @@ function LanguageList({ profile, locale }: { profile: OwnProfile; locale: Catalo
           </span>
         </li>
       ))}
+      {preferences.custom_languages.map(({ label, proficiency }) => (
+        <li
+          key={`custom-${label}`}
+          className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-vgu-orange/30 bg-vgu-orange/5 p-3"
+        >
+          <span className="flex min-w-0 items-center gap-2 font-semibold">
+            <CustomBadge />
+            <span className="break-words">{label}</span>
+          </span>
+          <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+            {t(`onboarding.compatibility.proficiencies.${proficiency}`)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function ActivityList({
+  preferences,
+  locale,
+}: {
+  preferences: ProfilePreferenceSnapshot
+  locale: CatalogLocale
+}) {
+  const { t } = useTranslation()
+  const catalog = useActivityCatalog(locale)
+
+  if (catalog.isPending) return <p role="status">{t('profile.loadingActivities')}</p>
+  if (catalog.isError) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-destructive" role="alert">
+          {t('profile.activitiesError')}
+        </p>
+        <Button type="button" size="sm" variant="outline" onClick={() => void catalog.refetch()}>
+          {t('profile.retry')}
+        </Button>
+      </div>
+    )
+  }
+  if (preferences.activity_ids.length === 0 && preferences.custom_activities.length === 0) {
+    return <p className="text-sm text-muted-foreground">{t('profile.noActivities')}</p>
+  }
+
+  const labels = new Map(catalog.data.items.map((item) => [item.id, item.label]))
+  return (
+    <ul className="flex flex-wrap gap-2" aria-label={t('profile.activitiesLabel')}>
+      {preferences.activity_ids.map((activityId) => (
+        <li
+          key={activityId}
+          className="rounded-full border border-border/70 bg-background/60 px-3 py-1.5 text-sm font-medium"
+        >
+          {labels.get(activityId) ?? t('profile.unavailableActivity')}
+        </li>
+      ))}
+      {preferences.custom_activities.map(({ label }) => (
+        <li
+          key={`custom-${label}`}
+          className="flex max-w-full items-center gap-2 rounded-xl border border-vgu-orange/40 bg-vgu-orange/10 px-3 py-1.5 text-sm font-medium"
+        >
+          <CustomBadge />
+          <span className="min-w-0 break-words">{label}</span>
+        </li>
+      ))}
     </ul>
   )
 }
@@ -174,6 +292,7 @@ function LanguageList({ profile, locale }: { profile: OwnProfile; locale: Catalo
 function ProfileView({ profile }: { profile: OwnProfile }) {
   const { t, i18n } = useTranslation()
   const locale = catalogLocale(i18n.resolvedLanguage)
+  const preferences = useProfilePreferences()
   const name = displayName(profile, t('profile.unnamed'))
   const fullName = profile.full_name?.trim() || null
   const studentType = profile.student_type
@@ -256,7 +375,13 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
                     <Link to="/user/profile/edit">{t('profile.editInterests')}</Link>
                   </Button>
                 </div>
-                <InterestList profile={profile} locale={locale} />
+                {preferences.isPending ? (
+                  <p role="status">{t('profile.loadingPreferences')}</p>
+                ) : preferences.isError ? (
+                  <PreferenceLoadError retry={() => void preferences.refetch()} />
+                ) : (
+                  <InterestList preferences={preferences.data} locale={locale} />
+                )}
               </section>
 
               <section className="space-y-3" aria-labelledby="profile-languages-title">
@@ -266,7 +391,29 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
                     {t('profile.languagesTitle')}
                   </h3>
                 </div>
-                <LanguageList profile={profile} locale={locale} />
+                {preferences.isPending ? (
+                  <p role="status">{t('profile.loadingPreferences')}</p>
+                ) : preferences.isError ? (
+                  <PreferenceLoadError retry={() => void preferences.refetch()} />
+                ) : (
+                  <LanguageList preferences={preferences.data} locale={locale} />
+                )}
+              </section>
+
+              <section className="space-y-3" aria-labelledby="profile-activities-title">
+                <div className="flex items-center gap-2">
+                  <Bike className="size-5 text-vgu-orange" aria-hidden="true" />
+                  <h3 id="profile-activities-title" className="text-xl font-bold">
+                    {t('profile.activitiesTitle')}
+                  </h3>
+                </div>
+                {preferences.isPending ? (
+                  <p role="status">{t('profile.loadingPreferences')}</p>
+                ) : preferences.isError ? (
+                  <PreferenceLoadError retry={() => void preferences.refetch()} />
+                ) : (
+                  <ActivityList preferences={preferences.data} locale={locale} />
+                )}
               </section>
             </div>
 

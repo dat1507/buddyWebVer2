@@ -349,10 +349,12 @@
       "loadingProfile": "Loading your saved profile…",
       "loadingInterests": "Loading interests…",
       "loadingLanguages": "Loading languages…",
+      "loadingPreferences": "Loading your saved preference selections…",
       "profileErrorTitle": "Your profile could not be loaded",
       "profileError": "We could not load your saved selections. Try again before making changes.",
       "interestsError": "The interest catalog could not be loaded.",
       "languagesError": "The language catalog could not be loaded.",
+      "preferencesError": "Your saved preference selections could not be loaded.",
       "retry": "Try again",
       "save": "Save Step 2",
       "saving": "Saving…",
@@ -401,6 +403,9 @@
       "loadingProfile": "Loading your saved profile…",
       "profileErrorTitle": "Your profile could not be loaded",
       "profileError": "We could not load your saved availability and preferences. Try again before making changes.",
+      "loadingPreferenceSelections": "Loading your saved activities…",
+      "preferenceSelectionsErrorTitle": "Your activities could not be loaded",
+      "preferenceSelectionsError": "We could not load your saved activity selections. Try again before making changes.",
       "retry": "Try again",
       "finish": "Save and finish onboarding",
       "saving": "Saving…",
@@ -429,6 +434,31 @@
         "slotLength": "A time slot cannot start and end at the same time.",
         "unavailableActivities": "Remove unavailable saved activities before finishing."
       }
+    }
+  },
+  "preferenceTags": {
+    "customBadge": "Custom",
+    "remove": "Remove custom value {{label}}",
+    "invalid": "Enter a safe label between 1 and 120 characters.",
+    "duplicate": "This custom value is already selected.",
+    "predefinedCollision": "This matches an existing predefined option. Select that option instead.",
+    "limitReached": "Remove a selection before adding another custom value.",
+    "characterCount": "{{count}} of {{maximum}} input characters",
+    "interest": {
+      "inputLabel": "Add a custom interest",
+      "placeholder": "For example, Formula 1",
+      "add": "Add custom interest"
+    },
+    "language": {
+      "inputLabel": "Add a custom language",
+      "placeholder": "For example, Swiss German",
+      "add": "Add custom language",
+      "proficiency": "Proficiency"
+    },
+    "activity": {
+      "inputLabel": "Add a custom activity",
+      "placeholder": "For example, Night kayaking",
+      "add": "Add custom activity"
     }
   },
   "emailVerification": {
@@ -528,13 +558,21 @@
     "languagesError": "The language catalog could not be loaded.",
     "noLanguages": "No languages added yet.",
     "languagesLabel": "Languages spoken",
+    "activitiesTitle": "Preferred activities",
+    "loadingActivities": "Loading activities…",
+    "activitiesError": "The activity catalog could not be loaded.",
+    "noActivities": "No preferred activities added yet.",
+    "activitiesLabel": "Preferred activities",
+    "unavailableActivity": "Unavailable activity",
+    "loadingPreferences": "Loading preference selections…",
+    "preferencesError": "Your preference selections could not be loaded.",
     "detailsTitle": "Profile details",
     "major": "Major or study program",
     "studyYear": "Study year",
     "studyYearValue": "Year {{year}}",
     "nationality": "Nationality",
     "notAdded": "Not added",
-    "privateNote": "Only profile information is shown here. Matching preferences and availability remain private.",
+    "privateNote": "This own-profile view includes your preference summary. Your availability remains private.",
     "loading": "Loading your profile…",
     "loadErrorTitle": "Your profile could not be loaded",
     "loadError": "We could not load your saved profile. Try again."

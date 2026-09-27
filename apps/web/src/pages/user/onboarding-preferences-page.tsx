@@ -6,24 +6,32 @@ import { Link, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import type { CatalogLocale } from '@/features/profile/profile-catalog'
+import {
+  MAX_ACTIVITIES,
+  type CatalogLocale,
+  type CustomPreferenceSelection,
+  type ProfilePreferenceSnapshot,
+} from '@/features/profile/profile-catalog'
 import type { ProfileMissingField } from '@/features/profile/profile-completion'
+import type { PreferenceTagMessages } from '@/features/profile/preference-tag-input'
+import { PreferenceTagInput } from '@/features/profile/preference-tag-input'
 import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import type {
   OnboardingPreferencesUpdate,
   OwnProfile,
   WeeklyAvailabilitySlot,
 } from '@/features/profile/profile'
-import { useInterestCatalog } from '@/features/profile/queries/use-profile-catalogs'
+import { useActivityCatalog } from '@/features/profile/queries/use-profile-catalogs'
 import {
   useOwnProfile,
   useProfileCompletion,
+  useProfilePreferences,
   useUpdateOwnProfile,
+  useUpdateProfilePreferences,
 } from '@/features/profile/queries/use-own-profile'
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
-const MAX_ACTIVITIES = 20
 const MAX_SLOTS = 100
 const HALF_HOUR_MINUTES = Array.from({ length: 49 }, (_, index) => index * 30)
 
@@ -66,21 +74,28 @@ function missingStep(
     : '/user/onboarding'
 }
 
-function OnboardingPreferencesForm({
+function OnboardingPreferencesEditor({
   profile,
+  preferences,
   mode = 'onboarding',
   onReload,
+  reloadPreferences,
 }: {
   profile: OwnProfile
+  preferences: ProfilePreferenceSnapshot
   mode?: ProfileFormMode
   onReload?: ReloadOwnProfile
+  reloadPreferences: () => Promise<ProfilePreferenceSnapshot | undefined>
 }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const locale = catalogLocale(i18n.resolvedLanguage)
-  const interests = useInterestCatalog(locale)
+  const alternateLocale: CatalogLocale = locale === 'en' ? 'de' : 'en'
+  const activities = useActivityCatalog(locale)
+  const alternateActivities = useActivityCatalog(alternateLocale)
   const completion = useProfileCompletion()
   const updateProfile = useUpdateOwnProfile()
+  const updatePreferences = useUpdateProfilePreferences()
   const timezoneId = useId()
   const initialSlots = profile.availability?.slots ?? []
   const nextSlotId = useRef(initialSlots.length + 1)
@@ -90,8 +105,11 @@ function OnboardingPreferencesForm({
     initialSlots.map((slot, index) => ({ ...slot, id: index + 1 })),
   )
   const [selectedActivityIds, setSelectedActivityIds] = useState<string[]>(() => [
-    ...(profile.preferences?.preferred_activity_ids ?? []),
+    ...preferences.activity_ids,
   ])
+  const [customActivities, setCustomActivities] = useState<CustomPreferenceSelection[]>(() =>
+    preferences.custom_activities.map((selection) => ({ ...selection })),
+  )
   const [matchingOptIn, setMatchingOptIn] = useState(profile.matching_opt_in)
   const [formError, setFormError] = useState<string | null>(null)
   const [completionError, setCompletionError] = useState(false)
@@ -104,11 +122,29 @@ function OnboardingPreferencesForm({
     setCompletionError(false)
     setMissingFields(null)
     updateProfile.reset()
+    updatePreferences.reset()
   }
 
-  const availableActivityIds = new Set(interests.data?.items.map(({ id }) => id) ?? [])
+  const availableActivityIds = new Set(activities.data?.items.map(({ id }) => id) ?? [])
   const unavailableActivityIds = selectedActivityIds.filter((id) => !availableActivityIds.has(id))
-  const isPending = updateProfile.isPending || checkingCompletion
+  const activityCount = selectedActivityIds.length + customActivities.length
+  const activityCollisionLabels = [
+    ...(activities.data?.items.map(({ label }) => label) ?? []),
+    ...(alternateActivities.data?.items.map(({ label }) => label) ?? []),
+  ]
+  const isPending = updateProfile.isPending || updatePreferences.isPending || checkingCompletion
+  const tagMessages: PreferenceTagMessages = {
+    inputLabel: t('preferenceTags.activity.inputLabel'),
+    placeholder: t('preferenceTags.activity.placeholder'),
+    add: t('preferenceTags.activity.add'),
+    customBadge: t('preferenceTags.customBadge'),
+    remove: (label) => t('preferenceTags.remove', { label }),
+    invalid: t('preferenceTags.invalid'),
+    duplicate: t('preferenceTags.duplicate'),
+    predefinedCollision: t('preferenceTags.predefinedCollision'),
+    limitReached: t('preferenceTags.limitReached'),
+    characterCount: (count, maximum) => t('preferenceTags.characterCount', { count, maximum }),
+  }
 
   const addSlot = () => {
     clearFeedback()
@@ -149,7 +185,7 @@ function OnboardingPreferencesForm({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (isPending || !interests.data) return
+    if (isPending || !activities.data) return
     clearFeedback()
 
     const normalizedTimezone = timezone.trim()
@@ -171,7 +207,7 @@ function OnboardingPreferencesForm({
     }
 
     const update: OnboardingPreferencesUpdate = {
-      version: profile.version,
+      version: preferences.version,
       availability: availabilityEnabled
         ? {
             timezone: normalizedTimezone,
@@ -182,45 +218,75 @@ function OnboardingPreferencesForm({
             })),
           }
         : null,
-      preferences: { preferred_activity_ids: selectedActivityIds },
       matching_opt_in: matchingOptIn,
     }
 
     try {
-      await updateProfile.mutateAsync(update)
+      const activitiesChanged =
+        selectedActivityIds.length !== preferences.activity_ids.length ||
+        selectedActivityIds.some((id) => !preferences.activity_ids.includes(id)) ||
+        customActivities.length !== preferences.custom_activities.length ||
+        customActivities.some(
+          ({ label }, index) => preferences.custom_activities[index]?.label !== label,
+        )
+      let version = preferences.version
+      if (activitiesChanged) {
+        const savedPreferences = await updatePreferences.mutateAsync({
+          version,
+          interest_ids: [...preferences.interest_ids],
+          custom_interests: preferences.custom_interests.map((selection) => ({ ...selection })),
+          languages: preferences.languages.map((selection) => ({ ...selection })),
+          custom_languages: preferences.custom_languages.map((selection) => ({ ...selection })),
+          activity_ids: selectedActivityIds,
+          custom_activities: customActivities,
+        })
+        version = savedPreferences.version
+        setSelectedActivityIds([...savedPreferences.activity_ids])
+        setCustomActivities(
+          savedPreferences.custom_activities.map((selection) => ({ ...selection })),
+        )
+      }
+      await updateProfile.mutateAsync({ ...update, version })
       await verifyCompletion()
     } catch {
       // The mutation exposes a sanitized error below and preserves every local field for retry.
     }
   }
 
+  const mutationError = updatePreferences.error ?? updateProfile.error
   const saveError =
-    updateProfile.error instanceof ApiError && updateProfile.error.code === 'validation'
+    mutationError instanceof ApiError && mutationError.code === 'validation'
       ? t('onboarding.preferences.serverValidation')
-      : updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
+      : mutationError instanceof ApiError && mutationError.code === 'conflict'
         ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.preferences.conflict')
         : t('onboarding.preferences.saveError')
-  const hasConflict =
-    updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
+  const hasConflict = mutationError instanceof ApiError && mutationError.code === 'conflict'
 
   const reloadSavedProfile = async () => {
     if (!onReload || reloading) return
     setReloading(true)
-    const refreshedProfile = await onReload()
+    const [refreshedProfile, refreshedPreferences] = await Promise.all([
+      onReload(),
+      reloadPreferences(),
+    ])
     setReloading(false)
-    if (!refreshedProfile) return
+    if (!refreshedProfile || !refreshedPreferences) return
 
     const refreshedSlots = refreshedProfile.availability?.slots ?? []
     setAvailabilityEnabled(refreshedProfile.availability !== null)
     setTimezone(refreshedProfile.availability?.timezone ?? detectedTimezone())
     setSlots(refreshedSlots.map((slot, index) => ({ ...slot, id: index + 1 })))
     nextSlotId.current = refreshedSlots.length + 1
-    setSelectedActivityIds([...(refreshedProfile.preferences?.preferred_activity_ids ?? [])])
+    setSelectedActivityIds([...refreshedPreferences.activity_ids])
+    setCustomActivities(
+      refreshedPreferences.custom_activities.map((selection) => ({ ...selection })),
+    )
     setMatchingOptIn(refreshedProfile.matching_opt_in)
     setFormError(null)
     setCompletionError(false)
     setMissingFields(null)
     updateProfile.reset()
+    updatePreferences.reset()
   }
 
   const titleId =
@@ -413,7 +479,7 @@ function OnboardingPreferencesForm({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {interests.isPending ? (
+            {activities.isPending ? (
               <div className="flex min-h-24 items-center justify-center gap-3" role="status">
                 <LoaderCircle
                   className="size-5 animate-spin motion-reduce:animate-none"
@@ -421,7 +487,7 @@ function OnboardingPreferencesForm({
                 />
                 {t('onboarding.preferences.loadingActivities')}
               </div>
-            ) : interests.isError ? (
+            ) : activities.isError ? (
               <div className="space-y-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4">
                 <p className="text-sm text-destructive" role="alert">
                   {t('onboarding.preferences.activitiesError')}
@@ -430,7 +496,7 @@ function OnboardingPreferencesForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => void interests.refetch()}
+                  onClick={() => void activities.refetch()}
                 >
                   {t('onboarding.preferences.retry')}
                 </Button>
@@ -443,7 +509,7 @@ function OnboardingPreferencesForm({
                   aria-live="polite"
                 >
                   {t('onboarding.preferences.activityCount', {
-                    count: selectedActivityIds.length,
+                    count: activityCount,
                     maximum: MAX_ACTIVITIES,
                   })}
                 </p>
@@ -466,10 +532,9 @@ function OnboardingPreferencesForm({
                   </div>
                 ) : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {interests.data?.items.map((activity) => {
+                  {activities.data?.items.map((activity) => {
                     const checked = selectedActivityIds.includes(activity.id)
-                    const disabled =
-                      isPending || (!checked && selectedActivityIds.length >= MAX_ACTIVITIES)
+                    const disabled = isPending || (!checked && activityCount >= MAX_ACTIVITIES)
                     return (
                       <label
                         key={activity.id}
@@ -499,6 +564,24 @@ function OnboardingPreferencesForm({
                     )
                   })}
                 </div>
+                <PreferenceTagInput
+                  values={customActivities}
+                  collisionLabels={activityCollisionLabels}
+                  selectedCount={activityCount}
+                  maximum={MAX_ACTIVITIES}
+                  disabled={isPending}
+                  messages={tagMessages}
+                  onAdd={(label) => {
+                    clearFeedback()
+                    setCustomActivities((current) => [...current, { label }])
+                  }}
+                  onRemove={(index) => {
+                    clearFeedback()
+                    setCustomActivities((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }}
+                />
               </>
             )}
           </CardContent>
@@ -560,7 +643,7 @@ function OnboardingPreferencesForm({
           >
             {formError}
           </p>
-        ) : updateProfile.isError ? (
+        ) : updateProfile.isError || updatePreferences.isError ? (
           <div className="space-y-3 rounded-xl border border-destructive/40 bg-destructive/5 p-4">
             <p className="text-sm text-destructive" role="alert">
               {saveError}
@@ -647,8 +730,8 @@ function OnboardingPreferencesForm({
               </p>
             ) : null}
           </div>
-          <Button type="submit" disabled={isPending || !interests.data} className="sm:min-w-48">
-            {updateProfile.isPending
+          <Button type="submit" disabled={isPending || !activities.data} className="sm:min-w-48">
+            {updateProfile.isPending || updatePreferences.isPending
               ? t('onboarding.preferences.saving')
               : checkingCompletion
                 ? t('onboarding.preferences.checking')
@@ -661,6 +744,67 @@ function OnboardingPreferencesForm({
         </div>
       </form>
     </section>
+  )
+}
+
+function OnboardingPreferencesForm({
+  profile,
+  mode = 'onboarding',
+  onReload,
+}: {
+  profile: OwnProfile
+  mode?: ProfileFormMode
+  onReload?: ReloadOwnProfile
+}) {
+  const { t } = useTranslation()
+  const preferences = useProfilePreferences()
+
+  if (preferences.isPending) {
+    return (
+      <section className="flex min-h-40 items-center justify-center gap-3 py-6" aria-busy="true">
+        <LoaderCircle
+          className="size-5 animate-spin motion-reduce:animate-none"
+          aria-hidden="true"
+        />
+        <span>{t('onboarding.preferences.loadingPreferenceSelections')}</span>
+      </section>
+    )
+  }
+
+  if (preferences.isError) {
+    return (
+      <section className="py-6">
+        <Card className="mx-auto max-w-2xl">
+          <CardHeader>
+            <CardTitle>{t('onboarding.preferences.preferenceSelectionsErrorTitle')}</CardTitle>
+            <CardDescription role="alert">
+              {t('onboarding.preferences.preferenceSelectionsError')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button type="button" onClick={() => void preferences.refetch()}>
+              {t('onboarding.preferences.retry')}
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
+    )
+  }
+
+  const reloadPreferences = async () => {
+    const result = await preferences.refetch()
+    return result.isError ? undefined : result.data
+  }
+
+  return (
+    <OnboardingPreferencesEditor
+      key={profile.id}
+      profile={profile}
+      preferences={preferences.data}
+      mode={mode}
+      onReload={onReload}
+      reloadPreferences={reloadPreferences}
+    />
   )
 }
 

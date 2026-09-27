@@ -12,7 +12,7 @@ import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
-import { completeOwnProfile } from '@/test/profile'
+import { completeOwnProfile, completeProfilePreferences } from '@/test/profile'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -40,13 +40,19 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     useAuthStore.getState().resetSession()
     queryClient.setQueryData(['profile', 'own'], completeOwnProfile)
     queryClient.setQueryData(['profile', 'completion'], completeProfileCompletion)
+    queryClient.setQueryData(['profile', 'preferences'], completeProfilePreferences)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
+    vi.spyOn(profileClient, 'readPreferences').mockResolvedValue(completeProfilePreferences)
     vi.spyOn(profileClient, 'readInterests').mockImplementation(async (locale) => ({
       locale,
       items: [],
     }))
     vi.spyOn(profileClient, 'readLanguages').mockImplementation(async (locale) => ({
+      locale,
+      items: [],
+    }))
+    vi.spyOn(profileClient, 'readActivities').mockImplementation(async (locale) => ({
       locale,
       items: [],
     }))

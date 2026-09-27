@@ -1,16 +1,17 @@
 import { sessionClient } from '@/features/auth/session-client'
 import {
+  parseActivityCatalog,
   parseInterestCatalog,
-  parseInterestSelection,
   parseLanguageCatalog,
-  parseLanguageSelection,
+  parseProfilePreferenceSnapshot,
 } from '@/features/profile/profile-catalog'
 import type {
+  ActivityCatalog,
   CatalogLocale,
   InterestCatalog,
   LanguageCatalog,
-  ProfileSelectionsResult,
-  ProfileSelectionsUpdate,
+  ProfilePreferenceSnapshot,
+  ProfilePreferenceUpdate,
 } from '@/features/profile/profile-catalog'
 import { parseProfilePhoto, parseProfilePhotoUrl } from '@/features/profile/profile-photo'
 import type { ProfilePhoto, ProfilePhotoUrl } from '@/features/profile/profile-photo'
@@ -57,6 +58,19 @@ const profileClient = {
     )
   },
 
+  async readActivities(locale: CatalogLocale, signal?: AbortSignal): Promise<ActivityCatalog> {
+    return parseActivityCatalog(
+      await sessionClient.authenticatedJson(`/activities?locale=${locale}`, { signal }),
+      locale,
+    )
+  },
+
+  async readPreferences(signal?: AbortSignal): Promise<ProfilePreferenceSnapshot> {
+    return parseProfilePreferenceSnapshot(
+      await sessionClient.authenticatedJson('/profile/preferences', { signal }),
+    )
+  },
+
   async readPhotoUrl(photoId: string, signal?: AbortSignal): Promise<ProfilePhotoUrl> {
     return parseProfilePhotoUrl(
       await sessionClient.authenticatedJson(`/profile/photos/${photoId}/url`, { signal }),
@@ -80,34 +94,13 @@ const profileClient = {
     })
   },
 
-  async updateSelections(update: ProfileSelectionsUpdate): Promise<ProfileSelectionsResult> {
-    let version = update.version
-    let interestIds = update.interestIds
-    let languages = update.languages
-
-    if (update.updateInterests) {
-      const result = parseInterestSelection(
-        await sessionClient.authenticatedJson('/profile/interests', {
-          method: 'PUT',
-          body: { version, interest_ids: interestIds },
-        }),
-      )
-      version = result.version
-      interestIds = result.interest_ids
-    }
-
-    if (update.updateLanguages) {
-      const result = parseLanguageSelection(
-        await sessionClient.authenticatedJson('/profile/languages', {
-          method: 'PUT',
-          body: { version, languages },
-        }),
-      )
-      version = result.version
-      languages = result.languages
-    }
-
-    return { version, interest_ids: interestIds, languages }
+  async updatePreferences(update: ProfilePreferenceUpdate): Promise<ProfilePreferenceSnapshot> {
+    return parseProfilePreferenceSnapshot(
+      await sessionClient.authenticatedJson('/profile/preferences', {
+        method: 'PUT',
+        body: update,
+      }),
+    )
   },
 }
 

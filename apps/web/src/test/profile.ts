@@ -1,4 +1,5 @@
 import type { OwnProfile } from '@/features/profile/profile'
+import type { ProfilePreferenceSnapshot } from '@/features/profile/profile-catalog'
 
 const completeOwnProfile = Object.freeze<OwnProfile>({
   id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
@@ -32,4 +33,14 @@ const completeOwnProfile = Object.freeze<OwnProfile>({
   version: 4,
 })
 
-export { completeOwnProfile }
+const completeProfilePreferences = Object.freeze<ProfilePreferenceSnapshot>({
+  version: completeOwnProfile.version,
+  interest_ids: [...completeOwnProfile.interest_ids],
+  custom_interests: [],
+  languages: completeOwnProfile.languages.map((selection) => ({ ...selection })),
+  custom_languages: [],
+  activity_ids: [...(completeOwnProfile.preferences?.preferred_activity_ids ?? [])],
+  custom_activities: [],
+})
+
+export { completeOwnProfile, completeProfilePreferences }

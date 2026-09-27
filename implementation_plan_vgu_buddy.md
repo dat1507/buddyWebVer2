@@ -6839,7 +6839,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | PREF-001 (**Done 2026-09-27**) | Custom/activity persistence | BE-009/010 | Profile-owned normalized custom values; Activity catalog | Migration/constraint tests |
 | PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
 | PREF-003 (**Done 2026-09-27**) | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
-| PREF-004 | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
+| PREF-004 (**Done 2026-09-27**) | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
 | REC-001 | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
 | REC-002 | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
 | REC-003 | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
@@ -7055,6 +7055,7 @@ migration or dependency change was required; database head remains `0011_prefere
 
 #### PREF-004 — Custom preference tag/input/display UI
 
+- **Status:** **Done 2026-09-27.** The frontend now manages and displays predefined plus profile-owned custom Interests, Languages and Activities through the owner preference snapshot, including custom-language proficiency and optimistic-version updates.
 - **Purpose:** Let users manage and view the three combined signal sets.
 - **Scope / likely files:** onboarding/profile form components, own-profile view, clients/types/locales.
 - **Dependencies / ownership:** PREF-003, FE-026/027/029; Frontend.
@@ -7062,6 +7063,26 @@ migration or dependency change was required; database head remains `0011_prefere
 - **Acceptance / DoD:** accessible add/remove/edit for predefined/custom values; duplicate normalized labels prevented/explained; reload round-trip preserves labels and proficiency.
 - **Tests/gates:** component, keyboard/a11y, normalization-contract and API integration tests.
 - **Non-goals:** public catalog creation or AI suggestions.
+
+**Implementation:** Shared accessible tag controls normalize display input consistently with the
+PREF-002 contract, enforce combined per-kind limits, explain same-kind normalized duplicates and
+active predefined EN/DE collisions, and keep custom labels as inert text. Profile Edit and onboarding
+atomically submit predefined and custom Interests, Languages and Activities through the owner-only
+preference API with the current optimistic version; custom Language proficiency is included in the
+same snapshot. Save readiness is scoped to the editable catalog instead of blocking Interest changes
+on an unrelated pending Language catalog (and vice versa). Profile display and fresh query hydration
+render the persisted server snapshot; no browser storage is used as a persistence fallback.
+
+**Verification (2026-09-27):** PREF-004 targeted frontend tests: 40 passed; profile/onboarding
+regression: 67 passed; full frontend: 545 passed / 54 files. Strict TypeScript, ESLint, Prettier and
+production build pass. Browser acceptance passes predefined + custom Interest, Language/proficiency
+and Activity save/F5 round-trips, proficiency changes, removals, active predefined collision
+(`photography`/`Photography`), normalized custom duplicate rejection (`Formula 1` variants), observed
+PUT persistence and sanitized client-visible errors.
+
+**Next development task:** `REC-001` — V2 eligibility policy and safe matching profile. Its declared
+dependencies `AUTH-V2-001` and `PREF-003` are DONE. Do not implement REC-001 unless explicitly
+requested.
 
 #### REC-001 — V2 eligibility policy and safe matching profile
 
@@ -7510,7 +7531,7 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. `EMAIL-002..005`, `OPS-001`, `OPS-002` and `OPS-003` are complete. Proceed with `PREF-001..004` in dependency order.
+2. `EMAIL-002..005`, `OPS-001..003` and `PREF-001..004` are complete. Proceed with `REC-001`.
 3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.

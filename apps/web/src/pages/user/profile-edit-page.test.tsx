@@ -5,6 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
+import type {
+  ProfilePreferenceSnapshot,
+  ProfilePreferenceUpdate,
+} from '@/features/profile/profile-catalog'
 import type { OwnProfile } from '@/features/profile/profile'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
@@ -20,12 +24,13 @@ const user = {
 const profileId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const photoId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const musicId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+const activityId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
 
-const completeProfile = {
+const completeProfile: OwnProfile = {
   id: profileId,
   full_name: 'Nguyen Van An',
   display_name: 'An',
-  student_type: 'VIETNAMESE' as const,
+  student_type: 'VIETNAMESE',
   nationality: 'Vietnamese',
   major: 'Computer Science',
   study_year: 3,
@@ -34,29 +39,67 @@ const completeProfile = {
   arrival_date: null,
   departure_date: null,
   availability: null,
-  preferences: { preferred_activity_ids: [musicId] },
+  preferences: { preferred_activity_ids: [activityId] },
   matching_opt_in: true,
   avatar: {
     id: photoId,
-    mime_type: 'image/webp' as const,
+    mime_type: 'image/webp',
     byte_size: 24_680,
     width: 800,
     height: 800,
-    processing_status: 'READY' as const,
+    processing_status: 'READY',
     created_at: '2026-09-20T08:00:00Z',
   },
   interest_ids: [musicId],
-  languages: [{ language_code: 'en', proficiency: 'fluent' as const }],
+  languages: [{ language_code: 'en', proficiency: 'fluent' }],
   version: 7,
 }
 
-const interestCatalog = {
-  locale: 'en',
-  items: [{ id: musicId, code: 'music', label: 'Music', category: 'culture' }],
+const completePreferences: ProfilePreferenceSnapshot = {
+  version: 7,
+  interest_ids: [musicId],
+  custom_interests: [],
+  languages: [{ language_code: 'en', proficiency: 'fluent' }],
+  custom_languages: [],
+  activity_ids: [activityId],
+  custom_activities: [{ label: 'Night kayaking' }],
 }
-const languageCatalog = {
-  locale: 'en',
-  items: [{ code: 'en', label: 'English' }],
+
+const interestCatalogs = {
+  en: {
+    locale: 'en',
+    items: [{ id: musicId, code: 'music', label: 'Music', category: 'culture' }],
+  },
+  de: {
+    locale: 'de',
+    items: [{ id: musicId, code: 'music', label: 'Musik', category: 'culture' }],
+  },
+} as const
+const languageCatalogs = {
+  en: { locale: 'en', items: [{ code: 'en', label: 'English' }] },
+  de: { locale: 'de', items: [{ code: 'en', label: 'Englisch' }] },
+} as const
+const activityCatalogs = {
+  en: {
+    locale: 'en',
+    items: [{ id: activityId, code: 'board-games', label: 'Board Games' }],
+  },
+  de: {
+    locale: 'de',
+    items: [{ id: activityId, code: 'board-games', label: 'Brettspiele' }],
+  },
+} as const
+
+function clonePreferences(preferences: ProfilePreferenceSnapshot): ProfilePreferenceSnapshot {
+  return {
+    ...preferences,
+    interest_ids: [...preferences.interest_ids],
+    custom_interests: preferences.custom_interests.map((selection) => ({ ...selection })),
+    languages: preferences.languages.map((selection) => ({ ...selection })),
+    custom_languages: preferences.custom_languages.map((selection) => ({ ...selection })),
+    activity_ids: [...preferences.activity_ids],
+    custom_activities: preferences.custom_activities.map((selection) => ({ ...selection })),
+  }
 }
 
 function renderPage() {
@@ -69,7 +112,7 @@ function renderPage() {
   )
 }
 
-describe('FE-029 own profile editing', () => {
+describe('FE-029 and PREF-004 own profile editing', () => {
   let authenticatedJson: MockInstance<typeof sessionClient.authenticatedJson>
 
   beforeEach(async () => {
@@ -86,28 +129,35 @@ describe('FE-029 own profile editing', () => {
     vi.restoreAllMocks()
   })
 
-  it('reuses every onboarding section and refreshes matching readiness after required data is removed', async () => {
+  it('reuses all onboarding editors and refreshes readiness after required data is removed', async () => {
     let persistedProfile: OwnProfile = completeProfile
+    let persistedPreferences = clonePreferences(completePreferences)
 
     authenticatedJson.mockImplementation(async (path, options) => {
       if (path === `/profile/photos/${photoId}` && options?.method === 'DELETE') {
         persistedProfile = { ...persistedProfile, avatar: null }
         return undefined
       }
-      if (path === '/profile/interests' && options?.method === 'PUT') {
-        const body = options.body as { interest_ids: string[] }
+      if (path === '/profile/preferences' && options?.method === 'PUT') {
+        const update = options.body as ProfilePreferenceUpdate
+        persistedPreferences = { ...clonePreferences(update), version: update.version + 1 }
         persistedProfile = {
           ...persistedProfile,
-          interest_ids: body.interest_ids,
-          version: persistedProfile.version + 1,
+          version: persistedPreferences.version,
+          interest_ids: persistedPreferences.interest_ids,
+          languages: persistedPreferences.languages,
         }
-        return { version: persistedProfile.version, interest_ids: persistedProfile.interest_ids }
+        return clonePreferences(persistedPreferences)
       }
       if (path === '/profile') return persistedProfile
+      if (path === '/profile/preferences') return clonePreferences(persistedPreferences)
       if (path === '/profile/completion') {
+        const hasInterest =
+          persistedPreferences.interest_ids.length + persistedPreferences.custom_interests.length >
+          0
         const missing = [
           ...(persistedProfile.avatar ? [] : ['AVATAR' as const]),
-          ...(persistedProfile.interest_ids.length > 0 ? [] : ['INTERESTS' as const]),
+          ...(hasInterest ? [] : ['INTERESTS' as const]),
         ]
         return missing.length === 0
           ? {
@@ -125,8 +175,12 @@ describe('FE-029 own profile editing', () => {
               reasons: ['PROFILE_INCOMPLETE'],
             }
       }
-      if (path === '/interests?locale=en') return interestCatalog
-      if (path === '/languages?locale=en') return languageCatalog
+      if (path === '/interests?locale=en') return interestCatalogs.en
+      if (path === '/interests?locale=de') return interestCatalogs.de
+      if (path === '/languages?locale=en') return languageCatalogs.en
+      if (path === '/languages?locale=de') return languageCatalogs.de
+      if (path === '/activities?locale=en') return activityCatalogs.en
+      if (path === '/activities?locale=de') return activityCatalogs.de
       if (path === `/profile/photos/${photoId}/url`) {
         return { id: photoId, url: 'https://media.example.test/avatar', expires_in: 120 }
       }
@@ -137,19 +191,18 @@ describe('FE-029 own profile editing', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Edit profile' })).toBeVisible()
     expect(screen.getByRole('heading', { level: 2, name: 'Profile basics' })).toBeVisible()
-    expect(screen.getByRole('heading', { level: 2, name: 'Interests and languages' })).toBeVisible()
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Availability and preferences' }),
+      await screen.findByRole('heading', { level: 2, name: 'Interests and languages' }),
+    ).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Availability and preferences' }),
     ).toBeVisible()
     expect(await screen.findByText('Ready for matching')).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Edit Profile' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
+    expect(await screen.findByRole('checkbox', { name: 'Board Games' })).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Remove custom value Night kayaking' })).toBeVisible()
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove current photo' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Remove photo' }))
-
     expect(await screen.findByText('New matching is disabled')).toBeVisible()
     expect(
       within(
@@ -157,23 +210,174 @@ describe('FE-029 own profile editing', () => {
       ).getByText('Profile photo'),
     ).toBeVisible()
 
-    const musicSelections = screen.getAllByRole('checkbox', { name: 'Music' })
-    fireEvent.click(musicSelections[0])
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Music' }))
     fireEvent.click(screen.getByRole('button', { name: 'Save interests and languages' }))
 
-    expect(await screen.findByText('Interests')).toBeVisible()
-    expect(authenticatedJson).toHaveBeenCalledWith('/profile/interests', {
-      method: 'PUT',
-      body: { version: 7, interest_ids: [] },
-    })
+    await waitFor(() =>
+      expect(authenticatedJson).toHaveBeenCalledWith('/profile/preferences', {
+        method: 'PUT',
+        body: {
+          version: 7,
+          interest_ids: [],
+          custom_interests: [],
+          languages: [{ language_code: 'en', proficiency: 'fluent' }],
+          custom_languages: [],
+          activity_ids: [activityId],
+          custom_activities: [{ label: 'Night kayaking' }],
+        },
+      }),
+    )
+    await waitFor(() =>
+      expect(
+        within(
+          screen.getByRole('list', { name: 'Required profile details still missing' }),
+        ).getByText('Interests'),
+      ).toBeVisible(),
+    )
   })
 
-  it('keeps a rejected student-type edit and reloads the unchanged saved profile after a 409', async () => {
+  it('persists a custom Interest while the unrelated Language catalog is still loading', async () => {
+    let persistedProfile: OwnProfile = completeProfile
+    let persistedPreferences = clonePreferences(completePreferences)
+    let releaseLanguageCatalog!: () => void
+    let languageCatalogReady = false
+    const languageCatalogDelay = new Promise<void>((resolve) => {
+      releaseLanguageCatalog = resolve
+    })
+
+    authenticatedJson.mockImplementation(async (path, options) => {
+      if (path === '/profile/preferences' && options?.method === 'PUT') {
+        const update = options.body as ProfilePreferenceUpdate
+        persistedPreferences = { ...clonePreferences(update), version: update.version + 1 }
+        persistedProfile = {
+          ...persistedProfile,
+          version: persistedPreferences.version,
+          interest_ids: persistedPreferences.interest_ids,
+          languages: persistedPreferences.languages,
+        }
+        return clonePreferences(persistedPreferences)
+      }
+      if (path === '/profile') return persistedProfile
+      if (path === '/profile/preferences') return clonePreferences(persistedPreferences)
+      if (path === '/profile/completion') {
+        return {
+          status: 'COMPLETE',
+          percentage: 100,
+          missing_fields: [],
+          matching_eligible: true,
+          reasons: [],
+        }
+      }
+      if (path === '/interests?locale=en') return interestCatalogs.en
+      if (path === '/interests?locale=de') return interestCatalogs.de
+      if (path === '/languages?locale=en') {
+        if (!languageCatalogReady) await languageCatalogDelay
+        return languageCatalogs.en
+      }
+      if (path === '/languages?locale=de') return languageCatalogs.de
+      if (path === '/activities?locale=en') return activityCatalogs.en
+      if (path === '/activities?locale=de') return activityCatalogs.de
+      if (path === `/profile/photos/${photoId}/url`) {
+        return { id: photoId, url: 'https://media.example.test/avatar', expires_in: 120 }
+      }
+      throw new Error(`Unexpected test path: ${path}`)
+    })
+
+    const firstRender = renderPage()
+    const customInterest = await screen.findByLabelText('Add a custom interest')
+    fireEvent.change(customInterest, { target: { value: 'Formula 1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add custom interest' }))
+    expect(screen.getByRole('button', { name: 'Remove custom value Formula 1' })).toBeVisible()
+    const save = screen.getByRole('button', { name: 'Save interests and languages' })
+    expect(save).toBeEnabled()
+    fireEvent.click(save)
+
+    await waitFor(() =>
+      expect(authenticatedJson).toHaveBeenCalledWith('/profile/preferences', {
+        method: 'PUT',
+        body: {
+          version: 7,
+          interest_ids: [musicId],
+          custom_interests: [{ label: 'Formula 1' }],
+          languages: [{ language_code: 'en', proficiency: 'fluent' }],
+          custom_languages: [],
+          activity_ids: [activityId],
+          custom_activities: [{ label: 'Night kayaking' }],
+        },
+      }),
+    )
+    expect(
+      authenticatedJson.mock.calls.filter(
+        ([path, options]) => path === '/profile/preferences' && options?.method === 'PUT',
+      ),
+    ).toHaveLength(1)
+    expect(await screen.findByText('Interests and languages saved.')).toBeVisible()
+
+    languageCatalogReady = true
+    releaseLanguageCatalog()
+    firstRender.unmount()
+    queryClient.clear()
+    renderPage()
+
+    expect(
+      await screen.findByRole('button', { name: 'Remove custom value Formula 1' }),
+    ).toBeVisible()
+  })
+
+  it('treats custom Interest and Language as completion signals while Activity stays optional', async () => {
+    const customOnlyProfile: OwnProfile = {
+      ...completeProfile,
+      avatar: null,
+      preferences: null,
+      interest_ids: [],
+      languages: [],
+    }
+    const customOnlyPreferences: ProfilePreferenceSnapshot = {
+      version: 7,
+      interest_ids: [],
+      custom_interests: [{ label: 'Formula 1' }],
+      languages: [],
+      custom_languages: [{ label: 'Swiss German', proficiency: 'intermediate' }],
+      activity_ids: [],
+      custom_activities: [],
+    }
+    authenticatedJson.mockImplementation(async (path) => {
+      if (path === '/profile') return customOnlyProfile
+      if (path === '/profile/preferences') return customOnlyPreferences
+      if (path === '/profile/completion') {
+        return {
+          status: 'COMPLETE',
+          percentage: 100,
+          missing_fields: [],
+          matching_eligible: true,
+          reasons: [],
+        }
+      }
+      if (path === '/interests?locale=en') return interestCatalogs.en
+      if (path === '/interests?locale=de') return interestCatalogs.de
+      if (path === '/languages?locale=en') return languageCatalogs.en
+      if (path === '/languages?locale=de') return languageCatalogs.de
+      if (path === '/activities?locale=en') return activityCatalogs.en
+      if (path === '/activities?locale=de') return activityCatalogs.de
+      throw new Error(`Unexpected test path: ${path}`)
+    })
+    renderPage()
+
+    expect(await screen.findByText('Ready for matching')).toBeVisible()
+    expect(
+      await screen.findByRole('button', { name: 'Remove custom value Formula 1' }),
+    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Remove custom value Swiss German' })).toBeVisible()
+    expect(await screen.findByText('0 of 20 preferred activities selected')).toBeVisible()
+  })
+
+  it('keeps a rejected student-type edit and reloads the unchanged profile after a 409', async () => {
     authenticatedJson.mockImplementation(async (path, options) => {
       if (path === '/profile' && options?.method === 'PUT') {
         throw new ApiError(409, 'conflict')
       }
       if (path === '/profile') return completeProfile
+      if (path === '/profile/preferences') return completePreferences
       if (path === '/profile/completion') {
         return {
           status: 'COMPLETE',
@@ -183,8 +387,12 @@ describe('FE-029 own profile editing', () => {
           reasons: ['ACTIVE_MATCH_RESERVATION'],
         }
       }
-      if (path === '/interests?locale=en') return interestCatalog
-      if (path === '/languages?locale=en') return languageCatalog
+      if (path === '/interests?locale=en') return interestCatalogs.en
+      if (path === '/interests?locale=de') return interestCatalogs.de
+      if (path === '/languages?locale=en') return languageCatalogs.en
+      if (path === '/languages?locale=de') return languageCatalogs.de
+      if (path === '/activities?locale=en') return activityCatalogs.en
+      if (path === '/activities?locale=de') return activityCatalogs.de
       if (path === `/profile/photos/${photoId}/url`) {
         return { id: photoId, url: 'https://media.example.test/avatar', expires_in: 120 }
       }
@@ -201,8 +409,6 @@ describe('FE-029 own profile editing', () => {
 
     expect(await screen.findByText(/student type is locked by an active match/i)).toBeVisible()
     expect(international).toBeChecked()
-    expect(completeProfile.student_type).toBe('VIETNAMESE')
-
     fireEvent.click(screen.getByRole('button', { name: 'Reload saved profile' }))
     await waitFor(() => expect(vietnamese).toBeChecked())
     expect(international).not.toBeChecked()

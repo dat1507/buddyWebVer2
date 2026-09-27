@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
+import { preferenceComparisonKey } from '@/features/profile/preference-normalization'
 import { ApiError } from '@/lib/api'
+
+const MAX_INTERESTS = 20
+const MAX_LANGUAGES = 10
+const MAX_ACTIVITIES = 20
 
 const catalogLocaleSchema = z.enum(['en', 'de'])
 const languageProficiencySchema = z.enum(['native', 'fluent', 'intermediate', 'beginner'])
@@ -22,8 +27,22 @@ const languageCatalogItemSchema = z.object({
   label: z.string().min(1).max(120),
 })
 
+const activityCatalogItemSchema = z.object({
+  id: z.string().uuid(),
+  code: z.string().min(1).max(64),
+  label: z.string().min(1).max(120),
+})
+
 const profileLanguageSelectionSchema = z.object({
   language_code: languageCodeSchema,
+  proficiency: languageProficiencySchema,
+})
+
+const customPreferenceSelectionSchema = z.object({
+  label: z.string().min(1).max(120),
+})
+
+const customLanguageSelectionSchema = customPreferenceSelectionSchema.extend({
   proficiency: languageProficiencySchema,
 })
 
@@ -37,37 +56,44 @@ const languageCatalogSchema = z.object({
   items: z.array(languageCatalogItemSchema),
 })
 
-const interestSelectionResponseSchema = z.object({
-  version: z.number().int().positive(),
-  interest_ids: z.array(z.string().uuid()).max(20),
+const activityCatalogSchema = z.object({
+  locale: catalogLocaleSchema,
+  items: z.array(activityCatalogItemSchema),
 })
 
-const languageSelectionResponseSchema = z.object({
-  version: z.number().int().positive(),
-  languages: z.array(profileLanguageSelectionSchema).max(10),
-})
+const profilePreferenceSnapshotSchema = z
+  .object({
+    version: z.number().int().positive(),
+    interest_ids: z.array(z.string().uuid()).max(MAX_INTERESTS),
+    custom_interests: z.array(customPreferenceSelectionSchema).max(MAX_INTERESTS),
+    languages: z.array(profileLanguageSelectionSchema).max(MAX_LANGUAGES),
+    custom_languages: z.array(customLanguageSelectionSchema).max(MAX_LANGUAGES),
+    activity_ids: z.array(z.string().uuid()).max(MAX_ACTIVITIES),
+    custom_activities: z.array(customPreferenceSelectionSchema).max(MAX_ACTIVITIES),
+  })
+  .refine(
+    ({ interest_ids, custom_interests }) =>
+      interest_ids.length + custom_interests.length <= MAX_INTERESTS,
+  )
+  .refine(
+    ({ languages, custom_languages }) =>
+      languages.length + custom_languages.length <= MAX_LANGUAGES,
+  )
+  .refine(
+    ({ activity_ids, custom_activities }) =>
+      activity_ids.length + custom_activities.length <= MAX_ACTIVITIES,
+  )
 
 type CatalogLocale = z.infer<typeof catalogLocaleSchema>
 type InterestCatalog = Readonly<z.infer<typeof interestCatalogSchema>>
 type LanguageCatalog = Readonly<z.infer<typeof languageCatalogSchema>>
+type ActivityCatalog = Readonly<z.infer<typeof activityCatalogSchema>>
 type LanguageProficiency = z.infer<typeof languageProficiencySchema>
 type ProfileLanguageSelection = z.infer<typeof profileLanguageSelectionSchema>
-type InterestSelectionResponse = Readonly<z.infer<typeof interestSelectionResponseSchema>>
-type LanguageSelectionResponse = Readonly<z.infer<typeof languageSelectionResponseSchema>>
-
-interface ProfileSelectionsUpdate {
-  version: number
-  interestIds: string[]
-  languages: ProfileLanguageSelection[]
-  updateInterests: boolean
-  updateLanguages: boolean
-}
-
-interface ProfileSelectionsResult {
-  version: number
-  interest_ids: string[]
-  languages: ProfileLanguageSelection[]
-}
+type CustomPreferenceSelection = z.infer<typeof customPreferenceSelectionSchema>
+type CustomLanguageSelection = z.infer<typeof customLanguageSelectionSchema>
+type ProfilePreferenceSnapshot = Readonly<z.infer<typeof profilePreferenceSnapshotSchema>>
+type ProfilePreferenceUpdate = z.input<typeof profilePreferenceSnapshotSchema>
 
 function invalidResponse(): never {
   throw new ApiError(200, 'invalidResponse')
@@ -75,6 +101,11 @@ function invalidResponse(): never {
 
 function hasUniqueValues(values: readonly string[]): boolean {
   return new Set(values).size === values.length
+}
+
+function hasUniqueCustomLabels(values: readonly CustomPreferenceSelection[]): boolean {
+  const keys = values.map(({ label }) => preferenceComparisonKey(label))
+  return keys.every(Boolean) && new Set(keys).size === keys.length
 }
 
 function parseInterestCatalog(payload: unknown, locale: CatalogLocale): InterestCatalog {
@@ -102,17 +133,29 @@ function parseLanguageCatalog(payload: unknown, locale: CatalogLocale): Language
   return Object.freeze(result.data)
 }
 
-function parseInterestSelection(payload: unknown): InterestSelectionResponse {
-  const result = interestSelectionResponseSchema.safeParse(payload)
-  if (!result.success || !hasUniqueValues(result.data.interest_ids)) return invalidResponse()
+function parseActivityCatalog(payload: unknown, locale: CatalogLocale): ActivityCatalog {
+  const result = activityCatalogSchema.safeParse(payload)
+  if (
+    !result.success ||
+    result.data.locale !== locale ||
+    !hasUniqueValues(result.data.items.map(({ id }) => id)) ||
+    !hasUniqueValues(result.data.items.map(({ code }) => code))
+  ) {
+    return invalidResponse()
+  }
   return Object.freeze(result.data)
 }
 
-function parseLanguageSelection(payload: unknown): LanguageSelectionResponse {
-  const result = languageSelectionResponseSchema.safeParse(payload)
+function parseProfilePreferenceSnapshot(payload: unknown): ProfilePreferenceSnapshot {
+  const result = profilePreferenceSnapshotSchema.safeParse(payload)
   if (
     !result.success ||
-    !hasUniqueValues(result.data.languages.map(({ language_code }) => language_code))
+    !hasUniqueValues(result.data.interest_ids) ||
+    !hasUniqueValues(result.data.activity_ids) ||
+    !hasUniqueValues(result.data.languages.map(({ language_code }) => language_code)) ||
+    !hasUniqueCustomLabels(result.data.custom_interests) ||
+    !hasUniqueCustomLabels(result.data.custom_languages) ||
+    !hasUniqueCustomLabels(result.data.custom_activities)
   ) {
     return invalidResponse()
   }
@@ -120,22 +163,26 @@ function parseLanguageSelection(payload: unknown): LanguageSelectionResponse {
 }
 
 export {
+  MAX_ACTIVITIES,
+  MAX_INTERESTS,
+  MAX_LANGUAGES,
   catalogLocaleSchema,
   languageProficiencySchema,
+  parseActivityCatalog,
   parseInterestCatalog,
-  parseInterestSelection,
   parseLanguageCatalog,
-  parseLanguageSelection,
+  parseProfilePreferenceSnapshot,
   profileLanguageSelectionSchema,
 }
 export type {
+  ActivityCatalog,
   CatalogLocale,
+  CustomLanguageSelection,
+  CustomPreferenceSelection,
   InterestCatalog,
-  InterestSelectionResponse,
   LanguageCatalog,
   LanguageProficiency,
-  LanguageSelectionResponse,
   ProfileLanguageSelection,
-  ProfileSelectionsResult,
-  ProfileSelectionsUpdate,
+  ProfilePreferenceSnapshot,
+  ProfilePreferenceUpdate,
 }

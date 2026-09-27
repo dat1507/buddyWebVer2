@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } fr
 
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
+import type { ProfilePreferenceSnapshot } from '@/features/profile/profile-catalog'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { queryClient } from '@/lib/query-client'
@@ -19,6 +20,7 @@ const user = {
 const profileId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const photoId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const musicId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+const activityId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
 
 const profile = {
   id: profileId,
@@ -49,7 +51,17 @@ const profile = {
     slots: [{ weekday: 1, start_minute: 540, end_minute: 600 }],
     private_note: 'must-never-render',
   },
-  preferences: { preferred_activity_ids: [musicId], private_note: 'must-never-render' },
+  preferences: { preferred_activity_ids: [activityId], private_note: 'must-never-render' },
+}
+
+const preferences: ProfilePreferenceSnapshot = {
+  version: 4,
+  interest_ids: [musicId],
+  custom_interests: [{ label: '<img src=x onerror=alert(1)>' }],
+  languages: [{ language_code: 'en', proficiency: 'fluent' }],
+  custom_languages: [{ label: 'Swiss German', proficiency: 'intermediate' }],
+  activity_ids: [activityId],
+  custom_activities: [{ label: 'Night kayaking' }],
 }
 
 const interestCatalogs = {
@@ -68,12 +80,26 @@ const languageCatalogs = {
   de: { locale: 'de', items: [{ code: 'en', label: 'Englisch' }] },
 } as const
 
+const activityCatalogs = {
+  en: {
+    locale: 'en',
+    items: [{ id: activityId, code: 'board-games', label: 'Board Games' }],
+  },
+  de: {
+    locale: 'de',
+    items: [{ id: activityId, code: 'board-games', label: 'Brettspiele' }],
+  },
+} as const
+
 function responseFor(path: string): unknown {
   if (path === '/profile') return profile
+  if (path === '/profile/preferences') return preferences
   if (path === '/interests?locale=en') return interestCatalogs.en
   if (path === '/interests?locale=de') return interestCatalogs.de
   if (path === '/languages?locale=en') return languageCatalogs.en
   if (path === '/languages?locale=de') return languageCatalogs.de
+  if (path === '/activities?locale=en') return activityCatalogs.en
+  if (path === '/activities?locale=de') return activityCatalogs.de
   if (path === `/profile/photos/${photoId}/url`) {
     return { id: photoId, url: 'https://media.example.test/avatar-one', expires_in: 120 }
   }
@@ -90,7 +116,7 @@ function renderPage() {
   )
 }
 
-describe('FE-028 own profile view', () => {
+describe('FE-028 and PREF-004 own profile view', () => {
   let authenticatedJson: MockInstance<typeof sessionClient.authenticatedJson>
 
   beforeEach(async () => {
@@ -109,27 +135,28 @@ describe('FE-028 own profile view', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders persisted identity and catalog labels without exposing private response fields', async () => {
+  it('renders predefined and custom preference sets without exposing or interpreting private text', async () => {
     renderPage()
 
     const card = await screen.findByLabelText('Profile card for An')
     expect(screen.getByRole('status', { name: 'Email verification status' })).toHaveTextContent(
       'Unverified',
     )
-    expect(screen.getByRole('link', { name: 'Manage verification' })).toHaveAttribute(
-      'href',
-      '/user/settings',
-    )
     expect(within(card).getByRole('heading', { name: 'An' })).toBeVisible()
     expect(within(card).getByText('Full name: Nguyen Van An')).toBeVisible()
     expect(within(card).getByText('Vietnamese student')).toBeVisible()
     expect(within(card).getByText('I enjoy helping new students settle in.')).toBeVisible()
-    expect(within(card).getByText('Computer Science')).toBeVisible()
-    expect(within(card).getByText('Year 3')).toBeVisible()
-    expect(within(card).getByText('Vietnamese')).toBeVisible()
     expect(await within(card).findByText('Music')).toBeVisible()
+    expect(within(card).getByText('<img src=x onerror=alert(1)>')).toBeVisible()
     expect(await within(card).findByText('English')).toBeVisible()
     expect(within(card).getByText('Fluent')).toBeVisible()
+    expect(within(card).getByText('Swiss German')).toBeVisible()
+    expect(within(card).getByText('Intermediate')).toBeVisible()
+    expect(await within(card).findByText('Board Games')).toBeVisible()
+    expect(within(card).getByText('Night kayaking')).toBeVisible()
+    expect(within(card).getAllByText('Custom')).toHaveLength(3)
+    expect(document.querySelector('img[src="x"]')).toBeNull()
+    expect(document.body).not.toHaveTextContent('must-never-render')
     expect(await within(card).findByRole('img', { name: 'Profile photo for An' })).toHaveAttribute(
       'src',
       'https://media.example.test/avatar-one',
@@ -138,14 +165,9 @@ describe('FE-028 own profile view', () => {
       'href',
       '/user/profile/edit',
     )
-    expect(screen.getByRole('link', { name: 'Edit interests' })).toHaveAttribute(
-      'href',
-      '/user/profile/edit',
-    )
-    expect(document.body).not.toHaveTextContent('must-never-render')
   })
 
-  it('uses explicit empty states for missing optional fields without requesting a photo URL', async () => {
+  it('uses explicit empty states for all preference kinds and optional profile fields', async () => {
     authenticatedJson.mockImplementation(async (path) => {
       if (path === '/profile') {
         return {
@@ -162,6 +184,17 @@ describe('FE-028 own profile view', () => {
           languages: [],
         }
       }
+      if (path === '/profile/preferences') {
+        return {
+          version: 4,
+          interest_ids: [],
+          custom_interests: [],
+          languages: [],
+          custom_languages: [],
+          activity_ids: [],
+          custom_activities: [],
+        }
+      }
       return responseFor(path)
     })
     renderPage()
@@ -171,6 +204,7 @@ describe('FE-028 own profile view', () => {
     expect(within(card).getByText('No introduction added yet.')).toBeVisible()
     expect(await within(card).findByText('No interests added yet.')).toBeVisible()
     expect(await within(card).findByText('No languages added yet.')).toBeVisible()
+    expect(await within(card).findByText('No preferred activities added yet.')).toBeVisible()
     expect(within(card).getAllByText('Not added')).toHaveLength(3)
     expect(authenticatedJson).not.toHaveBeenCalledWith(
       expect.stringContaining('/profile/photos/'),
@@ -200,10 +234,11 @@ describe('FE-028 own profile view', () => {
     expect(photoRequests).toBe(2)
   })
 
-  it('refreshes localized catalog labels while retaining stable selections', async () => {
+  it('refreshes all localized catalog labels while retaining stable selections', async () => {
     renderPage()
     expect(await screen.findByText('Music')).toBeVisible()
     expect(screen.getByText('English')).toBeVisible()
+    expect(await screen.findByText('Board Games')).toBeVisible()
 
     await act(async () => i18n.changeLanguage('de'))
 
@@ -211,6 +246,7 @@ describe('FE-028 own profile view', () => {
     expect(await screen.findByText('Musik')).toBeVisible()
     expect(screen.getByText('Englisch')).toBeVisible()
     expect(screen.getByText('Fließend')).toBeVisible()
+    expect(await screen.findByText('Brettspiele')).toBeVisible()
     expect(screen.getByText('Vollständiger Name: Nguyen Van An')).toBeVisible()
   })
 

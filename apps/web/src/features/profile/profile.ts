@@ -62,7 +62,6 @@ interface OwnProfileUpdate {
 interface OnboardingPreferencesUpdate {
   version: number
   availability: WeeklyAvailability | null
-  preferences: ProfilePreferences
   matching_opt_in: boolean
 }
 
