@@ -6841,7 +6841,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | PREF-003 (**Done 2026-09-27**) | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
 | PREF-004 (**Done 2026-09-27**) | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
 | REC-001 (**Done 2026-09-27**) | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
-| REC-002 | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
+| REC-002 (**Done 2026-09-27**) | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
 | REC-003 | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
 | REC-004 | Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/availability and locked state | UI/a11y/contract tests |
 | BUDDY-001 | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
@@ -7080,8 +7080,8 @@ and Activity save/F5 round-trips, proficiency changes, removals, active predefin
 (`photography`/`Photography`), normalized custom duplicate rejection (`Formula 1` variants), observed
 PUT persistence and sanitized client-visible errors.
 
-**Next development task:** `REC-002` — deterministic V2 compatibility scoring. Its declared
-dependency `REC-001` is DONE. Do not implement REC-002 unless explicitly requested.
+**Next development task:** `REC-003` — ranked recommendation API. Its declared dependency
+`REC-002` is DONE. Do not implement REC-003 unless explicitly requested.
 
 #### REC-001 — V2 eligibility policy and safe matching profile
 
@@ -7103,6 +7103,17 @@ dependency `REC-001` is DONE. Do not implement REC-002 unless explicitly request
 - **Non-goals:** score/ranking, reservation or Admin override.
 
 #### REC-002 — Deterministic V2 compatibility scoring
+
+- **Status (Done 2026-09-27):** Implemented a pure server-owned scorer over the REC-001 safe
+  matching profile contract. Exact rational arithmetic preserves the confirmed 40/35/15/5/5
+  weights; predefined/custom Interest and Activity identities use Jaccard, weekly IANA-timezone
+  availability uses intersection-over-union on an explicit reference week, Language uses exact
+  catalog-code/custom-key overlap, and Major uses normalized equality. Missing signals score zero
+  without renormalization; the bounded result contains only numeric score/explanation data.
+- **Verification:** 102 targeted matching/profile/preference tests and the full backend suite
+  (881 passed, 20 existing environment-gated skips) PASS. Ruff, strict mypy, dependency integrity,
+  package build, Alembic single-head validation and the locked runtime vulnerability audit PASS.
+  No endpoint, ranking/query behavior, persistence model, dependency or migration was added.
 
 - **Purpose:** Compute the confirmed server-owned score and explanation.
 - **Scope / likely files:** scoring service/value objects and fixtures using combined predefined/custom sets.
@@ -7539,9 +7550,9 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. `EMAIL-002..005`, `OPS-001..003`, `PREF-001..004` and `REC-001` are complete. Proceed with
-   `REC-002`.
-3. Complete `REC-002..004`, with `INV-001..004` beginning at their listed REC dependencies.
+2. `EMAIL-002..005`, `OPS-001..003`, `PREF-001..004` and `REC-001..002` are complete. Proceed with
+   `REC-003`.
+3. Complete `REC-003..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
 6. Complete `SEM-001..007` with `OPS-003` before the database-backup/destructive staging gates.

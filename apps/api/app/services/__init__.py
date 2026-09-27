@@ -136,6 +136,15 @@ from app.services.matching_eligibility import (
     list_eligible_matching_profiles,
     matching_pair_is_eligible,
 )
+from app.services.matching_scoring import (
+    COMPATIBILITY_WEIGHTS,
+    CompatibilityBreakdown,
+    CompatibilityScore,
+    CompatibilitySignalBreakdown,
+    CompatibilityWeights,
+    MatchingScoringError,
+    score_eligible_pair,
+)
 from app.services.passwords import (
     BCRYPT_MAX_PASSWORD_BYTES,
     BCRYPT_ROUNDS,
@@ -217,6 +226,11 @@ __all__ = [
     "CsrfToken",
     "CsrfTokenClaims",
     "CsrfValidationError",
+    "COMPATIBILITY_WEIGHTS",
+    "CompatibilityBreakdown",
+    "CompatibilityScore",
+    "CompatibilitySignalBreakdown",
+    "CompatibilityWeights",
     "ConsumedEmailVerificationToken",
     "ConfirmedEmailVerification",
     "EmailVerificationTokenError",
@@ -250,6 +264,7 @@ __all__ = [
     "ImageStorageService",
     "ImageValidationError",
     "IssuedEmailVerificationToken",
+    "MatchingScoringError",
     "OutboundEmail",
     "OutboxValidationError",
     "OutboxWorkerReport",
@@ -310,6 +325,7 @@ __all__ = [
     "normalize_preference_key",
     "request_email_verification",
     "seal_email_verification_token",
+    "score_eligible_pair",
     "get_event",
     "get_verified_buddy_principal",
     "get_or_create_own_profile",
