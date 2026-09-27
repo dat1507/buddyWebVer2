@@ -16,6 +16,7 @@ from app.models import (
     UserRole,
 )
 from app.models.profile import PROFILE_IMAGE_BUCKET
+from app.services.buddy_access import BuddyCapabilityError, get_verified_buddy_principal
 from app.services.image_storage import (
     ImageBucket,
     ImageStorageService,
@@ -23,6 +24,10 @@ from app.services.image_storage import (
     StorageOperationError,
     StoredImage,
     replace_image_reference,
+)
+from app.services.matching_eligibility import (
+    get_eligible_candidate_avatar,
+    get_eligible_matching_principal,
 )
 from app.services.profiles import ProfileAccessError, get_or_create_own_profile
 
@@ -205,17 +210,27 @@ async def get_authorized_profile_photo(
         User.role == UserRole.USER,
         User.deleted_at.is_(None),
     ]
-    if viewer.role is UserRole.USER:
-        conditions.append(StudentProfile.user_id == viewer.id)
-    elif viewer.role is not UserRole.ADMIN:
+    if viewer.role not in (UserRole.USER, UserRole.ADMIN):
         raise ProfileAccessError("Profile photo access is not permitted.")
 
-    photo = await session.scalar(
+    statement = (
         select(ProfilePhoto)
         .join(StudentProfile, StudentProfile.id == ProfilePhoto.profile_id)
         .join(User, User.id == StudentProfile.user_id)
         .where(*conditions)
     )
+    if viewer.role is UserRole.ADMIN:
+        photo = await session.scalar(statement)
+    else:
+        photo = await session.scalar(statement.where(StudentProfile.user_id == viewer.id))
+        if photo is None:
+            try:
+                verified = await get_verified_buddy_principal(session, viewer)
+                current = await get_eligible_matching_principal(session, verified)
+            except BuddyCapabilityError:
+                current = None
+            if current is not None:
+                photo = await get_eligible_candidate_avatar(session, current, photo_id)
     if photo is None:
         raise ProfilePhotoNotFoundError("Profile photo was not found.")
     return photo

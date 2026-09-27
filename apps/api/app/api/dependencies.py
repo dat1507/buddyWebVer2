@@ -28,6 +28,10 @@ from app.services.buddy_access import (
 )
 from app.services.csrf import CsrfTokenClaims, verify_csrf_request
 from app.services.image_storage import ImageStorageService, SupabaseStorageTransport
+from app.services.matching_eligibility import (
+    EligibleMatchingPrincipal,
+    get_eligible_matching_principal,
+)
 from app.services.tokens import (
     AccessTokenClaims,
     TokenValidationError,
@@ -81,7 +85,7 @@ async def _load_active_user(session: AsyncSession, user_id: UUID) -> User | None
                 User.is_active.is_(True),
                 User.deleted_at.is_(None),
             )
-        )
+        ),
     )
 
 
@@ -121,6 +125,20 @@ async def require_verified_buddy_capability(
     """Authorize one HTTP Buddy/chat interaction from current persisted state."""
     try:
         return await get_verified_buddy_principal(session, current_user)
+    except BuddyCapabilityError as error:
+        raise _buddy_capability_required(error) from None
+
+
+async def require_matching_eligibility(
+    principal: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> EligibleMatchingPrincipal:
+    """Require current profile completion and matching opt-in after VERIFIED authorization."""
+    try:
+        return await get_eligible_matching_principal(session, principal)
     except BuddyCapabilityError as error:
         raise _buddy_capability_required(error) from None
 

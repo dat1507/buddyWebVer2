@@ -30,7 +30,6 @@ class MatchingIneligibilityReason(StrEnum):
     ACCOUNT_DELETED = "ACCOUNT_DELETED"
     EMAIL_VERIFICATION_REQUIRED = "EMAIL_VERIFICATION_REQUIRED"
     MATCHING_OPT_IN_REQUIRED = "MATCHING_OPT_IN_REQUIRED"
-    ACTIVE_MATCH_RESERVATION = "ACTIVE_MATCH_RESERVATION"
 
 
 class ProfileCompletionResponse(BaseModel):
@@ -42,4 +41,4 @@ class ProfileCompletionResponse(BaseModel):
     percentage: int = Field(ge=0, le=100, multiple_of=20)
     missing_fields: list[ProfileMissingField] = Field(max_length=5)
     matching_eligible: bool
-    reasons: list[MatchingIneligibilityReason] = Field(max_length=6)
+    reasons: list[MatchingIneligibilityReason] = Field(max_length=5)

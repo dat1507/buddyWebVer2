@@ -31,19 +31,6 @@ from app.services.preference_identity import normalize_preference_key
 from app.services.profiles import ProfileAccessError, get_or_create_own_profile_for_update
 
 
-async def count_active_match_reservations(
-    _session: AsyncSession,
-    _profile_id: UUID,
-) -> int:
-    """Return the staged reservation count until MATCH-007 installs the real reader.
-
-    Matching is not released before MATCH-007, so BE-016 intentionally has no Match-table
-    dependency. Keeping this boundary explicit lets MATCH-007 replace the implementation without
-    changing the readiness contract.
-    """
-    return 0
-
-
 async def _count_ready_avatars(session: AsyncSession, profile_id: UUID) -> int:
     value = await session.scalar(
         select(func.count(ProfilePhoto.id)).where(
@@ -116,7 +103,6 @@ def derive_profile_completion(
     ready_avatar_count: int,
     valid_interest_count: int,
     valid_language_count: int,
-    active_reservation_count: int,
 ) -> ProfileCompletionResponse:
     """Derive readiness only from persisted server-owned state."""
     missing_fields: list[ProfileMissingField] = []
@@ -148,8 +134,6 @@ def derive_profile_completion(
         reasons.append(MatchingIneligibilityReason.EMAIL_VERIFICATION_REQUIRED)
     if not profile.matching_opt_in:
         reasons.append(MatchingIneligibilityReason.MATCHING_OPT_IN_REQUIRED)
-    if active_reservation_count > 0:
-        reasons.append(MatchingIneligibilityReason.ACTIVE_MATCH_RESERVATION)
 
     account_is_eligible = (
         owner.role is UserRole.USER
@@ -165,9 +149,25 @@ def derive_profile_completion(
             status is ProfileCompletionStatus.COMPLETE
             and account_is_eligible
             and profile.matching_opt_in
-            and active_reservation_count == 0
         ),
         reasons=reasons,
+    )
+
+
+async def get_profile_completion(
+    session: AsyncSession,
+    owner: User,
+    profile: StudentProfile,
+) -> ProfileCompletionResponse:
+    """Derive current readiness for one persisted USER/profile pair without mutating it."""
+    if profile.user_id != owner.id or profile.deleted_at is not None:
+        raise ProfileAccessError("Profile completion access is not permitted.")
+    return derive_profile_completion(
+        owner,
+        profile,
+        ready_avatar_count=await _count_ready_avatars(session, profile.id),
+        valid_interest_count=await _count_valid_interests(session, profile.id),
+        valid_language_count=await _count_valid_languages(session, profile.id),
     )
 
 
@@ -180,14 +180,7 @@ async def get_own_profile_completion(
     if profile.deleted_at is not None or profile.user_id != owner.id:
         raise ProfileAccessError("Profile completion access is not permitted.")
 
-    completion = derive_profile_completion(
-        owner,
-        profile,
-        ready_avatar_count=await _count_ready_avatars(session, profile.id),
-        valid_interest_count=await _count_valid_interests(session, profile.id),
-        valid_language_count=await _count_valid_languages(session, profile.id),
-        active_reservation_count=await count_active_match_reservations(session, profile.id),
-    )
+    completion = await get_profile_completion(session, owner, profile)
     if (
         completion.status is ProfileCompletionStatus.COMPLETE
         and profile.onboarding_completed_at is None

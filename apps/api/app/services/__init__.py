@@ -128,6 +128,14 @@ from app.services.image_storage import (
     reconcile_orphaned_images,
     replace_image_reference,
 )
+from app.services.matching_eligibility import (
+    EligibleMatchingPrincipal,
+    eligible_candidate_statement,
+    get_eligible_candidate_avatar,
+    get_eligible_matching_principal,
+    list_eligible_matching_profiles,
+    matching_pair_is_eligible,
+)
 from app.services.passwords import (
     BCRYPT_MAX_PASSWORD_BYTES,
     BCRYPT_ROUNDS,
@@ -229,6 +237,7 @@ __all__ = [
     "EmailTemplateRegistry",
     "EmailTemplateRenderer",
     "EmailValidationError",
+    "EligibleMatchingPrincipal",
     "EventAccessError",
     "EventDeletionPlan",
     "EventDependencyConflictError",
@@ -291,7 +300,12 @@ __all__ = [
     "canonicalize_email",
     "hash_password",
     "enqueue_transactional_email",
+    "eligible_candidate_statement",
     "issue_email_verification_token",
+    "get_eligible_candidate_avatar",
+    "get_eligible_matching_principal",
+    "list_eligible_matching_profiles",
+    "matching_pair_is_eligible",
     "normalize_preference_identity",
     "normalize_preference_key",
     "request_email_verification",

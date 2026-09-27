@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import UTC, datetime
+from inspect import signature
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
@@ -19,9 +20,7 @@ from app.schemas.profile_completion import (
     ProfileCompletionStatus,
     ProfileMissingField,
 )
-from app.services import profile_completion as completion_service
 from app.services.profile_completion import (
-    count_active_match_reservations,
     derive_profile_completion,
     get_own_profile_completion,
 )
@@ -80,7 +79,6 @@ def _derive(
     ready_avatar_count: int = 1,
     valid_interest_count: int = 1,
     valid_language_count: int = 1,
-    active_reservation_count: int = 0,
 ) -> ProfileCompletionResponse:
     return derive_profile_completion(
         owner or _user(),
@@ -88,7 +86,6 @@ def _derive(
         ready_avatar_count=ready_avatar_count,
         valid_interest_count=valid_interest_count,
         valid_language_count=valid_language_count,
-        active_reservation_count=active_reservation_count,
     )
 
 
@@ -140,14 +137,20 @@ def test_all_required_groups_produce_complete_and_eligible_profile() -> None:
     assert completion.reasons == []
 
 
+def test_existing_buddy_relationships_are_not_a_completion_reservation_gate() -> None:
+    completion = _derive()
+
+    assert "active_reservation_count" not in signature(derive_profile_completion).parameters
+    assert "ACTIVE_MATCH_RESERVATION" not in MatchingIneligibilityReason.__members__
+    assert completion.matching_eligible is True
+
+
 def test_unverified_current_email_adds_reason_and_blocks_matching() -> None:
     completion = _derive(owner=_user(email_verified=True, email_verified_at=None))
 
     assert completion.status is ProfileCompletionStatus.COMPLETE
     assert completion.matching_eligible is False
-    assert completion.reasons == [
-        MatchingIneligibilityReason.EMAIL_VERIFICATION_REQUIRED
-    ]
+    assert completion.reasons == [MatchingIneligibilityReason.EMAIL_VERIFICATION_REQUIRED]
 
 
 @pytest.mark.parametrize(
@@ -174,45 +177,31 @@ def test_invalid_required_group_counts_prevent_complete(
 
 
 @pytest.mark.parametrize(
-    ("owner", "profile", "reservation_count", "expected_reason"),
+    ("owner", "profile", "expected_reason"),
     [
         (
             _user(is_active=False),
             _profile(),
-            0,
             MatchingIneligibilityReason.ACCOUNT_INACTIVE,
         ),
         (
             _user(deleted_at=datetime(2026, 9, 20, tzinfo=UTC)),
             _profile(),
-            0,
             MatchingIneligibilityReason.ACCOUNT_DELETED,
         ),
         (
             _user(),
             _profile(matching_opt_in=False),
-            0,
             MatchingIneligibilityReason.MATCHING_OPT_IN_REQUIRED,
-        ),
-        (
-            _user(),
-            _profile(),
-            1,
-            MatchingIneligibilityReason.ACTIVE_MATCH_RESERVATION,
         ),
     ],
 )
 def test_complete_profile_can_still_be_ineligible_for_new_pairing(
     owner: User,
     profile: StudentProfile,
-    reservation_count: int,
     expected_reason: MatchingIneligibilityReason,
 ) -> None:
-    completion = _derive(
-        owner=owner,
-        profile=profile,
-        active_reservation_count=reservation_count,
-    )
+    completion = _derive(owner=owner, profile=profile)
 
     assert completion.status is ProfileCompletionStatus.COMPLETE
     assert completion.percentage == 100
@@ -221,16 +210,7 @@ def test_complete_profile_can_still_be_ineligible_for_new_pairing(
 
 
 @pytest.mark.anyio
-async def test_staged_reservation_reader_is_explicitly_zero_before_match_007() -> None:
-    session = cast(AsyncSession, MagicMock(spec=AsyncSession))
-
-    assert await count_active_match_reservations(session, PROFILE_ID) == 0
-
-
-@pytest.mark.anyio
-async def test_service_filters_invalid_relations_and_records_first_completion_milestone(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_service_filters_invalid_relations_and_records_first_completion_milestone() -> None:
     profile = _profile(onboarding_completed_at=None)
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=[profile, 1])
@@ -244,15 +224,11 @@ async def test_service_filters_invalid_relations_and_records_first_completion_mi
     )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
-    reservation_reader = AsyncMock(return_value=0)
-    monkeypatch.setattr(completion_service, "count_active_match_reservations", reservation_reader)
-
     completion = await get_own_profile_completion(session, _user())
 
     assert completion.status is ProfileCompletionStatus.COMPLETE
     assert profile.onboarding_completed_at is not None
     mock.flush.assert_awaited_once_with()
-    reservation_reader.assert_awaited_once_with(session, PROFILE_ID)
     dialect = make_url("postgresql+asyncpg://").get_dialect()()
     avatar_sql = str(mock.scalar.await_args_list[1].args[0].compile(dialect=dialect)).lower()
     interest_sql = str(mock.scalars.await_args_list[0].args[0].compile(dialect=dialect)).lower()
@@ -268,9 +244,7 @@ async def test_service_filters_invalid_relations_and_records_first_completion_mi
 
 
 @pytest.mark.anyio
-async def test_draft_to_complete_transition_preserves_historical_milestone_after_removal(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_draft_to_complete_transition_preserves_historical_milestone_after_removal() -> None:
     profile = _profile(onboarding_completed_at=None)
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=[profile, 1])
@@ -284,12 +258,6 @@ async def test_draft_to_complete_transition_preserves_historical_milestone_after
     )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
-    monkeypatch.setattr(
-        completion_service,
-        "count_active_match_reservations",
-        AsyncMock(return_value=0),
-    )
-
     completed = await get_own_profile_completion(session, _user())
     milestone = profile.onboarding_completed_at
     profile.full_name = None
@@ -326,9 +294,7 @@ async def test_existing_completion_milestone_is_not_rewritten() -> None:
 
 
 @pytest.mark.anyio
-async def test_completion_counts_custom_signals_without_duplicate_or_activity_gate(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_completion_counts_custom_signals_without_duplicate_or_activity_gate() -> None:
     profile = _profile(onboarding_completed_at=None)
     interests = [_interest(index, f"interest-{index}") for index in range(1, 21)]
     languages = [
@@ -351,12 +317,6 @@ async def test_completion_counts_custom_signals_without_duplicate_or_activity_ga
     )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
-    monkeypatch.setattr(
-        completion_service,
-        "count_active_match_reservations",
-        AsyncMock(return_value=0),
-    )
-
     completion = await get_own_profile_completion(session, _user())
 
     assert completion.status is ProfileCompletionStatus.COMPLETE
@@ -367,9 +327,7 @@ async def test_completion_counts_custom_signals_without_duplicate_or_activity_ga
 
 
 @pytest.mark.anyio
-async def test_custom_only_interest_and_language_satisfy_existing_completion_groups(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+async def test_custom_only_interest_and_language_satisfy_existing_completion_groups() -> None:
     profile = _profile(onboarding_completed_at=None)
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=[profile, 1])
@@ -383,12 +341,6 @@ async def test_custom_only_interest_and_language_satisfy_existing_completion_gro
     )
     mock.flush = AsyncMock()
     session = cast(AsyncSession, mock)
-    monkeypatch.setattr(
-        completion_service,
-        "count_active_match_reservations",
-        AsyncMock(return_value=0),
-    )
-
     completion = await get_own_profile_completion(session, _user())
 
     assert completion.status is ProfileCompletionStatus.COMPLETE

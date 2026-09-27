@@ -27,6 +27,12 @@ from app.schemas.event import (
     EventDraftUpdate,
     EventStatusUpdate,
 )
+from app.schemas.matching import (
+    SafeMatchingAvatar,
+    SafeMatchingLanguage,
+    SafeMatchingPreference,
+    SafeMatchingProfile,
+)
 from app.schemas.profile import (
     OwnProfileResponse,
     ProfilePreferences,
@@ -114,6 +120,10 @@ __all__ = [
     "RefreshResponse",
     "RegistrationRequest",
     "RegistrationResponse",
+    "SafeMatchingAvatar",
+    "SafeMatchingLanguage",
+    "SafeMatchingPreference",
+    "SafeMatchingProfile",
     "SanitizedUserResponse",
     "WeeklyAvailability",
     "WeeklyAvailabilitySlot",

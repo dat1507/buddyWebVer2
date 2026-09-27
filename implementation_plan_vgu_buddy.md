@@ -6840,7 +6840,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | PREF-002 | Normalized preference identity service | PREF-001 | NFKC/casefold rules and deterministic keys | Unicode/property tests |
 | PREF-003 (**Done 2026-09-27**) | Preference services/APIs | PREF-001/002, BE-012/015 | Owner CRUD, proficiency, bounded inputs | API/version/concurrency tests |
 | PREF-004 (**Done 2026-09-27**) | Preference tag UI | PREF-003, FE-026/027/029 | Add/edit/display predefined + custom values | Component/a11y/integration tests |
-| REC-001 | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
+| REC-001 (**Done 2026-09-27**) | V2 eligibility + safe DTO | AUTH-V2-001, PREF-003 | Opposite type, complete/opted-in/verified; no reservation | Policy/privacy tests |
 | REC-002 | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
 | REC-003 | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
 | REC-004 | Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/availability and locked state | UI/a11y/contract tests |
@@ -7080,12 +7080,20 @@ and Activity save/F5 round-trips, proficiency changes, removals, active predefin
 (`photography`/`Photography`), normalized custom duplicate rejection (`Formula 1` variants), observed
 PUT persistence and sanitized client-visible errors.
 
-**Next development task:** `REC-001` — V2 eligibility policy and safe matching profile. Its declared
-dependencies `AUTH-V2-001` and `PREF-003` are DONE. Do not implement REC-001 unless explicitly
-requested.
+**Next development task:** `REC-002` — deterministic V2 compatibility scoring. Its declared
+dependency `REC-001` is DONE. Do not implement REC-002 unless explicitly requested.
 
 #### REC-001 — V2 eligibility policy and safe matching profile
 
+- **Status:** **Done 2026-09-27.** The backend now reuses the VERIFIED Buddy guard and persisted
+  profile-completion contract, removes the obsolete reservation gate, exposes reusable current/pair
+  eligibility policy, retrieves bounded opposite-type candidates in deterministic order, projects
+  predefined and profile-owned custom preferences through an explicit privacy allowlist, and permits
+  private avatar delivery only for an eligible current user viewing an eligible candidate. No Match,
+  Invitation, score, ranking, recommendation endpoint or migration was added. Acceptance evidence:
+  175 targeted auth/profile/PREF/REC tests and the full 867-test backend suite passed (20 disposable
+  live-environment tests skipped by their existing gates); Ruff, strict mypy, Alembic graph, package
+  build and pinned dependency audit passed.
 - **Purpose:** Centralize candidate eligibility and privacy projection.
 - **Scope / likely files:** replace reservation stub, new matching policy/service/schema and avatar authorization extension.
 - **Dependencies / ownership:** AUTH-V2-001, PREF-003; Backend.
@@ -7531,8 +7539,9 @@ Clarification of the intertwined invitation path: `BUDDY-001` starts after REC-0
 Recommended topological delivery order:
 
 1. `EMAIL-001` first; then `EMAIL-001A`, `MAIL-001` and `AUTH-V2-001` as their dependencies permit.
-2. `EMAIL-002..005`, `OPS-001..003` and `PREF-001..004` are complete. Proceed with `REC-001`.
-3. Complete `REC-001..004`, with `INV-001..004` beginning at their listed REC dependencies.
+2. `EMAIL-002..005`, `OPS-001..003`, `PREF-001..004` and `REC-001` are complete. Proceed with
+   `REC-002`.
+3. Complete `REC-002..004`, with `INV-001..004` beginning at their listed REC dependencies.
 4. Complete `BUDDY-001`, then `PROFILE-V2-001`, `PROFILE-V2-002` and `CHAT-001`; `INV-008` may proceed once `INV-003` is complete.
 5. Complete `INV-005`, then branch to `INV-006/007/009`, `BUDDY-002/003`, `CHAT-002..005` and `ADMIN-V2-001/002` according to the graph.
 6. Complete `SEM-001..007` with `OPS-003` before the database-backup/destructive staging gates.

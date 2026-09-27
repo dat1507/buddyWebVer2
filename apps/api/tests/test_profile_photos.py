@@ -10,7 +10,8 @@ import pytest
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import ProfilePhoto, StudentProfile, User, UserRole
+from app.models import ProfilePhoto, StudentProfile, StudentType, User, UserRole
+from app.services import profile_photos as profile_photo_service
 from app.services.image_storage import (
     ImageBucket,
     ImageStorageService,
@@ -18,6 +19,7 @@ from app.services.image_storage import (
     StorageOperationError,
     StoredImage,
 )
+from app.services.matching_eligibility import EligibleMatchingPrincipal
 from app.services.profile_photos import (
     ProfilePhotoNotFoundError,
     get_authorized_profile_photo,
@@ -225,6 +227,45 @@ async def test_other_user_photo_id_cannot_be_resolved_for_delivery() -> None:
     assert USER_ID in compiled.params.values()
     assert OTHER_USER_ID not in compiled.params.values()
     assert OLD_PHOTO_ID in compiled.params.values()
+
+
+@pytest.mark.anyio
+async def test_eligible_user_can_resolve_only_an_eligible_candidate_avatar(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    owner = _owner()
+    candidate_photo = _photo()
+    mock, session = _session(None)
+    matching_principal = EligibleMatchingPrincipal(
+        user_id=USER_ID,
+        profile_id=PROFILE_ID,
+        student_type=StudentType.VIETNAMESE,
+    )
+    verified_reader = AsyncMock(return_value=object())
+    eligibility_reader = AsyncMock(return_value=matching_principal)
+    candidate_reader = AsyncMock(return_value=candidate_photo)
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_verified_buddy_principal",
+        verified_reader,
+    )
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_eligible_matching_principal",
+        eligibility_reader,
+    )
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_eligible_candidate_avatar",
+        candidate_reader,
+    )
+
+    result = await get_authorized_profile_photo(session, owner, OLD_PHOTO_ID)
+
+    assert result is candidate_photo
+    verified_reader.assert_awaited_once_with(session, owner)
+    eligibility_reader.assert_awaited_once()
+    candidate_reader.assert_awaited_once_with(session, matching_principal, OLD_PHOTO_ID)
 
 
 @pytest.mark.anyio
