@@ -48,9 +48,10 @@ def test_alembic_script_directory_is_loadable() -> None:
     outbox_revision = script_directory.get_revision("0009_transactional_outbox")
     edge_outbox_revision = script_directory.get_revision("0010_edge_email_outbox_functions")
     preference_revision = script_directory.get_revision("0011_preference_persistence")
+    invitation_revision = script_directory.get_revision("0012_invitation_persistence")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0011_preference_persistence"]
+    assert script_directory.get_heads() == ["0012_invitation_persistence"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -71,6 +72,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert edge_outbox_revision.down_revision == "0009_transactional_outbox"
     assert preference_revision is not None
     assert preference_revision.down_revision == "0010_edge_email_outbox_functions"
+    assert invitation_revision is not None
+    assert invitation_revision.down_revision == "0011_preference_persistence"
 
 
 def test_database_configuration_is_deferred() -> None:

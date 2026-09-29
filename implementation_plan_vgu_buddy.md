@@ -6847,7 +6847,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | BUDDY-001 | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
 | PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
 | PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
-| INV-001 | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
+| INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
 | INV-002 | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
 | INV-004 | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
@@ -7175,9 +7175,9 @@ non-blocking >500 kB chunk advisory remains. Local HTTPS smoke confirms the appl
 anonymous direct `/user/matching` request is gated back to `/login`. No dependency, backend,
 database or migration change was required; Alembic head remains `0011_preference_persistence`.
 
-**Next development task:** `INV-001` — Invitation persistence/state machine. Its declared REC-001
-dependency is DONE. `Send Invitation` and the real V2 composer remain deferred until `INV-007`,
-after INV-004..006 and REC-004 are complete.
+**Next development task:** `INV-002` — Seven-day expiry semantics and transition job. Its declared
+`INV-001` dependency is DONE. `Send Invitation` and the real V2 composer remain deferred until
+`INV-007`, after INV-004..006 and REC-004 are complete.
 
 ### 26.11 Full task contracts — Invitations and Current Buddies
 
@@ -7213,6 +7213,23 @@ after INV-004..006 and REC-004 are complete.
 
 #### INV-001 — Invitation model, migration and state machine
 
+- **Status:** **Done 2026-09-29.** Added Alembic revision `0012_invitation_persistence` and the
+  backend-owned `MatchingInvitation` model with explicit PENDING/ACCEPTED/DECLINED/CANCELLED/EXPIRED
+  transitions. PostgreSQL generates the canonical unordered user pair, rejects self-invites, and
+  uses a partial unique index to prevent same-direction or reciprocal simultaneous PENDING rows.
+  Server-side `timestamptz` defaults and a shared domain policy persist `expires_at` exactly seven
+  days after `created_at`; terminal status/timestamp consistency, timestamp ordering, message
+  canonical length and positive optimistic version are database-enforced. Runtime access is
+  backend-only with no DELETE grant; normal lifecycle remains non-destructive. SQLAlchemy versioned
+  updates make competing state transitions conflict deterministically. INV-002 retains ownership of
+  effective-expiry reads and the transition job; no API, email, Match, composer or frontend behavior
+  was added.
+- **Verification:** INV-001 targeted model/offline-migration/Alembic tests pass (26), plus one
+  isolated PostgreSQL upgrade/constraint/concurrency/downgrade/re-upgrade acceptance test. Full
+  backend regression passes (918 passed, 21 existing environment-gated skips). Ruff, strict mypy
+  (173 files), package build, pip check, locked runtime dependency audit, Docker Compose validation,
+  Alembic history and single-head checks pass. Previous head `0011_preference_persistence`; final
+  head `0012_invitation_persistence`.
 - **Purpose:** Create the durable request/response business record.
 - **Scope / likely files:** MatchingInvitation model/enums/schema, model exports and Alembic migration with required fields/statuses, including a defensive PostgreSQL length check on the canonical trimmed message.
 - **Dependencies / ownership:** REC-001; Database + Backend.
@@ -7678,7 +7695,10 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `PREF-001`.** OPS-003 alert-routing acceptance is complete with sanitized primary/backup PASS evidence. `PREF-001` is the next unimplemented functional task in the recommended order.
+**Next step: `INV-002`.** INV-001 invitation persistence/state-machine acceptance is complete at
+Alembic head `0012_invitation_persistence`. Implement the authoritative seven-day effective-expiry
+predicate and bounded idempotent transition job next; invitation composer/send UI remains owned by
+INV-007.
 
 ### 26.19 Documentation-change boundary
 
