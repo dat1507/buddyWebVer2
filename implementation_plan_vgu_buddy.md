@@ -6850,7 +6850,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
 | INV-002 (**Done 2026-09-29**) | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
-| INV-004 | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
+| INV-004 (**Done 2026-09-30**) | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
 | INV-005 | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
 | INV-006 | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
 | INV-007 | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
@@ -7296,6 +7296,27 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-004 — Incoming and Sent Invitations read APIs
 
+- **Status:** **Done 2026-09-30.** Added VERIFIED owner-only
+  `GET /api/matching/invitations/incoming` and
+  `GET /api/matching/invitations/sent` reads. Incoming returns only the current recipient's
+  effective PENDING rows and includes the exact stored plain-text message. Sent returns only the
+  current sender's effective PENDING and unhidden ACCEPTED rows and intentionally omits message.
+  Both endpoints use private/no-store responses, page/page-size pagination (default 20, maximum
+  50), deterministic `created_at DESC, id DESC` order, current localized safe profile/preferences,
+  and current REC-002 score/explanation when both profiles remain scoreable. Existing invitation
+  history remains visible even if a participant later makes a profile incomplete; compatibility is
+  then explicitly unavailable rather than fabricated. Owner/status filtering and effective expiry
+  are applied in SQL, profile/preference projection uses five fixed batched queries, and no
+  mutation, invitation UI, Match/chat behavior, Admin listing or new read rate limit was added.
+- **Verification:** INV-004 targeted service/API/live tests pass (23); relevant INV/REC regression
+  passes (98). Isolated real PostgreSQL acceptance proves owner and foreign-row filtering, stale
+  raw-PENDING expiry, Incoming/Sent visibility matrices, stable tie pagination, current localized
+  profiles/scores, privacy projection and the existing owner/status/expiry indexes. Full backend
+  regression passes (989 passed, 23 environment-gated skips). Ruff lint, INV-004 format check,
+  strict mypy (186 files), package sdist/wheel build, pip check, locked runtime dependency audit
+  with zero known vulnerabilities, Alembic history/single-head/autogenerate check and Docker
+  Compose validation pass. No migration was required; Alembic head remains
+  `0012_invitation_persistence`.
 - **Purpose:** Return exactly the user-visible invitation subsets and safe detail.
 - **Scope / likely files:** invitation GET routes/query services/schemas with pagination and current score/explanation calculation.
 - **Dependencies / ownership:** INV-002, REC-002, AUTH-V2-001; Backend.
@@ -7731,10 +7752,13 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-004`.** INV-003 authenticated invitation creation, message boundaries,
-transactional outbox staging and concurrent pair/outgoing-limit enforcement are complete with
-Alembic head unchanged at `0012_invitation_persistence`. Implement the owner-filtered Incoming and
-Sent Invitations read APIs next; invitation composer/send UI remains owned by INV-007.
+**Next step: `BUDDY-001`.** INV-004 owner-filtered Incoming/Sent reads, effective-expiry
+visibility, safe current profile/compatibility projection and deterministic bounded pagination are
+complete with Alembic head unchanged at `0012_invitation_persistence`. Implement ACTIVE Match
+persistence and unordered-pair uniqueness next so `PROFILE-V2-001`, `CHAT-001` and eventually the
+atomic `INV-005` Accept transaction can proceed. `INV-008` is also dependency-ready as an
+independent notification track, while invitation UI/composer remains owned by INV-007 after
+INV-004..006.
 
 ### 26.19 Documentation-change boundary
 

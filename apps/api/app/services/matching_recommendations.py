@@ -64,7 +64,10 @@ def _public_signal(
     )
 
 
-def _public_explanation(score: CompatibilityScore) -> CompatibilityExplanation:
+def project_compatibility_explanation(
+    score: CompatibilityScore,
+) -> CompatibilityExplanation:
+    """Project an exact REC-002 score into the shared public explanation DTO."""
     return CompatibilityExplanation(
         interests=_public_signal(score.breakdown.interests),
         activities=_public_signal(score.breakdown.activities),
@@ -123,7 +126,7 @@ async def list_ranked_matching_recommendations(
         MatchingRecommendation(
             profile=profile,
             score=score.score,
-            explanation=_public_explanation(score),
+            explanation=project_compatibility_explanation(score),
         )
         for score, profile in scored[start : start + page_size]
     ]

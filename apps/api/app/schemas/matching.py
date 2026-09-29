@@ -164,3 +164,91 @@ class InvitationCreateResponse(BaseModel):
     id: UUID
     status: InvitationStatus
     expires_at: datetime
+
+
+class SafeInvitationProfile(BaseModel):
+    """Current public profile projection for an invitation participant.
+
+    Unlike a recommendation candidate, an existing participant may later make
+    their profile incomplete. Optional/empty fields preserve invitation history
+    without exposing private profile data.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    display_name: StrictStr | None = Field(default=None, max_length=80)
+    student_type: StudentType | None
+    major: StrictStr | None = None
+    avatar: SafeMatchingAvatar | None
+    interests: list[SafeMatchingPreference] = Field(
+        default_factory=list,
+        max_length=MAX_PROFILE_INTEREST_SELECTIONS,
+    )
+    languages: list[SafeMatchingLanguage] = Field(
+        default_factory=list,
+        max_length=MAX_PROFILE_LANGUAGE_SELECTIONS,
+    )
+    activities: list[SafeMatchingPreference] = Field(
+        default_factory=list,
+        max_length=MAX_PROFILE_ACTIVITY_SELECTIONS,
+    )
+    availability: WeeklyAvailability | None
+
+
+class _InvitationReadItem(BaseModel):
+    """Shared safe invitation fields; participant identity is endpoint-specific."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    status: InvitationStatus
+    created_at: datetime
+    expires_at: datetime
+    score: int | None = Field(default=None, ge=0, le=100)
+    explanation: CompatibilityExplanation | None = None
+
+    @model_validator(mode="after")
+    def require_complete_compatibility(self) -> Self:
+        if (self.score is None) is not (self.explanation is None):
+            raise ValueError("Invitation compatibility must be complete or unavailable.")
+        return self
+
+
+class IncomingInvitation(_InvitationReadItem):
+    """One effective PENDING invitation visible only to its current recipient."""
+
+    sender: SafeInvitationProfile
+    message: StrictStr = Field(max_length=10_000)
+
+
+class SentInvitation(_InvitationReadItem):
+    """One visible PENDING or unhidden ACCEPTED invitation for its sender."""
+
+    recipient: SafeInvitationProfile
+
+
+class IncomingInvitationListResponse(BaseModel):
+    """Bounded deterministic incoming invitation page."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[IncomingInvitation]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=50)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
+    reference_week_start: date
+
+
+class SentInvitationListResponse(BaseModel):
+    """Bounded deterministic sent invitation page."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[SentInvitation]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=50)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
+    reference_week_start: date

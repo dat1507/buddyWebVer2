@@ -9,17 +9,28 @@ from app.api.dependencies import (
     require_auth,
     require_matching_eligibility,
     require_session_csrf,
+    require_verified_buddy_capability,
 )
 from app.core.database import get_database_session
 from app.core.rate_limits import check_user_rate_limit
 from app.models import User
 from app.schemas.matching import (
+    IncomingInvitationListResponse,
     InvitationCreateRequest,
     InvitationCreateResponse,
     MatchingRecommendationListResponse,
+    SentInvitationListResponse,
 )
 from app.schemas.profile_catalog import CatalogLocale
+from app.services.buddy_access import VerifiedBuddyPrincipal
 from app.services.csrf import CsrfTokenClaims
+from app.services.invitation_reads import (
+    DEFAULT_INVITATION_PAGE_SIZE,
+    MAX_INVITATION_PAGE_SIZE,
+    InvitationReadStateError,
+    list_incoming_invitations,
+    list_sent_invitations,
+)
 from app.services.invitation_sending import (
     InvitationSendError,
     InvitationSendReason,
@@ -106,6 +117,82 @@ async def read_matching_recommendations(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Recommendations are temporarily unavailable.",
+            headers=_NO_STORE_HEADERS,
+        ) from None
+    _mark_private(response)
+    return result
+
+
+@router.get(
+    "/invitations/incoming",
+    response_model=IncomingInvitationListResponse,
+)
+async def read_incoming_invitations(
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+    locale: Annotated[CatalogLocale, Query()] = "en",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=MAX_INVITATION_PAGE_SIZE),
+    ] = DEFAULT_INVITATION_PAGE_SIZE,
+) -> IncomingInvitationListResponse:
+    """Return the current verified USER's effective PENDING incoming page."""
+    try:
+        result = await list_incoming_invitations(
+            session,
+            current,
+            locale=locale,
+            page=page,
+            page_size=page_size,
+            reference_week_start=current_reference_week_start(),
+        )
+    except InvitationReadStateError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Invitations changed. Refresh and try again.",
+            headers=_NO_STORE_HEADERS,
+        ) from None
+    _mark_private(response)
+    return result
+
+
+@router.get(
+    "/invitations/sent",
+    response_model=SentInvitationListResponse,
+)
+async def read_sent_invitations(
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+    locale: Annotated[CatalogLocale, Query()] = "en",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=MAX_INVITATION_PAGE_SIZE),
+    ] = DEFAULT_INVITATION_PAGE_SIZE,
+) -> SentInvitationListResponse:
+    """Return the current verified USER's visible sent invitation page."""
+    try:
+        result = await list_sent_invitations(
+            session,
+            current,
+            locale=locale,
+            page=page,
+            page_size=page_size,
+            reference_week_start=current_reference_week_start(),
+        )
+    except InvitationReadStateError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Invitations changed. Refresh and try again.",
             headers=_NO_STORE_HEADERS,
         ) from None
     _mark_private(response)

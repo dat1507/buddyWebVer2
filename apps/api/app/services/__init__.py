@@ -139,6 +139,13 @@ from app.services.invitation_expiry import (
     expired_pending_predicate,
     process_invitation_expiry_batch,
 )
+from app.services.invitation_reads import (
+    DEFAULT_INVITATION_PAGE_SIZE,
+    MAX_INVITATION_PAGE_SIZE,
+    InvitationReadStateError,
+    list_incoming_invitations,
+    list_sent_invitations,
+)
 from app.services.invitation_sending import (
     MATCHING_INVITATION_CREATED,
     MAX_INVITATION_MESSAGE_WORDS,
@@ -168,6 +175,7 @@ from app.services.matching_recommendations import (
     MatchingRecommendationStateError,
     current_reference_week_start,
     list_ranked_matching_recommendations,
+    project_compatibility_explanation,
 )
 from app.services.matching_scoring import (
     COMPATIBILITY_WEIGHTS,
@@ -246,12 +254,14 @@ __all__ = [
     "EMAIL_VERIFICATION_REQUESTED",
     "DEFAULT_OUTBOX_BATCH_SIZE",
     "DEFAULT_INVITATION_EXPIRY_BATCH_SIZE",
+    "DEFAULT_INVITATION_PAGE_SIZE",
     "DEFAULT_RECOMMENDATION_PAGE_SIZE",
     "MAX_DELIVERY_ATTEMPTS",
     "MAX_RECOMMENDATION_CANDIDATES",
     "MAX_RECOMMENDATION_PAGE_SIZE",
     "MAX_OUTBOX_BATCH_SIZE",
     "MAX_INVITATION_EXPIRY_BATCH_SIZE",
+    "MAX_INVITATION_PAGE_SIZE",
     "MAX_INVITATION_MESSAGE_WORDS",
     "MAX_OUTGOING_PENDING_INVITATIONS",
     "MATCHING_INVITATION_CREATED",
@@ -308,6 +318,7 @@ __all__ = [
     "ImageValidationError",
     "InvitationExpiryReport",
     "InvitationExpiryValidationError",
+    "InvitationReadStateError",
     "InvitationSendError",
     "InvitationSendReason",
     "IssuedEmailVerificationToken",
@@ -375,7 +386,9 @@ __all__ = [
     "get_eligible_matching_principal",
     "load_matching_scoring_profiles",
     "list_eligible_matching_profiles",
+    "list_incoming_invitations",
     "list_ranked_matching_recommendations",
+    "list_sent_invitations",
     "matching_pair_is_eligible",
     "normalize_preference_identity",
     "normalize_preference_key",
@@ -394,6 +407,7 @@ __all__ = [
     "expire_invitation_batch",
     "expired_pending_predicate",
     "project_admin_event",
+    "project_compatibility_explanation",
     "reconcile_orphaned_images",
     "refresh_cookie_name",
     "register_user",
