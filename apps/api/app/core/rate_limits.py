@@ -49,7 +49,8 @@ AUTH_ENDPOINTS = frozenset(
     }
 )
 RECOMMENDATION_ENDPOINTS = frozenset({("GET", "/api/matching/recommendations")})
-RATE_LIMITED_ENDPOINTS = AUTH_ENDPOINTS | RECOMMENDATION_ENDPOINTS
+INVITATION_ENDPOINTS = frozenset({("POST", "/api/matching/invitations")})
+RATE_LIMITED_ENDPOINTS = AUTH_ENDPOINTS | RECOMMENDATION_ENDPOINTS | INVITATION_ENDPOINTS
 _NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}
 _T = TypeVar("_T")
 

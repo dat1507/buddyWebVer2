@@ -30,6 +30,8 @@ from app.schemas.event import (
 from app.schemas.matching import (
     CompatibilityExplanation,
     CompatibilitySignalExplanation,
+    InvitationCreateRequest,
+    InvitationCreateResponse,
     MatchingRecommendation,
     MatchingRecommendationListResponse,
     SafeMatchingAvatar,
@@ -98,6 +100,8 @@ __all__ = [
     "CustomPreferenceSelection",
     "InterestCatalogItem",
     "InterestCatalogResponse",
+    "InvitationCreateRequest",
+    "InvitationCreateResponse",
     "LanguageCatalogItem",
     "LanguageCatalogResponse",
     "LoginRequest",

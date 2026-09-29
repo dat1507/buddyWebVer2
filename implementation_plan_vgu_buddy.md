@@ -7267,6 +7267,25 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-003 — Send invitation API and concurrency limits
 
+- **Status:** **Done 2026-09-29.** Added the authenticated, VERIFIED, session-CSRF-protected
+  `POST /api/matching/invitations` contract using the REC-003 public profile ID as the only
+  recipient reference and a minimal `id/status/expires_at` response. The service canonicalizes
+  plain text against one repository-level cross-layer fixture, revalidates both participants while
+  holding their User and StudentProfile rows in deterministic UUID order, expires a stale pair row,
+  rejects an effective reciprocal/duplicate PENDING or accepted relationship marker, counts only
+  outgoing effective PENDING rows and creates request 30 while rejecting request 31. The invitation
+  and safe `MATCHING_INVITATION_CREATED` outbox event are flushed in the same transaction; provider
+  delivery and invitation templates remain owned by INV-008. Per-IP middleware and per-user limits
+  both cover the POST. No invitation composer, read/mutation follow-up API, Match creation, provider
+  delivery or frontend behavior was added.
+- **Verification:** INV-003 targeted API/service/message/rate tests pass (75), plus one isolated real
+  PostgreSQL acceptance test covering same-direction duplicate, reciprocal A↔B, concurrent 29+2,
+  stale-expiry immediate re-invite, accepted-pair exclusion, sender/recipient eligibility changes
+  and one outbox row per winner. Full backend regression passes (967 passed, 22 existing
+  environment-gated skips). Ruff, strict mypy (182 files), package build, pip check, locked runtime
+  dependency audit with zero known vulnerabilities, Alembic history/single-head/autogenerate check
+  and Docker Compose validation pass. No migration was required; Alembic head remains
+  `0012_invitation_persistence`.
 - **Purpose:** Let an eligible verified sender invite one eligible recommended recipient.
 - **Scope / likely files:** invitation POST schema/router/service, one documented validation helper with cross-layer fixtures, and per-user/IP rate-limit policy; enqueue outbox event in same transaction. Canonicalize by trimming leading/trailing whitespace; count words as maximal consecutive non-whitespace runs in the trimmed value; count Unicode code points in that same value.
 - **Dependencies / ownership:** INV-002, REC-003, MAIL-001; Backend + Database.
@@ -7712,10 +7731,10 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-003`.** INV-002 authoritative seven-day expiry semantics and its bounded,
-idempotent transition job are complete with Alembic head unchanged at
-`0012_invitation_persistence`. Implement the authenticated send-invitation API and concurrency
-limits next; invitation composer/send UI remains owned by INV-007.
+**Next step: `INV-004`.** INV-003 authenticated invitation creation, message boundaries,
+transactional outbox staging and concurrent pair/outgoing-limit enforcement are complete with
+Alembic head unchanged at `0012_invitation_persistence`. Implement the owner-filtered Incoming and
+Sent Invitations read APIs next; invitation composer/send UI remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 

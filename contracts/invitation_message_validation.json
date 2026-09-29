@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "algorithm": {
+    "canonicalization": "trim_outer_unicode_whitespace",
+    "word": "maximal_non_whitespace_run",
+    "length": "unicode_code_points"
+  },
+  "limits": {
+    "max_words": 500,
+    "max_code_points": 10000
+  },
+  "literal_cases": [
+    {
+      "name": "repeated_spaces_tabs_and_newlines",
+      "input": "  Hello   my\tfriend\n",
+      "canonical": "Hello   my\tfriend",
+      "word_count": 3,
+      "code_point_count": 17,
+      "reason": null
+    },
+    {
+      "name": "whitespace_only_is_empty_plain_text",
+      "input": " \t\n ",
+      "canonical": "",
+      "word_count": 0,
+      "code_point_count": 0,
+      "reason": null
+    },
+    {
+      "name": "combining_sequence_and_supplementary_emoji",
+      "input": "  Grüße 😀  ",
+      "canonical": "Grüße 😀",
+      "word_count": 2,
+      "code_point_count": 8,
+      "reason": null
+    },
+    {
+      "name": "html_looking_text_remains_plain_text",
+      "input": " <script>alert(1)</script> ",
+      "canonical": "<script>alert(1)</script>",
+      "word_count": 1,
+      "code_point_count": 25,
+      "reason": null
+    }
+  ],
+  "generated_cases": [
+    {
+      "name": "exactly_500_words",
+      "unit": "w",
+      "separator": " ",
+      "repeat": 500,
+      "word_count": 500,
+      "code_point_count": 999,
+      "reason": null
+    },
+    {
+      "name": "reject_501_words",
+      "unit": "w",
+      "separator": "\t",
+      "repeat": 501,
+      "word_count": 501,
+      "code_point_count": 1001,
+      "reason": "INVITATION_MESSAGE_TOO_MANY_WORDS"
+    },
+    {
+      "name": "exactly_10000_code_points",
+      "unit": "😀",
+      "separator": "",
+      "repeat": 10000,
+      "word_count": 1,
+      "code_point_count": 10000,
+      "reason": null
+    },
+    {
+      "name": "reject_10001_code_points",
+      "unit": "😀",
+      "separator": "",
+      "repeat": 10001,
+      "word_count": 1,
+      "code_point_count": 10001,
+      "reason": "INVITATION_MESSAGE_TOO_MANY_CODE_POINTS"
+    }
+  ]
+}

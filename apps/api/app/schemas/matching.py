@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Self
 from uuid import UUID
 
@@ -15,7 +15,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.models import LanguageProficiency, StudentType
+from app.models import InvitationStatus, LanguageProficiency, StudentType
 from app.schemas.profile import WeeklyAvailability
 from app.schemas.profile_catalog import (
     MAX_PROFILE_ACTIVITY_SELECTIONS,
@@ -138,3 +138,29 @@ class MatchingRecommendationListResponse(BaseModel):
     total: int = Field(ge=0)
     total_pages: int = Field(ge=0)
     reference_week_start: date
+
+
+class InvitationCreateRequest(BaseModel):
+    """Privacy-safe invitation input keyed by the public matching profile identity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    recipient_profile_id: UUID = Field(
+        description="Public profile ID returned by matching recommendations.",
+    )
+    message: StrictStr = Field(
+        description=(
+            "Plain text. The server trims outer whitespace, then allows at most "
+            "500 maximal non-whitespace runs and 10,000 Unicode code points."
+        ),
+    )
+
+
+class InvitationCreateResponse(BaseModel):
+    """Minimal invitation receipt without participant or message disclosure."""
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    id: UUID
+    status: InvitationStatus
+    expires_at: datetime
