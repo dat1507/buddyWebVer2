@@ -13,6 +13,7 @@ from app.core.observability import (
     LOGGER_NAME,
     ApiObservabilityMiddleware,
     emit_api_request_event,
+    emit_invitation_expiry_event,
     get_operations_logger,
 )
 
@@ -60,6 +61,37 @@ def test_structured_event_has_fixed_safe_fields(operations_log: io.StringIO) -> 
         "authorization",
         "cookie",
         "signed_url",
+        "message",
+    }.intersection(event)
+
+
+def test_invitation_expiry_event_contains_aggregate_allowlist_only(
+    operations_log: io.StringIO,
+) -> None:
+    emit_invitation_expiry_event(
+        batch_size=20,
+        selected=3,
+        expired=3,
+        duration_ms=11,
+        error_type="DatabaseError",
+    )
+
+    event = json.loads(operations_log.getvalue())
+    assert event == {
+        "timestamp": event["timestamp"],
+        "service": "vgu-buddy-api",
+        "event": "invitation_expiry_batch_completed",
+        "batch_size": 20,
+        "selected": 3,
+        "expired": 3,
+        "duration_ms": 11,
+        "error_type": "DatabaseError",
+    }
+    assert not {
+        "invitation_id",
+        "sender_id",
+        "recipient_id",
+        "email",
         "message",
     }.intersection(event)
 

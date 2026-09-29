@@ -64,6 +64,13 @@ class InvitationTransitionError(ValueError):
         )
 
 
+class InvitationExpiredError(ValueError):
+    """Raised when a non-expiry transition is attempted at or after the deadline."""
+
+    def __init__(self) -> None:
+        super().__init__("Invitation is expired.")
+
+
 def _require_aware(value: datetime, *, field_name: str) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{field_name} must be timezone-aware.")
@@ -262,6 +269,8 @@ class MatchingInvitation(Base):
         is_terminal_target = target in TERMINAL_INVITATION_STATUSES
         if self.status is not InvitationStatus.PENDING or not is_terminal_target:
             raise InvitationTransitionError(self.status, target)
+        if target is not InvitationStatus.EXPIRED and transition_time >= self.expires_at:
+            raise InvitationExpiredError
         if self.created_at is not None and transition_time < self.created_at:
             raise ValueError("Invitation transition cannot predate creation.")
 

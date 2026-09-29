@@ -67,6 +67,32 @@ def emit_api_request_event(
     )
 
 
+def emit_invitation_expiry_event(
+    *,
+    batch_size: int,
+    selected: int,
+    expired: int,
+    duration_ms: int,
+    error_type: str | None = None,
+) -> None:
+    """Emit aggregate expiry-job telemetry without invitation or participant data."""
+    payload: dict[str, str | int] = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "service": "vgu-buddy-api",
+        "event": "invitation_expiry_batch_completed",
+        "batch_size": batch_size,
+        "selected": selected,
+        "expired": expired,
+        "duration_ms": duration_ms,
+    }
+    if error_type is not None:
+        payload["error_type"] = error_type
+    level: LogLevel = "error" if error_type is not None else "info"
+    getattr(get_operations_logger(), level)(
+        json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    )
+
+
 def _route_template(scope: Scope) -> str:
     route = scope.get("route")
     template = getattr(route, "path", None)

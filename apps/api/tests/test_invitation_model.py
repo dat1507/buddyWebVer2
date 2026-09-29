@@ -13,6 +13,7 @@ from app.models import (
     INVITATION_EXPIRY_DAYS,
     INVITATION_EXPIRY_INTERVAL,
     MAX_INVITATION_MESSAGE_CODE_POINTS,
+    InvitationExpiredError,
     InvitationStatus,
     InvitationTransitionError,
     MatchingInvitation,
@@ -113,6 +114,18 @@ def test_expiration_cannot_be_recorded_before_persisted_deadline() -> None:
 
     assert invitation.status is InvitationStatus.PENDING
     assert invitation.expired_at is None
+
+
+@pytest.mark.parametrize("method_name", ("accept", "decline", "cancel"))
+def test_non_expiry_transition_is_rejected_at_exact_deadline(method_name: str) -> None:
+    invitation = _pending_invitation()
+
+    with pytest.raises(InvitationExpiredError, match="expired"):
+        getattr(invitation, method_name)(at=invitation.expires_at)
+
+    assert invitation.status is InvitationStatus.PENDING
+    assert invitation.responded_at is None
+    assert invitation.cancelled_at is None
 
 
 def test_transition_rejects_naive_or_precreation_timestamp() -> None:

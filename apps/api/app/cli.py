@@ -9,6 +9,7 @@ import sys
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from getpass import getpass
+from time import perf_counter
 from uuid import uuid4
 
 from sqlalchemy import text
@@ -29,6 +30,7 @@ from app.core.database import (
     get_session_factory,
     migration_database_url,
 )
+from app.core.observability import emit_invitation_expiry_event
 from app.services.auth import AdminCreationError, create_admin
 from app.services.email_outbox import (
     DEFAULT_OUTBOX_BATCH_SIZE,
@@ -49,12 +51,19 @@ from app.services.image_storage import (
     discover_storage_references,
     reconcile_orphaned_images,
 )
+from app.services.invitation_expiry import (
+    DEFAULT_INVITATION_EXPIRY_BATCH_SIZE,
+    InvitationExpiryReport,
+    InvitationExpiryValidationError,
+    process_invitation_expiry_batch,
+)
 
 DATABASE_ERROR_MESSAGE = "Admin account could not be created because the database is unavailable."
 PASSWORD_INPUT_ERROR_MESSAGE = "Admin password input was cancelled."
 STORAGE_ERROR_MESSAGE = "Storage reconciliation could not be completed."
 STORAGE_CONFIGURATION_ERROR_MESSAGE = "Storage bucket configuration could not be completed."
 EMAIL_WORKER_ERROR_MESSAGE = "Transactional email worker could not be started or completed."
+INVITATION_EXPIRY_ERROR_MESSAGE = "Invitation expiry batch could not be completed."
 LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be configured."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
@@ -120,6 +129,16 @@ def _parser() -> argparse.ArgumentParser:
         type=float,
         default=5.0,
         help="Idle polling interval for continuous mode (default: 5).",
+    )
+    invitation_expiry_parser = commands.add_parser(
+        "expire-invitations",
+        help="Persist one bounded batch of seven-day invitation expirations.",
+    )
+    invitation_expiry_parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_INVITATION_EXPIRY_BATCH_SIZE,
+        help=f"Rows per batch (default: {DEFAULT_INVITATION_EXPIRY_BATCH_SIZE}).",
     )
     return parser
 
@@ -240,6 +259,31 @@ async def _email_worker_command(
         await dispose_database_engine()
 
 
+async def _invitation_expiry_command(*, batch_size: int) -> InvitationExpiryReport:
+    started_at = perf_counter()
+    report = InvitationExpiryReport(selected=0, expired=0)
+    error_type: str | None = None
+    try:
+        report = await process_invitation_expiry_batch(
+            get_session_factory(),
+            batch_size=batch_size,
+        )
+        return report
+    except Exception as error:
+        error_type = type(error).__name__
+        raise
+    finally:
+        duration_ms = max(0, round((perf_counter() - started_at) * 1000))
+        emit_invitation_expiry_event(
+            batch_size=batch_size,
+            selected=report.selected,
+            expired=report.expired,
+            duration_ms=duration_ms,
+            error_type=error_type,
+        )
+        await dispose_database_engine()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse and execute one operational command with sanitized terminal failures."""
     raw_arguments = list(argv) if argv is not None else sys.argv[1:]
@@ -340,6 +384,25 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"terminal_failed={email_report.terminal_failed}, skipped={email_report.skipped}"
         )
         return 0 if email_report.terminal_failed == 0 else 1
+
+    if arguments.command == "expire-invitations":
+        try:
+            expiry_report = asyncio.run(
+                _invitation_expiry_command(batch_size=arguments.batch_size)
+            )
+        except (
+            DatabaseConfigurationError,
+            InvitationExpiryValidationError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {INVITATION_EXPIRY_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Invitation expiry: "
+            f"selected={expiry_report.selected}, expired={expiry_report.expired}"
+        )
+        return 0
 
     return 2  # pragma: no cover - argparse owns this invariant.
 

@@ -6848,7 +6848,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
 | PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
 | INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
-| INV-002 | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
+| INV-002 (**Done 2026-09-29**) | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
 | INV-004 | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
 | INV-005 | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
@@ -7175,9 +7175,9 @@ non-blocking >500 kB chunk advisory remains. Local HTTPS smoke confirms the appl
 anonymous direct `/user/matching` request is gated back to `/login`. No dependency, backend,
 database or migration change was required; Alembic head remains `0011_preference_persistence`.
 
-**Next development task:** `INV-002` — Seven-day expiry semantics and transition job. Its declared
-`INV-001` dependency is DONE. `Send Invitation` and the real V2 composer remain deferred until
-`INV-007`, after INV-004..006 and REC-004 are complete.
+**Next development task:** `INV-003` — Send invitation API and concurrency limits. Its declared
+`INV-002`, `REC-003` and `MAIL-001` dependencies are DONE. `Send Invitation` and the real V2
+composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are complete.
 
 ### 26.11 Full task contracts — Invitations and Current Buddies
 
@@ -7240,6 +7240,23 @@ database or migration change was required; Alembic head remains `0011_preference
 
 #### INV-002 — Seven-day expiry semantics and transition job
 
+- **Status:** **Done 2026-09-29.** Added shared effective-status and SQL predicates that make a
+  persisted PENDING invitation unusable at the inclusive `now >= expires_at` boundary even before
+  cleanup. The INV-001 state machine now rejects Accept/Decline/Cancel at that boundary. A bounded
+  expiry service (default 20, maximum 100) locks due rows deterministically by `expires_at, id` with
+  `FOR UPDATE SKIP LOCKED`, reuses the versioned PENDING-to-EXPIRED transition, and commits one short
+  atomic batch. Duplicate workers and retries are idempotent; terminal states are never overwritten;
+  expiration releases the partial PENDING-pair constraint for immediate re-invite. The supported
+  `python -m app.cli expire-invitations --batch-size N` entry point runs one batch for an external
+  scheduler and emits aggregate-only structured telemetry. No public maintenance endpoint, API,
+  email, Match, composer or frontend behavior was added.
+- **Verification:** INV-002 targeted tests pass (36), plus one isolated PostgreSQL acceptance test
+  covering the exact boundary, delayed cleanup, deterministic batch limits, retries, duplicate
+  workers, Accept-vs-expire locking, terminal protection and immediate re-invite. Full backend
+  regression passes (936 passed, 22 existing environment-gated skips). Ruff, strict mypy (177
+  files), package build, pip check, locked runtime dependency audit with zero known vulnerabilities,
+  Docker Compose validation, Alembic history and single-head checks pass. No migration was required;
+  Alembic head remains `0012_invitation_persistence`.
 - **Purpose:** Make invitation expiry authoritative even when the scheduler is delayed.
 - **Scope / likely files:** invitation service/query predicate and worker/scheduler task.
 - **Dependencies / ownership:** INV-001; Backend + Infrastructure.
@@ -7695,10 +7712,10 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-002`.** INV-001 invitation persistence/state-machine acceptance is complete at
-Alembic head `0012_invitation_persistence`. Implement the authoritative seven-day effective-expiry
-predicate and bounded idempotent transition job next; invitation composer/send UI remains owned by
-INV-007.
+**Next step: `INV-003`.** INV-002 authoritative seven-day expiry semantics and its bounded,
+idempotent transition job are complete with Alembic head unchanged at
+`0012_invitation_persistence`. Implement the authenticated send-invitation API and concurrency
+limits next; invitation composer/send UI remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 
