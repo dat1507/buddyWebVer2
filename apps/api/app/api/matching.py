@@ -20,6 +20,7 @@ from app.schemas.matching import (
     InvitationAcceptResponse,
     InvitationCreateRequest,
     InvitationCreateResponse,
+    InvitationMutationResponse,
     MatchingRecommendationListResponse,
     SentInvitationListResponse,
 )
@@ -30,6 +31,13 @@ from app.services.invitation_acceptance import (
     InvitationAcceptError,
     InvitationAcceptReason,
     accept_matching_invitation,
+)
+from app.services.invitation_mutations import (
+    InvitationMutationError,
+    InvitationMutationReason,
+    cancel_matching_invitation,
+    decline_matching_invitation,
+    hide_accepted_invitation_from_sender,
 )
 from app.services.invitation_reads import (
     DEFAULT_INVITATION_PAGE_SIZE,
@@ -288,6 +296,118 @@ async def accept_invitation(
             detail=error.reason.value,
             headers=_NO_STORE_HEADERS,
         ) from None
+    except Exception:
+        await session.rollback()
+        raise
+    _mark_private(response)
+    return result
+
+
+def _mutation_http_exception(error: InvitationMutationError) -> HTTPException:
+    status_code = (
+        status.HTTP_404_NOT_FOUND
+        if error.reason is InvitationMutationReason.NOT_FOUND
+        else status.HTTP_409_CONFLICT
+    )
+    return HTTPException(
+        status_code=status_code,
+        detail=error.reason.value,
+        headers=_NO_STORE_HEADERS,
+    )
+
+
+@router.post(
+    "/invitations/{invitation_id}/decline",
+    response_model=InvitationMutationResponse,
+)
+async def decline_invitation(
+    invitation_id: UUID,
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> InvitationMutationResponse:
+    """Decline one current-recipient effective-PENDING invitation."""
+    try:
+        mutation = await decline_matching_invitation(
+            session,
+            current,
+            invitation_id=invitation_id,
+        )
+        result = InvitationMutationResponse.model_validate(mutation)
+        await session.commit()
+    except InvitationMutationError as error:
+        await session.rollback()
+        raise _mutation_http_exception(error) from None
+    except Exception:
+        await session.rollback()
+        raise
+    _mark_private(response)
+    return result
+
+
+@router.post(
+    "/invitations/{invitation_id}/cancel",
+    response_model=InvitationMutationResponse,
+)
+async def cancel_invitation(
+    invitation_id: UUID,
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> InvitationMutationResponse:
+    """Cancel one current-sender effective-PENDING invitation."""
+    try:
+        mutation = await cancel_matching_invitation(
+            session,
+            current,
+            invitation_id=invitation_id,
+        )
+        result = InvitationMutationResponse.model_validate(mutation)
+        await session.commit()
+    except InvitationMutationError as error:
+        await session.rollback()
+        raise _mutation_http_exception(error) from None
+    except Exception:
+        await session.rollback()
+        raise
+    _mark_private(response)
+    return result
+
+
+@router.post(
+    "/invitations/{invitation_id}/hide",
+    response_model=InvitationMutationResponse,
+)
+async def hide_accepted_invitation(
+    invitation_id: UUID,
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> InvitationMutationResponse:
+    """Hide one accepted invitation from only its current sender's Sent view."""
+    try:
+        mutation = await hide_accepted_invitation_from_sender(
+            session,
+            current,
+            invitation_id=invitation_id,
+        )
+        result = InvitationMutationResponse.model_validate(mutation)
+        await session.commit()
+    except InvitationMutationError as error:
+        await session.rollback()
+        raise _mutation_http_exception(error) from None
     except Exception:
         await session.rollback()
         raise

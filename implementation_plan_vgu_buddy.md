@@ -6852,7 +6852,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
 | INV-004 (**Done 2026-09-30**) | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
 | INV-005 (**Done 2026-09-30**) | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
-| INV-006 | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
+| INV-006 (**Done 2026-09-30**) | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
 | INV-007 | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
 | INV-008 | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
 | INV-009 | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
@@ -7435,6 +7435,37 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-006 — Decline, Cancel and accepted-row hide
 
+- **Status:** **Done 2026-09-30.** Added VERIFIED owner-only, session-CSRF-protected bodyless
+  `POST /api/matching/invitations/{invitation_id}/decline`, `/cancel` and `/hide` mutations with a
+  minimal `invitation_id/status` receipt and stable sanitized errors. The recipient alone can
+  transition effective PENDING→DECLINED; the sender alone can transition effective
+  PENDING→CANCELLED. Replaying the same owner action returns the persisted terminal receipt without
+  rewriting it, while a different terminal state returns a conflict. Both terminal transitions
+  release the partial PENDING-pair constraint and the sender's effective-PENDING quota immediately,
+  so a valid re-invite has no cooldown.
+- **Implementation/security:** Every mutation selects only the authenticated actor's row, locks it
+  with `FOR UPDATE` and refreshes the SQLAlchemy identity-map object with `populate_existing` after
+  any wait. The shared INV-002 effective-expiry authority rejects `now >= expires_at`; the existing
+  INV-001 domain primitives perform status transitions. Sender hide is a separate idempotent domain
+  operation allowed only on ACCEPTED and sets only the already-persisted `sender_hidden_at` UTC
+  timestamp. The centralized INV-004 Sent predicate already excludes hidden ACCEPTED rows, while
+  Incoming/Sent naturally exclude DECLINED/CANCELLED. Hide never changes invitation status, ACTIVE
+  Match, compatibility snapshot, conversation, messages, accepted outbox provenance or the
+  PROFILE-V2 `student_type` lock. No new email, frontend or relationship-termination behavior was
+  added.
+- **Verification:** INV-006 focused tests pass (**63 passed, 1 configured live skip**); invitation/
+  Buddy/profile/chat regressions pass (**221 passed, 9 configured live skips**) and the full backend
+  suite passes (**1096 passed, 29 configured live skips**). Isolated PostgreSQL acceptance passes
+  both winner orders for Accept-vs-Decline and Accept-vs-Cancel, both winner orders for expiry vs
+  Decline/Cancel, concurrent duplicate Decline/Cancel/hide, Accept-then-hide waiting, immediate
+  re-invite/quota release, Incoming/Sent filtering and Match/conversation/message/outbox/profile-lock
+  retention with no deadlock or partial relationship. Ruff, strict mypy (**195 source files**),
+  changed-file formatting, pip consistency, sdist/wheel build, Alembic history/single head/live
+  autogenerate drift and Docker Compose validation pass. The strict dependency audit initially found
+  `CVE-2026-101918` in PyJWT 2.14.0; the direct constraint now requires ≥2.15.0, both lockfiles pin
+  2.15.1, auth regressions pass (**116 tests**) and the final audit reports zero known
+  vulnerabilities. No migration was required because `sender_hidden_at` and its lifecycle constraints
+  were already delivered by INV-001; Alembic head remains `0014_buddy_chat_persistence`.
 - **Purpose:** Complete the remaining authorized state transitions without destructive relationship deletion.
 - **Scope / likely files:** recipient decline, sender cancel and accepted sender hide endpoints/services.
 - **Dependencies / ownership:** INV-003/005; Backend + Database.
@@ -7882,13 +7913,13 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-006 — Decline, Cancel and accepted-row hide`.** INV-005 now provides the atomic,
-idempotent recipient Accept transaction and authoritative Match/conversation receipt. INV-006 is the
-direct next invitation-state dependency: implement recipient-only PENDING→DECLINED, sender-only
-PENDING→CANCELLED and non-destructive sender hide for ACCEPTED rows with the same verified-owner,
-CSRF, stable conflict and atomic retry discipline. It must not delete the accepted invitation,
-ACTIVE Match, conversation or messages. Invitation UI/composer remains owned by INV-007; accepted
-email/deep-link delivery and Current Buddies reads remain the separate INV-009 and BUDDY-002 branches.
+**Next step: `INV-007 — Invitation composer, Incoming and Sent UI`.** INV-004 provides owner-safe
+Incoming/Sent reads, REC-004 provides the read-only recommendation surface, and INV-003/005/006 now
+provide the complete send/accept/decline/cancel/hide backend contract. INV-007 can therefore add the
+real composer and invitation-management actions with shared message-limit fixtures, safe plain-text
+rendering, reload/refetch behavior and accessible responsive states. It must consume server results
+as authority and must not implement chat, Current Buddies, accepted email delivery or relationship
+termination; those remain owned by CHAT-*, BUDDY-002/003 and INV-009.
 
 ### 26.19 Documentation-change boundary
 

@@ -139,6 +139,34 @@ def test_transition_rejects_naive_or_precreation_timestamp() -> None:
     assert invitation.status is InvitationStatus.PENDING
 
 
+def test_sender_hide_is_accepted_only_idempotent_and_preserves_status() -> None:
+    invitation = _pending_invitation()
+    accepted_at = invitation.created_at + timedelta(hours=1)
+    hidden_at = accepted_at + timedelta(minutes=1)
+    invitation.accept(at=accepted_at)
+
+    assert invitation.hide_from_sender(at=hidden_at) is True
+    assert invitation.hide_from_sender(at=hidden_at + timedelta(minutes=1)) is False
+    assert invitation.status is InvitationStatus.ACCEPTED
+    assert invitation.responded_at == accepted_at
+    assert invitation.sender_hidden_at == hidden_at
+
+
+def test_sender_hide_rejects_pending_and_preacceptance_timestamps() -> None:
+    pending = _pending_invitation()
+    with pytest.raises(ValueError, match="Only an accepted invitation"):
+        pending.hide_from_sender(at=pending.created_at + timedelta(minutes=1))
+
+    accepted = _pending_invitation()
+    accepted_at = accepted.created_at + timedelta(hours=1)
+    accepted.accept(at=accepted_at)
+    with pytest.raises(ValueError, match="cannot predate acceptance"):
+        accepted.hide_from_sender(at=accepted_at - timedelta(microseconds=1))
+
+    assert accepted.status is InvitationStatus.ACCEPTED
+    assert accepted.sender_hidden_at is None
+
+
 def test_message_is_outer_trimmed_and_defensively_bounded() -> None:
     invitation = MatchingInvitation(
         sender_id=uuid4(),

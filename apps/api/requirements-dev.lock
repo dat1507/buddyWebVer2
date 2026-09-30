@@ -138,7 +138,7 @@ pygments==2.21.0
     # via
     #   pytest
     #   rich
-pyjwt==2.14.0
+pyjwt==2.15.1
     # via vgu-buddy-api (pyproject.toml)
 pyparsing==3.3.2
     # via pip-requirements-parser

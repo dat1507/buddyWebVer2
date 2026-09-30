@@ -257,6 +257,18 @@ class MatchingInvitation(Base):
         """Transition a persisted pending invitation to cancelled."""
         self._transition(InvitationStatus.CANCELLED, at=at)
 
+    def hide_from_sender(self, *, at: datetime) -> bool:
+        """Hide an accepted row from its sender without changing relationship state."""
+        hidden_at = _require_aware(at, field_name="Invitation sender hidden time")
+        if self.status is not InvitationStatus.ACCEPTED or self.responded_at is None:
+            raise ValueError("Only an accepted invitation can be hidden from its sender.")
+        if self.sender_hidden_at is not None:
+            return False
+        if hidden_at < self.responded_at:
+            raise ValueError("Invitation sender hidden time cannot predate acceptance.")
+        self.sender_hidden_at = hidden_at
+        return True
+
     def expire(self, *, at: datetime) -> None:
         """Transition a pending invitation at or after its persisted deadline."""
         transition_time = _require_aware(at, field_name="Invitation transition time")

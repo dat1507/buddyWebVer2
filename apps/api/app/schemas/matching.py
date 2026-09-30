@@ -177,6 +177,15 @@ class InvitationAcceptResponse(BaseModel):
     conversation_id: UUID
 
 
+class InvitationMutationResponse(BaseModel):
+    """Minimal owner mutation receipt without participant or relationship detail."""
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    invitation_id: UUID
+    status: InvitationStatus
+
+
 class SafeInvitationProfile(BaseModel):
     """Current public profile projection for an invitation participant.
 
