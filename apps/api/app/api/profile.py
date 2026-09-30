@@ -21,6 +21,7 @@ from app.services.profile_completion import get_own_profile_completion
 from app.services.profile_photos import get_own_avatar
 from app.services.profiles import (
     ProfileAccessError,
+    ProfileUpdateConflictError,
     ProfileValidationError,
     ProfileVersionConflictError,
     get_or_create_own_profile,
@@ -141,6 +142,13 @@ async def replace_own_profile_fields(
             detail="Profile version is stale.",
             headers=_NO_STORE_HEADERS,
         ) from error
+    except ProfileUpdateConflictError as error:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=error.reason.value,
+            headers=_NO_STORE_HEADERS,
+        ) from None
     except ProfileValidationError as error:
         await session.rollback()
         raise HTTPException(

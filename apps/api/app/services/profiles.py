@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from enum import StrEnum
 from typing import Final, cast
 from uuid import UUID
 
@@ -10,8 +11,13 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import StudentProfile, User, UserRole
+from app.models import StudentProfile, StudentType, User, UserRole
 from app.schemas.profile import ProfilePreferences, ProfileUpdate, WeeklyAvailability
+from app.services.buddy_match_policy import (
+    BuddyParticipantStateError,
+    has_active_buddy_match,
+    lock_current_buddy_users,
+)
 from app.services.preference_storage import (
     list_selectable_activities,
     read_profile_activity_ids,
@@ -44,6 +50,20 @@ class ProfileAccessError(PermissionError):
 
 class ProfileVersionConflictError(ValueError):
     """Raised when optimistic concurrency detects a stale profile version."""
+
+
+class ProfileUpdateConflictReason(StrEnum):
+    """Stable client-visible reasons for current-state profile conflicts."""
+
+    STUDENT_TYPE_LOCKED_ACTIVE_MATCH = "STUDENT_TYPE_LOCKED_ACTIVE_MATCH"
+
+
+class ProfileUpdateConflictError(ValueError):
+    """Raised when a valid profile transition conflicts with current domain state."""
+
+    def __init__(self, reason: ProfileUpdateConflictReason) -> None:
+        self.reason = reason
+        super().__init__(reason.value)
 
 
 class ProfileValidationError(ValueError):
@@ -147,11 +167,30 @@ async def update_own_profile(
     update: ProfileUpdate,
 ) -> StudentProfile:
     """Validate and stage an owner-bound partial update without committing it."""
+    if "student_type" in update.model_fields_set:
+        try:
+            (owner,) = await lock_current_buddy_users(session, (owner.id,))
+        except BuddyParticipantStateError:
+            raise ProfileAccessError("Profile access is not permitted.") from None
+
     profile = await _get_or_create_own_profile(session, owner, for_update=True)
     if profile.version != update.version:
         raise ProfileVersionConflictError("Profile version is stale.")
 
     changes = _update_values(update)
+    requested_student_type = cast(
+        StudentType | None,
+        changes.get("student_type", profile.student_type),
+    )
+    if (
+        "student_type" in changes
+        and requested_student_type != profile.student_type
+        and await has_active_buddy_match(session, user_id=owner.id)
+    ):
+        raise ProfileUpdateConflictError(
+            ProfileUpdateConflictReason.STUDENT_TYPE_LOCKED_ACTIVE_MATCH
+        )
+
     arrival_date = cast(date | None, changes.get("arrival_date", profile.arrival_date))
     departure_date = cast(date | None, changes.get("departure_date", profile.departure_date))
     if arrival_date is not None and departure_date is not None and departure_date < arrival_date:

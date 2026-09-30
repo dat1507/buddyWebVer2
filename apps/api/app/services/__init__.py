@@ -20,6 +20,11 @@ from app.services.buddy_access import (
     VerifiedBuddyPrincipal,
     get_verified_buddy_principal,
 )
+from app.services.buddy_match_policy import (
+    BuddyParticipantStateError,
+    has_active_buddy_match,
+    lock_current_buddy_users,
+)
 from app.services.buddy_matches import (
     BuddyMatchActivationError,
     BuddyMatchActivationReason,
@@ -208,6 +213,8 @@ from app.services.preference_identity import (
 )
 from app.services.profiles import (
     ProfileAccessError,
+    ProfileUpdateConflictError,
+    ProfileUpdateConflictReason,
     ProfileValidationError,
     ProfileVersionConflictError,
     get_or_create_own_profile,
@@ -282,6 +289,7 @@ __all__ = [
     "BuddyCapabilityError",
     "BuddyMatchActivationError",
     "BuddyMatchActivationReason",
+    "BuddyParticipantStateError",
     "CsrfToken",
     "CsrfTokenClaims",
     "CsrfValidationError",
@@ -342,6 +350,8 @@ __all__ = [
     "PreferenceIdentityError",
     "PreparedImage",
     "ProfileAccessError",
+    "ProfileUpdateConflictError",
+    "ProfileUpdateConflictReason",
     "ProfileValidationError",
     "ProfileVersionConflictError",
     "ReconciliationReport",
@@ -408,8 +418,10 @@ __all__ = [
     "send_matching_invitation",
     "get_event",
     "get_verified_buddy_principal",
+    "has_active_buddy_match",
     "get_or_create_own_profile",
     "get_or_create_own_profile_for_update",
+    "lock_current_buddy_users",
     "prepare_refresh_rotation",
     "process_transactional_outbox_batch",
     "process_invitation_expiry_batch",

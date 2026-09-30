@@ -18,6 +18,8 @@ from app.models import Activity, StudentProfile, StudentType, User, UserRole
 from app.schemas import ProfileUpdate
 from app.services import (
     ProfileAccessError,
+    ProfileUpdateConflictError,
+    ProfileUpdateConflictReason,
     ProfileValidationError,
     ProfileVersionConflictError,
     get_or_create_own_profile,
@@ -304,7 +306,10 @@ async def test_student_type_and_matching_opt_in_use_validated_domain_values() ->
     owner = _user()
     profile = _profile(owner, version=1)
     mock, session = _session()
-    mock.scalar.return_value = profile
+    mock.scalar.side_effect = [profile, False]
+    locked_users = MagicMock()
+    locked_users.all.return_value = [owner]
+    mock.scalars.return_value = locked_users
     update = ProfileUpdate.model_validate(
         {
             "version": 1,
@@ -318,3 +323,134 @@ async def test_student_type_and_matching_opt_in_use_validated_domain_values() ->
     assert profile.student_type is StudentType.VIETNAMESE
     assert profile.matching_opt_in is True
     assert profile.version == 2
+
+
+@pytest.mark.anyio
+async def test_student_type_actual_change_without_active_match_succeeds() -> None:
+    owner = _user()
+    profile = _profile(owner, version=2)
+    profile.student_type = StudentType.VIETNAMESE
+    mock, session = _session()
+    mock.scalar.side_effect = [profile, False]
+    locked_users = MagicMock()
+    locked_users.all.return_value = [owner]
+    mock.scalars.return_value = locked_users
+    update = ProfileUpdate.model_validate(
+        {"version": 2, "student_type": "INTERNATIONAL"}
+    )
+
+    await update_own_profile(session, owner, update)
+
+    assert profile.student_type is StudentType.INTERNATIONAL
+    assert profile.version == 3
+    assert mock.scalar.await_count == 2
+    lock_statement = mock.scalars.await_args.args[0]
+    assert "ORDER BY" in str(lock_statement).upper()
+    assert "FOR UPDATE" in str(lock_statement).upper()
+    mock.flush.assert_awaited_once_with()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("current_type", "requested_type"),
+    (
+        (StudentType.VIETNAMESE, StudentType.INTERNATIONAL),
+        (StudentType.INTERNATIONAL, StudentType.VIETNAMESE),
+    ),
+)
+async def test_active_match_rejects_student_type_change_atomically(
+    current_type: StudentType,
+    requested_type: StudentType,
+) -> None:
+    owner = _user()
+    profile = _profile(owner, version=4)
+    profile.student_type = current_type
+    mock, session = _session()
+    mock.scalar.side_effect = [profile, True]
+    locked_users = MagicMock()
+    locked_users.all.return_value = [owner]
+    mock.scalars.return_value = locked_users
+    update = ProfileUpdate.model_validate(
+        {
+            "version": 4,
+            "student_type": requested_type.value,
+            "display_name": "Must not be applied",
+        }
+    )
+
+    with pytest.raises(ProfileUpdateConflictError) as raised:
+        await update_own_profile(session, owner, update)
+
+    assert (
+        raised.value.reason
+        is ProfileUpdateConflictReason.STUDENT_TYPE_LOCKED_ACTIVE_MATCH
+    )
+    assert profile.student_type is current_type
+    assert profile.display_name == "Existing"
+    assert profile.version == 4
+    mock.flush.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_active_match_allows_same_student_type_payload_with_existing_semantics() -> None:
+    owner = _user()
+    profile = _profile(owner, version=6)
+    profile.student_type = StudentType.VIETNAMESE
+    mock, session = _session()
+    mock.scalar.return_value = profile
+    locked_users = MagicMock()
+    locked_users.all.return_value = [owner]
+    mock.scalars.return_value = locked_users
+    update = ProfileUpdate.model_validate(
+        {"version": 6, "student_type": "VIETNAMESE"}
+    )
+
+    await update_own_profile(session, owner, update)
+
+    assert profile.student_type is StudentType.VIETNAMESE
+    assert profile.version == 7
+    assert mock.scalar.await_count == 1
+    mock.flush.assert_awaited_once_with()
+
+
+@pytest.mark.anyio
+async def test_active_match_does_not_lock_unrelated_profile_fields() -> None:
+    owner = _user()
+    profile = _profile(owner, version=3)
+    profile.student_type = StudentType.VIETNAMESE
+    mock, session = _session()
+    mock.scalar.return_value = profile
+    update = ProfileUpdate.model_validate(
+        {"version": 3, "display_name": "Still editable"}
+    )
+
+    await update_own_profile(session, owner, update)
+
+    assert profile.display_name == "Still editable"
+    assert profile.student_type is StudentType.VIETNAMESE
+    assert profile.version == 4
+    assert mock.scalar.await_count == 1
+    mock.scalars.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_stale_version_precedes_active_match_conflict_without_mutation() -> None:
+    owner = _user()
+    profile = _profile(owner, version=8)
+    profile.student_type = StudentType.VIETNAMESE
+    mock, session = _session()
+    mock.scalar.return_value = profile
+    locked_users = MagicMock()
+    locked_users.all.return_value = [owner]
+    mock.scalars.return_value = locked_users
+    update = ProfileUpdate.model_validate(
+        {"version": 7, "student_type": "INTERNATIONAL"}
+    )
+
+    with pytest.raises(ProfileVersionConflictError, match="stale"):
+        await update_own_profile(session, owner, update)
+
+    assert profile.student_type is StudentType.VIETNAMESE
+    assert profile.version == 8
+    assert mock.scalar.await_count == 1
+    mock.flush.assert_not_awaited()

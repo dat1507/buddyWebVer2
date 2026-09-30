@@ -20,6 +20,7 @@ from app.models import (
     User,
     UserRole,
 )
+from app.services.buddy_match_policy import has_active_buddy_match
 from app.services.buddy_matches import (
     BuddyMatchActivationError,
     BuddyMatchActivationReason,
@@ -148,6 +149,29 @@ def test_score_snapshot_contains_only_numeric_public_breakdown() -> None:
         "message",
     ):
         assert forbidden not in rendered
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(("database_value", "expected"), ((True, True), (False, False)))
+async def test_active_match_existence_query_is_bounded_and_index_aligned(
+    database_value: bool,
+    expected: bool,
+) -> None:
+    mock = MagicMock(spec=AsyncSession)
+    mock.scalar = AsyncMock(return_value=database_value)
+
+    result = await has_active_buddy_match(
+        cast(AsyncSession, mock),
+        user_id=SENDER_USER_ID,
+    )
+
+    assert result is expected
+    statement = str(mock.scalar.await_args.args[0]).lower()
+    assert "exists" in statement
+    assert "participant_one_user_id" in statement
+    assert "participant_two_user_id" in statement
+    assert "status" in statement
+    assert "score_breakdown" not in statement
 
 
 @pytest.mark.anyio

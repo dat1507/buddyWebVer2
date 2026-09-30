@@ -6845,7 +6845,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | REC-003 (**Done 2026-09-27**) | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
 | REC-004 (**Done 2026-09-27**) | Read-only Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/profile/preferences/availability plus locked/loading/empty/error/pagination states; no invitation action | UI/a11y/contract tests |
 | BUDDY-001 (**Done 2026-09-30**) | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
-| PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
+| PROFILE-V2-001 (**Done 2026-09-30**) | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
 | PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
 | INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
 | INV-002 (**Done 2026-09-29**) | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
@@ -7220,6 +7220,27 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### PROFILE-V2-001 — Backend `student_type` lock after ACTIVE Match
 
+- **Status:** **Done 2026-09-30.** Own-profile updates now treat the persisted ACTIVE Match as the
+  authoritative lock. An actual `student_type` change with at least one ACTIVE Match returns the
+  stable sanitized HTTP 409 reason `STUDENT_TYPE_LOCKED_ACTIVE_MATCH`; same-value resubmission keeps
+  the existing successful update/version semantics, and unrelated profile fields remain editable.
+  No Match, participant type, invitation or relationship lifecycle state is rewritten.
+- **Implementation:** A shared Buddy participant policy now locks current USER rows in deterministic
+  UUID order and exposes a bounded indexed ACTIVE-Match `EXISTS` query without loading Match
+  snapshots. Match activation and type-changing profile updates both acquire USER locks before
+  profile locks, keep the transaction short and revalidate their invariant after waiting. Profile
+  updates preserve stale-version precedence, perform the Match check before any requested field or
+  preference mutation, and rely on the existing router CSRF/owner authentication boundary. This
+  gives either concurrent operation permission to win first while forcing the waiter to observe and
+  reject any state that would otherwise create a same-type ACTIVE Match.
+- **Verification:** **47 targeted service/API/policy/live tests** and **199 profile/PREF/REC/INV/BUDDY
+  regression tests** pass. Isolated PostgreSQL acceptance passes both lock winner orders, proves the
+  waiter blocks without deadlock, and leaves zero same-type ACTIVE Matches; the BUDDY-001 live race
+  regression also passes after the shared lock refactor. Full backend passes **1013 tests / 26
+  configured live skips**. Ruff, strict mypy (**195 source files**), pip consistency, sdist/wheel
+  build, locked dependency audit (zero known vulnerabilities), Alembic history/single head,
+  autogenerate drift in the live acceptance database and Docker Compose validation pass. No
+  migration is required; Alembic head remains `0013_active_match_persistence`.
 - **Purpose:** Preserve the opposite-type invariant of every current Buddy relationship.
 - **Scope / likely files:** existing own-profile update schema/service/router plus a shared ACTIVE-Match policy/query and stable conflict mapping; coordinate participant locks with INV-005 Accept.
 - **Dependencies / ownership:** BUDDY-001, BE-012; Backend + Database.
@@ -7779,12 +7800,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `PROFILE-V2-001`.** BUDDY-001 now provides the ACTIVE Match authority, deterministic
-participant lock order and unordered-pair concurrency guard at Alembic head
-`0013_active_match_persistence`. Implement the backend `student_type` lock next so profile updates
-and the later INV-005 Accept transaction preserve the opposite-type invariant under every
-interleaving. `CHAT-001` can proceed in parallel from the same completed dependency; INV-008 remains
-an independent notification track, and invitation UI/composer remains owned by INV-007.
+**Next step: `PROFILE-V2-002`.** PROFILE-V2-001 now provides the authoritative backend lock,
+deterministic participant lock order and stable `STUDENT_TYPE_LOCKED_ACTIVE_MATCH` conflict contract
+at unchanged Alembic head `0013_active_match_persistence`. Implement the locked profile-field UX,
+accessible explanation and stale-tab conflict/refetch handling next. `CHAT-001` can proceed in
+parallel from BUDDY-001; INV-008 remains an independent notification track, and invitation
+UI/composer remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 

@@ -19,9 +19,11 @@ from app.models import (
     MatchStatus,
     StudentProfile,
     StudentType,
-    User,
-    UserRole,
     canonical_user_pair,
+)
+from app.services.buddy_match_policy import (
+    BuddyParticipantStateError,
+    lock_current_buddy_users,
 )
 from app.services.matching_recommendations import project_compatibility_explanation
 from app.services.matching_scoring import CompatibilityScore
@@ -67,36 +69,18 @@ def compatibility_score_snapshot(score: CompatibilityScore) -> dict[str, object]
     }
 
 
-def _available_user(user: User | None) -> bool:
-    return bool(
-        user is not None
-        and user.role is UserRole.USER
-        and user.is_active
-        and user.deleted_at is None
-    )
-
-
 async def _lock_participants(
     session: AsyncSession,
     *,
     invitation: MatchingInvitation,
 ) -> tuple[StudentProfile, StudentProfile]:
     participant_ids = canonical_user_pair(invitation.sender_id, invitation.recipient_id)
-    users = tuple(
-        (
-            await session.scalars(
-                select(User)
-                .where(User.id.in_(participant_ids))
-                .order_by(User.id)
-                .with_for_update()
-            )
-        ).all()
-    )
-    users_by_id = {user.id: user for user in users}
-    if not all(_available_user(users_by_id.get(user_id)) for user_id in participant_ids):
+    try:
+        await lock_current_buddy_users(session, participant_ids)
+    except BuddyParticipantStateError:
         raise BuddyMatchActivationError(
             BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID
-        )
+        ) from None
 
     profiles = tuple(
         (

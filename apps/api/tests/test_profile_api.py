@@ -441,6 +441,102 @@ async def test_stale_version_returns_409_without_mutation() -> None:
 
 
 @pytest.mark.anyio
+async def test_student_type_change_without_active_match_returns_updated_profile() -> None:
+    user = _user()
+    profile = _profile(version=3)
+    mock, session = _session(user, profile, False)
+    locked_users = MagicMock()
+    locked_users.all.return_value = [user]
+    empty_rows = MagicMock()
+    empty_rows.all.return_value = []
+    mock.scalars.side_effect = [locked_users, empty_rows, empty_rows, empty_rows, empty_rows]
+    _install(session)
+    cookies, headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile",
+            headers=headers,
+            json={"version": 3, "student_type": "INTERNATIONAL"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["student_type"] == "INTERNATIONAL"
+    assert response.json()["version"] == 4
+    assert profile.student_type is StudentType.INTERNATIONAL
+    mock.commit.assert_awaited_once_with()
+    mock.rollback.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_active_match_student_type_change_returns_stable_private_conflict() -> None:
+    user = _user()
+    profile = _profile(version=3)
+    mock, session = _session(user, profile, True)
+    locked_users = MagicMock()
+    locked_users.all.return_value = [user]
+    mock.scalars.return_value = locked_users
+    _install(session)
+    cookies, headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile",
+            headers=headers,
+            json={
+                "version": 3,
+                "student_type": "INTERNATIONAL",
+                "display_name": "Must not be applied",
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "STUDENT_TYPE_LOCKED_ACTIVE_MATCH"}
+    assert response.headers["cache-control"] == "no-store"
+    assert profile.student_type is StudentType.VIETNAMESE
+    assert profile.display_name == "Existing"
+    assert profile.version == 3
+    for forbidden in ("match_id", "buddy", "user_id", "app_private", "sql"):
+        assert forbidden not in response.text.lower()
+    mock.rollback.assert_awaited_once_with()
+    mock.commit.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_active_match_same_student_type_payload_preserves_existing_update_semantics() -> None:
+    user = _user()
+    profile = _profile(version=3)
+    mock, session = _session(user, profile, True)
+    locked_users = MagicMock()
+    locked_users.all.return_value = [user]
+    empty_rows = MagicMock()
+    empty_rows.all.return_value = []
+    mock.scalars.side_effect = [locked_users, empty_rows, empty_rows, empty_rows, empty_rows]
+    _install(session)
+    cookies, headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.put(
+            "/api/profile",
+            headers=headers,
+            json={"version": 3, "student_type": "VIETNAMESE"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["student_type"] == "VIETNAMESE"
+    assert response.json()["version"] == 4
+    assert mock.scalar.await_count == 2
+    mock.commit.assert_awaited_once_with()
+    mock.rollback.assert_not_awaited()
+
+
+@pytest.mark.anyio
 async def test_catalog_validation_failure_does_not_apply_other_fields() -> None:
     user = _user()
     profile = _profile(version=7)
