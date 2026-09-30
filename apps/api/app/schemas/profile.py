@@ -208,6 +208,7 @@ class OwnProfileResponse(BaseModel):
     full_name: str | None
     display_name: str | None
     student_type: StudentType | None
+    student_type_locked: bool = False
     nationality: str | None
     major: str | None
     study_year: int | None

@@ -26,6 +26,7 @@ const ownProfileSchema = z.object({
   full_name: z.string().nullable(),
   display_name: z.string().nullable(),
   student_type: studentTypeSchema.nullable(),
+  student_type_locked: z.boolean().default(false),
   nationality: z.string().nullable(),
   major: z.string().nullable(),
   study_year: z.number().int().min(1).max(10).nullable(),

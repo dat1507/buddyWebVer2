@@ -622,7 +622,9 @@
     "preferencesTitle": "Availability and preferences",
     "preferencesSubtitle": "Update when you are free, preferred activities and matching participation.",
     "savePreferences": "Save preferences",
-    "conflict": "The profile changed or this student type is locked by an active match. Reload the saved profile before trying again.",
+    "conflict": "The profile changed since this page was loaded. Reload the saved profile before trying again.",
+    "studentTypeLocked": "Student type cannot be changed while you have an active Buddy match. You can still edit the rest of your profile.",
+    "studentTypeLockConflict": "Your student type was not changed because an active Buddy match now locks it. Your other edits are still here.",
     "reloadSaved": "Reload saved profile",
     "reloading": "Reloading…"
   },

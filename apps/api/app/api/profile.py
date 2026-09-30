@@ -15,6 +15,7 @@ from app.schemas import (
     ProfilePreferences,
     ProfileUpdate,
 )
+from app.services.buddy_match_policy import has_active_buddy_match
 from app.services.csrf import CsrfTokenClaims
 from app.services.profile_catalogs import get_own_catalog_selections
 from app.services.profile_completion import get_own_profile_completion
@@ -81,6 +82,7 @@ async def _own_profile_response(
     profile: StudentProfile,
 ) -> OwnProfileResponse:
     response = OwnProfileResponse.model_validate(profile)
+    student_type_locked = await has_active_buddy_match(session, user_id=current_user.id)
     selections = await get_own_catalog_selections(session, current_user, profile)
     preferences = response.preferences
     if selections.activity_ids or preferences is not None:
@@ -89,6 +91,7 @@ async def _own_profile_response(
         )
     response = response.model_copy(
         update={
+            "student_type_locked": student_type_locked,
             "interest_ids": list(selections.interest_ids),
             "languages": list(selections.languages),
             "preferences": preferences,

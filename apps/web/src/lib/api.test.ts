@@ -127,8 +127,42 @@ describe('credentialed JSON transport', () => {
     const error = await getJson('/auth/me').catch((failure: unknown) => failure)
     expect(error).toBeInstanceOf(ApiError)
     expect(error).toMatchObject({ status, code, retryAfter: 30 })
+    expect(error).toMatchObject({ reason: null })
     expect(JSON.stringify(error)).not.toContain('sensitive')
     expect(String(error)).not.toContain('sensitive')
+  })
+
+  it('retains only the allowlisted profile conflict reason', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH' }), {
+            status: 409,
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'sensitive unknown reason' }), { status: 409 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH' }), {
+            status: 409,
+          }),
+        ),
+    )
+
+    await expect(getJson('/profile')).rejects.toMatchObject({
+      code: 'conflict',
+      reason: 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH',
+    })
+    const unknown = await getJson('/profile').catch((failure: unknown) => failure)
+    expect(unknown).toMatchObject({ code: 'conflict', reason: null })
+    expect(JSON.stringify(unknown)).not.toContain('sensitive')
+    await expect(getJson('/auth/me')).rejects.toMatchObject({
+      code: 'conflict',
+      reason: null,
+    })
   })
 
   it('handles malformed JSON and sanitized network failure', async () => {

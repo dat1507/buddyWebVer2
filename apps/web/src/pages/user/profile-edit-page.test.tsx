@@ -9,7 +9,7 @@ import type {
   ProfilePreferenceSnapshot,
   ProfilePreferenceUpdate,
 } from '@/features/profile/profile-catalog'
-import type { OwnProfile } from '@/features/profile/profile'
+import type { OwnProfile, OwnProfileUpdate } from '@/features/profile/profile'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { queryClient } from '@/lib/query-client'
@@ -31,6 +31,7 @@ const completeProfile: OwnProfile = {
   full_name: 'Nguyen Van An',
   display_name: 'An',
   student_type: 'VIETNAMESE',
+  student_type_locked: false,
   nationality: 'Vietnamese',
   major: 'Computer Science',
   study_year: 3,
@@ -110,6 +111,38 @@ function renderPage() {
       </MemoryRouter>
     </QueryClientProvider>,
   )
+}
+
+function mockIdentitySurface(
+  authenticatedJson: MockInstance<typeof sessionClient.authenticatedJson>,
+  readProfile: () => OwnProfile,
+  updateProfile?: (body: unknown) => OwnProfile | Promise<OwnProfile>,
+) {
+  authenticatedJson.mockImplementation(async (path, options) => {
+    if (path === '/profile' && options?.method === 'PUT' && updateProfile)
+      return updateProfile(options.body)
+    if (path === '/profile') return readProfile()
+    if (path === '/profile/preferences') return completePreferences
+    if (path === '/profile/completion') {
+      return {
+        status: 'COMPLETE',
+        percentage: 100,
+        missing_fields: [],
+        matching_eligible: true,
+        reasons: [],
+      }
+    }
+    if (path === '/interests?locale=en') return interestCatalogs.en
+    if (path === '/interests?locale=de') return interestCatalogs.de
+    if (path === '/languages?locale=en') return languageCatalogs.en
+    if (path === '/languages?locale=de') return languageCatalogs.de
+    if (path === '/activities?locale=en') return activityCatalogs.en
+    if (path === '/activities?locale=de') return activityCatalogs.de
+    if (path === `/profile/photos/${photoId}/url`) {
+      return { id: photoId, url: 'https://media.example.test/avatar', expires_in: 120 }
+    }
+    throw new Error(`Unexpected test path: ${path}`)
+  })
 }
 
 describe('FE-029 and PREF-004 own profile editing', () => {
@@ -371,53 +404,153 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     expect(await screen.findByText('0 of 20 preferred activities selected')).toBeVisible()
   })
 
-  it('keeps a rejected student-type edit and reloads the unchanged profile after a 409', async () => {
-    authenticatedJson.mockImplementation(async (path, options) => {
-      if (path === '/profile' && options?.method === 'PUT') {
-        throw new ApiError(409, 'conflict')
-      }
-      if (path === '/profile') return completeProfile
-      if (path === '/profile/preferences') return completePreferences
-      if (path === '/profile/completion') {
-        return {
-          status: 'COMPLETE',
-          percentage: 100,
-          missing_fields: [],
-          matching_eligible: false,
-          reasons: ['ACTIVE_MATCH_RESERVATION'],
+  it('keeps student type editable and saves an actual transition without an active match', async () => {
+    let persistedProfile = completeProfile
+    mockIdentitySurface(
+      authenticatedJson,
+      () => persistedProfile,
+      (body) => {
+        const update = body as OwnProfileUpdate
+        persistedProfile = {
+          ...persistedProfile,
+          ...update,
+          version: update.version + 1,
         }
-      }
-      if (path === '/interests?locale=en') return interestCatalogs.en
-      if (path === '/interests?locale=de') return interestCatalogs.de
-      if (path === '/languages?locale=en') return languageCatalogs.en
-      if (path === '/languages?locale=de') return languageCatalogs.de
-      if (path === '/activities?locale=en') return activityCatalogs.en
-      if (path === '/activities?locale=de') return activityCatalogs.de
-      if (path === `/profile/photos/${photoId}/url`) {
-        return { id: photoId, url: 'https://media.example.test/avatar', expires_in: 120 }
-      }
-      throw new Error(`Unexpected test path: ${path}`)
-    })
+        return persistedProfile
+      },
+    )
+    renderPage()
 
+    const international = await screen.findByRole('radio', { name: 'International student' })
+    expect(international).toBeEnabled()
+    fireEvent.click(international)
+    fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: 'Updated An' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(authenticatedJson).toHaveBeenCalledWith(
+      '/profile',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.objectContaining({
+          version: 7,
+          display_name: 'Updated An',
+          student_type: 'INTERNATIONAL',
+        }),
+      }),
+    )
+  })
+
+  it('locks only student type while saving unrelated profile fields with the current value', async () => {
+    let persistedProfile: OwnProfile = { ...completeProfile, student_type_locked: true }
+    mockIdentitySurface(
+      authenticatedJson,
+      () => persistedProfile,
+      (body) => {
+        const update = body as OwnProfileUpdate
+        persistedProfile = {
+          ...persistedProfile,
+          ...update,
+          student_type_locked: true,
+          version: update.version + 1,
+        }
+        return persistedProfile
+      },
+    )
     renderPage()
 
     const vietnamese = await screen.findByRole('radio', { name: 'Vietnamese student' })
     const international = screen.getByRole('radio', { name: 'International student' })
     expect(vietnamese).toBeChecked()
-    fireEvent.click(international)
+    expect(vietnamese).toBeDisabled()
+    expect(international).toBeDisabled()
+    expect(vietnamese).toHaveAccessibleDescription(/cannot be changed while you have an active/i)
+    expect(screen.getByText(/You can still edit the rest of your profile/i)).toBeVisible()
+
+    const displayName = screen.getByLabelText(/Display name/)
+    expect(displayName).toBeEnabled()
+    fireEvent.change(displayName, { target: { value: 'Still editable' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
 
-    expect(await screen.findByText(/student type is locked by an active match/i)).toBeVisible()
-    expect(international).toBeChecked()
-    fireEvent.click(screen.getByRole('button', { name: 'Reload saved profile' }))
-    await waitFor(() => expect(vietnamese).toBeChecked())
-    expect(international).not.toBeChecked()
+    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/profile',
       expect.objectContaining({
         method: 'PUT',
-        body: expect.objectContaining({ version: 7, student_type: 'INTERNATIONAL' }),
+        body: expect.objectContaining({
+          display_name: 'Still editable',
+          student_type: 'VIETNAMESE',
+        }),
       }),
     )
+  })
+
+  it('reconciles a stale editable form after the typed active-match conflict', async () => {
+    let locked = false
+    mockIdentitySurface(
+      authenticatedJson,
+      () => ({ ...completeProfile, student_type_locked: locked }),
+      () => {
+        locked = true
+        throw new ApiError(409, 'conflict', null, 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH')
+      },
+    )
+    renderPage()
+
+    const vietnamese = await screen.findByRole('radio', { name: 'Vietnamese student' })
+    const international = screen.getByRole('radio', { name: 'International student' })
+    const displayName = screen.getByLabelText(/Display name/)
+    fireEvent.change(displayName, { target: { value: 'Safe unsaved edit' } })
+    fireEvent.click(international)
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(
+      await screen.findByText(/Your student type was not changed because an active Buddy match/i),
+    ).toBeVisible()
+    await waitFor(() => expect(vietnamese).toBeDisabled())
+    expect(vietnamese).toBeChecked()
+    expect(international).not.toBeChecked()
+    expect(displayName).toHaveValue('Safe unsaved edit')
+    expect(screen.queryByText('STUDENT_TYPE_LOCKED_ACTIVE_MATCH')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Reload saved profile' })).not.toBeInTheDocument()
+    expect(
+      authenticatedJson.mock.calls.filter(
+        ([path, options]) => path === '/profile' && options?.method !== 'PUT',
+      ),
+    ).toHaveLength(2)
+  })
+
+  it('keeps the existing reload flow for a version conflict without locking student type', async () => {
+    mockIdentitySurface(
+      authenticatedJson,
+      () => completeProfile,
+      () => {
+        throw new ApiError(409, 'conflict')
+      },
+    )
+    renderPage()
+
+    const international = await screen.findByRole('radio', { name: 'International student' })
+    fireEvent.click(international)
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(await screen.findByText(/profile changed since this page was loaded/i)).toBeVisible()
+    expect(international).toBeEnabled()
+    expect(international).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Reload saved profile' })).toBeEnabled()
+    expect(
+      screen.queryByText(/cannot be changed while you have an active/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('localizes the locked student-type explanation in German', async () => {
+    await i18n.changeLanguage('de')
+    const lockedProfile: OwnProfile = { ...completeProfile, student_type_locked: true }
+    mockIdentitySurface(authenticatedJson, () => lockedProfile)
+    renderPage()
+
+    expect(await screen.findByText(/Studierendentyp kann nicht geändert werden/i)).toBeVisible()
+    expect(screen.getByRole('radio', { name: 'Vietnamesische Studierende' })).toBeDisabled()
+    expect(screen.getByLabelText(/Anzeigename/)).toBeEnabled()
   })
 })

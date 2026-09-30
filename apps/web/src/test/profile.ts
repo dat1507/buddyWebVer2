@@ -6,6 +6,7 @@ const completeOwnProfile = Object.freeze<OwnProfile>({
   full_name: 'Nguyen Van An',
   display_name: 'An',
   student_type: 'VIETNAMESE',
+  student_type_locked: false,
   nationality: 'Vietnamese',
   major: 'Computer Science',
   study_year: 3,

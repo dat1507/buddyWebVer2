@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { CheckCircle2, LoaderCircle } from 'lucide-react'
+import { CheckCircle2, LoaderCircle, LockKeyhole } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -60,11 +60,17 @@ function OnboardingIdentityForm({
   const [errors, setErrors] = useState<FormErrors>({})
   const [saved, setSaved] = useState(false)
   const [reloading, setReloading] = useState(false)
+  const [lockedAfterConflict, setLockedAfterConflict] = useState(false)
   const fullNameRef = useRef<HTMLInputElement>(null)
   const displayNameRef = useRef<HTMLInputElement>(null)
   const vietnameseTypeRef = useRef<HTMLInputElement>(null)
   const studyYearRef = useRef<HTMLInputElement>(null)
   const bioRef = useRef<HTMLTextAreaElement>(null)
+  const studentTypeLocked =
+    mode === 'edit' && (initialProfile.student_type_locked || lockedAfterConflict)
+  const selectedStudentType = studentTypeLocked
+    ? (initialProfile.student_type ?? form.studentType)
+    : form.studentType
 
   const setField = <Field extends keyof IdentityFormState>(
     field: Field,
@@ -89,7 +95,7 @@ function OnboardingIdentityForm({
       next.fullName = t('onboarding.identity.validation.fullNameMaximum')
     if (displayNameLength > 80)
       next.displayName = t('onboarding.identity.validation.displayNameMaximum')
-    if (!form.studentType)
+    if (!selectedStudentType)
       next.studentType = t('onboarding.identity.validation.studentTypeRequired')
     if (form.studyYear) {
       const year = Number(form.studyYear)
@@ -125,7 +131,7 @@ function OnboardingIdentityForm({
       version: initialProfile.version,
       full_name: form.fullName.trim(),
       display_name: optionalText(form.displayName),
-      student_type: form.studentType as StudentType,
+      student_type: selectedStudentType as StudentType,
       major: optionalText(form.major),
       study_year: form.studyYear ? Number(form.studyYear) : null,
       nationality: optionalText(form.nationality),
@@ -134,19 +140,39 @@ function OnboardingIdentityForm({
     updateProfile.mutate(update, {
       onSuccess: (savedProfile) => {
         setForm(profileToForm(savedProfile))
+        setLockedAfterConflict(false)
         setSaved(true)
+      },
+      onError: async (error) => {
+        if (
+          mode !== 'edit' ||
+          !(error instanceof ApiError) ||
+          error.reason !== 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH'
+        )
+          return
+        setLockedAfterConflict(true)
+        if (!onReload) return
+        setReloading(true)
+        await onReload()
+        setReloading(false)
       },
     })
   }
 
-  const saveError =
-    updateProfile.error instanceof ApiError && updateProfile.error.code === 'validation'
+  const isStudentTypeLockConflict =
+    updateProfile.error instanceof ApiError &&
+    updateProfile.error.reason === 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH'
+  const saveError = isStudentTypeLockConflict
+    ? t('profileEdit.studentTypeLockConflict')
+    : updateProfile.error instanceof ApiError && updateProfile.error.code === 'validation'
       ? t('onboarding.identity.serverValidation')
       : updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
         ? t(mode === 'edit' ? 'profileEdit.conflict' : 'onboarding.identity.conflict')
         : t('onboarding.identity.saveError')
-  const hasConflict =
-    updateProfile.error instanceof ApiError && updateProfile.error.code === 'conflict'
+  const hasReloadableConflict =
+    updateProfile.error instanceof ApiError &&
+    updateProfile.error.code === 'conflict' &&
+    !isStudentTypeLockConflict
 
   const reloadSavedProfile = async () => {
     if (!onReload || reloading) return
@@ -244,9 +270,14 @@ function OnboardingIdentityForm({
 
             <fieldset
               className="space-y-3"
-              aria-describedby={
-                errors.studentType ? 'student-type-help student-type-error' : 'student-type-help'
-              }
+              aria-disabled={studentTypeLocked}
+              aria-describedby={[
+                'student-type-help',
+                studentTypeLocked ? 'student-type-locked-help' : null,
+                errors.studentType ? 'student-type-error' : null,
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
               <legend className="text-sm font-semibold">
                 {t('onboarding.identity.studentTypeLabel')}
@@ -254,13 +285,25 @@ function OnboardingIdentityForm({
               <p id="student-type-help" className="text-sm leading-6 text-muted-foreground">
                 {t('onboarding.identity.studentTypeHelp')}
               </p>
+              {studentTypeLocked ? (
+                <p
+                  id="student-type-locked-help"
+                  className="flex max-w-2xl items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm leading-6 text-foreground"
+                >
+                  <LockKeyhole className="mt-1 size-4 shrink-0 text-amber-700" aria-hidden="true" />
+                  <span>{t('profileEdit.studentTypeLocked')}</span>
+                </p>
+              ) : null}
               <div className="grid gap-3 md:grid-cols-2">
                 {(['VIETNAMESE', 'INTERNATIONAL'] as const).map((studentType) => (
                   <label
                     key={studentType}
                     className={cn(
-                      'flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4 transition hover:border-vgu-orange/70',
-                      form.studentType === studentType && 'border-vgu-orange bg-vgu-orange/5',
+                      'flex items-start gap-3 rounded-xl border border-border p-4 transition',
+                      studentTypeLocked
+                        ? 'cursor-not-allowed opacity-70'
+                        : 'cursor-pointer hover:border-vgu-orange/70',
+                      selectedStudentType === studentType && 'border-vgu-orange bg-vgu-orange/5',
                       errors.studentType && 'border-destructive',
                     )}
                   >
@@ -270,9 +313,15 @@ function OnboardingIdentityForm({
                       name="studentType"
                       value={studentType}
                       aria-labelledby={`student-type-${studentType}-label`}
-                      aria-describedby={`student-type-${studentType}-help`}
-                      checked={form.studentType === studentType}
-                      disabled={updateProfile.isPending}
+                      aria-describedby={[
+                        `student-type-${studentType}-help`,
+                        'student-type-help',
+                        studentTypeLocked ? 'student-type-locked-help' : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      checked={selectedStudentType === studentType}
+                      disabled={updateProfile.isPending || studentTypeLocked}
                       className="mt-1 size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
                       onChange={() => setField('studentType', studentType)}
                     />
@@ -418,7 +467,7 @@ function OnboardingIdentityForm({
                     <p className="text-sm text-destructive" role="alert">
                       {saveError}
                     </p>
-                    {hasConflict && onReload ? (
+                    {hasReloadableConflict && onReload ? (
                       <Button
                         type="button"
                         variant="outline"

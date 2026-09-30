@@ -622,7 +622,9 @@
     "preferencesTitle": "Verfügbarkeit und Präferenzen",
     "preferencesSubtitle": "Aktualisiere deine freien Zeiten, bevorzugten Aktivitäten und Matching-Teilnahme.",
     "savePreferences": "Präferenzen speichern",
-    "conflict": "Das Profil wurde geändert oder der Studierendentyp ist durch ein aktives Match gesperrt. Lade das gespeicherte Profil neu, bevor du es erneut versuchst.",
+    "conflict": "Das Profil wurde seit dem Laden dieser Seite geändert. Lade das gespeicherte Profil neu, bevor du es erneut versuchst.",
+    "studentTypeLocked": "Der Studierendentyp kann nicht geändert werden, solange du ein aktives Buddy-Match hast. Den Rest deines Profils kannst du weiterhin bearbeiten.",
+    "studentTypeLockConflict": "Dein Studierendentyp wurde nicht geändert, weil ein aktives Buddy-Match ihn jetzt sperrt. Deine anderen Änderungen bleiben erhalten.",
     "reloadSaved": "Gespeichertes Profil neu laden",
     "reloading": "Wird neu geladen…"
   },

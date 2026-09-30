@@ -138,6 +138,7 @@ def _expected_profile(profile: StudentProfile) -> dict[str, object]:
         "full_name": profile.full_name,
         "display_name": profile.display_name,
         "student_type": profile.student_type.value if profile.student_type else None,
+        "student_type_locked": False,
         "nationality": profile.nationality,
         "major": profile.major,
         "study_year": profile.study_year,
@@ -158,7 +159,7 @@ def _expected_profile(profile: StudentProfile) -> dict[str, object]:
 @pytest.mark.anyio
 async def test_get_lazily_creates_and_commits_one_private_draft() -> None:
     user = _user()
-    mock, session = _session(user, None)
+    mock, session = _session(user, None, False)
     nested = MagicMock(spec=AbstractAsyncContextManager[None])
     nested.__aenter__ = AsyncMock(return_value=None)
     nested.__aexit__ = AsyncMock(return_value=False)
@@ -208,7 +209,7 @@ async def test_get_attaches_safe_avatar_metadata_without_storage_reference() -> 
         processing_status=ProfilePhotoProcessingStatus.READY,
         created_at=datetime(2026, 9, 20, 10, 30, tzinfo=UTC),
     )
-    mock, session = _session(user, profile)
+    mock, session = _session(user, profile, False)
     photo_result = MagicMock()
     photo_result.scalar_one_or_none.return_value = photo
     mock.execute.return_value = photo_result
@@ -244,7 +245,7 @@ async def test_get_attaches_normalized_catalog_selections_for_resume() -> None:
         language_code="de",
         proficiency=LanguageProficiency.INTERMEDIATE,
     )
-    mock, session = _session(user, profile)
+    mock, session = _session(user, profile, False)
     interest_result = MagicMock()
     interest_result.all.return_value = [interest_id]
     language_result = MagicMock()
@@ -271,10 +272,29 @@ async def test_get_attaches_normalized_catalog_selections_for_resume() -> None:
 
 
 @pytest.mark.anyio
+async def test_get_exposes_only_privacy_safe_student_type_lock_capability() -> None:
+    user = _user()
+    profile = _profile()
+    mock, session = _session(user, profile, True)
+    _install(session)
+    cookies, _headers = _session_evidence()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver", cookies=cookies
+    ) as client:
+        response = await client.get("/api/profile")
+
+    assert response.status_code == 200
+    assert response.json()["student_type_locked"] is True
+    for forbidden in ("match_id", "buddy_id", "invitation_id", "participant_user_id"):
+        assert forbidden not in response.text.lower()
+
+
+@pytest.mark.anyio
 async def test_put_then_get_saves_and_reloads_partial_onboarding_fields() -> None:
     user = _user()
     profile = _profile()
-    mock, session = _session(user, profile, user, profile)
+    mock, session = _session(user, profile, False, user, profile, False)
     _install(session)
     cookies, headers = _session_evidence()
 
@@ -392,7 +412,10 @@ async def test_put_requires_session_bound_csrf_before_profile_work(csrf_evidence
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize("field_name", ["user_id", "role", "completion", "onboarding_completed_at"])
+@pytest.mark.parametrize(
+    "field_name",
+    ["user_id", "role", "completion", "onboarding_completed_at", "student_type_locked"],
+)
 async def test_put_rejects_cross_user_and_derived_fields(field_name: str) -> None:
     mock, session = _session(_user())
     _install(session)
@@ -444,7 +467,7 @@ async def test_stale_version_returns_409_without_mutation() -> None:
 async def test_student_type_change_without_active_match_returns_updated_profile() -> None:
     user = _user()
     profile = _profile(version=3)
-    mock, session = _session(user, profile, False)
+    mock, session = _session(user, profile, False, False)
     locked_users = MagicMock()
     locked_users.all.return_value = [user]
     empty_rows = MagicMock()
@@ -464,6 +487,7 @@ async def test_student_type_change_without_active_match_returns_updated_profile(
 
     assert response.status_code == 200
     assert response.json()["student_type"] == "INTERNATIONAL"
+    assert response.json()["student_type_locked"] is False
     assert response.json()["version"] == 4
     assert profile.student_type is StudentType.INTERNATIONAL
     mock.commit.assert_awaited_once_with()
@@ -530,8 +554,9 @@ async def test_active_match_same_student_type_payload_preserves_existing_update_
 
     assert response.status_code == 200
     assert response.json()["student_type"] == "VIETNAMESE"
+    assert response.json()["student_type_locked"] is True
     assert response.json()["version"] == 4
-    assert mock.scalar.await_count == 2
+    assert mock.scalar.await_count == 3
     mock.commit.assert_awaited_once_with()
     mock.rollback.assert_not_awaited()
 
@@ -540,7 +565,7 @@ async def test_active_match_same_student_type_payload_preserves_existing_update_
 async def test_catalog_validation_failure_does_not_apply_other_fields() -> None:
     user = _user()
     profile = _profile(version=7)
-    mock, session = _session(user, profile)
+    mock, session = _session(user, profile, False)
     catalog_result = MagicMock()
     catalog_result.all.return_value = []
     mock.scalars.return_value = catalog_result
@@ -574,7 +599,7 @@ async def test_catalog_validation_failure_does_not_apply_other_fields() -> None:
 async def test_commit_failure_rolls_back_and_produces_no_success_response() -> None:
     user = _user()
     profile = _profile()
-    mock, session = _session(user, profile)
+    mock, session = _session(user, profile, False)
     mock.commit.side_effect = RuntimeError("database unavailable")
     auth_settings, _csrf_settings_value = _install(session)
     pair = create_token_pair(USER_ID, UserRole.USER, auth_settings)
@@ -614,6 +639,8 @@ async def test_openapi_exposes_only_own_profile_dto_and_allowlisted_update() -> 
     assert set(operations) == {"get", "put"}
     assert forbidden.isdisjoint(response_properties)
     assert forbidden.isdisjoint(update_schema["properties"])
+    assert "student_type_locked" in response_properties
+    assert "student_type_locked" not in update_schema["properties"]
     assert update_schema["additionalProperties"] is False
     assert operations["get"]["responses"]["200"]["content"]["application/json"]["schema"] == {
         "$ref": "#/components/schemas/OwnProfileResponse"

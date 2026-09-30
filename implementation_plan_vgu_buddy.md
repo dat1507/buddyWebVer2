@@ -6846,7 +6846,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | REC-004 (**Done 2026-09-27**) | Read-only Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/profile/preferences/availability plus locked/loading/empty/error/pagination states; no invitation action | UI/a11y/contract tests |
 | BUDDY-001 (**Done 2026-09-30**) | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
 | PROFILE-V2-001 (**Done 2026-09-30**) | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
-| PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
+| PROFILE-V2-002 (**Done 2026-09-30**) | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
 | INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
 | INV-002 (**Done 2026-09-29**) | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
@@ -7251,6 +7251,30 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### PROFILE-V2-002 — Locked `student_type` frontend UX
 
+- **Status:** **Done 2026-09-30.** The authenticated own-profile DTO now exposes only the
+  privacy-safe `student_type_locked` capability derived from authoritative ACTIVE Match
+  persistence. Profile edit renders the persisted type, disables both type choices and associates
+  an inline explanation with the field whenever the capability is true. Other profile fields and
+  Save remain available; same-value serialization continues to use the established backend update
+  and optimistic-version contract. Onboarding remains unchanged and editable because this lock UX
+  is scoped to the existing-profile editor.
+- **Implementation:** The client validates the capability in the own-profile schema and recognizes
+  `STUDENT_TYPE_LOCKED_ACTIVE_MATCH` only as an allowlisted 409 reason from `/profile`; unknown
+  bodies and other endpoints remain sanitized. A stale editable page receiving that reason locks
+  the type immediately, restores the last persisted type, refetches profile/readiness and preserves
+  unrelated local form edits. Ordinary stale-version conflicts retain the prior explicit reload
+  flow and are not misclassified. English and German copy explains that only student type is locked;
+  disabled semantics, associated descriptions, visible icon-plus-text feedback and responsive
+  wrapping make the state keyboard/screen-reader/mobile safe without relying on color or tooltip.
+- **Verification:** **29 targeted frontend transport/component/onboarding tests** and **93 related
+  profile/onboarding/PREF/auth/matching regressions** pass; the full frontend suite passes **565
+  tests across 57 files**. Full Prettier, ESLint, TypeScript, production build and production
+  dependency audit (zero vulnerabilities) pass. The minimal backend DTO coverage passes **66
+  targeted tests** and the full backend suite passes **1015 tests / 26 configured live skips**;
+  Ruff, strict mypy (**195 source files**), pip consistency, package build, locked dependency audit
+  (zero known vulnerabilities), Alembic history/single head/autogenerate drift and Docker Compose
+  validation pass. No migration is required; Alembic head remains
+  `0013_active_match_persistence`.
 - **Purpose:** Explain the confirmed backend restriction before a user submits an impossible edit.
 - **Scope / likely files:** own-profile query/schema/client, profile edit field, help/error copy and locales; consume backend lock state/reason and conflict code.
 - **Dependencies / ownership:** PROFILE-V2-001, FE-029; Frontend.
@@ -7800,12 +7824,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `PROFILE-V2-002`.** PROFILE-V2-001 now provides the authoritative backend lock,
-deterministic participant lock order and stable `STUDENT_TYPE_LOCKED_ACTIVE_MATCH` conflict contract
-at unchanged Alembic head `0013_active_match_persistence`. Implement the locked profile-field UX,
-accessible explanation and stale-tab conflict/refetch handling next. `CHAT-001` can proceed in
-parallel from BUDDY-001; INV-008 remains an independent notification track, and invitation
-UI/composer remains owned by INV-007.
+**Next step: `CHAT-001`.** PROFILE-V2-002 now completes the backend-authoritative post-Match type
+lock with a privacy-safe own-profile capability, accessible localized field state and typed
+stale-tab conflict reconciliation at unchanged Alembic head `0013_active_match_persistence`.
+Implement one durable conversation per ACTIVE Match plus text-message retention fields next so
+INV-005 can later create the Match and its conversation atomically. INV-003/008 remain separate
+invitation branches, and invitation UI/composer remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 

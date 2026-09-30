@@ -11,18 +11,29 @@ type ApiErrorCode =
   | 'cancelled'
   | 'csrf'
 
+type ApiErrorReason = 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH'
+
+const profileConflictReasons = new Set<ApiErrorReason>(['STUDENT_TYPE_LOCKED_ACTIVE_MATCH'])
+
 class ApiError extends Error {
   readonly status: number
   readonly code: ApiErrorCode
   readonly retryAfter: number | null
+  readonly reason: ApiErrorReason | null
 
-  constructor(status: number, code: ApiErrorCode, retryAfter: number | null = null) {
+  constructor(
+    status: number,
+    code: ApiErrorCode,
+    retryAfter: number | null = null,
+    reason: ApiErrorReason | null = null,
+  ) {
     // Never retain backend bodies, credentials, cookies or raw fetch diagnostics.
     super(`API request failed (${code}).`)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.retryAfter = retryAfter
+    this.reason = reason
   }
 }
 
@@ -85,7 +96,24 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
       }
       const retry = response.headers.get('Retry-After')
       const retryAfter = retry && /^\d+$/.test(retry) ? Number(retry) : null
-      throw new ApiError(response.status, codes[response.status] ?? 'server', retryAfter)
+      let reason: ApiErrorReason | null = null
+      if (path === '/profile' && response.status === 409) {
+        try {
+          const payload = (await response.json()) as unknown
+          if (
+            typeof payload === 'object' &&
+            payload !== null &&
+            'detail' in payload &&
+            typeof payload.detail === 'string' &&
+            profileConflictReasons.has(payload.detail as ApiErrorReason)
+          ) {
+            reason = payload.detail as ApiErrorReason
+          }
+        } catch {
+          // Unknown or malformed error bodies stay fully sanitized.
+        }
+      }
+      throw new ApiError(response.status, codes[response.status] ?? 'server', retryAfter, reason)
     }
     if (response.status === 204) return undefined
     try {
@@ -107,4 +135,4 @@ function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
 }
 
 export { ApiError, getJson, requestJson, normalizeApiError }
-export type { ApiErrorCode, JsonRequestOptions }
+export type { ApiErrorCode, ApiErrorReason, JsonRequestOptions }
