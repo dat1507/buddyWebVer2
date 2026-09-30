@@ -28,8 +28,10 @@ from app.services.buddy_match_policy import (
 from app.services.buddy_matches import (
     BuddyMatchActivationError,
     BuddyMatchActivationReason,
+    LockedBuddyParticipants,
     activate_buddy_match,
     compatibility_score_snapshot,
+    lock_buddy_match_participants,
 )
 from app.services.csrf import (
     CSRF_HEADER_NAME,
@@ -139,6 +141,13 @@ from app.services.image_storage import (
     reconcile_orphaned_images,
     replace_image_reference,
 )
+from app.services.invitation_acceptance import (
+    MATCHING_INVITATION_ACCEPTED,
+    InvitationAcceptanceResult,
+    InvitationAcceptError,
+    InvitationAcceptReason,
+    accept_matching_invitation,
+)
 from app.services.invitation_expiry import (
     DEFAULT_INVITATION_EXPIRY_BATCH_SIZE,
     MAX_INVITATION_EXPIRY_BATCH_SIZE,
@@ -174,6 +183,7 @@ from app.services.matching_eligibility import (
     get_eligible_candidate_avatar,
     get_eligible_matching_principal,
     list_eligible_matching_profiles,
+    load_matching_pair_scoring_profiles,
     load_matching_scoring_profiles,
     matching_pair_is_eligible,
 )
@@ -278,6 +288,7 @@ __all__ = [
     "MAX_INVITATION_MESSAGE_WORDS",
     "MAX_OUTGOING_PENDING_INVITATIONS",
     "MATCHING_INVITATION_CREATED",
+    "MATCHING_INVITATION_ACCEPTED",
     "OUTBOX_LEASE_TTL",
     "PROVIDER_TIMEOUT_SECONDS",
     "RESEND_EMAIL_ENDPOINT",
@@ -289,6 +300,7 @@ __all__ = [
     "BuddyCapabilityError",
     "BuddyMatchActivationError",
     "BuddyMatchActivationReason",
+    "LockedBuddyParticipants",
     "BuddyParticipantStateError",
     "CsrfToken",
     "CsrfTokenClaims",
@@ -334,6 +346,9 @@ __all__ = [
     "ImageValidationError",
     "InvitationExpiryReport",
     "InvitationExpiryValidationError",
+    "InvitationAcceptanceResult",
+    "InvitationAcceptError",
+    "InvitationAcceptReason",
     "InvitationReadStateError",
     "InvitationSendError",
     "InvitationSendReason",
@@ -373,6 +388,7 @@ __all__ = [
     "UrllibEmailProviderTransport",
     "VerifiedBuddyPrincipal",
     "activate_buddy_match",
+    "accept_matching_invitation",
     "access_cookie_name",
     "clear_auth_cookies",
     "clear_csrf_cookie",
@@ -404,6 +420,8 @@ __all__ = [
     "issue_email_verification_token",
     "get_eligible_candidate_avatar",
     "get_eligible_matching_principal",
+    "lock_buddy_match_participants",
+    "load_matching_pair_scoring_profiles",
     "load_matching_scoring_profiles",
     "list_eligible_matching_profiles",
     "list_incoming_invitations",

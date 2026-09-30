@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import cast
@@ -19,6 +20,7 @@ from app.models import (
     MatchStatus,
     StudentProfile,
     StudentType,
+    User,
     canonical_user_pair,
 )
 from app.services.buddy_match_policy import (
@@ -49,6 +51,16 @@ class BuddyMatchActivationError(RuntimeError):
         super().__init__(reason.value)
 
 
+@dataclass(frozen=True, slots=True)
+class LockedBuddyParticipants:
+    """Canonical participant locks shared by Match activation and invitation Accept."""
+
+    sender_user: User = field(repr=False)
+    recipient_user: User = field(repr=False)
+    sender_profile: StudentProfile = field(repr=False)
+    recipient_profile: StudentProfile = field(repr=False)
+
+
 def _system_utc_now() -> datetime:
     return datetime.now(UTC)
 
@@ -69,14 +81,15 @@ def compatibility_score_snapshot(score: CompatibilityScore) -> dict[str, object]
     }
 
 
-async def _lock_participants(
+async def lock_buddy_match_participants(
     session: AsyncSession,
     *,
     invitation: MatchingInvitation,
-) -> tuple[StudentProfile, StudentProfile]:
+) -> LockedBuddyParticipants:
+    """Lock USER then profile rows in the shared canonical order and revalidate types."""
     participant_ids = canonical_user_pair(invitation.sender_id, invitation.recipient_id)
     try:
-        await lock_current_buddy_users(session, participant_ids)
+        users = await lock_current_buddy_users(session, participant_ids)
     except BuddyParticipantStateError:
         raise BuddyMatchActivationError(
             BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID
@@ -93,25 +106,31 @@ async def _lock_participants(
         ).all()
     )
     profiles_by_user_id = {profile.user_id: profile for profile in profiles}
+    users_by_id = {user.id: user for user in users}
+    sender_user = users_by_id.get(invitation.sender_id)
+    recipient_user = users_by_id.get(invitation.recipient_id)
     sender_profile = profiles_by_user_id.get(invitation.sender_id)
     recipient_profile = profiles_by_user_id.get(invitation.recipient_id)
     if (
-        sender_profile is None
+        sender_user is None
+        or recipient_user is None
+        or sender_profile is None
         or recipient_profile is None
         or sender_profile.deleted_at is not None
         or recipient_profile.deleted_at is not None
     ):
-        raise BuddyMatchActivationError(
-            BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID
-        )
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID)
     if {sender_profile.student_type, recipient_profile.student_type} != {
         StudentType.VIETNAMESE,
         StudentType.INTERNATIONAL,
     }:
-        raise BuddyMatchActivationError(
-            BuddyMatchActivationReason.OPPOSITE_TYPES_REQUIRED
-        )
-    return sender_profile, recipient_profile
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.OPPOSITE_TYPES_REQUIRED)
+    return LockedBuddyParticipants(
+        sender_user=sender_user,
+        recipient_user=recipient_user,
+        sender_profile=sender_profile,
+        recipient_profile=recipient_profile,
+    )
 
 
 async def _active_pair_exists(
@@ -142,26 +161,33 @@ async def activate_buddy_match(
     *,
     accepted_invitation_id: UUID,
     compatibility: CompatibilityScore,
+    locked_participants: LockedBuddyParticipants | None = None,
     clock: Clock = _system_utc_now,
 ) -> BuddyMatch:
     """Create one ACTIVE Match from an already accepted invitation without committing."""
     activated_at = _utc_now(clock)
     invitation = await session.scalar(
-        select(MatchingInvitation)
-        .where(
+        select(MatchingInvitation).where(
             MatchingInvitation.id == accepted_invitation_id,
             MatchingInvitation.deleted_at.is_(None),
         )
     )
     if invitation is None or invitation.status is not InvitationStatus.ACCEPTED:
-        raise BuddyMatchActivationError(
-            BuddyMatchActivationReason.INVITATION_NOT_ACCEPTED
-        )
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.INVITATION_NOT_ACCEPTED)
 
-    sender_profile, recipient_profile = await _lock_participants(
-        session,
-        invitation=invitation,
-    )
+    participants = locked_participants
+    if participants is None:
+        participants = await lock_buddy_match_participants(
+            session,
+            invitation=invitation,
+        )
+    elif (
+        participants.sender_user.id != invitation.sender_id
+        or participants.recipient_user.id != invitation.recipient_id
+        or participants.sender_profile.user_id != invitation.sender_id
+        or participants.recipient_profile.user_id != invitation.recipient_id
+    ):
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID)
     locked_invitation = await session.scalar(
         select(MatchingInvitation)
         .where(
@@ -176,9 +202,7 @@ async def activate_buddy_match(
         or locked_invitation.sender_id != invitation.sender_id
         or locked_invitation.recipient_id != invitation.recipient_id
     ):
-        raise BuddyMatchActivationError(
-            BuddyMatchActivationReason.INVITATION_NOT_ACCEPTED
-        )
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.INVITATION_NOT_ACCEPTED)
     invitation = locked_invitation
     if await _active_pair_exists(
         session,
@@ -190,8 +214,8 @@ async def activate_buddy_match(
     buddy_match = BuddyMatch(
         participant_one_user_id=invitation.sender_id,
         participant_two_user_id=invitation.recipient_id,
-        participant_one_profile_id=sender_profile.id,
-        participant_two_profile_id=recipient_profile.id,
+        participant_one_profile_id=participants.sender_profile.id,
+        participant_two_profile_id=participants.recipient_profile.id,
         status=MatchStatus.ACTIVE,
         accepted_invitation_id=invitation.id,
         score=compatibility.score,
@@ -206,8 +230,6 @@ async def activate_buddy_match(
             await session.flush()
     except IntegrityError as error:
         if _is_unique_violation(error):
-            raise BuddyMatchActivationError(
-                BuddyMatchActivationReason.ACTIVE_PAIR_EXISTS
-            ) from None
+            raise BuddyMatchActivationError(BuddyMatchActivationReason.ACTIVE_PAIR_EXISTS) from None
         raise
     return buddy_match

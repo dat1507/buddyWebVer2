@@ -436,6 +436,61 @@ async def load_matching_scoring_profiles(
     return projected[0], candidates
 
 
+async def load_matching_pair_scoring_profiles(
+    session: AsyncSession,
+    first: EligibleMatchingPrincipal,
+    second: EligibleMatchingPrincipal,
+    *,
+    locale: CatalogLocale,
+) -> tuple[SafeMatchingProfile, SafeMatchingProfile] | None:
+    """Load exactly one locked, currently eligible pair for an activation snapshot."""
+    if not matching_pair_is_eligible(first, second):
+        return None
+    principals = (first, second)
+    profile_ids = tuple(principal.profile_id for principal in principals)
+    result = await session.execute(
+        select(StudentProfile, ProfilePhoto)
+        .join(
+            ProfilePhoto,
+            (ProfilePhoto.profile_id == StudentProfile.id)
+            & ProfilePhoto.is_avatar.is_(True)
+            & (ProfilePhoto.processing_status == ProfilePhotoProcessingStatus.READY)
+            & ProfilePhoto.deleted_at.is_(None),
+        )
+        .where(
+            StudentProfile.id.in_(profile_ids),
+            StudentProfile.deleted_at.is_(None),
+        )
+        .order_by(StudentProfile.id)
+    )
+    rows = cast(
+        tuple[tuple[StudentProfile, ProfilePhoto], ...],
+        tuple(result.tuples().all()),
+    )
+    if len(rows) != len(principals):
+        return None
+    projected = await _project_safe_profiles(session, rows, locale=locale)
+    if len(projected) != len(principals):
+        return None
+
+    rows_by_profile_id = {profile.id: profile for profile, _photo in rows}
+    projected_by_profile_id = {profile.id: profile for profile in projected}
+    ordered: list[SafeMatchingProfile] = []
+    for principal in principals:
+        persisted = rows_by_profile_id.get(principal.profile_id)
+        safe_profile = projected_by_profile_id.get(principal.profile_id)
+        if (
+            persisted is None
+            or safe_profile is None
+            or persisted.user_id != principal.user_id
+            or persisted.student_type is not principal.student_type
+            or safe_profile.student_type is not principal.student_type
+        ):
+            return None
+        ordered.append(safe_profile)
+    return ordered[0], ordered[1]
+
+
 async def get_eligible_candidate_avatar(
     session: AsyncSession,
     current: EligibleMatchingPrincipal,

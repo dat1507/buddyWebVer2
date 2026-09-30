@@ -166,6 +166,17 @@ class InvitationCreateResponse(BaseModel):
     expires_at: datetime
 
 
+class InvitationAcceptResponse(BaseModel):
+    """Minimal recipient receipt with only authorized relationship resource IDs."""
+
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    invitation_id: UUID
+    status: InvitationStatus
+    match_id: UUID
+    conversation_id: UUID
+
+
 class SafeInvitationProfile(BaseModel):
     """Current public profile projection for an invitation participant.
 

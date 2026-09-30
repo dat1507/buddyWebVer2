@@ -6851,7 +6851,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-002 (**Done 2026-09-29**) | Expiry semantics | INV-001 | 7-day transition and immediate re-invite | Boundary/job/read tests |
 | INV-003 | Send invitation API | INV-002, REC-003, MAIL-001 | Trimmed plain text; ≤500 non-whitespace runs and ≤10,000 code points; max 30 outgoing PENDING | Schema/boundary/CSRF/rate/race tests |
 | INV-004 (**Done 2026-09-30**) | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
-| INV-005 | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
+| INV-005 (**Done 2026-09-30**) | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
 | INV-006 | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
 | INV-007 | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
 | INV-008 | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
@@ -7399,6 +7399,32 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-005 — Atomic recipient Accept
 
+- **Status:** **Done 2026-09-30.** Added the VERIFIED recipient-only, session-CSRF-protected
+  `POST /api/matching/invitations/{invitation_id}/accept` contract. One caller-owned transaction
+  reloads the recipient-filtered invitation under lock, revalidates both current participants and
+  exact-pair matching inputs, transitions PENDING to ACCEPTED, creates or reuses exactly one ACTIVE
+  Match and one Match-owned conversation, and enqueues one idempotent
+  `MATCHING_INVITATION_ACCEPTED` outbox event. A replay of an already accepted invitation returns
+  the same authoritative Match/conversation receipt without repeating side effects.
+- **Implementation/security:** USER then profile rows are locked in deterministic UUID order through
+  the shared BUDDY/PROFILE policy, so Accept and `student_type` updates preserve the opposite-type
+  invariant. The post-wait invitation reload uses `populate_existing` with `FOR UPDATE`, preventing
+  a stale SQLAlchemy identity-map PENDING object from defeating idempotent concurrent replay.
+  Effective expiry, current VERIFIED/active/complete eligibility, opposite types and ACTIVE-pair
+  uniqueness are rechecked while locked. Foreign, sender and otherwise unauthorized IDs receive the
+  same sanitized not-found result; no email, message, preference internals or lock/schema details are
+  returned or placed in the event payload. Conversation or outbox failure rolls back the invitation,
+  Match and conversation together; delivery remains an INV-009 concern.
+- **Verification:** INV-005 focused tests pass (**31 tests**), relevant invitation/matching/profile/
+  Buddy/chat regressions pass (**171 passed, 9 configured live skips**) and the complete backend
+  suite passes (**1051 passed, 28 configured live skips**). Isolated PostgreSQL acceptance passes
+  concurrent duplicate/replayed Accept with one Match/conversation/outbox row, both participant lock
+  orders, effective expiry, existing-pair conflict, recipient ownership/verification, injected
+  conversation/outbox rollback, and Accept-vs-expiry winner orders with no deadlock. Ruff, strict
+  mypy (**206 source files**), pip consistency, sdist/wheel build, locked dependency audit with zero
+  known vulnerabilities, Alembic history/single head/autogenerate drift check and Docker Compose
+  validation pass. No migration was required; Alembic head remains
+  `0014_buddy_chat_persistence`.
 - **Purpose:** Make recipient consent the final action that creates the Buddy relationship.
 - **Scope / likely files:** accept endpoint/service, row locking, eligibility revalidation, ACTIVE Match and conversation creation transaction, accepted outbox event.
 - **Dependencies / ownership:** INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 when conversation creation is included; Backend + Database.
@@ -7856,13 +7882,13 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-005`.** CHAT-001 now supplies one atomic get-or-create conversation per ACTIVE
-Match, participant-guarded text-message persistence and retention/index foundations at Alembic head
-`0014_buddy_chat_persistence`. INV-003, BUDDY-001, PROFILE-V2-001 and CHAT-001 are complete, so
-INV-005 can implement the locked recipient Accept transaction that revalidates eligibility and
-opposite types, accepts the invitation, creates exactly one ACTIVE Match and its one conversation,
-and enqueues the accepted event without coupling commit success to delivery. CHAT-002 remains the
-separate authorized history/send/read API task; invitation UI/composer remains owned by INV-007.
+**Next step: `INV-006 — Decline, Cancel and accepted-row hide`.** INV-005 now provides the atomic,
+idempotent recipient Accept transaction and authoritative Match/conversation receipt. INV-006 is the
+direct next invitation-state dependency: implement recipient-only PENDING→DECLINED, sender-only
+PENDING→CANCELLED and non-destructive sender hide for ACCEPTED rows with the same verified-owner,
+CSRF, stable conflict and atomic retry discipline. It must not delete the accepted invitation,
+ACTIVE Match, conversation or messages. Invitation UI/composer remains owned by INV-007; accepted
+email/deep-link delivery and Current Buddies reads remain the separate INV-009 and BUDDY-002 branches.
 
 ### 26.19 Documentation-change boundary
 

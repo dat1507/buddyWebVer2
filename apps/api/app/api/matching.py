@@ -1,6 +1,7 @@
 """Private matching recommendation and invitation APIs."""
 
 from typing import Annotated, Final
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +17,7 @@ from app.core.rate_limits import check_user_rate_limit
 from app.models import User
 from app.schemas.matching import (
     IncomingInvitationListResponse,
+    InvitationAcceptResponse,
     InvitationCreateRequest,
     InvitationCreateResponse,
     MatchingRecommendationListResponse,
@@ -24,6 +26,11 @@ from app.schemas.matching import (
 from app.schemas.profile_catalog import CatalogLocale
 from app.services.buddy_access import VerifiedBuddyPrincipal
 from app.services.csrf import CsrfTokenClaims
+from app.services.invitation_acceptance import (
+    InvitationAcceptError,
+    InvitationAcceptReason,
+    accept_matching_invitation,
+)
 from app.services.invitation_reads import (
     DEFAULT_INVITATION_PAGE_SIZE,
     MAX_INVITATION_PAGE_SIZE,
@@ -232,6 +239,48 @@ async def create_matching_invitation(
         status_code = (
             status.HTTP_422_UNPROCESSABLE_CONTENT
             if error.reason in _INVITATION_VALIDATION_REASONS
+            else status.HTTP_409_CONFLICT
+        )
+        raise HTTPException(
+            status_code=status_code,
+            detail=error.reason.value,
+            headers=_NO_STORE_HEADERS,
+        ) from None
+    except Exception:
+        await session.rollback()
+        raise
+    _mark_private(response)
+    return result
+
+
+@router.post(
+    "/invitations/{invitation_id}/accept",
+    response_model=InvitationAcceptResponse,
+)
+async def accept_invitation(
+    invitation_id: UUID,
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> InvitationAcceptResponse:
+    """Atomically accept one current-recipient invitation and create its relationship."""
+    try:
+        accepted = await accept_matching_invitation(
+            session,
+            current,
+            invitation_id=invitation_id,
+        )
+        result = InvitationAcceptResponse.model_validate(accepted)
+        await session.commit()
+    except InvitationAcceptError as error:
+        await session.rollback()
+        status_code = (
+            status.HTTP_404_NOT_FOUND
+            if error.reason is InvitationAcceptReason.NOT_FOUND
             else status.HTTP_409_CONFLICT
         )
         raise HTTPException(
