@@ -6694,7 +6694,7 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Matching frontend | **REC-004 read-only section implemented** | `/user/matching` now consumes the REC-003 recommendation API through a strict privacy-safe client contract and renders gated recommendations, structured compatibility, preferences, availability and complete loading/empty/error/pagination states. Invitation, Current Buddies and Admin matching sections remain unimplemented. | Reuse this read-only section in INV-007/BUDDY-003; only those later tasks may add their real actions and sections. `/user/buddy` remains reserved for BUDDY-003 route compatibility. |
 | Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
-| Chat/realtime | **Missing** | No conversation/message models, chat API or WebSocket route. `websockets` is only an indirect Uvicorn dependency | Add FastAPI WebSocket endpoint, persistent PostgreSQL messages and Redis Pub/Sub. Do not add Supabase Realtime. |
+| Chat/realtime | **CHAT-001 persistence implemented; transport/UI pending** | Migration `0014_buddy_chat_persistence`, `BuddyConversation`/`BuddyMessage` and `services/buddy_chat.py` provide one conversation per ACTIVE Match, participant-guarded text messages, deterministic retention/order fields and backend-only grants. No chat API or WebSocket route exists yet; `websockets` remains only an indirect Uvicorn dependency. | Reuse PostgreSQL as message authority in CHAT-002, then add FastAPI WebSocket + Redis Pub/Sub in CHAT-003. Do not add Supabase Realtime. |
 | Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
 | Background work | **Implemented; deployed mail schedule accepted** | `python -m app.cli email-worker` is retained for local/debug/manual fallback; the deployed Edge worker and single Cron job reuse the same PostgreSQL leases, retry and idempotency contract | Production schedules only the bounded Edge worker once per minute with Supabase Cron. OPS-002 evidence confirms Python did not run in parallel. Disable/unschedule Cron before manually starting the fallback. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
@@ -7471,6 +7471,38 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### CHAT-001 — Buddy conversation and message persistence
 
+- **Status:** **Done 2026-09-30.** Added Alembic revision `0014_buddy_chat_persistence`
+  and backend-owned `BuddyConversation`/`BuddyMessage` persistence. A unique Match FK makes the
+  authoritative ACTIVE `BuddyMatch` the only conversation identity; participant lists are never
+  duplicated, and multiple Matches involving the same USER retain independent conversations.
+- **Implementation:** `get_or_create_buddy_conversation()` uses one PostgreSQL
+  `INSERT ... ON CONFLICT DO NOTHING RETURNING` operation, flushes without committing and is ready
+  for INV-005 to compose into its Accept transaction. `persist_buddy_message()` accepts only a
+  backend-authenticated participant, stores unchanged plain text with a nonblank/10,000-code-point
+  defensive persistence bound and never commits. A PostgreSQL trigger independently derives the
+  Match participants and rejects an outsider/direct write. Messages use server UTC timestamps,
+  initial `expires_at=created_at+90d`, the planned first-read 30/90-day constraint foundation and
+  deterministic `(created_at, id)` ordering. Conversation/message content has no edit, soft-delete,
+  lifecycle status or optimistic-version field; Match→conversation→message and sender→message
+  cascades support the later backed-up Semester Reset, with no normal user delete behavior.
+- **Security/operations:** Both tables remain inside `app_private`, have RLS enabled and revoke
+  PUBLIC/Data API access. Runtime receives read/insert only plus column-level update of
+  `read_at`/`expires_at`; it cannot update sender/body or delete rows. Conversation Match lookup,
+  chronological cursor reads, sender FK maintenance and expiry cleanup have exact supporting
+  unique/composite indexes. The trigger is `SECURITY INVOKER`, has an empty search path and is not
+  directly executable by the runtime role. No message content is logged or copied into another
+  domain table.
+- **Verification:** CHAT-001 model/service/offline migration tests pass (23); isolated real
+  PostgreSQL acceptance passes concurrent same-Match get-or-create, reciprocal reuse, concurrent
+  messages, same-timestamp deterministic ordering, multiple A-B/A-C relationships, stream
+  isolation, outsider trigger rejection, runtime column grants, constraints, indexes, cascades,
+  upgrade/downgrade/re-upgrade and Alembic autogenerate drift. Relevant BUDDY/profile/INV/REC
+  regression passes (77 passed, 1 environment-gated skip); full backend regression passes
+  (1029 passed, 27 environment-gated skips). Ruff lint, changed-file format, strict mypy (202
+  source files), package sdist/wheel build, pip check, locked runtime dependency audit with zero
+  known vulnerabilities, Alembic history/single head and Docker Compose validation pass. Alembic
+  head is `0014_buddy_chat_persistence`. CHAT-002 retains ownership of HTTP history/send/read,
+  idempotent send keys, rate limits, expired-row filtering and first-read mutation behavior.
 - **Purpose:** Establish one durable 1:1 text conversation for each ACTIVE Match.
 - **Scope / likely files:** BuddyConversation/BuddyMessage models/enums, exports and Alembic migration; Match relationship and retention indexes.
 - **Dependencies / ownership:** BUDDY-001; Database + Backend.
@@ -7824,12 +7856,13 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `CHAT-001`.** PROFILE-V2-002 now completes the backend-authoritative post-Match type
-lock with a privacy-safe own-profile capability, accessible localized field state and typed
-stale-tab conflict reconciliation at unchanged Alembic head `0013_active_match_persistence`.
-Implement one durable conversation per ACTIVE Match plus text-message retention fields next so
-INV-005 can later create the Match and its conversation atomically. INV-003/008 remain separate
-invitation branches, and invitation UI/composer remains owned by INV-007.
+**Next step: `INV-005`.** CHAT-001 now supplies one atomic get-or-create conversation per ACTIVE
+Match, participant-guarded text-message persistence and retention/index foundations at Alembic head
+`0014_buddy_chat_persistence`. INV-003, BUDDY-001, PROFILE-V2-001 and CHAT-001 are complete, so
+INV-005 can implement the locked recipient Accept transaction that revalidates eligibility and
+opposite types, accepts the invitation, creates exactly one ACTIVE Match and its one conversation,
+and enqueues the accepted event without coupling commit success to delivery. CHAT-002 remains the
+separate authorized history/send/read API task; invitation UI/composer remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 

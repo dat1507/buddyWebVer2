@@ -50,9 +50,10 @@ def test_alembic_script_directory_is_loadable() -> None:
     preference_revision = script_directory.get_revision("0011_preference_persistence")
     invitation_revision = script_directory.get_revision("0012_invitation_persistence")
     match_revision = script_directory.get_revision("0013_active_match_persistence")
+    chat_revision = script_directory.get_revision("0014_buddy_chat_persistence")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0013_active_match_persistence"]
+    assert script_directory.get_heads() == ["0014_buddy_chat_persistence"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -77,6 +78,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert invitation_revision.down_revision == "0011_preference_persistence"
     assert match_revision is not None
     assert match_revision.down_revision == "0012_invitation_persistence"
+    assert chat_revision is not None
+    assert chat_revision.down_revision == "0013_active_match_persistence"
 
 
 def test_database_configuration_is_deferred() -> None:

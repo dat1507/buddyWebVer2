@@ -2,6 +2,17 @@
 
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.buddy_chat import (
+    BUDDY_MESSAGE_MAX_RETENTION,
+    BUDDY_MESSAGE_MAX_RETENTION_DAYS,
+    BUDDY_MESSAGE_READ_RETENTION,
+    BUDDY_MESSAGE_READ_RETENTION_DAYS,
+    MAX_BUDDY_MESSAGE_CODE_POINTS,
+    BuddyConversation,
+    BuddyMessage,
+    buddy_message_expires_at,
+    validate_buddy_message_body,
+)
 from app.models.buddy_match import (
     BuddyMatch,
     MatchStatus,
@@ -59,7 +70,13 @@ __all__ = (
     "Activity",
     "AuditLog",
     "Base",
+    "BUDDY_MESSAGE_MAX_RETENTION",
+    "BUDDY_MESSAGE_MAX_RETENTION_DAYS",
+    "BUDDY_MESSAGE_READ_RETENTION",
+    "BUDDY_MESSAGE_READ_RETENTION_DAYS",
+    "BuddyConversation",
     "BuddyMatch",
+    "BuddyMessage",
     "EmailVerificationToken",
     "Event",
     "EventMedia",
@@ -81,6 +98,7 @@ __all__ = (
     "MAX_CUSTOM_PREFERENCE_DISPLAY_LABEL_LENGTH",
     "MAX_CUSTOM_PREFERENCE_INPUT_LENGTH",
     "MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH",
+    "MAX_BUDDY_MESSAGE_CODE_POINTS",
     "MAX_INVITATION_MESSAGE_CODE_POINTS",
     "MatchStatus",
     "MatchingInvitation",
@@ -99,6 +117,8 @@ __all__ = (
     "User",
     "UserRole",
     "canonical_user_pair",
+    "buddy_message_expires_at",
     "derive_event_phase",
     "invitation_expires_at",
+    "validate_buddy_message_body",
 )
