@@ -10,17 +10,20 @@ from enum import StrEnum
 from typing import Final
 from uuid import UUID
 
-from sqlalchemy import and_, exists, func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
     MAX_INVITATION_MESSAGE_CODE_POINTS,
+    BuddyMatch,
     InvitationStatus,
     MatchingInvitation,
+    MatchStatus,
     StudentProfile,
     User,
     UserRole,
+    canonical_user_pair,
     invitation_expires_at,
 )
 from app.services.buddy_access import BuddyCapabilityError, VerifiedBuddyPrincipal
@@ -194,10 +197,6 @@ async def _lock_and_revalidate_pair(
     return sender_user, recipient_user, sender, recipient
 
 
-def _canonical_pair(first: UUID, second: UUID) -> tuple[UUID, UUID]:
-    return (first, second) if first.int < second.int else (second, first)
-
-
 async def _expire_or_reject_pending_pair(
     session: AsyncSession,
     *,
@@ -205,7 +204,7 @@ async def _expire_or_reject_pending_pair(
     recipient_user_id: UUID,
     at: datetime,
 ) -> None:
-    pair_low, pair_high = _canonical_pair(sender_user_id, recipient_user_id)
+    pair_low, pair_high = canonical_user_pair(sender_user_id, recipient_user_id)
     pending = await session.scalar(
         select(MatchingInvitation)
         .where(
@@ -223,32 +222,22 @@ async def _expire_or_reject_pending_pair(
     await session.flush()
 
 
-async def _reject_accepted_pair(
+async def _reject_active_pair(
     session: AsyncSession,
     *,
     sender_user_id: UUID,
     recipient_user_id: UUID,
 ) -> None:
-    # INV-005 couples ACCEPTED atomically to ACTIVE Match. Until that table exists,
-    # accepted invitation history is the authoritative no-reinvite relationship marker.
-    accepted_exists = await session.scalar(
-        select(
-            exists().where(
-                MatchingInvitation.status == InvitationStatus.ACCEPTED,
-                or_(
-                    and_(
-                        MatchingInvitation.sender_id == sender_user_id,
-                        MatchingInvitation.recipient_id == recipient_user_id,
-                    ),
-                    and_(
-                        MatchingInvitation.sender_id == recipient_user_id,
-                        MatchingInvitation.recipient_id == sender_user_id,
-                    ),
-                ),
-            )
+    """Reject only the authoritative ACTIVE Match, never invitation history alone."""
+    pair_low, pair_high = canonical_user_pair(sender_user_id, recipient_user_id)
+    active_match_id = await session.scalar(
+        select(BuddyMatch.id).where(
+            BuddyMatch.pair_low_user_id == pair_low,
+            BuddyMatch.pair_high_user_id == pair_high,
+            BuddyMatch.status == MatchStatus.ACTIVE,
         )
     )
-    if accepted_exists:
+    if active_match_id is not None:
         raise InvitationSendError(InvitationSendReason.ACTIVE_PAIR_EXISTS)
 
 
@@ -296,7 +285,7 @@ async def send_matching_invitation(
         recipient_user_id=locked_recipient.user_id,
         at=current_time,
     )
-    await _reject_accepted_pair(
+    await _reject_active_pair(
         session,
         sender_user_id=locked_sender.user_id,
         recipient_user_id=locked_recipient.user_id,

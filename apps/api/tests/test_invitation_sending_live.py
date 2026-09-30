@@ -8,6 +8,7 @@ the existing head; this test never targets shared development or production data
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -178,6 +179,64 @@ async def _insert_invitations(
         )
 
 
+async def _insert_active_match(
+    engine: AsyncEngine,
+    *,
+    sender_user_id: UUID,
+    recipient_user_id: UUID,
+    sender_profile_id: UUID,
+    recipient_profile_id: UUID,
+) -> None:
+    invitation_id = uuid4()
+    created_at = NOW - timedelta(hours=1)
+    async with engine.begin() as connection:
+        await connection.execute(
+            text(
+                "INSERT INTO app_private.matching_invitations "
+                "(id, sender_id, recipient_id, message, status, created_at, updated_at, "
+                "expires_at, responded_at) VALUES "
+                "(:id, :sender_id, :recipient_id, 'Accepted relationship marker', "
+                "'ACCEPTED', :created_at, :updated_at, :expires_at, :responded_at)"
+            ),
+            {
+                "id": invitation_id,
+                "sender_id": sender_user_id,
+                "recipient_id": recipient_user_id,
+                "created_at": created_at,
+                "updated_at": NOW,
+                "expires_at": created_at + timedelta(days=7),
+                "responded_at": NOW,
+            },
+        )
+        await connection.execute(
+            text(
+                "INSERT INTO app_private.matches "
+                "(participant_one_user_id, participant_two_user_id, "
+                "participant_one_profile_id, participant_two_profile_id, status, "
+                "accepted_invitation_id, score, score_breakdown, activated_at, "
+                "created_at, updated_at) VALUES "
+                "(:sender_user_id, :recipient_user_id, :sender_profile_id, "
+                ":recipient_profile_id, 'ACTIVE', :invitation_id, 70, "
+                "CAST(:score_breakdown AS jsonb), :activated_at, :activated_at, "
+                ":activated_at)"
+            ),
+            {
+                "sender_user_id": sender_user_id,
+                "recipient_user_id": recipient_user_id,
+                "sender_profile_id": sender_profile_id,
+                "recipient_profile_id": recipient_profile_id,
+                "invitation_id": invitation_id,
+                "score_breakdown": json.dumps(
+                    {
+                        "reference_week_start": "2026-09-28",
+                        "interests": {"similarity": 1, "weight": 40, "points": 40},
+                    }
+                ),
+                "activated_at": NOW,
+            },
+        )
+
+
 async def _assert_concurrency_contract(database_url: str) -> None:
     engine = create_async_engine(database_url, poolclass=NullPool)
     factory = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
@@ -305,21 +364,12 @@ async def _assert_concurrency_contract(database_url: str) -> None:
             ]
             assert pair_rows[1].message == "Immediate after expiry"
 
-        accepted_created_at = NOW - timedelta(hours=1)
-        await _insert_invitations(
+        await _insert_active_match(
             engine,
-            [
-                {
-                    "sender_id": user_ids[68],
-                    "recipient_id": user_ids[69],
-                    "message": "Accepted relationship marker",
-                    "status": InvitationStatus.ACCEPTED.value,
-                    "created_at": accepted_created_at,
-                    "updated_at": NOW,
-                    "expires_at": accepted_created_at + timedelta(days=7),
-                    "responded_at": NOW,
-                }
-            ],
+            sender_user_id=user_ids[68],
+            recipient_user_id=user_ids[69],
+            sender_profile_id=profile_ids[68],
+            recipient_profile_id=profile_ids[69],
         )
         accepted_sender = _principal(
             user_ids[68], profile_ids[68], StudentType.VIETNAMESE

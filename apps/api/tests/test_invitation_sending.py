@@ -90,11 +90,11 @@ async def test_send_creates_trimmed_seven_day_invitation_and_safe_outbox(
         AsyncMock(return_value=(sender_user, recipient_user, sender, recipient)),
     )
     expire_or_reject = AsyncMock()
-    reject_accepted = AsyncMock()
+    reject_active = AsyncMock()
     require_capacity = AsyncMock()
     enqueue = AsyncMock()
     monkeypatch.setattr(sending, "_expire_or_reject_pending_pair", expire_or_reject)
-    monkeypatch.setattr(sending, "_reject_accepted_pair", reject_accepted)
+    monkeypatch.setattr(sending, "_reject_active_pair", reject_active)
     monkeypatch.setattr(sending, "_require_pending_capacity", require_capacity)
     monkeypatch.setattr(sending, "enqueue_transactional_email", enqueue)
 
@@ -117,7 +117,7 @@ async def test_send_creates_trimmed_seven_day_invitation_and_safe_outbox(
         recipient_user_id=RECIPIENT_ID,
         at=NOW,
     )
-    reject_accepted.assert_awaited_once()
+    reject_active.assert_awaited_once()
     require_capacity.assert_awaited_once()
     await_args = enqueue.await_args
     assert await_args is not None
@@ -212,15 +212,27 @@ async def test_unexpired_reciprocal_pair_is_rejected_safely() -> None:
 
 
 @pytest.mark.anyio
-async def test_accepted_pair_blocks_reinvite_until_active_match_model_exists() -> None:
+async def test_active_match_blocks_reinvite_independent_of_invitation_history() -> None:
     mock, session = _session()
     mock.scalar.return_value = True
 
     with pytest.raises(InvitationSendError) as raised:
-        await sending._reject_accepted_pair(
+        await sending._reject_active_pair(
             session,
             sender_user_id=SENDER_ID,
             recipient_user_id=RECIPIENT_ID,
         )
 
     assert raised.value.reason is InvitationSendReason.ACTIVE_PAIR_EXISTS
+
+
+@pytest.mark.anyio
+async def test_accepted_invitation_history_without_active_match_does_not_block() -> None:
+    mock, session = _session()
+    mock.scalar.return_value = None
+
+    await sending._reject_active_pair(
+        session,
+        sender_user_id=SENDER_ID,
+        recipient_user_id=RECIPIENT_ID,
+    )

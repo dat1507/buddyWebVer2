@@ -20,6 +20,12 @@ from app.services.buddy_access import (
     VerifiedBuddyPrincipal,
     get_verified_buddy_principal,
 )
+from app.services.buddy_matches import (
+    BuddyMatchActivationError,
+    BuddyMatchActivationReason,
+    activate_buddy_match,
+    compatibility_score_snapshot,
+)
 from app.services.csrf import (
     CSRF_HEADER_NAME,
     PREAUTH_CSRF_TTL,
@@ -274,6 +280,8 @@ __all__ = [
     "AdminCreationError",
     "AuthenticationError",
     "BuddyCapabilityError",
+    "BuddyMatchActivationError",
+    "BuddyMatchActivationReason",
     "CsrfToken",
     "CsrfTokenClaims",
     "CsrfValidationError",
@@ -354,11 +362,13 @@ __all__ = [
     "TokenValidationError",
     "UrllibEmailProviderTransport",
     "VerifiedBuddyPrincipal",
+    "activate_buddy_match",
     "access_cookie_name",
     "clear_auth_cookies",
     "clear_csrf_cookie",
     "consume_email_verification_token",
     "confirm_email_verification_token",
+    "compatibility_score_snapshot",
     "claim_transactional_outbox",
     "change_current_user_email",
     "cleanup_deleted_event_media",

@@ -6844,7 +6844,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | REC-002 (**Done 2026-09-27**) | Compatibility scorer | REC-001 | Exact 40/35/15/5/5 deterministic score | Unit/property/fixtures |
 | REC-003 (**Done 2026-09-27**) | Ranked recommendation API | REC-002 | Paginated deterministic safe results, no side effect | API/auth/query tests |
 | REC-004 (**Done 2026-09-27**) | Read-only Recommended Buddies UI | REC-003, EMAIL-005 | Cards/explanation/profile/preferences/availability plus locked/loading/empty/error/pagination states; no invitation action | UI/a11y/contract tests |
-| BUDDY-001 | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
+| BUDDY-001 (**Done 2026-09-30**) | ACTIVE Match persistence | REC-002 | Opposite-type activation; multiple Buddies; unique ACTIVE unordered pair | Migration/type/race tests |
 | PROFILE-V2-001 | Lock `student_type` after ACTIVE Match | BUDDY-001, BE-012 | Backend rejects type change; Accept/update race preserves opposite types | API/policy/concurrency tests |
 | PROFILE-V2-002 | Locked `student_type` profile UX | PROFILE-V2-001, FE-029 | Disabled field, explanation and stale-conflict handling | Component/a11y/integration tests |
 | INV-001 (**Done 2026-09-29**) | Invitation persistence/state machine | REC-001 | Required statuses/fields, reciprocal PENDING constraint | Migration/model tests |
@@ -7183,6 +7183,33 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### BUDDY-001 — ACTIVE Match persistence and unordered-pair uniqueness
 
+- **Status:** **Done 2026-09-30.** Added Alembic revision `0013_active_match_persistence`
+  and the backend-owned `BuddyMatch`/ACTIVE-only model. PostgreSQL derives the canonical unordered
+  participant pair with stored `LEAST`/`GREATEST` columns and enforces at most one ACTIVE row per
+  pair with a partial unique index; no per-user unique constraint exists, so one user can retain
+  multiple Buddies. Each Match has one unique accepted-invitation provenance record, participant
+  user/profile FKs, a bounded score plus public numeric compatibility snapshot, activation/audit
+  timestamps and the planned nullable `semester_id`. `SEM-001` retains ownership of the
+  authoritative semester table, backfill and FK instead of BUDDY-001 inventing a competing
+  lifecycle.
+- **Implementation:** The activation foundation accepts only an already-ACCEPTED invitation,
+  locks both current USER/profile participants in deterministic UUID order, revalidates the
+  invitation under lock, requires exactly one VIETNAMESE and one INTERNATIONAL profile, checks the
+  ACTIVE canonical pair and relies on the database unique guard for the final race. It flushes but
+  never commits so INV-005 can compose it into one atomic Accept transaction. Participant columns
+  are immutable through least-privilege runtime grants: backend runtime receives SELECT/INSERT
+  only, RLS is enabled, and public/Data API roles are revoked. INV-003's temporary accepted-history
+  marker now queries the authoritative ACTIVE Match; accepted invitation history without a Match
+  does not independently block a new send. REC eligibility remains unchanged.
+- **Verification:** BUDDY/INV targeted model/service/offline-migration/Alembic regressions pass
+  (**50 tests**). Isolated PostgreSQL acceptance passes same-direction and reciprocal concurrent
+  activation with exactly one winner, stable loser conflict, multi-Buddy persistence, same-type
+  rejection, DB uniqueness/constraints, participant indexes, grants/RLS, upgrade/downgrade/
+  re-upgrade and autogenerate drift. Updated INV-003 PostgreSQL acceptance also passes. Full backend
+  passes **1002 tests / 25 configured live skips**; Ruff, strict mypy (**193 source files**), pip
+  consistency, sdist/wheel build, locked runtime dependency audit (zero known vulnerabilities),
+  Alembic history/single head and Docker Compose validation pass. Previous head
+  `0012_invitation_persistence`; final head `0013_active_match_persistence`.
 - **Purpose:** Persist accepted Buddy relationships while allowing multiple Buddies per user.
 - **Scope / likely files:** new Match model/status/schema, exports and Alembic migration; canonical unordered user pair and invitation provenance.
 - **Dependencies / ownership:** REC-002; Database + Backend.
@@ -7752,13 +7779,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `BUDDY-001`.** INV-004 owner-filtered Incoming/Sent reads, effective-expiry
-visibility, safe current profile/compatibility projection and deterministic bounded pagination are
-complete with Alembic head unchanged at `0012_invitation_persistence`. Implement ACTIVE Match
-persistence and unordered-pair uniqueness next so `PROFILE-V2-001`, `CHAT-001` and eventually the
-atomic `INV-005` Accept transaction can proceed. `INV-008` is also dependency-ready as an
-independent notification track, while invitation UI/composer remains owned by INV-007 after
-INV-004..006.
+**Next step: `PROFILE-V2-001`.** BUDDY-001 now provides the ACTIVE Match authority, deterministic
+participant lock order and unordered-pair concurrency guard at Alembic head
+`0013_active_match_persistence`. Implement the backend `student_type` lock next so profile updates
+and the later INV-005 Accept transaction preserve the opposite-type invariant under every
+interleaving. `CHAT-001` can proceed in parallel from the same completed dependency; INV-008 remains
+an independent notification track, and invitation UI/composer remains owned by INV-007.
 
 ### 26.19 Documentation-change boundary
 

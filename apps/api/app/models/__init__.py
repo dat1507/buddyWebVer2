@@ -2,6 +2,11 @@
 
 from app.models.audit_log import AuditLog
 from app.models.base import Base
+from app.models.buddy_match import (
+    BuddyMatch,
+    MatchStatus,
+    canonical_user_pair,
+)
 from app.models.email_verification import EmailVerificationToken
 from app.models.event import (
     Event,
@@ -54,6 +59,7 @@ __all__ = (
     "Activity",
     "AuditLog",
     "Base",
+    "BuddyMatch",
     "EmailVerificationToken",
     "Event",
     "EventMedia",
@@ -76,6 +82,7 @@ __all__ = (
     "MAX_CUSTOM_PREFERENCE_INPUT_LENGTH",
     "MAX_CUSTOM_PREFERENCE_NORMALIZED_KEY_LENGTH",
     "MAX_INVITATION_MESSAGE_CODE_POINTS",
+    "MatchStatus",
     "MatchingInvitation",
     "PreferenceKind",
     "ProfileActivity",
@@ -91,6 +98,7 @@ __all__ = (
     "TransactionalOutbox",
     "User",
     "UserRole",
+    "canonical_user_pair",
     "derive_event_phase",
     "invitation_expires_at",
 )
