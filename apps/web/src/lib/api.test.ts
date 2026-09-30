@@ -110,6 +110,7 @@ describe('credentialed JSON transport', () => {
   it.each([
     [401, 'unauthorized'],
     [403, 'forbidden'],
+    [404, 'notFound'],
     [409, 'conflict'],
     [422, 'validation'],
     [429, 'rateLimited'],
@@ -163,6 +164,45 @@ describe('credentialed JSON transport', () => {
       code: 'conflict',
       reason: null,
     })
+  })
+
+  it('retains only stable invitation reason codes on invitation endpoints', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'INVITATION_PENDING_LIMIT_REACHED' }), {
+            status: 409,
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'private database detail' }), { status: 409 }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'INVITATION_PENDING_LIMIT_REACHED' }), {
+            status: 409,
+          }),
+        ),
+    )
+
+    await expect(
+      requestJson('/matching/invitations', {
+        method: 'POST',
+        body: {},
+        csrfToken: 'signed-fixture',
+      }),
+    ).rejects.toMatchObject({
+      code: 'conflict',
+      reason: 'INVITATION_PENDING_LIMIT_REACHED',
+    })
+    const unknown = await requestJson('/matching/invitations/fixture/cancel', {
+      method: 'POST',
+      csrfToken: 'signed-fixture',
+    }).catch((failure: unknown) => failure)
+    expect(unknown).toMatchObject({ code: 'conflict', reason: null })
+    expect(JSON.stringify(unknown)).not.toContain('database')
+    await expect(getJson('/profile')).rejects.toMatchObject({ reason: null })
   })
 
   it('handles malformed JSON and sanitized network failure', async () => {

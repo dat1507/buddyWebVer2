@@ -156,7 +156,14 @@ function parseRecommendationList(payload: unknown): RecommendationList {
   throw new ApiError(200, 'invalidResponse')
 }
 
-export { RECOMMENDATION_PAGE_SIZE, parseRecommendationList }
+export {
+  RECOMMENDATION_PAGE_SIZE,
+  compatibilityExplanationSchema,
+  languageSchema,
+  parseRecommendationList,
+  preferenceSchema,
+  weeklyAvailabilitySchema,
+}
 export type {
   CompatibilityExplanation,
   CompatibilitySignal,

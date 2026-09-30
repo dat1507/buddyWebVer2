@@ -6853,7 +6853,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-004 (**Done 2026-09-30**) | Incoming/sent read APIs | INV-002, REC-002 | Correct visibility, safe profiles/scores/expiry | Privacy/filter tests |
 | INV-005 (**Done 2026-09-30**) | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
 | INV-006 (**Done 2026-09-30**) | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
-| INV-007 | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
+| INV-007 (**Done 2026-10-01**) | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
 | INV-008 | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
 | INV-009 | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
 | BUDDY-002 | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
@@ -7476,12 +7476,14 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-007 — Invitation composer, Incoming and Sent UI
 
+- **Status:** **Done 2026-10-01.** `/user/matching` now reuses the REC-004 recommendation surface and the implemented INV-003..006 APIs for a real, server-authoritative composer plus Incoming and Sent sections. Recommendation actions reconcile against server invitation results; reload/refetch preserves state and no invitation is faked in browser storage.
 - **Purpose:** Add the real invitation interaction layer to the read-only Buddy Matching experience delivered by REC-004.
 - **Scope / likely files:** extend recommendation cards with the real `Send Invitation` entry point, matching-page composer/Incoming/Sent components, query/mutation clients, locales and safe word/code-point counter using the same contract fixtures as INV-003; code-point counting must not use JavaScript UTF-16 `.length` semantics.
 - **Dependencies / ownership:** INV-004..006, REC-004; Frontend.
 - **Security:** render body as text; no `dangerouslySetInnerHTML`; locked state makes no protected calls; conflict responses refetch.
 - **Acceptance / DoD:** `Send Invitation` on a recommendation opens the V2 composer backed by the implemented invitation client/API; composer trims outer whitespace for submission, shows `x / 500 words`, validates the separate 10,000-code-point ceiling, and gives the matching error when either limit is exceeded; repeated whitespace never increases the count beyond non-whitespace runs. Incoming Accept/Decline and sent Cancel work; PENDING has no Delete; ACCEPTED has Start Chatting/Delete-hide; hidden/declined/expired/cancelled disappear according to server result.
 - **Tests/gates:** component/a11y and shared contract vectors cover repeated whitespace, 500/501 words, 10,000/10,001 code points, emoji and inert HTML-looking text; duplicate-submit, stale conflict, reload and endpoint contract tests pass; source check forbids `dangerouslySetInnerHTML` in invitation rendering.
+- **Implementation / verification:** strict Zod DTOs and exact invitation endpoints back paginated, de-duplicated server-order queries and refetching mutations. The accessible focus-trapped composer, owner-only actions, safe profile/compatibility projection, localized loading/empty/error/end states and responsive cards are covered by 67 focused INV/REC/profile tests; the resource-safe frontend suite passes all 597 tests, plus ESLint, strict TypeScript, Prettier, production build and a zero-vulnerability production dependency audit. HTTPS browser smoke confirms protected-route redirect, clean console and no horizontal overflow at desktop/tablet/mobile widths. No backend, dependency, database or migration change was required; Alembic head remains `0014_buddy_chat_persistence`.
 - **Non-goals:** chat implementation or client-side state authority.
 
 #### INV-008 — Invitation email notification
@@ -7913,13 +7915,13 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-007 — Invitation composer, Incoming and Sent UI`.** INV-004 provides owner-safe
-Incoming/Sent reads, REC-004 provides the read-only recommendation surface, and INV-003/005/006 now
-provide the complete send/accept/decline/cancel/hide backend contract. INV-007 can therefore add the
-real composer and invitation-management actions with shared message-limit fixtures, safe plain-text
-rendering, reload/refetch behavior and accessible responsive states. It must consume server results
-as authority and must not implement chat, Current Buddies, accepted email delivery or relationship
-termination; those remain owned by CHAT-*, BUDDY-002/003 and INV-009.
+**Next step: `INV-008 — Invitation email notification`.** INV-003 already owns the committed send
+transaction and MAIL-001 owns the provider-neutral transactional outbox, retry and idempotency
+contracts. INV-008 can therefore add only the post-commit recipient notification event/template and
+Open Invitation CTA routing without coupling provider delivery to invitation persistence. It must
+resolve the recipient's current VERIFIED email at the documented delivery-policy point, escape all
+template data and keep provider failure retryable; accepted-email behavior and safe authenticated
+deep links remain owned by INV-009.
 
 ### 26.19 Documentation-change boundary
 

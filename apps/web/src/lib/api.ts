@@ -1,6 +1,7 @@
 type ApiErrorCode =
   | 'unauthorized'
   | 'forbidden'
+  | 'notFound'
   | 'conflict'
   | 'validation'
   | 'rateLimited'
@@ -11,9 +12,51 @@ type ApiErrorCode =
   | 'cancelled'
   | 'csrf'
 
-type ApiErrorReason = 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH'
+type InvitationApiErrorReason =
+  | 'INVITATION_MESSAGE_TOO_MANY_WORDS'
+  | 'INVITATION_MESSAGE_TOO_MANY_CODE_POINTS'
+  | 'INVITATION_SELF_NOT_ALLOWED'
+  | 'INVITATION_SENDER_INELIGIBLE'
+  | 'INVITATION_RECIPIENT_INELIGIBLE'
+  | 'INVITATION_PENDING_LIMIT_REACHED'
+  | 'INVITATION_PENDING_EXISTS'
+  | 'INVITATION_ACTIVE_PAIR_EXISTS'
+  | 'INVITATION_ACCEPT_NOT_FOUND'
+  | 'INVITATION_ACCEPT_EXPIRED'
+  | 'INVITATION_ACCEPT_NOT_PENDING'
+  | 'INVITATION_ACCEPT_RECIPIENT_INELIGIBLE'
+  | 'INVITATION_ACCEPT_PARTICIPANT_INELIGIBLE'
+  | 'INVITATION_ACCEPT_OPPOSITE_TYPES_REQUIRED'
+  | 'INVITATION_ACCEPT_ACTIVE_PAIR_EXISTS'
+  | 'INVITATION_ACCEPT_STATE_CONFLICT'
+  | 'INVITATION_MUTATION_NOT_FOUND'
+  | 'INVITATION_MUTATION_EXPIRED'
+  | 'INVITATION_MUTATION_INVALID_STATE'
+
+type ApiErrorReason = 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH' | InvitationApiErrorReason
 
 const profileConflictReasons = new Set<ApiErrorReason>(['STUDENT_TYPE_LOCKED_ACTIVE_MATCH'])
+const invitationReasons = new Set<ApiErrorReason>([
+  'INVITATION_MESSAGE_TOO_MANY_WORDS',
+  'INVITATION_MESSAGE_TOO_MANY_CODE_POINTS',
+  'INVITATION_SELF_NOT_ALLOWED',
+  'INVITATION_SENDER_INELIGIBLE',
+  'INVITATION_RECIPIENT_INELIGIBLE',
+  'INVITATION_PENDING_LIMIT_REACHED',
+  'INVITATION_PENDING_EXISTS',
+  'INVITATION_ACTIVE_PAIR_EXISTS',
+  'INVITATION_ACCEPT_NOT_FOUND',
+  'INVITATION_ACCEPT_EXPIRED',
+  'INVITATION_ACCEPT_NOT_PENDING',
+  'INVITATION_ACCEPT_RECIPIENT_INELIGIBLE',
+  'INVITATION_ACCEPT_PARTICIPANT_INELIGIBLE',
+  'INVITATION_ACCEPT_OPPOSITE_TYPES_REQUIRED',
+  'INVITATION_ACCEPT_ACTIVE_PAIR_EXISTS',
+  'INVITATION_ACCEPT_STATE_CONFLICT',
+  'INVITATION_MUTATION_NOT_FOUND',
+  'INVITATION_MUTATION_EXPIRED',
+  'INVITATION_MUTATION_INVALID_STATE',
+])
 
 class ApiError extends Error {
   readonly status: number
@@ -90,6 +133,7 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
       const codes: Record<number, ApiErrorCode> = {
         401: 'unauthorized',
         403: 'forbidden',
+        404: 'notFound',
         409: 'conflict',
         422: 'validation',
         429: 'rateLimited',
@@ -97,7 +141,13 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
       const retry = response.headers.get('Retry-After')
       const retryAfter = retry && /^\d+$/.test(retry) ? Number(retry) : null
       let reason: ApiErrorReason | null = null
-      if (path === '/profile' && response.status === 409) {
+      const allowedReasons =
+        path === '/profile' && response.status === 409
+          ? profileConflictReasons
+          : path.startsWith('/matching/invitations')
+            ? invitationReasons
+            : null
+      if (allowedReasons) {
         try {
           const payload = (await response.json()) as unknown
           if (
@@ -105,7 +155,7 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
             payload !== null &&
             'detail' in payload &&
             typeof payload.detail === 'string' &&
-            profileConflictReasons.has(payload.detail as ApiErrorReason)
+            allowedReasons.has(payload.detail as ApiErrorReason)
           ) {
             reason = payload.detail as ApiErrorReason
           }
@@ -135,4 +185,4 @@ function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
 }
 
 export { ApiError, getJson, requestJson, normalizeApiError }
-export type { ApiErrorCode, ApiErrorReason, JsonRequestOptions }
+export type { ApiErrorCode, ApiErrorReason, InvitationApiErrorReason, JsonRequestOptions }

@@ -1,12 +1,12 @@
-import { useId, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import {
-  CalendarClock,
+  Check,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
-  Languages,
   LoaderCircle,
   LockKeyhole,
+  Send,
   Sparkles,
   Users,
 } from 'lucide-react'
@@ -16,35 +16,30 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { InvitationComposer } from '@/features/matching/invitation-composer'
+import { InvitationSections } from '@/features/matching/invitation-sections'
+import { invitationErrorKey } from '@/features/matching/invitation'
+import {
+  CompatibilityDetails,
+  MatchingProfileDetails,
+} from '@/features/matching/matching-profile-details'
 import { RecommendationAvatar } from '@/features/matching/recommendation-avatar'
-import type {
-  CompatibilityExplanation,
-  CompatibilitySignal,
-  MatchingAvailability,
-  MatchingLanguage,
-  MatchingPreference,
-  Recommendation,
-} from '@/features/matching/recommendation'
+import type { Recommendation } from '@/features/matching/recommendation'
 import { RECOMMENDATION_PAGE_SIZE } from '@/features/matching/recommendation'
+import {
+  uniqueIncomingItems,
+  uniqueSentItems,
+  useIncomingInvitations,
+  useSendInvitation,
+  useSentInvitations,
+} from '@/features/matching/queries/use-invitations'
 import { useRecommendations } from '@/features/matching/queries/use-recommendations'
 import type { CatalogLocale } from '@/features/profile/profile-catalog'
 import { useProfileCompletion } from '@/features/profile/queries/use-own-profile'
 import { ApiError } from '@/lib/api'
 
-const compatibilitySignals = [
-  'interests',
-  'activities',
-  'availability',
-  'languages',
-  'major',
-] as const satisfies readonly (keyof CompatibilityExplanation)[]
-
 function catalogLocale(language: string | undefined): CatalogLocale {
   return language?.split('-')[0] === 'de' ? 'de' : 'en'
-}
-
-function formatNumber(value: number, locale: CatalogLocale): string {
-  return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value)
 }
 
 function formatReferenceWeek(value: string, locale: CatalogLocale): string {
@@ -53,152 +48,16 @@ function formatReferenceWeek(value: string, locale: CatalogLocale): string {
   )
 }
 
-function minuteLabel(minutes: number): string {
-  if (minutes === 1440) return '24:00'
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
-}
-
-function PreferenceList({
-  label,
-  values,
-}: {
-  label: string
-  values: readonly MatchingPreference[]
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="space-y-2">
-      <Typography variant="small" className="font-semibold">
-        {label}
-      </Typography>
-      {values.length > 0 ? (
-        <ul aria-label={label} className="flex flex-wrap gap-2">
-          {values.map((value) => (
-            <li
-              key={value.id ?? `custom:${value.label}`}
-              className="max-w-full break-words rounded-full border border-border bg-background px-3 py-1 text-xs font-medium"
-            >
-              {value.label}
-              {value.is_custom ? (
-                <span className="sr-only"> {t('recommendedBuddies.customPreference')}</span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Typography variant="muted">{t('recommendedBuddies.noneShared')}</Typography>
-      )}
-    </div>
-  )
-}
-
-function LanguageList({ values }: { values: readonly MatchingLanguage[] }) {
-  const { t } = useTranslation()
-  const label = t('recommendedBuddies.languages')
-
-  return (
-    <div className="space-y-2">
-      <Typography variant="small" className="flex items-center gap-2 font-semibold">
-        <Languages aria-hidden="true" className="size-4" />
-        {label}
-      </Typography>
-      <ul aria-label={label} className="flex flex-wrap gap-2">
-        {values.map((value) => (
-          <li
-            key={value.code ?? `custom:${value.label}`}
-            className="max-w-full break-words rounded-full border border-border bg-background px-3 py-1 text-xs font-medium"
-          >
-            {t('recommendedBuddies.languageValue', {
-              language: value.label,
-              proficiency: t(`recommendedBuddies.proficiencies.${value.proficiency}`),
-            })}
-            {value.is_custom ? (
-              <span className="sr-only"> {t('recommendedBuddies.customPreference')}</span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function Availability({ availability }: { availability: MatchingAvailability | null }) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="space-y-2">
-      <Typography variant="small" className="flex items-center gap-2 font-semibold">
-        <CalendarClock aria-hidden="true" className="size-4" />
-        {t('recommendedBuddies.availability')}
-      </Typography>
-      {!availability || availability.slots.length === 0 ? (
-        <Typography variant="muted">{t('recommendedBuddies.noAvailability')}</Typography>
-      ) : (
-        <div className="space-y-2">
-          <Typography variant="muted" className="break-all">
-            {t('recommendedBuddies.timezone', { timezone: availability.timezone })}
-          </Typography>
-          <ul
-            className="grid gap-1 text-sm sm:grid-cols-2"
-            aria-label={t('recommendedBuddies.availability')}
-          >
-            {availability.slots.map((slot, index) => (
-              <li key={`${slot.weekday}:${slot.start_minute}:${slot.end_minute}:${index}`}>
-                {t('recommendedBuddies.availabilityValue', {
-                  day: t(`recommendedBuddies.weekdays.${slot.weekday}`),
-                  start: minuteLabel(slot.start_minute),
-                  end: minuteLabel(slot.end_minute),
-                })}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function CompatibilityRow({
-  name,
-  signal,
-  locale,
-}: {
-  name: keyof CompatibilityExplanation
-  signal: CompatibilitySignal
-  locale: CatalogLocale
-}) {
-  const { t } = useTranslation()
-  const label = t(`recommendedBuddies.signals.${name}`)
-
-  return (
-    <li className="space-y-1.5">
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <span>{label}</span>
-        <span className="whitespace-nowrap font-semibold">
-          {t('recommendedBuddies.signalDetails', {
-            similarity: formatNumber(signal.similarity * 100, locale),
-            points: formatNumber(signal.points, locale),
-            weight: signal.weight,
-          })}
-        </span>
-      </div>
-      <progress
-        aria-label={t('recommendedBuddies.signalProgress', { signal: label })}
-        className="h-2 w-full accent-vgu-orange"
-        max={signal.weight || 1}
-        value={signal.points}
-      />
-    </li>
-  )
-}
-
 function RecommendationCard({
   recommendation,
   locale,
+  invitationState,
+  onInvite,
 }: {
   recommendation: Recommendation
   locale: CatalogLocale
+  invitationState: 'sent' | 'received' | null
+  onInvite: (recommendation: Recommendation) => void
 }) {
   const { t } = useTranslation()
   const name = recommendation.profile.display_name?.trim() || t('recommendedBuddies.unnamed')
@@ -235,39 +94,24 @@ function RecommendationCard({
         </div>
       </CardHeader>
       <CardContent className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <section className="space-y-5" aria-label={t('recommendedBuddies.profileInformation')}>
-          <PreferenceList
-            label={t('recommendedBuddies.interests')}
-            values={recommendation.profile.interests}
-          />
-          <PreferenceList
-            label={t('recommendedBuddies.activities')}
-            values={recommendation.profile.activities}
-          />
-          <LanguageList values={recommendation.profile.languages} />
-          <Availability availability={recommendation.profile.availability} />
-        </section>
-        <section
-          className="rounded-2xl border border-border/70 bg-muted/35 p-4"
-          aria-labelledby={`${titleId}-compatibility`}
-        >
-          <Typography as="h3" variant="h4" id={`${titleId}-compatibility`}>
-            {t('recommendedBuddies.compatibilityBreakdown')}
-          </Typography>
-          <Typography variant="muted" className="mt-1">
-            {t('recommendedBuddies.compatibilityDescription')}
-          </Typography>
-          <ul className="mt-4 space-y-3">
-            {compatibilitySignals.map((signal) => (
-              <CompatibilityRow
-                key={signal}
-                name={signal}
-                signal={recommendation.explanation[signal]}
-                locale={locale}
-              />
-            ))}
-          </ul>
-        </section>
+        <MatchingProfileDetails profile={recommendation.profile} />
+        <CompatibilityDetails
+          explanation={recommendation.explanation}
+          locale={locale}
+          headingId={`${titleId}-compatibility`}
+        />
+        <div className="flex flex-wrap items-center justify-end gap-3 lg:col-span-2">
+          <Button
+            type="button"
+            disabled={invitationState !== null}
+            onClick={() => onInvite(recommendation)}
+          >
+            {invitationState ? <Check aria-hidden="true" /> : <Send aria-hidden="true" />}
+            {invitationState
+              ? t(`invitations.recommendation.${invitationState}`)
+              : t('invitations.recommendation.send')}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -332,6 +176,10 @@ function MatchingPage() {
     locale,
     page: 1,
   })
+  const [composerTarget, setComposerTarget] = useState<Recommendation | null>(null)
+  const [composerErrorKey, setComposerErrorKey] = useState<string | null>(null)
+  const [successName, setSuccessName] = useState<string | null>(null)
+  const sendStartedRef = useRef(false)
   const page = pagination.locale === locale ? pagination.page : 1
   const titleId = useId()
   const resultsTitleId = useId()
@@ -343,9 +191,55 @@ function MatchingPage() {
     page,
     pageSize: RECOMMENDATION_PAGE_SIZE,
   })
+  const sendInvitation = useSendInvitation()
 
   const error = recommendations.error
   const lockedByServer = error instanceof ApiError && error.code === 'forbidden'
+  const invitationsEnabled = eligible && !lockedByServer
+  const incomingInvitations = useIncomingInvitations({ enabled: invitationsEnabled, locale })
+  const sentInvitations = useSentInvitations({ enabled: invitationsEnabled, locale })
+  const incomingItems = useMemo(
+    () => uniqueIncomingItems(incomingInvitations.data?.pages),
+    [incomingInvitations.data?.pages],
+  )
+  const sentItems = useMemo(
+    () => uniqueSentItems(sentInvitations.data?.pages),
+    [sentInvitations.data?.pages],
+  )
+  const incomingProfileIds = useMemo(
+    () => new Set(incomingItems.map(({ sender }) => sender.id)),
+    [incomingItems],
+  )
+  const sentProfileIdsFromServer = useMemo(
+    () => new Set(sentItems.map(({ recipient }) => recipient.id)),
+    [sentItems],
+  )
+
+  const closeComposer = () => {
+    if (sendInvitation.isPending) return
+    setComposerTarget(null)
+    setComposerErrorKey(null)
+  }
+
+  const submitInvitation = async (message: string) => {
+    if (!composerTarget || sendStartedRef.current) return
+    sendStartedRef.current = true
+    setComposerErrorKey(null)
+    setSuccessName(null)
+    const target = composerTarget
+    try {
+      await sendInvitation.mutateAsync({
+        recipientProfileId: target.profile.id,
+        message,
+      })
+      setSuccessName(target.profile.display_name?.trim() || t('recommendedBuddies.unnamed'))
+      setComposerTarget(null)
+    } catch (submitError) {
+      setComposerErrorKey(invitationErrorKey(submitError, 'send'))
+    } finally {
+      sendStartedRef.current = false
+    }
+  }
 
   return (
     <section
@@ -368,7 +262,25 @@ function MatchingPage() {
         </Typography>
       </header>
 
-      <Typography as="h2" variant="h3" id={resultsTitleId} className="sr-only">
+      {successName ? (
+        <p
+          role="status"
+          className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm"
+        >
+          {t('invitations.composer.success', { name: successName })}
+        </p>
+      ) : null}
+
+      <InvitationSections
+        enabled={invitationsEnabled}
+        locale={locale}
+        incoming={incomingInvitations}
+        sent={sentInvitations}
+        incomingItems={incomingItems}
+        sentItems={sentItems}
+      />
+
+      <Typography as="h2" variant="h3" id={resultsTitleId}>
         {t('recommendedBuddies.resultsTitle')}
       </Typography>
 
@@ -424,6 +336,18 @@ function MatchingPage() {
                 key={recommendation.profile.id}
                 recommendation={recommendation}
                 locale={locale}
+                invitationState={
+                  incomingProfileIds.has(recommendation.profile.id)
+                    ? 'received'
+                    : sentProfileIdsFromServer.has(recommendation.profile.id)
+                      ? 'sent'
+                      : null
+                }
+                onInvite={(target) => {
+                  setSuccessName(null)
+                  setComposerErrorKey(null)
+                  setComposerTarget(target)
+                }}
               />
             ))}
           </div>
@@ -464,6 +388,13 @@ function MatchingPage() {
           ) : null}
         </>
       )}
+      <InvitationComposer
+        target={composerTarget?.profile ?? null}
+        pending={sendInvitation.isPending}
+        errorKey={composerErrorKey}
+        onCancel={closeComposer}
+        onSubmit={submitInvitation}
+      />
     </section>
   )
 }

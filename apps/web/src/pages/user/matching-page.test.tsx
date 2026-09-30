@@ -9,6 +9,7 @@ import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { MatchingPage } from '@/pages/user/matching-page'
 import { completeProfileCompletion } from '@/test/profile-completion'
+import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
 
 describe('REC-004 Recommended Buddies page', () => {
@@ -23,6 +24,18 @@ describe('REC-004 Recommended Buddies page', () => {
       url: 'https://media.example.test/recommendation-avatar',
       expires_in: 300,
       expiresAt: Date.now() + 300_000,
+    })
+    vi.spyOn(matchingClient, 'readIncomingInvitations').mockResolvedValue({
+      ...incomingInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue({
+      ...sentInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
     })
   })
 
@@ -41,13 +54,13 @@ describe('REC-004 Recommended Buddies page', () => {
       </QueryClientProvider>,
     )
 
-  it('renders safe profile, preference, compatibility and availability data without invitation UI', async () => {
+  it('renders safe profile data and the real invitation entry point', async () => {
     const read = vi
       .spyOn(matchingClient, 'readRecommendations')
       .mockResolvedValue(recommendationList)
     renderPage()
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading your recommendations')
+    expect(screen.getByText('Loading your recommendations…')).toBeVisible()
     const card = await screen.findByRole('article', { name: 'Linh' })
     expect(
       await within(card).findByRole('img', { name: 'Profile photo for Linh' }),
@@ -63,8 +76,9 @@ describe('REC-004 Recommended Buddies page', () => {
     expect(within(card).getByText('75% match · 30 / 40 points')).toBeVisible()
     expect(within(card).getAllByRole('progressbar')).toHaveLength(6)
     expect(screen.getByText('Availability comparison week: Sep 21, 2026')).toBeVisible()
-    expect(screen.queryByRole('button', { name: /send invitation/i })).not.toBeInTheDocument()
-    expect(screen.queryByText(/invitation/i)).not.toBeInTheDocument()
+    expect(within(card).getByRole('button', { name: 'Send invitation' })).toBeEnabled()
+    expect(screen.getByRole('heading', { name: 'Incoming invitations' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Sent invitations' })).toBeVisible()
     expect(read).toHaveBeenCalledWith({
       locale: 'en',
       page: 1,
@@ -88,6 +102,8 @@ describe('REC-004 Recommended Buddies page', () => {
       '/user/settings',
     )
     expect(read).not.toHaveBeenCalled()
+    expect(matchingClient.readIncomingInvitations).not.toHaveBeenCalled()
+    expect(matchingClient.readSentInvitations).not.toHaveBeenCalled()
     expect(profileClient.readPhotoUrl).not.toHaveBeenCalled()
   })
 

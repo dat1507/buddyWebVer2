@@ -741,6 +741,90 @@
     "page": "Page {{page}} of {{totalPages}}",
     "end": "You have reached the end of the current recommendations."
   },
+  "invitations": {
+    "title": "Invitations",
+    "subtitle": "Review invitations you received and manage the invitations you sent.",
+    "updating": "Updating invitations…",
+    "retry": "Try again",
+    "listErrorTitle": "Invitations could not be loaded",
+    "listError": "We could not load the current invitations. Try again without leaving this page.",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…",
+    "end": "You have reached the end of this invitation list.",
+    "sentAt": "Sent {{date}}",
+    "expiresAt": "Expires {{date}}",
+    "compatibilityUnavailable": "Compatibility is unavailable because one profile no longer has all matching inputs.",
+    "profile": {
+      "typeUnavailable": "Student type not currently available"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted"
+    },
+    "recommendation": {
+      "send": "Send invitation",
+      "sent": "Invitation sent",
+      "received": "Invitation received"
+    },
+    "composer": {
+      "title": "Invite {{name}}",
+      "description": "Write a plain-text message. Your invitation is created only after the server confirms it.",
+      "messageLabel": "Invitation message",
+      "messageHelp": "Optional plain text. Repeated spaces count as one separator; the server remains authoritative.",
+      "wordCount": "{{count}} / {{limit}} words",
+      "codePointCount": "{{count}} / {{limit}} characters",
+      "cancel": "Cancel",
+      "submit": "Send invitation",
+      "sending": "Sending…",
+      "success": "Your invitation to {{name}} was sent."
+    },
+    "incoming": {
+      "title": "Incoming invitations",
+      "loading": "Loading incoming invitations…",
+      "emptyTitle": "No current invitations",
+      "emptyDescription": "You do not have any pending invitations right now.",
+      "messageTitle": "Invitation message",
+      "emptyMessage": "No message was added."
+    },
+    "sent": {
+      "title": "Sent invitations",
+      "loading": "Loading sent invitations…",
+      "emptyTitle": "No visible sent invitations",
+      "emptyDescription": "Pending and accepted invitations you have not hidden will appear here.",
+      "acceptedHelp": "This invitation was accepted. Removing it from this list does not end your Buddy relationship or delete its conversation."
+    },
+    "actions": {
+      "accept": "Accept",
+      "accepting": "Accepting…",
+      "decline": "Decline",
+      "declining": "Declining…",
+      "cancel": "Cancel invitation",
+      "cancelling": "Cancelling…",
+      "hide": "Remove from Sent",
+      "hiding": "Removing…",
+      "startChatting": "Start chatting"
+    },
+    "errors": {
+      "messageTooManyWords": "Use no more than 500 words.",
+      "messageTooManyCodePoints": "Use no more than 10,000 Unicode characters.",
+      "pendingLimit": "You already have 30 pending invitations. Cancel one or wait for a response before sending another.",
+      "pendingExists": "A pending invitation already exists between these profiles.",
+      "activeRelationship": "You already have an active Buddy relationship with this student.",
+      "eligibilityChanged": "Your matching eligibility changed. Refresh your profile before trying again.",
+      "recipientUnavailable": "This student is no longer available for a new invitation.",
+      "participantUnavailable": "One participant is no longer eligible for this action.",
+      "typesChanged": "The profiles no longer meet the opposite student-type requirement.",
+      "expired": "This invitation has expired. The list is being refreshed.",
+      "stale": "This invitation changed in another session. The list is being refreshed.",
+      "unavailable": "This invitation cannot be sent.",
+      "rateLimited": "Too many requests. Wait a moment before trying again.",
+      "verificationRequired": "Verify your current email and matching eligibility before continuing.",
+      "sessionExpired": "Your session ended. Sign in again to continue.",
+      "network": "The server could not be reached. Check your connection and try again.",
+      "validation": "The invitation details were not accepted. Review the message and try again.",
+      "generic": "The invitation could not be updated. Try again."
+    }
+  },
   "profileAvatar": {
     "title": "Profile photo",
     "help": "Choose a JPEG, PNG or WebP image up to 12 MiB and 32 megapixels. Crop and zoom it before an optimized 800 × 800 copy is securely validated and uploaded.",

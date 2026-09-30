@@ -11,6 +11,7 @@ import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeOwnProfile } from '@/test/profile'
+import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
 
 const user = {
@@ -61,6 +62,18 @@ describe('FE-038 profile readiness routing', () => {
     client.setQueryData(['profile', 'own'], completeOwnProfile)
     vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue({
       ...recommendationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readIncomingInvitations').mockResolvedValue({
+      ...incomingInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue({
+      ...sentInvitationList,
       items: [],
       total: 0,
       total_pages: 0,

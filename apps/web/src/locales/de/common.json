@@ -741,6 +741,90 @@
     "page": "Seite {{page}} von {{totalPages}}",
     "end": "Du hast das Ende der aktuellen Empfehlungen erreicht."
   },
+  "invitations": {
+    "title": "Einladungen",
+    "subtitle": "Prüfe erhaltene Einladungen und verwalte deine gesendeten Einladungen.",
+    "updating": "Einladungen werden aktualisiert…",
+    "retry": "Erneut versuchen",
+    "listErrorTitle": "Einladungen konnten nicht geladen werden",
+    "listError": "Wir konnten die aktuellen Einladungen nicht laden. Versuche es erneut, ohne diese Seite zu verlassen.",
+    "loadMore": "Mehr laden",
+    "loadingMore": "Weitere werden geladen…",
+    "end": "Du hast das Ende dieser Einladungsliste erreicht.",
+    "sentAt": "Gesendet am {{date}}",
+    "expiresAt": "Läuft ab am {{date}}",
+    "compatibilityUnavailable": "Die Kompatibilität ist nicht verfügbar, weil einem Profil aktuell Matching-Angaben fehlen.",
+    "profile": {
+      "typeUnavailable": "Studierendentyp derzeit nicht verfügbar"
+    },
+    "status": {
+      "PENDING": "Ausstehend",
+      "ACCEPTED": "Angenommen"
+    },
+    "recommendation": {
+      "send": "Einladung senden",
+      "sent": "Einladung gesendet",
+      "received": "Einladung erhalten"
+    },
+    "composer": {
+      "title": "{{name}} einladen",
+      "description": "Schreibe eine Nachricht als reinen Text. Die Einladung wird erst nach Bestätigung durch den Server erstellt.",
+      "messageLabel": "Einladungsnachricht",
+      "messageHelp": "Optionaler Klartext. Wiederholte Leerzeichen zählen als ein Trenner; der Server bleibt maßgeblich.",
+      "wordCount": "{{count}} / {{limit}} Wörter",
+      "codePointCount": "{{count}} / {{limit}} Zeichen",
+      "cancel": "Abbrechen",
+      "submit": "Einladung senden",
+      "sending": "Wird gesendet…",
+      "success": "Deine Einladung an {{name}} wurde gesendet."
+    },
+    "incoming": {
+      "title": "Eingegangene Einladungen",
+      "loading": "Eingegangene Einladungen werden geladen…",
+      "emptyTitle": "Keine aktuellen Einladungen",
+      "emptyDescription": "Du hast derzeit keine ausstehenden Einladungen.",
+      "messageTitle": "Einladungsnachricht",
+      "emptyMessage": "Es wurde keine Nachricht hinzugefügt."
+    },
+    "sent": {
+      "title": "Gesendete Einladungen",
+      "loading": "Gesendete Einladungen werden geladen…",
+      "emptyTitle": "Keine sichtbaren gesendeten Einladungen",
+      "emptyDescription": "Ausstehende und angenommene, nicht ausgeblendete Einladungen erscheinen hier.",
+      "acceptedHelp": "Diese Einladung wurde angenommen. Das Entfernen aus dieser Liste beendet weder eure Buddy-Beziehung noch löscht es die Unterhaltung."
+    },
+    "actions": {
+      "accept": "Annehmen",
+      "accepting": "Wird angenommen…",
+      "decline": "Ablehnen",
+      "declining": "Wird abgelehnt…",
+      "cancel": "Einladung zurückziehen",
+      "cancelling": "Wird zurückgezogen…",
+      "hide": "Aus Gesendet entfernen",
+      "hiding": "Wird entfernt…",
+      "startChatting": "Chat starten"
+    },
+    "errors": {
+      "messageTooManyWords": "Verwende höchstens 500 Wörter.",
+      "messageTooManyCodePoints": "Verwende höchstens 10.000 Unicode-Zeichen.",
+      "pendingLimit": "Du hast bereits 30 ausstehende Einladungen. Ziehe eine zurück oder warte auf eine Antwort.",
+      "pendingExists": "Zwischen diesen Profilen besteht bereits eine ausstehende Einladung.",
+      "activeRelationship": "Mit dieser Person besteht bereits eine aktive Buddy-Beziehung.",
+      "eligibilityChanged": "Deine Matching-Berechtigung hat sich geändert. Aktualisiere dein Profil und versuche es erneut.",
+      "recipientUnavailable": "Diese Person ist für eine neue Einladung nicht mehr verfügbar.",
+      "participantUnavailable": "Eine beteiligte Person ist für diese Aktion nicht mehr berechtigt.",
+      "typesChanged": "Die Profile erfüllen die Anforderung unterschiedlicher Studierendentypen nicht mehr.",
+      "expired": "Diese Einladung ist abgelaufen. Die Liste wird aktualisiert.",
+      "stale": "Diese Einladung wurde in einer anderen Sitzung geändert. Die Liste wird aktualisiert.",
+      "unavailable": "Diese Einladung kann nicht gesendet werden.",
+      "rateLimited": "Zu viele Anfragen. Warte einen Moment und versuche es erneut.",
+      "verificationRequired": "Bestätige deine aktuelle E-Mail-Adresse und Matching-Berechtigung, bevor du fortfährst.",
+      "sessionExpired": "Deine Sitzung ist beendet. Melde dich erneut an.",
+      "network": "Der Server ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.",
+      "validation": "Die Einladungsdaten wurden nicht akzeptiert. Prüfe die Nachricht und versuche es erneut.",
+      "generic": "Die Einladung konnte nicht aktualisiert werden. Versuche es erneut."
+    }
+  },
   "profileAvatar": {
     "title": "Profilfoto",
     "help": "Wähle ein JPEG-, PNG- oder WebP-Bild mit höchstens 12 MiB und 32 Megapixeln. Schneide es zu und zoome es, bevor eine optimierte Kopie mit 800 × 800 Pixeln sicher geprüft und hochgeladen wird.",
