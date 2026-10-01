@@ -86,6 +86,11 @@ describe('FE-022 student sidebar navigation', () => {
         name: i18n.t('userNavigation.matching'),
       })
       expect(matching).toHaveAttribute('href', '/user/matching')
+      const buddy = within(nav).getByRole('link', {
+        name: i18n.t('userNavigation.myBuddy'),
+      })
+      expect(buddy).toHaveAttribute('href', '/user/buddy')
+      expect(buddy).not.toHaveAttribute('aria-disabled')
       const settings = within(nav).getByRole('link', {
         name: i18n.t('userNavigation.settings'),
       })
@@ -98,6 +103,7 @@ describe('FE-022 student sidebar navigation', () => {
             link !== profile &&
             link !== editProfile &&
             link !== matching &&
+            link !== buddy &&
             link !== settings,
         )
         .forEach((link) => {
@@ -106,21 +112,26 @@ describe('FE-022 student sidebar navigation', () => {
           expect(link).not.toHaveAttribute('tabindex')
           expect(link).toHaveAccessibleDescription(i18n.t('userNavigation.unavailableHint'))
         })
-      expect(nav.querySelectorAll('a')).toHaveLength(5)
+      expect(nav.querySelectorAll('a')).toHaveLength(6)
       expect(nav).not.toHaveTextContent(/Calendar|Notifications|Admin|Campus|AI assistant/)
       expect(screen.getByRole('heading', { name: 'Fixture editor' })).toBeVisible()
     },
   )
 
-  it.each([
-    ['/user/buddy/details', 'My Buddy'],
-    ['/user/events/example', 'Events'],
-  ])('marks the current route %s without enabling an unfinished destination', (path, label) => {
-    renderNavigation(path)
+  it('marks nested Buddy routes on the released compatibility navigation link', () => {
+    renderNavigation('/user/buddy/details')
     const nav = screen.getByRole('navigation')
     const current = nav.querySelector('[aria-current="page"]')
-    expect(current).toHaveTextContent(label)
+    expect(current).toHaveTextContent('My Buddy')
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
+    expect(current).not.toHaveAttribute('aria-disabled')
+    expect(current).toHaveAttribute('href', '/user/buddy')
+  })
+
+  it('marks an unfinished nested Events route without enabling its destination', () => {
+    renderNavigation('/user/events/example')
+    const current = screen.getByRole('navigation').querySelector('[aria-current="page"]')
+    expect(current).toHaveTextContent('Events')
     expect(current).toHaveAttribute('aria-disabled', 'true')
     expect(current).not.toHaveAttribute('href')
   })
@@ -188,7 +199,7 @@ describe('FE-022 student sidebar navigation', () => {
       fireEvent.click(within(nav).getByRole('link', { name: i18n.t('userNavigation.events') }))
       expect(screen.getByRole('heading', { name: 'Fixture events' })).toBeVisible()
       expect(screen.getByTestId('location').textContent).toBe('/user/events')
-      expect(nav.querySelectorAll('a')).toHaveLength(6)
+      expect(nav.querySelectorAll('a')).toHaveLength(7)
     },
   )
 
@@ -202,17 +213,17 @@ describe('FE-022 student sidebar navigation', () => {
   })
 
   it('does not let an unavailable item receive focus or change the route', () => {
-    renderNavigation('/user/profile/edit', releasedItems)
+    renderNavigation('/user/profile/edit')
     const editProfile = screen.getByRole('link', { name: 'Edit Profile' })
     editProfile.focus()
-    const buddy = screen.getByRole('link', { name: /My Buddy/ })
-    buddy.focus()
+    const events = screen.getByRole('link', { name: /Events/ })
+    events.focus()
     expect(editProfile).toHaveFocus()
-    fireEvent.click(buddy)
+    fireEvent.click(events)
     expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit')
-    expect(buddy).toHaveAttribute('aria-disabled', 'true')
-    expect(buddy).not.toHaveAttribute('href')
-    expect(buddy).not.toHaveAttribute('aria-current')
+    expect(events).toHaveAttribute('aria-disabled', 'true')
+    expect(events).not.toHaveAttribute('href')
+    expect(events).not.toHaveAttribute('aria-current')
   })
 
   it('updates navigation labels and descriptions without replacing the current item', async () => {

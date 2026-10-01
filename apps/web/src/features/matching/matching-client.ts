@@ -1,4 +1,5 @@
 import { sessionClient } from '@/features/auth/session-client'
+import { parseCurrentBuddyList, type CurrentBuddyList } from '@/features/matching/current-buddy'
 import {
   incomingInvitationListSchema,
   invitationAcceptResponseSchema,
@@ -29,6 +30,7 @@ interface RecommendationRequest {
 }
 
 type InvitationListRequest = RecommendationRequest
+type CurrentBuddyListRequest = RecommendationRequest
 
 interface SendInvitationRequest {
   recipientProfileId: string
@@ -64,6 +66,21 @@ async function mutateInvitation(
 }
 
 const matchingClient = {
+  async readCurrentBuddies({
+    locale,
+    page,
+    pageSize,
+    signal,
+  }: CurrentBuddyListRequest): Promise<CurrentBuddyList> {
+    const search = new URLSearchParams({
+      locale,
+      page: String(page),
+      page_size: String(pageSize),
+    })
+    return parseCurrentBuddyList(
+      await sessionClient.authenticatedJson(`/matching/buddies?${search}`, { signal }),
+    )
+  },
   async readRecommendations({
     locale,
     page,
@@ -129,4 +146,9 @@ const matchingClient = {
 }
 
 export { matchingClient }
-export type { InvitationListRequest, RecommendationRequest, SendInvitationRequest }
+export type {
+  CurrentBuddyListRequest,
+  InvitationListRequest,
+  RecommendationRequest,
+  SendInvitationRequest,
+}

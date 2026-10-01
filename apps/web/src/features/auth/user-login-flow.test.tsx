@@ -7,12 +7,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
+import { matchingClient } from '@/features/matching/matching-client'
 import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { currentBuddyList } from '@/test/current-buddies'
+import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { completeOwnProfile, completeProfilePreferences } from '@/test/profile'
+import { recommendationList } from '@/test/recommendations'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -226,6 +230,33 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
   )
 
   it('returns a newly authenticated USER to the allowlisted email conversation target', async () => {
+    vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
+      ...currentBuddyList,
+      items: [
+        {
+          ...currentBuddyList.items[0],
+          conversation_id: conversationId,
+        },
+      ],
+    })
+    vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue({
+      ...recommendationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readIncomingInvitations').mockResolvedValue({
+      ...incomingInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue({
+      ...sentInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
     anonymousLogin(json({ user, csrf_token: 'session' }))
     renderApp({
       pathname: '/login',
@@ -234,11 +265,11 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
 
     submit()
 
-    expect(await screen.findByRole('heading', { name: 'My Buddy' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Current Buddies' })).toBeVisible()
     expect(location()).toEqual({
-      pathname: '/user/buddy',
+      pathname: '/user/matching',
       search: `?conversation=${conversationId}`,
-      hash: '',
+      hash: '#current-buddies',
       state: null,
     })
     expect(fetch).toHaveBeenCalledTimes(3)

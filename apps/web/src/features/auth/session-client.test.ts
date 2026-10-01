@@ -48,6 +48,7 @@ describe('AUTH-021 session coordination', () => {
     cache.setQueryData(['profile', user.id], { private: 'profile' })
     cache.setQueryData(['match', user.id], { private: 'match' })
     cache.setQueryData(['matching', 'recommendations', 'en', 1, 20], { private: 'ranking' })
+    cache.setQueryData(['matching', 'buddies', 'en'], { private: 'current buddies' })
     cache.setQueryData(['private-media', user.id], { private: 'media' })
     cache.setQueryData(['event-sliders', 'en'], ['public'])
   }
@@ -55,6 +56,7 @@ describe('AUTH-021 session coordination', () => {
     expect(cache.getQueryData(['profile', user.id])).toBeUndefined()
     expect(cache.getQueryData(['match', user.id])).toBeUndefined()
     expect(cache.getQueryData(['matching', 'recommendations', 'en', 1, 20])).toBeUndefined()
+    expect(cache.getQueryData(['matching', 'buddies', 'en'])).toBeUndefined()
     expect(cache.getQueryData(['private-media', user.id])).toBeUndefined()
     expect(cache.getQueryData(['event-sliders', 'en'])).toEqual(['public'])
   }

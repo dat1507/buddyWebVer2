@@ -8,6 +8,7 @@ import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { MatchingPage } from '@/pages/user/matching-page'
+import { currentBuddyList } from '@/test/current-buddies'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
@@ -33,6 +34,12 @@ describe('REC-004 Recommended Buddies page', () => {
     })
     vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue({
       ...sentInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
+      ...currentBuddyList,
       items: [],
       total: 0,
       total_pages: 0,
@@ -97,13 +104,15 @@ describe('REC-004 Recommended Buddies page', () => {
     renderPage()
 
     expect(screen.getByRole('heading', { name: 'Recommendations are locked' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Manage email verification' })).toHaveAttribute(
-      'href',
-      '/user/settings',
-    )
+    const verificationLinks = screen.getAllByRole('link', {
+      name: 'Manage email verification',
+    })
+    expect(verificationLinks).toHaveLength(2)
+    verificationLinks.forEach((link) => expect(link).toHaveAttribute('href', '/user/settings'))
     expect(read).not.toHaveBeenCalled()
     expect(matchingClient.readIncomingInvitations).not.toHaveBeenCalled()
     expect(matchingClient.readSentInvitations).not.toHaveBeenCalled()
+    expect(matchingClient.readCurrentBuddies).not.toHaveBeenCalled()
     expect(profileClient.readPhotoUrl).not.toHaveBeenCalled()
   })
 

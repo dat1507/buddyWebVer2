@@ -4,6 +4,7 @@ import type { ProfileReadinessRequirement } from '@/features/profile/profile-rea
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
+import { CurrentBuddyRoutePage } from '@/pages/user/current-buddy-route-page'
 import { MatchingPage } from '@/pages/user/matching-page'
 import { ProfilePage } from '@/pages/user/profile-page'
 import { ProfileEditPage } from '@/pages/user/profile-edit-page'
@@ -63,7 +64,7 @@ const userRoutes: readonly UserRoute[] = [
     kind: 'page',
     Component: MatchingPage,
   },
-  { path: 'buddy', title: 'My Buddy', kind: 'placeholder' },
+  { path: 'buddy', title: 'My Buddy', kind: 'page', Component: CurrentBuddyRoutePage },
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },
   { path: 'campus', title: 'Campus', kind: 'placeholder' },
   { path: 'events', title: 'Events', kind: 'placeholder' },

@@ -9,6 +9,7 @@ import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { MatchingPage } from '@/pages/user/matching-page'
+import { currentBuddyList } from '@/test/current-buddies'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { recommendationList } from '@/test/recommendations'
@@ -38,6 +39,12 @@ describe('INV-007 invitation UI', () => {
     vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue(recommendationList)
     vi.spyOn(matchingClient, 'readIncomingInvitations').mockResolvedValue(emptyIncoming)
     vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue(emptySent)
+    vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
+      ...currentBuddyList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
     vi.spyOn(profileClient, 'readPhotoUrl').mockResolvedValue({
       id: recommendationList.items[0].profile.avatar.id,
       url: 'https://media.example.test/invitation-avatar',

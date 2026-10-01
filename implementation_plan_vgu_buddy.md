@@ -6691,7 +6691,7 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Profile identity/completion | **Implemented foundation** | `StudentProfile`, `ProfilePhoto`, StudentType, interests/languages, availability, preferences, opt-in; backend-derived completion in `services/profile_completion.py` | Reuse profile, type, avatar, availability and opt-in. Update eligibility: VERIFIED required; remove the reservation rule. |
 | Custom preferences | **Missing / partial conflict** | Only predefined Interest and Language relations exist. Preferred activity IDs are stored inside profile JSON and validated against `Interest`, not an Activity catalog. No custom labels/normalization exist | Add Activity catalog/relation and profile-owned custom preference rows normalized by NFKC → trim → whitespace collapse → Unicode casefold. Do not create global catalog rows. |
 | Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
-| Matching frontend | **REC-004 read-only section implemented** | `/user/matching` now consumes the REC-003 recommendation API through a strict privacy-safe client contract and renders gated recommendations, structured compatibility, preferences, availability and complete loading/empty/error/pagination states. Invitation, Current Buddies and Admin matching sections remain unimplemented. | Reuse this read-only section in INV-007/BUDDY-003; only those later tasks may add their real actions and sections. `/user/buddy` remains reserved for BUDDY-003 route compatibility. |
+| Matching frontend | **REC-004, INV-007 and BUDDY-003 implemented** | `/user/matching` consumes the strict privacy-safe recommendation, invitation and Current Buddies contracts; renders their gated cards, compatibility, preferences, availability and complete loading/empty/error/pagination states; and keeps `/user/buddy` as a safe compatibility redirect/focus surface. Admin matching remains unimplemented. | Reuse these sections unchanged in later chat/Admin work. CHAT-004 may replace the conversation locator destination with the real authorized chat UI; it must not create a second Buddy relationship store. |
 | Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
 | Chat/realtime | **CHAT-001 persistence implemented; transport/UI pending** | Migration `0014_buddy_chat_persistence`, `BuddyConversation`/`BuddyMessage` and `services/buddy_chat.py` provide one conversation per ACTIVE Match, participant-guarded text messages, deterministic retention/order fields and backend-only grants. No chat API or WebSocket route exists yet; `websockets` remains only an indirect Uvicorn dependency. | Reuse PostgreSQL as message authority in CHAT-002, then add FastAPI WebSocket + Redis Pub/Sub in CHAT-003. Do not add Supabase Realtime. |
@@ -6857,7 +6857,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-008 (**Done 2026-10-01**) | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
 | INV-009 (**Done 2026-10-01**) | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
 | BUDDY-002 (**Done 2026-10-01**) | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
-| BUDDY-003 | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
+| BUDDY-003 (**Done 2026-10-01**) | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
 | CHAT-001 | Conversation/message persistence | BUDDY-001 | One conversation/Match; text messages and retention fields | Migration/model tests |
 | CHAT-002 | History/read/retention service | CHAT-001, AUTH-V2-001 | Participant-only reads; first-read retention formula | API/time/auth tests |
 | CHAT-003 | WebSocket + Redis realtime | CHAT-002, OPS-001 | Authenticated WSS, Redis Pub/Sub, reconnect recovery | Integration/multi-worker/security tests |
@@ -7580,6 +7580,28 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### BUDDY-003 — Current Buddies UI and route compatibility
 
+- **Status:** **Done 2026-10-01.** `/user/matching#current-buddies` now reads the owner-only
+  BUDDY-002 projection through a strict privacy-safe client contract and preserves server ordering
+  with bounded load-more pagination and duplicate suppression. Zero/one/many, initial loading,
+  refresh, empty, sanitized error/retry, end-of-results and VERIFIED-lock states are distinct.
+  Cards reuse the signed-avatar fallback, safe profile/preference/availability rendering and the
+  persisted compatibility explanation; they never recompute scoring or render contact/internal
+  fields. Active relationships remain visible to a verified USER when new matching is opted out.
+  Each Start Chatting link carries only its exact opaque conversation UUID on the approved
+  `/user/buddy?conversation=...` path. That route fail-closes malformed/additional state and
+  deterministically redirects to/focuses the canonical Current Buddies section, auto-loading later
+  pages when needed; the conversation locator never grants authorization. No Unmatch/End/Delete
+  relationship control or chat transport/history UI was added. Current Buddy queries remain under
+  the existing private `matching` cache root, are invalidated after invitation transitions and are
+  removed on logout/account switch.
+- **Verification:** BUDDY/matching/auth targeted tests pass (121), focused navigation/readiness
+  regressions pass (20), and the full frontend suite passes (641). Prettier, ESLint, strict
+  TypeScript, production Vite build and the production dependency audit (zero vulnerabilities)
+  pass. Browser smoke verified meaningful rendering, no Vite overlay/console error/horizontal
+  overflow, canonical protected deep-link preservation, malformed-link fail-closed behavior and
+  768 px/390 px layouts. Authenticated real-user card acceptance was not claimed because no browser
+  test account/session was available. No backend, schema, migration or dependency change was
+  required; Alembic head remains `0014_buddy_chat_persistence`.
 - **Purpose:** Present multiple relationships and preserve the existing navigation surface.
 - **Scope / likely files:** Current Buddies matching-page section; `/user/buddy` redirect/focus behavior; cards and Start Chatting action.
 - **Dependencies / ownership:** BUDDY-002, INV-007; Frontend.
@@ -7977,10 +7999,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `BUDDY-003 — Current Buddies UI and route compatibility`.** BUDDY-002 now provides the
-participant-authorized ACTIVE Buddy projection and exact conversation IDs. BUDDY-003 has completed
-`BUDDY-002` and `INV-007` dependencies and owns the multiple-card Current Buddies section plus
-`/user/buddy` route/focus behavior, without expanding into CHAT-002 history/read/retention APIs.
+**Next step: `CHAT-002 — Authorized history, send fallback and first-read retention`.** CHAT-001
+already provides the durable conversation/message foundation, and BUDDY-003 now provides the safe
+conversation locator/navigation surface without implementing chat APIs. CHAT-002 owns the
+participant-authorized REST history/send/read contract, idempotent send behavior, expired-row
+filtering and deterministic first-read retention; WebSocket transport and frontend chat remain
+deferred to CHAT-003/CHAT-004.
 
 ### 26.19 Documentation-change boundary
 

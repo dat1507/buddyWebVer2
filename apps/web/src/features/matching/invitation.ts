@@ -216,6 +216,7 @@ export {
   INVITATION_PAGE_SIZE,
   MAX_INVITATION_MESSAGE_CODE_POINTS,
   MAX_INVITATION_MESSAGE_WORDS,
+  invitationProfileSchema,
   invitationErrorKey,
   parseContract,
   validateInvitationMessage,

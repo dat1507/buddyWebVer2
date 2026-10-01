@@ -10,6 +10,7 @@ import { matchingClient } from '@/features/matching/matching-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
+import { currentBuddyList } from '@/test/current-buddies'
 import { completeOwnProfile } from '@/test/profile'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
@@ -74,6 +75,12 @@ describe('FE-038 profile readiness routing', () => {
     })
     vi.spyOn(matchingClient, 'readSentInvitations').mockResolvedValue({
       ...sentInvitationList,
+      items: [],
+      total: 0,
+      total_pages: 0,
+    })
+    vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
+      ...currentBuddyList,
       items: [],
       total: 0,
       total_pages: 0,

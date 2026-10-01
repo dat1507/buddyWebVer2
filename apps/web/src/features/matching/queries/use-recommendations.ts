@@ -5,6 +5,8 @@ import type { CatalogLocale } from '@/features/profile/profile-catalog'
 
 const matchingQueryKeys = {
   all: ['matching'] as const,
+  currentBuddiesRoot: ['matching', 'buddies'] as const,
+  currentBuddies: (locale: CatalogLocale) => ['matching', 'buddies', locale] as const,
   recommendationsRoot: ['matching', 'recommendations'] as const,
   recommendations: (locale: CatalogLocale, page: number, pageSize: number) =>
     ['matching', 'recommendations', locale, page, pageSize] as const,

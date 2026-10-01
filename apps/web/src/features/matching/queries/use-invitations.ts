@@ -86,6 +86,7 @@ function useInvitationReconciliation() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: matchingQueryKeys.invitations }),
       queryClient.invalidateQueries({ queryKey: matchingQueryKeys.recommendationsRoot }),
+      queryClient.invalidateQueries({ queryKey: matchingQueryKeys.currentBuddiesRoot }),
       ...(includeProfile
         ? [queryClient.invalidateQueries({ queryKey: profileQueryKeys.completion })]
         : []),

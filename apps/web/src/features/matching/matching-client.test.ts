@@ -2,10 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { sessionClient } from '@/features/auth/session-client'
 import { matchingClient } from '@/features/matching/matching-client'
+import { currentBuddyList } from '@/test/current-buddies'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
 
-describe('REC-004 / INV-007 matching client', () => {
+describe('REC-004 / INV-007 / BUDDY-003 matching client', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('calls only the read-only recommendation endpoint with bounded paging and locale', async () => {
@@ -25,6 +26,27 @@ describe('REC-004 / INV-007 matching client', () => {
 
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/matching/recommendations?locale=de&page=2&page_size=20',
+      { signal: controller.signal },
+    )
+    expect(authenticatedJson.mock.calls[0][1]).not.toHaveProperty('method')
+  })
+
+  it('reads the owner Current Buddies page without a mutation or client-side identity input', async () => {
+    const authenticatedJson = vi
+      .spyOn(sessionClient, 'authenticatedJson')
+      .mockResolvedValue(currentBuddyList)
+    const controller = new AbortController()
+
+    await expect(
+      matchingClient.readCurrentBuddies({
+        locale: 'de',
+        page: 2,
+        pageSize: 20,
+        signal: controller.signal,
+      }),
+    ).resolves.toEqual(currentBuddyList)
+    expect(authenticatedJson).toHaveBeenCalledWith(
+      '/matching/buddies?locale=de&page=2&page_size=20',
       { signal: controller.signal },
     )
     expect(authenticatedJson.mock.calls[0][1]).not.toHaveProperty('method')
