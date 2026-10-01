@@ -373,8 +373,9 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
 
         message_insert = (
             "INSERT INTO app_private.buddy_messages "
-            "(conversation_id, sender_id, body, created_at, expires_at) "
-            "VALUES (:conversation_id, :sender_id, :body, :created_at, :expires_at)"
+            "(conversation_id, sender_id, client_message_id, body, created_at, expires_at) "
+            "VALUES (:conversation_id, :sender_id, :client_message_id, :body, "
+            ":created_at, :expires_at)"
         )
         await _expect_integrity_error(
             engine,
@@ -382,6 +383,7 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             {
                 "conversation_id": first.id,
                 "sender_id": user_ids[3],
+                "client_message_id": uuid4(),
                 "body": "direct outsider write",
                 "created_at": NOW,
                 "expires_at": NOW + timedelta(days=90),
@@ -393,6 +395,7 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             {
                 "conversation_id": uuid4(),
                 "sender_id": user_ids[0],
+                "client_message_id": uuid4(),
                 "body": "unknown conversation",
                 "created_at": NOW,
                 "expires_at": NOW + timedelta(days=90),
@@ -404,6 +407,7 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             {
                 "conversation_id": first.id,
                 "sender_id": user_ids[0],
+                "client_message_id": uuid4(),
                 "body": "\t\n",
                 "created_at": NOW,
                 "expires_at": NOW + timedelta(days=90),
@@ -415,6 +419,7 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             {
                 "conversation_id": first.id,
                 "sender_id": user_ids[0],
+                "client_message_id": uuid4(),
                 "body": "x" * 10_001,
                 "created_at": NOW,
                 "expires_at": NOW + timedelta(days=90),
@@ -426,6 +431,7 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             {
                 "conversation_id": first.id,
                 "sender_id": user_ids[0],
+                "client_message_id": uuid4(),
                 "body": "wrong retention",
                 "created_at": NOW,
                 "expires_at": NOW + timedelta(days=89),
@@ -448,14 +454,16 @@ async def _assert_upgrade_concurrency_and_isolation(database_url: str) -> None:
             await connection.execute(
                 text(
                     "INSERT INTO app_private.buddy_messages "
-                    "(id, conversation_id, sender_id, body, created_at, expires_at) "
-                    "VALUES (:id, :conversation_id, :sender_id, :body, "
+                    "(id, conversation_id, sender_id, client_message_id, body, "
+                    "created_at, expires_at) "
+                    "VALUES (:id, :conversation_id, :sender_id, :client_message_id, :body, "
                     ":created_at, :expires_at)"
                 ),
                 {
                     "id": runtime_message_id,
                     "conversation_id": other_conversation.id,
                     "sender_id": user_ids[0],
+                    "client_message_id": runtime_message_id,
                     "body": "runtime trigger path",
                     "created_at": NOW,
                     "expires_at": NOW + timedelta(days=90),

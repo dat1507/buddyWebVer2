@@ -34,6 +34,7 @@ from app.core.rate_limits import (
     check_user_rate_limit,
     client_identifier,
     get_auth_rate_limiter,
+    is_rate_limited_endpoint,
     login_identifier,
 )
 from app.main import app
@@ -128,6 +129,38 @@ async def test_every_included_rate_limited_route_is_guarded_before_dependencies(
     ) as client:
         response = await client.request(method, path, json={})
     assert response.status_code == 429
+
+
+def test_dynamic_chat_send_is_rate_limited_without_matching_read_ack() -> None:
+    conversation_id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+
+    assert is_rate_limited_endpoint("POST", f"/api/chat/conversations/{conversation_id}/messages")
+    assert is_rate_limited_endpoint("POST", f"/api/chat/conversations/{conversation_id}/messages/")
+    assert not is_rate_limited_endpoint(
+        "GET", f"/api/chat/conversations/{conversation_id}/messages"
+    )
+    assert not is_rate_limited_endpoint(
+        "POST", f"/api/chat/conversations/{conversation_id}/messages/read"
+    )
+
+
+@pytest.mark.anyio
+async def test_dynamic_chat_send_is_ip_gated_before_route_dependencies() -> None:
+    limiter = get_auth_rate_limiter()
+    for _ in range(120):
+        await limiter.check_ip("127.0.0.1")
+    conversation_id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.post(
+            f"/api/chat/conversations/{conversation_id}/messages",
+            json={},
+        )
+
+    assert response.status_code == 429
+    assert response.headers["cache-control"] == "no-store"
 
 
 @pytest.mark.anyio

@@ -50,6 +50,7 @@ def test_chat_models_have_no_speculative_edit_delete_or_version_state() -> None:
         "id",
         "conversation_id",
         "sender_id",
+        "client_message_id",
         "body",
         "created_at",
         "read_at",
@@ -74,6 +75,7 @@ def test_message_model_validates_body_and_timezone_assignments() -> None:
     message = BuddyMessage(
         conversation_id=uuid4(),
         sender_id=uuid4(),
+        client_message_id=uuid4(),
         body="Hello Buddy",
         created_at=created_at,
         expires_at=created_at + timedelta(days=90),
@@ -115,6 +117,11 @@ def test_postgresql_ddl_enforces_match_sender_retention_and_query_indexes() -> N
         for constraint in conversation_table.constraints
         if isinstance(constraint, UniqueConstraint)
     }
+    message_uniques = {
+        str(constraint.name)
+        for constraint in message_table.constraints
+        if isinstance(constraint, UniqueConstraint)
+    }
 
     assert conversation_table.schema == "app_private"
     assert message_table.schema == "app_private"
@@ -129,6 +136,8 @@ def test_postgresql_ddl_enforces_match_sender_retention_and_query_indexes() -> N
     assert "char_length(body) <= 10000" in message_ddl
     assert "expires_at = created_at + interval '90 days'" in message_ddl
     assert "read_at + interval '30 days'" in message_ddl
+    assert "uq_buddy_messages_sender_id_client_message_id" in message_uniques
+    assert "unique (sender_id, client_message_id)" in message_ddl
     assert set(message_fks) == {
         "fk_buddy_messages_conversation_id_buddy_conversations",
         "fk_buddy_messages_sender_id_users",

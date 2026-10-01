@@ -51,6 +51,7 @@ AUTH_ENDPOINTS = frozenset(
 RECOMMENDATION_ENDPOINTS = frozenset({("GET", "/api/matching/recommendations")})
 INVITATION_ENDPOINTS = frozenset({("POST", "/api/matching/invitations")})
 RATE_LIMITED_ENDPOINTS = AUTH_ENDPOINTS | RECOMMENDATION_ENDPOINTS | INVITATION_ENDPOINTS
+_CHAT_SEND_PATH = re.compile(r"^/api/chat/conversations/[^/]+/messages$")
 _NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}
 _T = TypeVar("_T")
 
@@ -225,6 +226,14 @@ async def check_user_rate_limit(request: Request, user: User) -> None:
     await limiter.check_user(user)
 
 
+def is_rate_limited_endpoint(method: str, path: str) -> bool:
+    """Include fixed routes and the dynamic CHAT-002 send fallback path."""
+    normalized_path = path.rstrip("/")
+    return (method, normalized_path) in RATE_LIMITED_ENDPOINTS or (
+        method == "POST" and _CHAT_SEND_PATH.fullmatch(normalized_path) is not None
+    )
+
+
 class AuthRateLimitMiddleware:
     """Limit scoped auth traffic before body validation, CSRF, bcrypt or database work."""
 
@@ -239,7 +248,7 @@ class AuthRateLimitMiddleware:
         root_path = scope.get("root_path", "")
         if root_path and path.startswith(f"{root_path}/"):
             path = path[len(root_path) :]
-        if (scope["method"], path.rstrip("/")) not in RATE_LIMITED_ENDPOINTS:
+        if not is_rate_limited_endpoint(scope["method"], path):
             await self.app(scope, receive, send)
             return
         request = Request(scope)

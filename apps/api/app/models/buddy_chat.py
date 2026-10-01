@@ -6,7 +6,16 @@ from datetime import datetime, timedelta
 from typing import Final
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Text, Uuid, text
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Text,
+    UniqueConstraint,
+    Uuid,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from app.core.database import APPLICATION_SCHEMA
@@ -80,6 +89,11 @@ class BuddyMessage(Base):
             "created_at + INTERVAL '90 days'))",
             name="ck_buddy_messages_retention_timestamps",
         ),
+        UniqueConstraint(
+            "sender_id",
+            "client_message_id",
+            name="uq_buddy_messages_sender_id_client_message_id",
+        ),
         Index(
             "ix_buddy_messages_conversation_created_at_id",
             "conversation_id",
@@ -108,6 +122,9 @@ class BuddyMessage(Base):
         ForeignKey(f"{APPLICATION_SCHEMA}.users.id", ondelete="CASCADE"),
         nullable=False,
     )
+    # Client-generated retry identity. The authenticated sender is always derived
+    # by the backend; this value is never an authorization input.
+    client_message_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

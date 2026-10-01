@@ -6694,7 +6694,7 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Matching frontend | **REC-004, INV-007 and BUDDY-003 implemented** | `/user/matching` consumes the strict privacy-safe recommendation, invitation and Current Buddies contracts; renders their gated cards, compatibility, preferences, availability and complete loading/empty/error/pagination states; and keeps `/user/buddy` as a safe compatibility redirect/focus surface. Admin matching remains unimplemented. | Reuse these sections unchanged in later chat/Admin work. CHAT-004 may replace the conversation locator destination with the real authorized chat UI; it must not create a second Buddy relationship store. |
 | Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
-| Chat/realtime | **CHAT-001 persistence implemented; transport/UI pending** | Migration `0014_buddy_chat_persistence`, `BuddyConversation`/`BuddyMessage` and `services/buddy_chat.py` provide one conversation per ACTIVE Match, participant-guarded text messages, deterministic retention/order fields and backend-only grants. No chat API or WebSocket route exists yet; `websockets` remains only an indirect Uvicorn dependency. | Reuse PostgreSQL as message authority in CHAT-002, then add FastAPI WebSocket + Redis Pub/Sub in CHAT-003. Do not add Supabase Realtime. |
+| Chat/realtime | **CHAT-001 persistence and CHAT-002 authorized HTTP recovery implemented; realtime/UI pending** | Migrations `0014_buddy_chat_persistence`/`0015_chat_send_idempotency`, `BuddyConversation`/`BuddyMessage`, `services/buddy_chat.py` and `/api/chat/conversations/{conversation_id}/messages` provide participant-authorized bounded history, idempotent fallback send, effective-expiry filtering and atomic first-read retention. No WebSocket route exists yet; `websockets` remains only an indirect Uvicorn dependency. | Reuse PostgreSQL as message authority and the HTTP recovery contract in CHAT-003, then add FastAPI WebSocket + Redis Pub/Sub. Do not add Supabase Realtime. |
 | Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
 | Background work | **Implemented; deployed mail schedule accepted** | `python -m app.cli email-worker` is retained for local/debug/manual fallback; the deployed Edge worker and single Cron job reuse the same PostgreSQL leases, retry and idempotency contract | Production schedules only the bounded Edge worker once per minute with Supabase Cron. OPS-002 evidence confirms Python did not run in parallel. Disable/unschedule Cron before manually starting the fallback. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
@@ -6770,7 +6770,7 @@ The mail transport contract is fixed as follows:
 | `matching_invitations` | Required fields from V2; store a canonical outer-trimmed plain-text `message`, `status`, 7-day `expires_at`, response/cancel/hide timestamps. Valid message has at most 500 maximal non-whitespace runs and at most 10,000 Unicode code points; backend enforces both and the canonical stored column has a defensive 10,000-character/code-point-equivalent PostgreSQL check. Store canonical pair keys or equivalent for reciprocal-PENDING protection. Partial unique index/constraint prevents more than one PENDING invitation per unordered pair. |
 | `matches` | `id`, two participant user/profile IDs, canonical `pair_low_user_id`/`pair_high_user_id`, `status=ACTIVE`, accepted invitation ID, score/breakdown snapshot, `activated_at`, semester ID. Service transaction verifies opposite student types at activation. Partial unique index allows at most one ACTIVE row per unordered pair; no uniqueness per participant. The existence of any ACTIVE row for a USER prevents future changes to that USER's `student_type`; no existing Match is rewritten. |
 | `buddy_conversations` | Exactly one row per ACTIVE Match (`match_id` unique), timestamps/semester ID. |
-| `buddy_messages` | `id`, `match_id` or conversation ID, sender USER, plain body, created/read/expires timestamps. Initial expiry = created+90d; first recipient read atomically sets `read_at` and `expires_at=min(read+30d, created+90d)`. |
+| `buddy_messages` | `id`, conversation ID, sender USER, sender-scoped `client_message_id`, plain body, created/read/expires timestamps. Unique `(sender_id, client_message_id)` provides durable retry identity. Initial expiry = created+90d; first recipient read atomically sets `read_at` and `expires_at=min(read+30d, created+90d)`. |
 | `semesters` | Persisted cohort/reset boundary: ID, status, started/closed timestamps, reset operation ID, and a monotonic `student_accounts_created`/`first_student_created_at` marker updated in the same locked registration transaction and never decremented. Every new USER is also stamped with current semester/cohort ID. Restore blocking therefore survives later deletion of that new USER. |
 | `semester_backups` | ID, source semester/boundary, state (`CREATING`,`READY`,`RESTORE_BLOCKED_NEW_DATA`,`EXPIRED`,`FAILED`), private DB/avatar manifest locations/checksums/counts, created/verified/expires/restored metadata. |
 | `semester_operations` | Operation ID, type/reset/restore state, Admin actor, request/start/complete timestamps, backup ID/status/expiry, counts/result/restore actor/time. Must remain after USER deletion. |
@@ -6788,7 +6788,7 @@ All unsafe HTTP endpoints require authenticated session CSRF; all Buddy endpoint
 | Recommendations | `GET /api/matching/recommendations` returns paginated safe profiles, server score/explanation and availability; no email |
 | Invitations | `POST /api/matching/invitations` trims leading/trailing whitespace, then validates `message`: words are maximal non-whitespace runs, maximum 500; the trimmed value is maximum 10,000 Unicode code points. Either overflow is rejected with a distinct stable validation reason. The request/OpenAPI schema documents both algorithms and boundary fixtures; JavaScript must count code points rather than UTF-16 code units. `GET .../incoming`; `GET .../sent`; `POST .../{id}/accept`; `.../decline`; `.../cancel`; `DELETE .../{id}` means hide accepted sender row only. All message values remain plain text. |
 | Current Buddies | `GET /api/matching/buddies`; no user unmatch/end/delete relationship endpoint |
-| Chat | `GET /api/chat/conversations/{match_id}/messages`, `POST` fallback send if retained, `POST .../read`; `WS /api/ws/chat/{match_id}` with authenticated origin-checked handshake |
+| Chat | `GET /api/chat/conversations/{conversation_id}/messages`, `POST /api/chat/conversations/{conversation_id}/messages` fallback send, `POST /api/chat/conversations/{conversation_id}/messages/read`; planned realtime transport remains `WS /api/ws/chat/{conversation_id}` with authenticated origin-checked handshake |
 | Admin monitoring | `GET /api/admin/matching/stats`, participant/buddy-count/zero-Buddy paginated reads with safe projection; no run/publish/override/respond endpoints |
 | Semester management | preflight/counts, create reset request, confirm/re-auth and execute, list/get backups, restore, backup expiry/cleanup operations; destructive actions use CSRF, ADMIN, recent re-auth, operation idempotency and audit |
 
@@ -6859,7 +6859,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | BUDDY-002 (**Done 2026-10-01**) | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
 | BUDDY-003 (**Done 2026-10-01**) | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
 | CHAT-001 | Conversation/message persistence | BUDDY-001 | One conversation/Match; text messages and retention fields | Migration/model tests |
-| CHAT-002 | History/read/retention service | CHAT-001, AUTH-V2-001 | Participant-only reads; first-read retention formula | API/time/auth tests |
+| CHAT-002 (**Done 2026-10-01**) | History/read/retention service | CHAT-001, AUTH-V2-001 | Participant-only cursor history; idempotent send; atomic first-read retention formula | API/time/auth/PostgreSQL race tests |
 | CHAT-003 | WebSocket + Redis realtime | CHAT-002, OPS-001 | Authenticated WSS, Redis Pub/Sub, reconnect recovery | Integration/multi-worker/security tests |
 | CHAT-004 | Text chat frontend | CHAT-003, BUDDY-003 | History/send/receive/read/reconnect; safe text rendering | UI/e2e/a11y tests |
 | CHAT-005 | Message cleanup job | CHAT-002, OPS-001 | Hard-delete expired; API never returns expired | Clock/job/idempotency tests |
@@ -7656,6 +7656,34 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### CHAT-002 — Authorized history, send fallback and first-read retention
 
+- **Status:** **DONE — 2026-10-01.** The exact API contract uses opaque `conversation_id`
+  locators for `GET/POST /api/chat/conversations/{conversation_id}/messages` and
+  `POST /api/chat/conversations/{conversation_id}/messages/read`; every operation re-derives the
+  current VERIFIED USER's participation in the exact ACTIVE Match.
+- **Implementation:** History uses a server-issued opaque `before` cursor over the complete
+  `(created_at, id)` tuple, fetches the newest window/default 50/max 100 and returns each page in
+  chronological order. Every read filters `expires_at <= server_now` before cleanup. HTTP send
+  derives its sender from the authenticated principal, reuses the CHAT-001 plain-text/nonblank/
+  10,000-code-point contract, and is protected by the shared CSRF and per-user/IP rate-limit
+  infrastructure. Migration `0015_chat_send_idempotency` adds only `client_message_id`, backfills
+  legacy rows from their server ID and enforces unique `(sender_id, client_message_id)`; an exact
+  conversation/body replay returns the same row while mismatched reuse returns sanitized `409`.
+- **First-read retention:** The explicit `through_message_id` acknowledgement performs one
+  conditional PostgreSQL `UPDATE` of only unread, non-expired incoming rows at or before the
+  authorized `(created_at, id)` boundary. It writes the first server timestamp once and sets
+  `expires_at=LEAST(existing_expires_at, read_at+30d)`, which is equivalent to the confirmed
+  `min(read+30d, created+90d)` invariant and can never extend retention. Sender-owned or newer
+  messages are not marked read.
+- **Security/verification:** Responses expose only opaque message ID, `self|buddy`, plain body and
+  created/read timestamps; they exclude User IDs, email, Match/invitation/schema fields,
+  idempotency keys and retention internals. IDOR/missing/inactive paths are sanitized and private
+  responses are `private, no-store`. Isolated PostgreSQL acceptance proves concurrent first-read,
+  repeated-read immutability, 30/90-day cap, concurrent idempotent send, mismatch conflicts,
+  same-timestamp ordering, effective expiry, A-B/A-C isolation, outsider denial, least-privilege
+  grant, migration backfill, upgrade/downgrade/re-upgrade and autogenerate drift. Relevant
+  CHAT/BUDDY/auth regression and the full backend suite pass; Ruff, strict mypy, package build,
+  pip check/audit, Alembic graph and Docker Compose validation pass. WebSocket/Redis realtime,
+  frontend chat and physical cleanup remain owned by CHAT-003/004/005.
 - **Purpose:** Make PostgreSQL the complete recoverable chat authority.
 - **Scope / likely files:** chat schemas/services/HTTP routes, cursor pagination, send/read transactions and retention helper.
 - **Dependencies / ownership:** CHAT-001, AUTH-V2-001; Backend.
@@ -7999,12 +8027,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `CHAT-002 — Authorized history, send fallback and first-read retention`.** CHAT-001
-already provides the durable conversation/message foundation, and BUDDY-003 now provides the safe
-conversation locator/navigation surface without implementing chat APIs. CHAT-002 owns the
-participant-authorized REST history/send/read contract, idempotent send behavior, expired-row
-filtering and deterministic first-read retention; WebSocket transport and frontend chat remain
-deferred to CHAT-003/CHAT-004.
+**Next step: `CHAT-003 — Authenticated FastAPI WebSocket and Redis Pub/Sub`.** CHAT-002 now
+provides the participant-authorized PostgreSQL recovery/history, HTTP fallback send, durable
+idempotency and first-read retention contract. CHAT-003 must reuse those services and PostgreSQL as
+authority while adding authenticated origin-checked WebSocket delivery and multi-worker Redis
+Pub/Sub; frontend chat remains deferred to CHAT-004 and physical expiry cleanup to CHAT-005.
 
 ### 26.19 Documentation-change boundary
 
