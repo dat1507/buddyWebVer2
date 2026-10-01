@@ -262,6 +262,76 @@
       "upcomingEvents": "Upcoming Events"
     }
   },
+  "adminMatching": {
+    "title": "Matching monitoring",
+    "description": "Monitor Buddy Program participation, invitations, and active Buddy relationships.",
+    "readOnly": "This view is read-only. Matching and invitation actions are not available here.",
+    "retry": "Try again",
+    "unnamed": "Unnamed participant",
+    "notShared": "Not shared",
+    "majorNotShared": "Major not shared",
+    "viewDetails": "View details for {{name}}",
+    "privacyNotice": "Only the matching-safe participant profile is shown. Account, authentication, message, and storage details are excluded.",
+    "status": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "studentTypes": {
+      "VIETNAMESE": "Vietnamese student",
+      "INTERNATIONAL": "International student"
+    },
+    "statistics": {
+      "title": "Matching statistics",
+      "loading": "Loading matching statistics…",
+      "updating": "Updating statistics…",
+      "error": "Matching statistics could not be loaded.",
+      "participants": "Participants",
+      "verified": "Verified participants",
+      "activeMatches": "Active matches",
+      "zeroBuddies": "Participants with zero Buddies",
+      "invitations": "Invitations by state"
+    },
+    "invitationStates": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    },
+    "participants": {
+      "title": "Matching participants",
+      "caption": "Matching participant monitoring",
+      "loading": "Loading participants…",
+      "updating": "Updating participant results…",
+      "error": "Matching participants could not be loaded.",
+      "empty": "No matching participants meet these filters."
+    },
+    "filters": {
+      "studentType": "Participation type",
+      "verification": "Email verification",
+      "all": "All",
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "zeroBuddies": "Only participants with zero Buddies",
+      "reset": "Reset filters"
+    },
+    "columns": {
+      "name": "Participant",
+      "studentType": "Participation type",
+      "active": "Active profile",
+      "verified": "Email verified",
+      "optIn": "Matching enabled",
+      "buddies": "Active Buddies",
+      "details": "Profile details"
+    },
+    "detail": {
+      "title": "Participant matching profile",
+      "description": "Current profile and preference information available to the matching domain.",
+      "close": "Close participant details",
+      "loading": "Loading participant details…",
+      "error": "Participant details could not be loaded."
+    }
+  },
   "adminNavigation": {
     "label": "Administrator navigation",
     "scaffoldHint": "Module pages are under development.",

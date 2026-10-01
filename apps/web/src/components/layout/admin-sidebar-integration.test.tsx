@@ -21,7 +21,6 @@ const json = (value: unknown, status = 200) => new Response(JSON.stringify(value
 const modules = [
   ['Overview', 'dashboard', 'Admin overview'],
   ['Users', 'users', 'User management'],
-  ['Matching', 'matching', 'Matching management'],
   ['Events', 'events', 'Event management'],
   ['Event Sliders', 'event-sliders', 'Event sliders'],
   ['Announcements', 'announcements', 'Announcements'],
@@ -96,6 +95,43 @@ describe('ADMIN-002 guarded App navigation', () => {
       expect(fetch).not.toHaveBeenCalled()
     },
   )
+
+  it('opens the delivered read-only Matching monitoring page', async () => {
+    fetch.mockImplementation(async (url) => {
+      if (String(url).endsWith('/admin/matching/stats')) {
+        return json({
+          participant_count: 0,
+          verified_participant_count: 0,
+          active_match_count: 0,
+          zero_buddy_participant_count: 0,
+          invitations: { pending: 0, accepted: 0, declined: 0, cancelled: 0, expired: 0 },
+        })
+      }
+      if (String(url).includes('/admin/matching/participants?')) {
+        return json({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 })
+      }
+      return json({}, 404)
+    })
+    useAuthStore.getState().setAuthenticated(admin)
+    renderApp('/admin/settings')
+    const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
+    fireEvent.click(within(nav).getByRole('link', { name: 'Matching' }))
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Matching monitoring' }),
+    ).toBeVisible()
+    expect(screen.getByTestId('location').textContent).toBe('/admin/matching')
+    expect(within(nav).getByRole('link', { name: 'Matching' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    await waitFor(() => expect(fetch.mock.calls.length).toBeGreaterThanOrEqual(2))
+    expect(new Set(fetch.mock.calls.map(([url]) => String(url).replace(/\?.*$/, '')))).toEqual(
+      new Set([
+        'http://localhost:8000/api/admin/matching/stats',
+        'http://localhost:8000/api/admin/matching/participants',
+      ]),
+    )
+  })
 
   it('translates the menu with the actual language toggle while preserving route and session', async () => {
     useAuthStore.getState().setAuthenticated(admin)

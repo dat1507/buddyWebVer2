@@ -6691,14 +6691,14 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Profile identity/completion | **Implemented foundation** | `StudentProfile`, `ProfilePhoto`, StudentType, interests/languages, availability, preferences, opt-in; backend-derived completion in `services/profile_completion.py` | Reuse profile, type, avatar, availability and opt-in. Update eligibility: VERIFIED required; remove the reservation rule. |
 | Custom preferences | **Missing / partial conflict** | Only predefined Interest and Language relations exist. Preferred activity IDs are stored inside profile JSON and validated against `Interest`, not an Activity catalog. No custom labels/normalization exist | Add Activity catalog/relation and profile-owned custom preference rows normalized by NFKC → trim → whitespace collapse → Unicode casefold. Do not create global catalog rows. |
 | Matching persistence/algorithm/APIs | **Missing** | No Match/MatchingRun/Invitation model, migration, service or router is imported by `models/__init__.py` or `main.py`; `count_active_match_reservations()` is an explicit stub returning 0 | Nothing from old matching is implemented. Build V2 directly; do not first implement the superseded greedy/Admin pipeline. |
-| Matching frontend | **REC-004, INV-007, BUDDY-003 and CHAT-004 implemented** | `/user/matching` consumes the strict privacy-safe recommendation, invitation and Current Buddies contracts; `/user/buddy?conversation=<UUID>` now uses the existing safe locator for the authorized text-chat UI. Admin matching remains unimplemented. | Reuse these sections unchanged in later Admin work; the chat UI does not create a second Buddy relationship or message store. |
+| Matching frontend | **REC-004, INV-007, BUDDY-003, CHAT-004 and ADMIN-V2-002 implemented** | `/user/matching` consumes the strict privacy-safe recommendation, invitation and Current Buddies contracts; `/user/buddy?conversation=<UUID>` uses the authorized text-chat UI; `/admin/matching` now provides read-only aggregate, participant and safe-detail monitoring over the ADMIN-V2-001 APIs. | Reuse these sections unchanged in Semester work; neither the chat nor Admin UI creates or mutates a Buddy relationship or invitation. |
 | Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
 | Chat/realtime | **CHAT-001..005 persistence, HTTP recovery, authenticated realtime, accessible frontend and expired-message cleanup implemented** | Migrations `0014_buddy_chat_persistence`/`0015_chat_send_idempotency` provide authoritative chat storage and send idempotency; `0016_chat_message_cleanup` adds the bounded least-privilege cleanup function. CHAT-002 REST recovery, `WS /api/ws/chat/{conversation_id}`, the `/user/buddy` UI and the cleanup CLI cover participant-authorized history, cursor pagination, idempotent send, first-read retention, multi-worker fan-out/reconciliation and physical expiry enforcement. PostgreSQL remains authoritative. | Reuse these contracts in ADMIN/Semester work; Redis/WebSocket remain delivery-only, the frontend stores no durable message archive and the deployment scheduler invokes only the documented cleanup command. |
 | Redis | **Implemented foundation + CHAT-003 Pub/Sub** | Auth rate limits retain their Redis backend; Docker Compose supplies loopback-only Redis; the server-only async boundary enforces environment prefixes/production `rediss://`; CHAT-003 adds conversation-isolated ID-only Pub/Sub with bounded socket consumption and distributed retry dedupe. | Redis remains ephemeral fan-out, never durable chat history. Reuse the shared pool/TLS configuration for later coordination. |
 | Background work | **Implemented; deployed mail schedule accepted** | `python -m app.cli email-worker` is retained for local/debug/manual fallback; the deployed Edge worker and single Cron job reuse the same PostgreSQL leases, retry and idempotency contract | Production schedules only the bounded Edge worker once per minute with Supabase Cron. OPS-002 evidence confirms Python did not run in parallel. Disable/unschedule Cron before manually starting the fallback. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
-| Admin auth/user views/audit | **ADMIN-V2-001 monitoring APIs implemented; UI/reset work remains** | Admin CLI, persisted-role protection, `/api/admin/users`, audited detail/photo reads and the read-only `/api/admin/matching/stats` plus bounded participant list/detail APIs exist. Matching detail reads are audited; matching-safe DTOs omit email, User identity and communication content. Audit log remains append-only and Admin-linked with `ON DELETE RESTRICT`. | Reuse RBAC, safe projections, fixed-query aggregates and redaction in ADMIN-V2-002. Semester reset still needs its dedicated operation audit that survives student deletion. |
+| Admin auth/user views/audit | **ADMIN-V2-001/002 matching monitoring implemented; reset work remains** | Admin CLI, persisted-role protection, `/api/admin/users`, audited detail/photo reads and the read-only matching monitoring APIs/UI exist. Matching detail reads are audited; matching-safe DTOs and the private-cache UI omit email, User identity and communication content. Audit log remains append-only and Admin-linked with `ON DELETE RESTRICT`. | Reuse RBAC, safe projections, fixed-query aggregates, redaction and session cache clearing in Semester work. Semester reset still needs its dedicated operation audit that survives student deletion. |
 | Frontend deployment | **Partial** | Vite production build passes; `apps/web/vercel.json` supplies SPA rewrite and basic security headers; `VITE_API_URL` exists | Vercel Root Directory must be `apps/web`; validate HTTPS, exact API URL and deep links on staging. Current separate-site cookies need a verified same-site topology. |
 | Backend/DB deployment | **Staging foundation accepted; production pending** | FastAPI staging, separated runtime/migration roles, migration `0010`, DB/Redis/email/storage readiness, WSS upgrade and trusted proxy gates are recorded in OPS-002 evidence | Keep the accepted staging topology. OPS-003 supplies rollback/recovery; production still requires the later V2 and ACCEPT-001 gates. |
 | Observability/operations | **OPS-003 DONE — 2026-09-26** | Fixed-field API/Edge JSON logs, sanitized Cron/outbox SQL and `docs/operations/ops-003-*` cover alerting, rollback, migration/email/Redis/backup recovery, rotation and primary/backup alert-routing acceptance | Preserve the redacted evidence boundary; continue to monitor the accepted staging routes. |
@@ -6864,7 +6864,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | CHAT-004 (**Done 2026-10-01**) | Text chat frontend | CHAT-003, BUDDY-003 | History/send/receive/read/reconnect; safe text rendering | UI/e2e/a11y tests |
 | CHAT-005 (**Done 2026-10-01**) | Message cleanup job | CHAT-002, OPS-001 | Hard-delete expired; API never returns expired | Clock/job/idempotency tests |
 | ADMIN-V2-001 (**Done 2026-10-01**) | Monitoring APIs | INV-006, BUDDY-002 | Counts by invitation state, Buddy counts, zero-Buddy users | RBAC/aggregate/privacy tests |
-| ADMIN-V2-002 | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
+| ADMIN-V2-002 (**Done 2026-10-02**) | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
 | SEM-001 | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
 | SEM-002 | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
 | SEM-003 | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
@@ -7793,6 +7793,26 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### ADMIN-V2-002 — Monitoring-only Admin Matching UI
 
+- **Status:** **DONE 2026-10-02.** `/admin/matching` now replaces the placeholder with a responsive,
+  localized read-only monitoring page. Independent private queries load aggregate participant,
+  verification, ACTIVE Match, zero-Buddy and effective invitation-state totals in parallel with the
+  bounded participant page. The table delegates page/page-size and only the backend-supported
+  `student_type`, `verified` and `zero_buddies_only` filters to ADMIN-V2-001. Audited participant
+  detail renders only the matching-safe current profile, preferences, availability and operational
+  flags. Loading, updating, empty, sanitized error/retry and end-of-page states are explicit.
+- **Security / privacy:** the route reuses the authoritative ADMIN guard; USER access is denied before
+  a monitoring query runs. Strict response schemas reject extra/internal fields. Every query is
+  marked private under the session-cleared cache namespace; logout and account/role changes remove
+  it. No Run, Preview, Publish, Override, invitation, matching or other mutation control/route was
+  introduced, and no email, User/auth/session/message/storage data is rendered.
+- **Verification:** dedicated API-contract/page/DataTable tests passed (`30 passed`); the relevant
+  Admin/auth/layout regression set passed (`106 passed`). The full frontend suite passed
+  (`669 passed`, 68 files, two workers) after an unrelated avatar timing test that failed once under
+  the first high-concurrency run passed alone and in the final full run. Prettier, ESLint, strict
+  TypeScript, production build and production dependency audit (zero vulnerabilities) passed.
+  Browser smoke confirmed the local deep link loads and unauthenticated access redirects to
+  `/adminLogin`; authenticated browser data-view acceptance was not claimed because no provisioned
+  ADMIN browser session/credentials were available. No backend or database change was required.
 - **Purpose:** Replace placeholder/old controls with accurate monitoring.
 - **Scope / likely files:** `/admin/matching` page, stats/cards/tables/filters/locales using existing AdminLayout/DataTable.
 - **Dependencies / ownership:** ADMIN-V2-001, ADMIN-003/004; Frontend.
@@ -8082,15 +8102,14 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | CHAT-001..005 and ADMIN-V2-001 monitoring APIs are code-complete with automated gates; authenticated two-participant browser acceptance plus the remaining Admin UI/Semester/full vertical flows are still outstanding. |
-| **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
+| **LOCAL** | **NOT READY (V2)** | CHAT-001..005 and ADMIN-V2-001/002 monitoring are code-complete with automated gates; authenticated two-participant browser acceptance plus Semester/reset/full vertical flows are still outstanding. |
+| **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `ADMIN-V2-002 — Monitoring-only Admin Matching UI`.** ADMIN-V2-001 now provides
-ADMIN-authorized aggregate stats, deterministic participant/Buddy-count pages and audited safe
-participant detail without any decision or mutation route. ADMIN-V2-002 can replace the Matching
-placeholder with loading/empty/error states and filters over these exact privacy-safe contracts;
-Run/Preview/Publish/Override/respond controls remain prohibited.
+**Next step: `SEM-001 — Semester boundary, operation and backup metadata`.** ADMIN-V2-002 is now
+complete over the existing read-only monitoring APIs without decision or mutation controls. SEM-001
+is the next unfinished task in dependency order and owns the persisted cohort boundary plus durable
+reset/restore operation and backup metadata; it does not yet perform backup, reset or restore.
 
 ### 26.19 Documentation-change boundary
 

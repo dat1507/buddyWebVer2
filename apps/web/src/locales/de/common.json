@@ -262,6 +262,76 @@
       "upcomingEvents": "Bevorstehende Veranstaltungen"
     }
   },
+  "adminMatching": {
+    "title": "Zuordnungsmonitoring",
+    "description": "Überwache die Teilnahme am Buddy-Programm, Einladungen und aktive Buddy-Beziehungen.",
+    "readOnly": "Diese Ansicht ist schreibgeschützt. Zuordnungs- und Einladungsaktionen sind hier nicht verfügbar.",
+    "retry": "Erneut versuchen",
+    "unnamed": "Teilnehmende Person ohne Namen",
+    "notShared": "Nicht angegeben",
+    "majorNotShared": "Studiengang nicht angegeben",
+    "viewDetails": "Details für {{name}} anzeigen",
+    "privacyNotice": "Es wird nur das für die Zuordnung freigegebene Profil angezeigt. Konto-, Authentifizierungs-, Nachrichten- und Speicherdetails sind ausgeschlossen.",
+    "status": {
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "studentTypes": {
+      "VIETNAMESE": "Vietnamesische Studierende",
+      "INTERNATIONAL": "Internationale Studierende"
+    },
+    "statistics": {
+      "title": "Zuordnungsstatistiken",
+      "loading": "Zuordnungsstatistiken werden geladen…",
+      "updating": "Statistiken werden aktualisiert…",
+      "error": "Die Zuordnungsstatistiken konnten nicht geladen werden.",
+      "participants": "Teilnehmende",
+      "verified": "Verifizierte Teilnehmende",
+      "activeMatches": "Aktive Zuordnungen",
+      "zeroBuddies": "Teilnehmende ohne Buddys",
+      "invitations": "Einladungen nach Status"
+    },
+    "invitationStates": {
+      "pending": "Ausstehend",
+      "accepted": "Angenommen",
+      "declined": "Abgelehnt",
+      "cancelled": "Storniert",
+      "expired": "Abgelaufen"
+    },
+    "participants": {
+      "title": "Zuordnungsteilnehmende",
+      "caption": "Monitoring der Zuordnungsteilnehmenden",
+      "loading": "Teilnehmende werden geladen…",
+      "updating": "Teilnehmendenliste wird aktualisiert…",
+      "error": "Die Zuordnungsteilnehmenden konnten nicht geladen werden.",
+      "empty": "Keine Zuordnungsteilnehmenden entsprechen diesen Filtern."
+    },
+    "filters": {
+      "studentType": "Teilnahmeart",
+      "verification": "E-Mail-Verifizierung",
+      "all": "Alle",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "zeroBuddies": "Nur Teilnehmende ohne Buddys",
+      "reset": "Filter zurücksetzen"
+    },
+    "columns": {
+      "name": "Teilnehmende Person",
+      "studentType": "Teilnahmeart",
+      "active": "Aktives Profil",
+      "verified": "E-Mail verifiziert",
+      "optIn": "Zuordnung aktiviert",
+      "buddies": "Aktive Buddys",
+      "details": "Profildetails"
+    },
+    "detail": {
+      "title": "Zuordnungsprofil der teilnehmenden Person",
+      "description": "Aktuelle Profil- und Präferenzinformationen für die Zuordnung.",
+      "close": "Details der teilnehmenden Person schließen",
+      "loading": "Teilnehmendendetails werden geladen…",
+      "error": "Die Teilnehmendendetails konnten nicht geladen werden."
+    }
+  },
   "adminNavigation": {
     "label": "Administrationsnavigation",
     "scaffoldHint": "Die Modulseiten befinden sich in Entwicklung.",

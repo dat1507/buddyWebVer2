@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
+import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 
 type AdminRoute = {
   path: string
@@ -45,10 +46,11 @@ const adminRoutes: readonly AdminRoute[] = [
   },
   {
     path: 'matching',
-    title: 'Matching management',
+    title: 'Matching monitoring',
     labelKey: 'adminNavigation.matching',
     Icon: HeartHandshake,
-    kind: 'placeholder',
+    kind: 'page',
+    Component: AdminMatchingPage,
   },
   {
     path: 'events',

@@ -296,4 +296,36 @@ describe('ADMIN-004 reusable DataTable', () => {
     expect(screen.getAllByRole('button', { name: /Inspect/ })).toHaveLength(3)
     expect(screen.getByRole('combobox', { name: 'Rows per page' })).toHaveValue('3')
   })
+
+  it('renders one server-owned page without slicing it again and delegates pagination', () => {
+    const onPageChange = vi.fn()
+    const onPageSizeChange = vi.fn()
+    render(
+      <DataTable
+        {...props}
+        data={data.slice(0, 2)}
+        searchable={false}
+        pageSizeOptions={[2, 3]}
+        serverPagination={{
+          page: 2,
+          pageSize: 2,
+          total: 5,
+          totalPages: 3,
+          onPageChange,
+          onPageSizeChange,
+        }}
+      />,
+    )
+
+    expect(names()).toEqual(['Charlie', 'Alice'])
+    expect(screen.getByText('Showing 3–4 of 5')).toBeVisible()
+    expect(screen.getByText('Page 2 of 3')).toBeVisible()
+    click('Previous')
+    click('Next')
+    expect(onPageChange.mock.calls).toEqual([[1], [3]])
+    fireEvent.change(screen.getByRole('combobox', { name: 'Rows per page' }), {
+      target: { value: '3' },
+    })
+    expect(onPageSizeChange).toHaveBeenCalledWith(3)
+  })
 })

@@ -28,6 +28,15 @@ interface DataTableProps<T> {
   error?: string | null
   onRetry?: () => void
   emptyMessage?: string
+  /** Optional server-owned pagination. `data` must contain only the current page. */
+  serverPagination?: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+    onPageChange: (page: number) => void
+    onPageSizeChange?: (pageSize: number) => void
+  }
 }
 
 const controlClassName =
@@ -45,6 +54,7 @@ function DataTable<T>({
   error,
   onRetry,
   emptyMessage,
+  serverPagination,
 }: DataTableProps<T>) {
   const { t, i18n } = useTranslation()
   const id = useId()
@@ -57,8 +67,9 @@ function DataTable<T>({
     initialPageSize && sizes.includes(initialPageSize) ? initialPageSize : sizes[0],
   )
   const [pageIndex, setPageIndex] = useState(0)
-  const size = sizes.includes(pageSize) ? pageSize : sizes[0]
-  if (pageSize !== size) setPageSize(size)
+  const localSize = sizes.includes(pageSize) ? pageSize : sizes[0]
+  if (!serverPagination && pageSize !== localSize) setPageSize(localSize)
+  const size = serverPagination?.pageSize ?? localSize
   const hasSearch =
     searchable && columns.some((column) => column.accessor && column.searchable !== false)
   const filterColumns = columns.filter(
@@ -69,13 +80,15 @@ function DataTable<T>({
       getDataTableRows(data, columns, { query: hasSearch ? query : '', filters, sort }, language),
     [data, columns, query, hasSearch, filters, sort, language],
   )
-  const pageCount = Math.max(1, Math.ceil(rows.length / size))
-  const page = Math.min(pageIndex, pageCount - 1)
+  const pageCount = serverPagination
+    ? Math.max(1, serverPagination.totalPages)
+    : Math.max(1, Math.ceil(rows.length / size))
+  const page = serverPagination ? serverPagination.page : Math.min(pageIndex, pageCount - 1)
   // Synchronize only when dataset/options shrink the range, before rendering child rows.
   // This avoids an effect and prevents an old out-of-range page returning when rows grow again.
-  if (pageIndex !== page) setPageIndex(page)
-  const start = page * size
-  const pageRows = rows.slice(start, start + size)
+  if (!serverPagination && pageIndex !== page) setPageIndex(page)
+  const start = serverPagination ? (page - 1) * size : page * size
+  const pageRows = serverPagination ? rows : rows.slice(start, start + size)
   const unavailable = isLoading || Boolean(error)
   const activeFilters = filterColumns.some((column) =>
     column.filterOptions?.some((option) => option.value === filters[column.id]),
@@ -146,20 +159,22 @@ function DataTable<T>({
             </select>
           </div>
         ))}
-        <Button
-          type="button"
-          variant="outline"
-          disabled={unavailable || !hasView}
-          onClick={() => {
-            setQuery('')
-            setFilters({})
-            setSort(null)
-            setPageIndex(0)
-          }}
-          className="h-auto min-h-10 max-w-full whitespace-normal break-words"
-        >
-          {t('dataTable.reset')}
-        </Button>
+        {hasSearch || filterColumns.length ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={unavailable || !hasView}
+            onClick={() => {
+              setQuery('')
+              setFilters({})
+              setSort(null)
+              setPageIndex(0)
+            }}
+            className="h-auto min-h-10 max-w-full whitespace-normal break-words"
+          >
+            {t('dataTable.reset')}
+          </Button>
+        ) : null}
       </div>
       <div
         role="region"
@@ -261,9 +276,9 @@ function DataTable<T>({
         {!unavailable ? (
           <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
             {t('dataTable.results', {
-              from: rows.length ? start + 1 : 0,
-              to: Math.min(start + size, rows.length),
-              total: rows.length,
+              from: pageRows.length ? start + 1 : 0,
+              to: pageRows.length ? start + pageRows.length : 0,
+              total: serverPagination?.total ?? rows.length,
             })}
           </p>
         ) : null}
@@ -274,11 +289,17 @@ function DataTable<T>({
           <select
             id={`${id}-size`}
             value={size}
-            disabled={unavailable}
+            disabled={
+              unavailable || Boolean(serverPagination && !serverPagination.onPageSizeChange)
+            }
             className={cn(controlClassName, 'w-20')}
             onChange={(event) => {
-              setPageSize(Number(event.target.value))
-              setPageIndex(0)
+              const nextSize = Number(event.target.value)
+              if (serverPagination) serverPagination.onPageSizeChange?.(nextSize)
+              else {
+                setPageSize(nextSize)
+                setPageIndex(0)
+              }
             }}
           >
             {sizes.map((option) => (
@@ -296,16 +317,19 @@ function DataTable<T>({
             type="button"
             variant="outline"
             size="sm"
-            disabled={unavailable || page === 0}
-            onClick={() => setPageIndex(page - 1)}
+            disabled={unavailable || page <= (serverPagination ? 1 : 0)}
+            onClick={() =>
+              serverPagination ? serverPagination.onPageChange(page - 1) : setPageIndex(page - 1)
+            }
           >
             {t('dataTable.previous')}
           </Button>
           {!unavailable ? (
             <span className="text-sm">
               {t('dataTable.page', {
-                current: rows.length ? page + 1 : 0,
-                total: rows.length ? pageCount : 0,
+                current:
+                  (serverPagination?.total ?? rows.length) ? page + (serverPagination ? 0 : 1) : 0,
+                total: (serverPagination?.total ?? rows.length) ? pageCount : 0,
               })}
             </span>
           ) : null}
@@ -313,8 +337,10 @@ function DataTable<T>({
             type="button"
             variant="outline"
             size="sm"
-            disabled={unavailable || page >= pageCount - 1}
-            onClick={() => setPageIndex(page + 1)}
+            disabled={unavailable || page >= pageCount - (serverPagination ? 0 : 1)}
+            onClick={() =>
+              serverPagination ? serverPagination.onPageChange(page + 1) : setPageIndex(page + 1)
+            }
           >
             {t('dataTable.next')}
           </Button>
