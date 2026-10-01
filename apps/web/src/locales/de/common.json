@@ -764,6 +764,62 @@
     "loadingMore": "Weitere werden geladen…",
     "end": "Du hast das Ende deiner aktuellen Buddy-Beziehungen erreicht."
   },
+  "chat": {
+    "title": "Buddy-Chat",
+    "subtitle": "Eine private Klartext-Unterhaltung mit deinem aktuellen Buddy.",
+    "backToBuddies": "Zurück zu aktuellen Buddys",
+    "loading": "Unterhaltungsverlauf wird geladen…",
+    "loadOlder": "Ältere Nachrichten laden",
+    "loadingOlder": "Ältere Nachrichten werden geladen…",
+    "startOfHistory": "Du hast den Anfang dieser Unterhaltung erreicht.",
+    "refreshing": "Unterhaltungsverlauf wird aktualisiert…",
+    "empty": "Noch keine Nachrichten. Sende die erste Nachricht, wenn du bereit bist.",
+    "messageLog": "Nachrichten der Unterhaltung",
+    "newMessages": "Neue Nachrichten anzeigen",
+    "connection": {
+      "connecting": "Verbindung wird hergestellt",
+      "connected": "Live-Aktualisierungen verbunden",
+      "reconnecting": "Verbindung wird wiederhergestellt",
+      "offline": "Live-Aktualisierungen offline",
+      "denied": "Unterhaltung nicht verfügbar",
+      "fallback": "Live-Aktualisierungen sind nicht verfügbar. Du kannst weiterhin sicher Nachrichten senden; der Verlauf wird über den Server abgeglichen.",
+      "retry": "Live-Verbindung erneut versuchen"
+    },
+    "message": {
+      "fromSelf": "Nachricht von dir",
+      "fromBuddy": "Nachricht von deinem Buddy",
+      "you": "Du",
+      "buddy": "Buddy",
+      "sending": "Wird gesendet…",
+      "synchronizing": "Gesendet. Wird mit dem Verlauf abgeglichen…",
+      "failed": "Diese Nachricht wurde nicht gesendet.",
+      "retry": "Erneut versuchen"
+    },
+    "composer": {
+      "label": "Nachricht",
+      "placeholder": "Schreibe eine Klartext-Nachricht",
+      "help": "Mit Strg+Enter oder Command+Enter senden. Enter beginnt eine neue Zeile.",
+      "count": "{{count}} / {{limit}} Zeichen",
+      "blank": "Schreibe mindestens ein Zeichen, das kein Leerzeichen ist.",
+      "tooLong": "Verwende höchstens 10.000 Unicode-Zeichen.",
+      "send": "Nachricht senden",
+      "sending": "Wird gesendet…"
+    },
+    "loadError": {
+      "title": "Unterhaltung konnte nicht geladen werden",
+      "description": "Der maßgebliche Nachrichtenverlauf konnte nicht geladen werden. Versuche es erneut, ohne diese Seite zu verlassen.",
+      "retry": "Erneut versuchen"
+    },
+    "unavailable": {
+      "title": "Unterhaltung nicht verfügbar",
+      "description": "Diese Unterhaltung ist für dein aktuelles Konto nicht mehr verfügbar."
+    },
+    "locked": {
+      "title": "Chat ist gesperrt",
+      "description": "Bestätige deine aktuelle E-Mail-Adresse, bevor du private Buddy-Unterhaltungen öffnest.",
+      "action": "E-Mail-Bestätigung verwalten"
+    }
+  },
   "invitations": {
     "title": "Einladungen",
     "subtitle": "Prüfe erhaltene Einladungen und verwalte deine gesendeten Einladungen.",

@@ -49,6 +49,9 @@ describe('AUTH-021 session coordination', () => {
     cache.setQueryData(['match', user.id], { private: 'match' })
     cache.setQueryData(['matching', 'recommendations', 'en', 1, 20], { private: 'ranking' })
     cache.setQueryData(['matching', 'buddies', 'en'], { private: 'current buddies' })
+    cache.setQueryData(['private', user.id, 'chat', 'conversation-fixture'], {
+      private: 'chat history',
+    })
     cache.setQueryData(['private-media', user.id], { private: 'media' })
     cache.setQueryData(['event-sliders', 'en'], ['public'])
   }
@@ -57,6 +60,7 @@ describe('AUTH-021 session coordination', () => {
     expect(cache.getQueryData(['match', user.id])).toBeUndefined()
     expect(cache.getQueryData(['matching', 'recommendations', 'en', 1, 20])).toBeUndefined()
     expect(cache.getQueryData(['matching', 'buddies', 'en'])).toBeUndefined()
+    expect(cache.getQueryData(['private', user.id, 'chat', 'conversation-fixture'])).toBeUndefined()
     expect(cache.getQueryData(['private-media', user.id])).toBeUndefined()
     expect(cache.getQueryData(['event-sliders', 'en'])).toEqual(['public'])
   }
@@ -526,6 +530,9 @@ describe('AUTH-021 session coordination', () => {
   it('changes email and immediately installs the returned unverified identity', async () => {
     await bootstrap()
     cache.setQueryData(['profile', 'completion'], { matching_eligible: true })
+    cache.setQueryData(['private', user.id, 'chat', 'conversation-fixture'], {
+      private: 'chat history',
+    })
     const changed = { ...user, email: 'replacement@example.com' }
     fetch.mockResolvedValueOnce(json({ status: 'email_changed', user: changed }))
 
@@ -542,6 +549,7 @@ describe('AUTH-021 session coordination', () => {
     })
     expect(useAuthStore.getState().user).toEqual(changed)
     expect(useAuthStore.getState().user?.email_verified).toBe(false)
+    expect(cache.getQueryData(['private', user.id, 'chat', 'conversation-fixture'])).toBeUndefined()
     expect(cache.getQueryState(['profile', 'completion'])?.isInvalidated).toBe(true)
   })
 })

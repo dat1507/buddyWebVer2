@@ -229,7 +229,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     },
   )
 
-  it('returns a newly authenticated USER to the allowlisted email conversation target', async () => {
+  it('keeps the allowlisted conversation locator while locking an unverified new session', async () => {
     vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
       ...currentBuddyList,
       items: [
@@ -265,11 +265,11 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
 
     submit()
 
-    expect(await screen.findByRole('heading', { name: 'Current Buddies' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Chat is locked' })).toBeVisible()
     expect(location()).toEqual({
-      pathname: '/user/matching',
+      pathname: '/user/buddy',
       search: `?conversation=${conversationId}`,
-      hash: '#current-buddies',
+      hash: '',
       state: null,
     })
     expect(fetch).toHaveBeenCalledTimes(3)

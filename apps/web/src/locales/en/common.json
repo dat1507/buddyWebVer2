@@ -764,6 +764,62 @@
     "loadingMore": "Loading more…",
     "end": "You have reached the end of your current Buddy relationships."
   },
+  "chat": {
+    "title": "Buddy chat",
+    "subtitle": "A private plain-text conversation with your current Buddy.",
+    "backToBuddies": "Back to Current Buddies",
+    "loading": "Loading conversation history…",
+    "loadOlder": "Load older messages",
+    "loadingOlder": "Loading older messages…",
+    "startOfHistory": "You have reached the start of this conversation.",
+    "refreshing": "Refreshing conversation history…",
+    "empty": "No messages yet. Send the first message when you are ready.",
+    "messageLog": "Conversation messages",
+    "newMessages": "Show new messages",
+    "connection": {
+      "connecting": "Connecting",
+      "connected": "Live updates connected",
+      "reconnecting": "Reconnecting",
+      "offline": "Live updates offline",
+      "denied": "Conversation unavailable",
+      "fallback": "Live updates are unavailable. You can still send messages securely; history will reconcile through the server.",
+      "retry": "Retry live connection"
+    },
+    "message": {
+      "fromSelf": "Message from you",
+      "fromBuddy": "Message from your Buddy",
+      "you": "You",
+      "buddy": "Buddy",
+      "sending": "Sending…",
+      "synchronizing": "Sent. Synchronizing with history…",
+      "failed": "This message was not sent.",
+      "retry": "Retry"
+    },
+    "composer": {
+      "label": "Message",
+      "placeholder": "Write a plain-text message",
+      "help": "Use Ctrl+Enter or Command+Enter to send. Enter starts a new line.",
+      "count": "{{count}} / {{limit}} characters",
+      "blank": "Write at least one non-whitespace character.",
+      "tooLong": "Use no more than 10,000 Unicode characters.",
+      "send": "Send message",
+      "sending": "Sending…"
+    },
+    "loadError": {
+      "title": "Conversation could not be loaded",
+      "description": "We could not load the authoritative message history. Try again without leaving this page.",
+      "retry": "Try again"
+    },
+    "unavailable": {
+      "title": "Conversation unavailable",
+      "description": "This conversation is no longer available to your current account."
+    },
+    "locked": {
+      "title": "Chat is locked",
+      "description": "Verify your current email address before opening private Buddy conversations.",
+      "action": "Manage email verification"
+    }
+  },
   "invitations": {
     "title": "Invitations",
     "subtitle": "Review invitations you received and manage the invitations you sent.",

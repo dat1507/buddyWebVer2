@@ -2,7 +2,7 @@ import type { QueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
 import { z } from 'zod'
 
-import { clearPrivateQueries } from '@/features/auth/private-cache'
+import { clearChatQueries, clearPrivateQueries } from '@/features/auth/private-cache'
 import { parseSessionUser } from '@/features/auth/session-user'
 import type { SessionUser } from '@/features/auth/session-user'
 import { ApiError, normalizeApiError, requestJson } from '@/lib/api'
@@ -108,8 +108,14 @@ function createSessionClient(cache: QueryClient) {
     checkEpoch(generation)
     const user = parseSessionUser(payload)
     const previous = useAuthStore.getState()
-    if (previous.user?.id !== user.id || previous.role !== user.role)
+    if (previous.user?.id !== user.id || previous.role !== user.role) {
       await clearPrivateQueries(cache)
+    } else if (
+      previous.user.email !== user.email ||
+      previous.user.email_verified_at !== user.email_verified_at
+    ) {
+      await clearChatQueries(cache)
+    }
     checkEpoch(generation)
     useAuthStore.getState().setAuthenticated(user)
     return user
