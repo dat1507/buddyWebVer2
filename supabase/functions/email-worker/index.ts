@@ -5,6 +5,7 @@ import {
   constantTimeSecretEquals,
   decodeSealingKey,
   DEFAULT_BATCH_SIZE,
+  invitationIdFromCreationPayload,
   type FinalizeOutcome,
   type OutboxGateway,
   type OutboxJob,
@@ -44,11 +45,19 @@ Deno.serve(async (request: Request): Promise<Response> => {
     } catch {
       statusCode = 503;
       outcome = "configuration_unavailable";
-      return jsonResponse({ error: "worker_configuration_unavailable" }, statusCode);
+      return jsonResponse(
+        { error: "worker_configuration_unavailable" },
+        statusCode,
+      );
     }
 
     const suppliedSecret = request.headers.get("x-cron-secret") ?? "";
-    if (!(await constantTimeSecretEquals(suppliedSecret, environment.EMAIL_WORKER_CRON_SECRET))) {
+    if (
+      !(await constantTimeSecretEquals(
+        suppliedSecret,
+        environment.EMAIL_WORKER_CRON_SECRET,
+      ))
+    ) {
       statusCode = 401;
       outcome = "unauthorized";
       return jsonResponse({ error: outcome }, statusCode);
@@ -62,12 +71,64 @@ Deno.serve(async (request: Request): Promise<Response> => {
     });
     const database = sql;
     const gateway: OutboxGateway = {
-      async claim(workerId: string, batchSize: number): Promise<readonly OutboxJob[]> {
+      async claim(
+        workerId: string,
+        batchSize: number,
+      ): Promise<readonly OutboxJob[]> {
         const rows = await database`
         SELECT id, event_type, recipient_email, idempotency_key, payload
         FROM app_private.claim_transactional_email_outbox(${workerId}, ${batchSize})
       `;
         return rows as unknown as OutboxJob[];
+      },
+      async resolve(job: OutboxJob): Promise<OutboxJob> {
+        if (job.event_type !== "MATCHING_INVITATION_CREATED") {
+          return job;
+        }
+        const invitationId = invitationIdFromCreationPayload(job.payload);
+        const rows = await database`
+          SELECT
+            recipient.email AS recipient_email,
+            invitation.id::text AS invitation_id,
+            COALESCE(
+              NULLIF(
+                regexp_replace(btrim(sender_profile.display_name), '[[:space:]]+', ' ', 'g'),
+                ''
+              ),
+              'A VGU Buddy member'
+            ) AS sender_display_name
+          FROM app_private.transactional_outbox AS outbox
+          JOIN app_private.matching_invitations AS invitation
+            ON invitation.id = outbox.aggregate_id
+           AND invitation.recipient_id = outbox.recipient_user_id
+           AND invitation.deleted_at IS NULL
+          JOIN app_private.users AS recipient
+            ON recipient.id = invitation.recipient_id
+           AND recipient.role = 'USER'::app_private.user_role
+           AND recipient.is_active IS TRUE
+           AND recipient.deleted_at IS NULL
+           AND recipient.email_verified_at IS NOT NULL
+          LEFT JOIN app_private.student_profiles AS sender_profile
+            ON sender_profile.user_id = invitation.sender_id
+           AND sender_profile.deleted_at IS NULL
+          WHERE outbox.id = ${job.id}::uuid
+            AND outbox.event_type = 'MATCHING_INVITATION_CREATED'
+            AND outbox.aggregate_id = ${invitationId}::uuid
+            AND outbox.deleted_at IS NULL
+        `;
+        const resolved = rows[0];
+        if (resolved === undefined) {
+          return { ...job, recipient_email: null };
+        }
+        return {
+          ...job,
+          recipient_email: String(resolved.recipient_email),
+          payload: {
+            version: 1,
+            invitation_id: String(resolved.invitation_id),
+            sender_display_name: String(resolved.sender_display_name),
+          },
+        };
       },
       async complete(
         jobId: string,
@@ -110,16 +171,19 @@ Deno.serve(async (request: Request): Promise<Response> => {
       provider,
       {
         publicAppBaseUrl: environment.PUBLIC_APP_BASE_URL,
-        sealingKey: decodeSealingKey(environment.EMAIL_VERIFICATION_SEALING_KEY),
+        sealingKey: decodeSealingKey(
+          environment.EMAIL_VERIFICATION_SEALING_KEY,
+        ),
       },
       { batchSize: DEFAULT_BATCH_SIZE },
     );
     statusCode = 200;
-    outcome = report.terminal_failed > 0
-      ? "completed_with_terminal_failure"
-      : report.retry_scheduled > 0
-        ? "completed_with_retry"
-        : "completed";
+    outcome =
+      report.terminal_failed > 0
+        ? "completed_with_terminal_failure"
+        : report.retry_scheduled > 0
+          ? "completed_with_retry"
+          : "completed";
     return jsonResponse(report, statusCode);
   } catch {
     statusCode = 503;
@@ -147,7 +211,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
   }
 });
 
-function readEnvironment(): Record<(typeof REQUIRED_ENVIRONMENT)[number], string> {
+function readEnvironment(): Record<
+  (typeof REQUIRED_ENVIRONMENT)[number],
+  string
+> {
   return Object.fromEntries(
     REQUIRED_ENVIRONMENT.map((name) => {
       const value = Deno.env.get(name);
@@ -160,7 +227,12 @@ function readEnvironment(): Record<(typeof REQUIRED_ENVIRONMENT)[number], string
 }
 
 function readOutcome(value: unknown): FinalizeOutcome {
-  if (value === "sent" || value === "retry" || value === "failed" || value === "skipped") {
+  if (
+    value === "sent" ||
+    value === "retry" ||
+    value === "failed" ||
+    value === "skipped"
+  ) {
     return value;
   }
   throw new Error("Invalid outbox state-transition response.");

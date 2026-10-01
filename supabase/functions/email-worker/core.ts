@@ -6,6 +6,7 @@ export const RESEND_EMAIL_ENDPOINT = "https://api.resend.com/emails";
 const PROVIDER_TIMEOUT_MS = 10_000;
 const MAX_PROVIDER_RESPONSE_BYTES = 4_096;
 const VERIFICATION_EVENT = "EMAIL_VERIFICATION_REQUESTED";
+const INVITATION_EVENT = "MATCHING_INVITATION_CREATED";
 const VERIFICATION_AAD = new TextEncoder().encode(
   "vgu-buddy-email-verification-delivery-v1",
 );
@@ -15,7 +16,7 @@ const ERROR_CODE_PATTERN = /^[a-z0-9_]{1,100}$/;
 export interface OutboxJob {
   id: string;
   event_type: string;
-  recipient_email: string;
+  recipient_email: string | null;
   idempotency_key: string;
   payload: Record<string, unknown>;
 }
@@ -30,6 +31,7 @@ export type FinalizeOutcome = "sent" | "retry" | "failed" | "skipped";
 
 export interface OutboxGateway {
   claim(workerId: string, batchSize: number): Promise<readonly OutboxJob[]>;
+  resolve(job: OutboxJob): Promise<OutboxJob>;
   complete(
     jobId: string,
     workerId: string,
@@ -129,7 +131,11 @@ export class ResendEmailProvider implements EmailProvider {
   readonly #fromAddress: string;
   readonly #fetch: typeof fetch;
 
-  constructor(apiKey: string, fromAddress: string, fetchImplementation = fetch) {
+  constructor(
+    apiKey: string,
+    fromAddress: string,
+    fetchImplementation = fetch,
+  ) {
     if (!apiKey.trim()) {
       throw new Error("Email provider configuration is unavailable.");
     }
@@ -141,11 +147,19 @@ export class ResendEmailProvider implements EmailProvider {
 
   async send(message: OutboundEmail, idempotencyKey: string): Promise<string> {
     assertSafeEmailAddress(message.recipientEmail);
-    if (!message.subject.trim() || /[\r\n]/.test(message.subject) || !message.textBody.trim()) {
+    if (
+      !message.subject.trim() ||
+      /[\r\n]/.test(message.subject) ||
+      !message.textBody.trim()
+    ) {
       throw new DeliveryFailure(false, "invalid_email_content");
     }
     const normalizedKey = idempotencyKey.trim();
-    if (!normalizedKey || normalizedKey.length > 256 || /[\r\n]/.test(normalizedKey)) {
+    if (
+      !normalizedKey ||
+      normalizedKey.length > 256 ||
+      /[\r\n]/.test(normalizedKey)
+    ) {
       throw new DeliveryFailure(false, "invalid_idempotency_key");
     }
 
@@ -173,7 +187,9 @@ export class ResendEmailProvider implements EmailProvider {
     }
 
     if (!response.ok) {
-      const retryable = [408, 409, 425, 429].includes(response.status) || response.status >= 500;
+      const retryable =
+        [408, 409, 425, 429].includes(response.status) ||
+        response.status >= 500;
       throw new DeliveryFailure(retryable, `provider_http_${response.status}`);
     }
 
@@ -199,16 +215,22 @@ export class ResendEmailProvider implements EmailProvider {
 
 export function decodeSealingKey(value: string): Uint8Array {
   if (!/^[A-Za-z0-9_-]+={0,2}$/.test(value)) {
-    throw new Error("Email verification delivery configuration is unavailable.");
+    throw new Error(
+      "Email verification delivery configuration is unavailable.",
+    );
   }
   const unpadded = value.replace(/=+$/, "");
-  const canonicalPadding = "=".repeat((4 - unpadded.length % 4) % 4);
+  const canonicalPadding = "=".repeat((4 - (unpadded.length % 4)) % 4);
   if (value !== unpadded && value !== unpadded + canonicalPadding) {
-    throw new Error("Email verification delivery configuration is unavailable.");
+    throw new Error(
+      "Email verification delivery configuration is unavailable.",
+    );
   }
   const decoded = decodeBase64Url(unpadded);
   if (decoded.byteLength !== 32) {
-    throw new Error("Email verification delivery configuration is unavailable.");
+    throw new Error(
+      "Email verification delivery configuration is unavailable.",
+    );
   }
   return decoded;
 }
@@ -218,10 +240,31 @@ export async function renderEmail(
   settings: TemplateSettings,
   now = new Date(),
 ): Promise<OutboundEmail> {
-  if (job.event_type !== VERIFICATION_EVENT) {
-    throw new TemplateFailure("template_unregistered");
+  if (job.event_type === VERIFICATION_EVENT) {
+    return await renderVerificationEmail(job, settings, now);
   }
-  return await renderVerificationEmail(job, settings, now);
+  if (job.event_type === INVITATION_EVENT) {
+    return renderInvitationEmail(job, settings);
+  }
+  throw new TemplateFailure("template_unregistered");
+}
+
+export function invitationIdFromCreationPayload(
+  payload: Record<string, unknown>,
+): string {
+  if (Object.keys(payload).join("|") !== "invitation_id") {
+    throw new TemplateFailure("invitation_payload_invalid");
+  }
+  const invitationId = payload.invitation_id;
+  if (
+    typeof invitationId !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      invitationId,
+    )
+  ) {
+    throw new TemplateFailure("invitation_payload_invalid");
+  }
+  return invitationId;
 }
 
 export async function runEmailWorker(
@@ -236,8 +279,13 @@ export async function runEmailWorker(
   } = {},
 ): Promise<WorkerReport> {
   const batchSize = options.batchSize ?? DEFAULT_BATCH_SIZE;
-  const deliveryConcurrency = options.deliveryConcurrency ?? DELIVERY_CONCURRENCY;
-  if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > MAX_BATCH_SIZE) {
+  const deliveryConcurrency =
+    options.deliveryConcurrency ?? DELIVERY_CONCURRENCY;
+  if (
+    !Number.isInteger(batchSize) ||
+    batchSize < 1 ||
+    batchSize > MAX_BATCH_SIZE
+  ) {
     throw new Error("Email outbox batch size is invalid.");
   }
   if (
@@ -247,7 +295,8 @@ export async function runEmailWorker(
   ) {
     throw new Error("Email delivery concurrency is invalid.");
   }
-  const workerId = options.workerId ?? `edge-email-worker-${crypto.randomUUID()}`;
+  const workerId =
+    options.workerId ?? `edge-email-worker-${crypto.randomUUID()}`;
   if (!workerId || workerId.length > 100 || /[\r\n]/.test(workerId)) {
     throw new Error("Email outbox worker ID is invalid.");
   }
@@ -261,9 +310,21 @@ export async function runEmailWorker(
     deliveryConcurrency,
     async (job): Promise<FinalizeOutcome> => {
       try {
-        const message = await renderEmail(job, templates, options.now ?? new Date());
-        const providerMessageId = await provider.send(message, job.idempotency_key);
-        return await gateway.complete(job.id, workerId, providerMessageId);
+        const resolvedJob = await gateway.resolve(job);
+        const message = await renderEmail(
+          resolvedJob,
+          templates,
+          options.now ?? new Date(),
+        );
+        const providerMessageId = await provider.send(
+          message,
+          resolvedJob.idempotency_key,
+        );
+        return await gateway.complete(
+          resolvedJob.id,
+          workerId,
+          providerMessageId,
+        );
       } catch (error) {
         const failure = normalizeFailure(error);
         return await gateway.fail(
@@ -285,7 +346,10 @@ export async function runEmailWorker(
   };
 }
 
-export async function constantTimeSecretEquals(actual: string, expected: string): Promise<boolean> {
+export async function constantTimeSecretEquals(
+  actual: string,
+  expected: string,
+): Promise<boolean> {
   const encoder = new TextEncoder();
   const [actualDigest, expectedDigest] = await Promise.all([
     crypto.subtle.digest("SHA-256", encoder.encode(actual)),
@@ -305,6 +369,9 @@ async function renderVerificationEmail(
   settings: TemplateSettings,
   now: Date,
 ): Promise<OutboundEmail> {
+  if (typeof job.recipient_email !== "string") {
+    throw new TemplateFailure("verification_payload_invalid");
+  }
   const expectedKeys = ["expires_at", "nonce", "sealed_value", "version"];
   if (Object.keys(job.payload).sort().join("|") !== expectedKeys.join("|")) {
     throw new TemplateFailure("verification_payload_invalid");
@@ -369,6 +436,45 @@ async function renderVerificationEmail(
   }
 }
 
+function renderInvitationEmail(
+  job: OutboxJob,
+  settings: TemplateSettings,
+): OutboundEmail {
+  if (typeof job.recipient_email !== "string") {
+    throw new TemplateFailure("invitation_recipient_unavailable");
+  }
+  const expectedKeys = ["invitation_id", "sender_display_name", "version"];
+  if (Object.keys(job.payload).sort().join("|") !== expectedKeys.join("|")) {
+    throw new TemplateFailure("invitation_payload_invalid");
+  }
+  const invitationId = job.payload.invitation_id;
+  const senderDisplayName = job.payload.sender_display_name;
+  if (
+    job.payload.version !== 1 ||
+    typeof invitationId !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      invitationId,
+    ) ||
+    typeof senderDisplayName !== "string" ||
+    !senderDisplayName ||
+    Array.from(senderDisplayName).length > 80 ||
+    /[\r\n]/.test(senderDisplayName)
+  ) {
+    throw new TemplateFailure("invitation_payload_invalid");
+  }
+  const appOrigin = normalizePublicAppOrigin(settings.publicAppBaseUrl);
+  const link = `${appOrigin}/user/matching?invitation=${encodeURIComponent(invitationId)}`;
+  return {
+    recipientEmail: job.recipient_email,
+    subject: "You received a VGU Buddy invitation",
+    textBody:
+      `${senderDisplayName} sent you a VGU Buddy invitation.\n\n` +
+      "Open invitation:\n" +
+      `${link}\n\n` +
+      "Sign in to VGU Buddy to review and respond to this invitation.",
+  };
+}
+
 function normalizePublicAppOrigin(value: string): string {
   let parsed: URL;
   try {
@@ -393,9 +499,13 @@ function decodeBase64Url(value: unknown): Uint8Array {
   if (typeof value !== "string" || !value || !BASE64URL_PATTERN.test(value)) {
     throw new Error("invalid base64url value");
   }
-  const padded = value.replaceAll("-", "+").replaceAll("_", "/") + "=".repeat((4 - value.length % 4) % 4);
+  const padded =
+    value.replaceAll("-", "+").replaceAll("_", "/") +
+    "=".repeat((4 - (value.length % 4)) % 4);
   const binary = atob(padded);
-  const decoded = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const decoded = Uint8Array.from(binary, (character) =>
+    character.charCodeAt(0),
+  );
   if (encodeBase64Url(decoded) !== value) {
     throw new Error("non-canonical base64url value");
   }
@@ -407,7 +517,10 @@ export function encodeBase64Url(value: Uint8Array): string {
   for (const byte of value) {
     binary += String.fromCharCode(byte);
   }
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+  return btoa(binary)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/, "");
 }
 
 function assertSafeEmailAddress(value: string): void {
@@ -421,7 +534,10 @@ function safeErrorCode(value: string, fallback: string): string {
   return ERROR_CODE_PATTERN.test(value) ? value : fallback;
 }
 
-function normalizeFailure(error: unknown): { retryable: boolean; errorCode: string } {
+function normalizeFailure(error: unknown): {
+  retryable: boolean;
+  errorCode: string;
+} {
   if (error instanceof DeliveryFailure) {
     return { retryable: error.retryable, errorCode: error.errorCode };
   }
@@ -446,12 +562,18 @@ async function mapWithConcurrency<T, R>(
     }
   }
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, values.length) }, async () => await consume()),
+    Array.from(
+      { length: Math.min(concurrency, values.length) },
+      async () => await consume(),
+    ),
   );
   return results;
 }
 
-async function readBoundedText(response: Response, maximumBytes: number): Promise<string> {
+async function readBoundedText(
+  response: Response,
+  maximumBytes: number,
+): Promise<string> {
   if (response.body === null) {
     return "";
   }

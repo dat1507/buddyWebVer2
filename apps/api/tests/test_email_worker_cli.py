@@ -78,6 +78,9 @@ async def test_worker_smoke_processes_one_leased_batch(
     )
     monkeypatch.setattr(cli, "ResendEmailProvider", Mock(return_value=object()))
     monkeypatch.setattr(cli, "default_email_template_registry", Mock(return_value={}))
+    monkeypatch.setattr(
+        cli, "default_email_delivery_resolver_registry", Mock(return_value={})
+    )
     monkeypatch.setattr(cli, "get_session_factory", Mock(return_value=object()))
 
     assert await cli._email_worker_command(once=True, batch_size=7, poll_seconds=1.5) == report

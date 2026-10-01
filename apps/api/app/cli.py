@@ -37,6 +37,7 @@ from app.services.email_outbox import (
     MAX_OUTBOX_BATCH_SIZE,
     OutboxValidationError,
     OutboxWorkerReport,
+    default_email_delivery_resolver_registry,
     default_email_template_registry,
     process_transactional_outbox_batch,
 )
@@ -241,6 +242,7 @@ async def _email_worker_command(
         raise OutboxValidationError("Email worker bounds are invalid.")
     provider = ResendEmailProvider(get_email_provider_settings())
     templates = default_email_template_registry(get_email_verification_delivery_settings())
+    resolvers = default_email_delivery_resolver_registry()
     worker_id = f"email-worker-{uuid4()}"
     try:
         while True:
@@ -249,6 +251,7 @@ async def _email_worker_command(
                 worker_id=worker_id,
                 provider=provider,
                 templates=templates,
+                resolvers=resolvers,
                 batch_size=batch_size,
             )
             if once:

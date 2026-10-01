@@ -60,6 +60,66 @@ class EmailTemplateRenderer(Protocol):
     def render(self, payload: Mapping[str, object]) -> RenderedEmailContent: ...
 
 
+@dataclass(frozen=True, slots=True)
+class ResolvedEmailDelivery:
+    """Delivery-only recipient and template inputs excluded from persistence/logging."""
+
+    recipient_email: str = field(repr=False)
+    payload: dict[str, object] = field(repr=False)
+
+
+class EmailDeliveryResolver(Protocol):
+    """Resolve current server-owned delivery context for one allowlisted event."""
+
+    event_type: str
+
+    async def resolve(
+        self,
+        session: AsyncSession,
+        *,
+        aggregate_id: UUID,
+        recipient_user_id: UUID | None,
+        payload: Mapping[str, object],
+    ) -> ResolvedEmailDelivery: ...
+
+
+class EmailDeliveryResolverRegistry:
+    """Explicit event resolver allowlist; unregistered events keep their stored snapshot."""
+
+    def __init__(self, resolvers: Collection[EmailDeliveryResolver] = ()) -> None:
+        registered: dict[str, EmailDeliveryResolver] = {}
+        for resolver in resolvers:
+            if _EVENT_TYPE.fullmatch(resolver.event_type) is None:
+                raise ValueError("Email resolver event type is invalid.")
+            if resolver.event_type in registered:
+                raise ValueError("Email resolver event types must be unique.")
+            registered[resolver.event_type] = resolver
+        self._resolvers = registered
+
+    async def resolve(
+        self,
+        session: AsyncSession,
+        *,
+        event_type: str,
+        aggregate_id: UUID,
+        recipient_user_id: UUID | None,
+        recipient_email: str,
+        payload: Mapping[str, object],
+    ) -> ResolvedEmailDelivery:
+        resolver = self._resolvers.get(event_type)
+        if resolver is None:
+            return ResolvedEmailDelivery(
+                recipient_email=recipient_email,
+                payload=dict(payload),
+            )
+        return await resolver.resolve(
+            session,
+            aggregate_id=aggregate_id,
+            recipient_user_id=recipient_user_id,
+            payload=payload,
+        )
+
+
 class EmailTemplateRegistry:
     """Explicit renderer allowlist; persisted event types never select arbitrary templates."""
 
@@ -240,6 +300,7 @@ async def _load_work_item(
     outbox_id: UUID,
     worker_id: str,
     clock: Clock,
+    resolvers: EmailDeliveryResolverRegistry,
 ) -> _EmailWorkItem | None:
     async with factory() as session:
         row = await session.scalar(
@@ -256,12 +317,20 @@ async def _load_work_item(
             or row.lease_expires_at <= current_time
         ):
             return None
+        delivery = await resolvers.resolve(
+            session,
+            event_type=row.event_type,
+            aggregate_id=row.aggregate_id,
+            recipient_user_id=row.recipient_user_id,
+            recipient_email=row.recipient_email,
+            payload=row.payload,
+        )
         return _EmailWorkItem(
             outbox_id=row.id,
             event_type=row.event_type,
-            recipient_email=row.recipient_email,
+            recipient_email=delivery.recipient_email,
             idempotency_key=row.idempotency_key,
-            payload=dict(row.payload),
+            payload=delivery.payload,
         )
 
 
@@ -327,12 +396,13 @@ async def _deliver_one(
     worker_id: str,
     provider: EmailProvider,
     templates: EmailTemplateRegistry,
+    resolvers: EmailDeliveryResolverRegistry,
     clock: Clock,
 ) -> str:
-    item = await _load_work_item(factory, outbox_id, worker_id, clock)
-    if item is None:
-        return "skipped"
     try:
+        item = await _load_work_item(factory, outbox_id, worker_id, clock, resolvers)
+        if item is None:
+            return "skipped"
         content = templates.render(item.event_type, item.payload)
         delivery = await provider.send(
             OutboundEmail(
@@ -350,6 +420,9 @@ async def _deliver_one(
     except EmailTemplateError as error:
         provider_message_id = None
         failure = error
+    except Exception:
+        provider_message_id = None
+        failure = EmailDeliveryError(retryable=True, error_code="worker_unavailable")
     return await _finalize_delivery(
         factory,
         outbox_id=outbox_id,
@@ -366,10 +439,12 @@ async def process_transactional_outbox_batch(
     worker_id: str,
     provider: EmailProvider,
     templates: EmailTemplateRegistry,
+    resolvers: EmailDeliveryResolverRegistry | None = None,
     batch_size: int = DEFAULT_OUTBOX_BATCH_SIZE,
     clock: Clock = _system_utc_now,
 ) -> OutboxWorkerReport:
     """Claim, commit, deliver, and finalize one bounded batch outside business transactions."""
+    resolver_registry = resolvers or EmailDeliveryResolverRegistry()
     async with factory() as session:
         claimed_ids = await claim_transactional_outbox(
             session,
@@ -386,6 +461,7 @@ async def process_transactional_outbox_batch(
             worker_id=worker_id,
             provider=provider,
             templates=templates,
+            resolvers=resolver_registry,
             clock=clock,
         )
         for outbox_id in claimed_ids
@@ -404,5 +480,18 @@ def default_email_template_registry(
 ) -> EmailTemplateRegistry:
     """Return the reviewed built-in transactional-email template allowlist."""
     from app.services.email_verification_requests import EmailVerificationTemplate
+    from app.services.invitation_email import MatchingInvitationCreatedTemplate
 
-    return EmailTemplateRegistry((EmailVerificationTemplate(settings),))
+    return EmailTemplateRegistry(
+        (
+            EmailVerificationTemplate(settings),
+            MatchingInvitationCreatedTemplate(settings),
+        )
+    )
+
+
+def default_email_delivery_resolver_registry() -> EmailDeliveryResolverRegistry:
+    """Return current-address resolvers used by production and local fallback workers."""
+    from app.services.invitation_email import MatchingInvitationCreatedResolver
+
+    return EmailDeliveryResolverRegistry((MatchingInvitationCreatedResolver(),))

@@ -6854,7 +6854,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-005 (**Done 2026-09-30**) | Atomic Accept | INV-003, BUDDY-001, PROFILE-V2-001, CHAT-001 | Recipient-only revalidation creates opposite-type ACTIVE Match/conversation once | Transaction/type-update-race/idempotency tests |
 | INV-006 (**Done 2026-09-30**) | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
 | INV-007 (**Done 2026-10-01**) | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
-| INV-008 | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
+| INV-008 (**Done 2026-10-01**) | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
 | INV-009 | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
 | BUDDY-002 | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
 | BUDDY-003 | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
@@ -7488,12 +7488,32 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-008 — Invitation email notification
 
+- **Status:** **Done 2026-10-01.** The existing transactional
+  `MATCHING_INVITATION_CREATED` event is now allowlisted by both the hosted Edge worker and the
+  local/debug Python fallback. Delivery remains fully asynchronous; the invitation request still
+  commits invitation + outbox atomically and never calls Resend or another provider.
 - **Purpose:** Notify the recipient after a committed invitation without coupling delivery to the transaction.
 - **Scope / likely files:** invitation email template/event/outbox handler and Open Invitation route contract.
 - **Dependencies / ownership:** INV-003, MAIL-001; Backend + Infrastructure.
 - **Security:** send only to the recipient's current VERIFIED email at delivery policy point; escape all template data; no message/token/signed URL in logs.
 - **Acceptance / DoD:** committed invitation enqueues exactly one idempotent event; CTA opens the correct invitation after authentication; provider failure retries and never removes/rolls back invitation; address change/unverified state is handled by the documented current-address resolver.
 - **Tests/gates:** template escaping, provider failure/retry, deduplication, recipient-address change and real staging delivery tests.
+- **Implementation / verification:** the persisted payload remains the minimal opaque
+  `{invitation_id}` reference. After an atomic lease, an explicit event resolver validates that
+  reference and obtains the current active, non-deleted USER's VERIFIED address plus the sender's
+  bounded display name from authoritative server-side tables; an unavailable recipient is safely
+  terminal-suppressed before the provider call. The deterministic English plain-text template
+  includes no invitation message, email address, expiry guess, token or accepted-invitation action,
+  and its `Open invitation` CTA uses the configured same-origin public app base with
+  `/user/matching?invitation=<opaque UUID>`. Existing stable outbox idempotency keys, bounded retry,
+  lease/concurrent-claim and redacted logging contracts are reused unchanged. Focused backend tests
+  pass 62 cases and Edge worker tests pass 11 cases; the full backend suite passes 1,110 tests with
+  29 correctly environment-gated live skips, plus repository Ruff, strict mypy, package build,
+  `pip check`, zero-vulnerability dependency audit, Alembic graph/head, Docker Compose and Edge
+  format gates. No schema, migration, frontend, provider configuration or localization subsystem
+  change was required. A new real-provider send was not attempted because no INV-008 live-mail
+  credentials/acceptance target were configured; the previously validated OPS-002 transport remains
+  unchanged.
 - **Non-goals:** marketing mail, SMS or push notifications.
 
 #### INV-009 — Accepted email and safe authenticated deep links
@@ -7915,13 +7935,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-008 — Invitation email notification`.** INV-003 already owns the committed send
-transaction and MAIL-001 owns the provider-neutral transactional outbox, retry and idempotency
-contracts. INV-008 can therefore add only the post-commit recipient notification event/template and
-Open Invitation CTA routing without coupling provider delivery to invitation persistence. It must
-resolve the recipient's current VERIFIED email at the documented delivery-policy point, escape all
-template data and keep provider failure retryable; accepted-email behavior and safe authenticated
-deep links remain owned by INV-009.
+**Next step: `INV-009 — Accepted email and safe authenticated deep links`.** INV-008 now owns only
+the post-commit recipient notification for `MATCHING_INVITATION_CREATED` and its Open Invitation URL.
+INV-009 remains responsible for the separate accepted-invitation email to the sender, the Start
+Chatting CTA, and the shared allowlisted authenticated/anonymous `returnTo` behavior for both email
+destinations. It must reuse the same outbox, current-VERIFIED-address, retry, idempotency, redaction
+and same-origin URL policies without broadening INV-008 or adding automatic-login tokens.
 
 ### 26.19 Documentation-change boundary
 

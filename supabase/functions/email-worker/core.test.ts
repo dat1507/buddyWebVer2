@@ -5,6 +5,7 @@ import {
   buildWorkerLogEvent,
   DeliveryFailure,
   encodeBase64Url,
+  invitationIdFromCreationPayload,
   type EmailProvider,
   type FinalizeOutcome,
   type OutboundEmail,
@@ -65,6 +66,7 @@ interface StoredJob {
   attempts: number;
   sent: boolean;
   failed: boolean;
+  lastErrorCode: string | null;
 }
 
 class AtomicFakeGateway implements OutboxGateway {
@@ -78,18 +80,29 @@ class AtomicFakeGateway implements OutboxGateway {
       attempts: 0,
       sent: false,
       failed: false,
+      lastErrorCode: null,
     }));
   }
 
-  async claim(workerId: string, batchSize: number): Promise<readonly OutboxJob[]> {
+  async claim(
+    workerId: string,
+    batchSize: number,
+  ): Promise<readonly OutboxJob[]> {
     this.claims.push(batchSize);
     const selected = this.stored
-      .filter((stored) => !stored.sent && !stored.failed && stored.leaseOwner === null)
+      .filter(
+        (stored) =>
+          !stored.sent && !stored.failed && stored.leaseOwner === null,
+      )
       .slice(0, batchSize);
     for (const stored of selected) {
       stored.leaseOwner = workerId;
     }
     return selected.map((stored) => stored.job);
+  }
+
+  async resolve(job: OutboxJob): Promise<OutboxJob> {
+    return job;
   }
 
   async complete(
@@ -98,7 +111,12 @@ class AtomicFakeGateway implements OutboxGateway {
     _providerMessageId: string,
   ): Promise<FinalizeOutcome> {
     const stored = this.stored.find((candidate) => candidate.job.id === jobId);
-    if (!stored || stored.sent || stored.failed || stored.leaseOwner !== workerId) {
+    if (
+      !stored ||
+      stored.sent ||
+      stored.failed ||
+      stored.leaseOwner !== workerId
+    ) {
       return "skipped";
     }
     stored.attempts += 1;
@@ -111,14 +129,20 @@ class AtomicFakeGateway implements OutboxGateway {
     jobId: string,
     workerId: string,
     retryable: boolean,
-    _errorCode: string,
+    errorCode: string,
   ): Promise<FinalizeOutcome> {
     const stored = this.stored.find((candidate) => candidate.job.id === jobId);
-    if (!stored || stored.sent || stored.failed || stored.leaseOwner !== workerId) {
+    if (
+      !stored ||
+      stored.sent ||
+      stored.failed ||
+      stored.leaseOwner !== workerId
+    ) {
       return "skipped";
     }
     stored.attempts += 1;
     stored.leaseOwner = null;
+    stored.lastErrorCode = errorCode;
     if (retryable && stored.attempts < 5) {
       return "retry";
     }
@@ -128,7 +152,10 @@ class AtomicFakeGateway implements OutboxGateway {
 }
 
 class RecordingProvider implements EmailProvider {
-  readonly deliveries: Array<{ message: OutboundEmail; idempotencyKey: string }> = [];
+  readonly deliveries: Array<{
+    message: OutboundEmail;
+    idempotencyKey: string;
+  }> = [];
   readonly outcomes: Array<string | DeliveryFailure>;
 
   constructor(outcomes: Array<string | DeliveryFailure> = []) {
@@ -137,7 +164,8 @@ class RecordingProvider implements EmailProvider {
 
   async send(message: OutboundEmail, idempotencyKey: string): Promise<string> {
     this.deliveries.push({ message, idempotencyKey });
-    const outcome = this.outcomes.shift() ?? `provider-${this.deliveries.length}`;
+    const outcome =
+      this.outcomes.shift() ?? `provider-${this.deliveries.length}`;
     if (outcome instanceof DeliveryFailure) {
       throw outcome;
     }
@@ -183,7 +211,10 @@ test("B. normal verification email decrypts the existing payload contract and se
     delivery.message.textBody,
     /^Verify your email address for VGU Buddy by opening this link:/,
   );
-  assert.match(delivery.message.textBody, /https:\/\/staging\.vgubuddyprogram\.com\/verify-email/);
+  assert.match(
+    delivery.message.textBody,
+    /https:\/\/staging\.vgubuddyprogram\.com\/verify-email/,
+  );
   assert.equal(gateway.stored[0].attempts, 1);
   assert.equal(gateway.stored[0].sent, true);
 });
@@ -264,8 +295,14 @@ test("E. overlapping executions atomically lease one job to only one worker", as
     }),
   ]);
 
-  assert.equal(reports.reduce((total, report) => total + report.claimed, 0), 1);
-  assert.equal(reports.reduce((total, report) => total + report.sent, 0), 1);
+  assert.equal(
+    reports.reduce((total, report) => total + report.claimed, 0),
+    1,
+  );
+  assert.equal(
+    reports.reduce((total, report) => total + report.sent, 0),
+    1,
+  );
   assert.deepEqual(
     provider.deliveries.map((delivery) => delivery.idempotencyKey),
     [job.idempotency_key],
@@ -274,7 +311,9 @@ test("E. overlapping executions atomically lease one job to only one worker", as
 
 test("F. one invocation cannot claim more than the default bounded batch", async () => {
   const jobs = await Promise.all(
-    Array.from({ length: 25 }, (_, index) => verificationJob(`bounded-${index}`)),
+    Array.from({ length: 25 }, (_, index) =>
+      verificationJob(`bounded-${index}`),
+    ),
   );
   const gateway = new AtomicFakeGateway(jobs);
   const provider = new RecordingProvider();
@@ -290,18 +329,155 @@ test("F. one invocation cannot claim more than the default bounded batch", async
   assert.equal(gateway.stored.filter((stored) => !stored.sent).length, 5);
 });
 
+test("INV-008 resolves current address and renders one plain-text Open Invitation email", async () => {
+  const job = invitationJob("invite-current");
+  class InvitationGateway extends AtomicFakeGateway {
+    override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
+      return {
+        ...claimed,
+        recipient_email: "current-recipient@example.invalid",
+        payload: {
+          version: 1,
+          invitation_id: "11111111-1111-4111-8111-111111111111",
+          sender_display_name: "<script>alert(1)</script>",
+        },
+      };
+    }
+  }
+  const gateway = new InvitationGateway([job]);
+  const provider = new RecordingProvider(["provider-invitation"]);
+
+  const first = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-invitation-one",
+    now: NOW,
+  });
+  const replay = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-invitation-two",
+    now: NOW,
+  });
+
+  assert.equal(first.sent, 1);
+  assert.equal(replay.claimed, 0);
+  assert.equal(provider.deliveries.length, 1);
+  const delivery = provider.deliveries[0];
+  assert.equal(
+    delivery.message.recipientEmail,
+    "current-recipient@example.invalid",
+  );
+  assert.equal(delivery.message.subject, "You received a VGU Buddy invitation");
+  assert.match(
+    delivery.message.textBody,
+    /^<script>alert\(1\)<\/script> sent you/,
+  );
+  assert.match(
+    delivery.message.textBody,
+    /https:\/\/staging\.vgubuddyprogram\.com\/user\/matching\?invitation=11111111/,
+  );
+  assert.equal(
+    delivery.message.textBody.includes("private invitation message"),
+    false,
+  );
+  assert.deepEqual(
+    provider.deliveries.map(({ idempotencyKey }) => idempotencyKey),
+    [job.idempotency_key],
+  );
+});
+
+test("INV-008 suppresses provider delivery when current recipient is not verified", async () => {
+  const job = invitationJob("invite-unverified");
+  class UnverifiedGateway extends AtomicFakeGateway {
+    override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
+      return { ...claimed, recipient_email: null };
+    }
+  }
+  const gateway = new UnverifiedGateway([job]);
+  const provider = new RecordingProvider();
+
+  const report = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-invitation-unverified",
+    now: NOW,
+  });
+
+  assert.equal(report.terminal_failed, 1);
+  assert.equal(provider.deliveries.length, 0);
+  assert.equal(
+    gateway.stored[0].lastErrorCode,
+    "invitation_recipient_unavailable",
+  );
+});
+
+test("INV-008 rejects malformed resolved payload without exposing it to the provider", async () => {
+  const job = invitationJob("invite-malformed");
+  class MalformedGateway extends AtomicFakeGateway {
+    override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
+      return {
+        ...claimed,
+        payload: {
+          version: 1,
+          invitation_id: "not-a-uuid",
+          sender_display_name: "Sender",
+        },
+      };
+    }
+  }
+  const gateway = new MalformedGateway([job]);
+  const provider = new RecordingProvider();
+
+  const report = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-invitation-malformed",
+    now: NOW,
+  });
+
+  assert.equal(report.terminal_failed, 1);
+  assert.equal(provider.deliveries.length, 0);
+  assert.equal(gateway.stored[0].lastErrorCode, "invitation_payload_invalid");
+});
+
+test("INV-008 accepts only the minimal invitation-created reference payload", () => {
+  assert.equal(
+    invitationIdFromCreationPayload({
+      invitation_id: "11111111-1111-4111-8111-111111111111",
+    }),
+    "11111111-1111-4111-8111-111111111111",
+  );
+  assert.throws(
+    () =>
+      invitationIdFromCreationPayload({
+        invitation_id: "11111111-1111-4111-8111-111111111111",
+        message: "private",
+      }),
+    /Transactional email template is unavailable/,
+  );
+  assert.throws(
+    () => invitationIdFromCreationPayload({ invitation_id: "not-a-uuid" }),
+    /Transactional email template is unavailable/,
+  );
+});
+
 async function verificationJob(suffix: string): Promise<OutboxJob> {
-  const tokenBytes = Uint8Array.from({ length: 32 }, (_, index) => (index + suffix.length) % 256);
+  const tokenBytes = Uint8Array.from(
+    { length: 32 },
+    (_, index) => (index + suffix.length) % 256,
+  );
   const token = encodeBase64Url(tokenBytes);
-  const nonce = Uint8Array.from({ length: 12 }, (_, index) => index + suffix.length);
-  const key = await crypto.subtle.importKey("raw", SEALING_KEY, { name: "AES-GCM" }, false, [
-    "encrypt",
-  ]);
+  const nonce = Uint8Array.from(
+    { length: 12 },
+    (_, index) => index + suffix.length,
+  );
+  const key = await crypto.subtle.importKey(
+    "raw",
+    SEALING_KEY,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
   const sealed = await crypto.subtle.encrypt(
     {
       name: "AES-GCM",
       iv: nonce,
-      additionalData: new TextEncoder().encode("vgu-buddy-email-verification-delivery-v1"),
+      additionalData: new TextEncoder().encode(
+        "vgu-buddy-email-verification-delivery-v1",
+      ),
     },
     key,
     new TextEncoder().encode(token),
@@ -317,5 +493,15 @@ async function verificationJob(suffix: string): Promise<OutboxJob> {
       sealed_value: encodeBase64Url(new Uint8Array(sealed)),
       expires_at: "2026-09-25T00:15:00+00:00",
     },
+  };
+}
+
+function invitationJob(suffix: string): OutboxJob {
+  return {
+    id: crypto.randomUUID(),
+    event_type: "MATCHING_INVITATION_CREATED",
+    recipient_email: "creation-snapshot@example.invalid",
+    idempotency_key: `matching-invitation-created:${suffix}`,
+    payload: { invitation_id: "11111111-1111-4111-8111-111111111111" },
   };
 }
