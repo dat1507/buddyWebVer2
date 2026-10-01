@@ -18,6 +18,7 @@ REQUEST_ID_HEADER: Final = b"x-request-id"
 UNMATCHED_ROUTE: Final = "<unmatched>"
 
 LogLevel = Literal["info", "warning", "error"]
+ChatRealtimeLifecycle = Literal["connected", "disconnected"]
 
 
 def get_operations_logger() -> logging.Logger:
@@ -88,6 +89,21 @@ def emit_invitation_expiry_event(
     if error_type is not None:
         payload["error_type"] = error_type
     level: LogLevel = "error" if error_type is not None else "info"
+    getattr(get_operations_logger(), level)(
+        json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    )
+
+
+def emit_chat_realtime_event(*, lifecycle: ChatRealtimeLifecycle, close_code: int) -> None:
+    """Emit socket lifecycle only; never accept participant, body, cookie, or channel data."""
+    payload: dict[str, str | int] = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "service": "vgu-buddy-api",
+        "event": "chat_realtime_lifecycle",
+        "lifecycle": lifecycle,
+        "close_code": close_code,
+    }
+    level: LogLevel = "warning" if close_code >= 1008 else "info"
     getattr(get_operations_logger(), level)(
         json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
     )

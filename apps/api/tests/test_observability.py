@@ -13,6 +13,7 @@ from app.core.observability import (
     LOGGER_NAME,
     ApiObservabilityMiddleware,
     emit_api_request_event,
+    emit_chat_realtime_event,
     emit_invitation_expiry_event,
     get_operations_logger,
 )
@@ -93,6 +94,31 @@ def test_invitation_expiry_event_contains_aggregate_allowlist_only(
         "recipient_id",
         "email",
         "message",
+    }.intersection(event)
+
+
+def test_chat_realtime_event_contains_lifecycle_allowlist_only(
+    operations_log: io.StringIO,
+) -> None:
+    emit_chat_realtime_event(lifecycle="disconnected", close_code=1013)
+
+    event = json.loads(operations_log.getvalue())
+    assert event == {
+        "timestamp": event["timestamp"],
+        "service": "vgu-buddy-api",
+        "event": "chat_realtime_lifecycle",
+        "lifecycle": "disconnected",
+        "close_code": 1013,
+    }
+    assert not {
+        "conversation_id",
+        "user_id",
+        "email",
+        "message",
+        "body",
+        "cookie",
+        "token",
+        "channel",
     }.intersection(event)
 
 

@@ -8,17 +8,19 @@ from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, WebSocket, WebSocketException, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import (
     AuthTokenSettings,
+    CorsSettings,
     CsrfSettings,
     StorageSettings,
     get_auth_token_settings,
+    get_cors_settings,
     get_csrf_settings,
     get_storage_settings,
 )
-from app.core.database import get_database_session
+from app.core.database import get_database_session, get_session_factory
 from app.models import User, UserRole
 from app.services.auth import RoleVerificationError, verify_user_role
 from app.services.buddy_access import (
@@ -74,6 +76,15 @@ def _buddy_capability_required(error: BuddyCapabilityError) -> HTTPException:
 
 def _websocket_policy_denied(reason: str) -> WebSocketException:
     return WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason=reason)
+
+
+def require_trusted_websocket_origin(
+    websocket: WebSocket,
+    settings: Annotated[CorsSettings, Depends(get_cors_settings)],
+) -> None:
+    """Reject cross-site cookie-authenticated upgrades before protected work."""
+    if websocket.headers.get("origin") not in settings.allowed_origins:
+        raise _websocket_policy_denied("Origin is not allowed.")
 
 
 async def _load_active_user(session: AsyncSession, user_id: UUID) -> User | None:
@@ -143,12 +154,12 @@ async def require_matching_eligibility(
         raise _buddy_capability_required(error) from None
 
 
-async def require_verified_buddy_websocket(
+async def authenticate_verified_buddy_websocket(
     websocket: WebSocket,
-    settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
-    session: Annotated[AsyncSession, Depends(get_database_session)],
+    settings: AuthTokenSettings,
+    session: AsyncSession,
 ) -> VerifiedBuddyPrincipal:
-    """Authorize a Buddy/chat WebSocket handshake from current persisted state."""
+    """Revalidate one socket identity against its cookie and current database state."""
     token = websocket.cookies.get(access_cookie_name(settings))
     try:
         if token is None:
@@ -165,6 +176,29 @@ async def require_verified_buddy_websocket(
     except BuddyCapabilityError as error:
         reason = error.reason.value if error.reason is not None else AUTHORIZATION_REQUIRED_MESSAGE
         raise _websocket_policy_denied(reason) from None
+
+
+async def require_verified_buddy_websocket(
+    websocket: WebSocket,
+    settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> VerifiedBuddyPrincipal:
+    """Authorize the reusable short-lived Buddy WebSocket dependency."""
+    return await authenticate_verified_buddy_websocket(websocket, settings, session)
+
+
+async def require_verified_chat_websocket(
+    websocket: WebSocket,
+    _trusted_origin: Annotated[None, Depends(require_trusted_websocket_origin)],
+    settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    session_factory: Annotated[
+        async_sessionmaker[AsyncSession],
+        Depends(get_session_factory),
+    ],
+) -> VerifiedBuddyPrincipal:
+    """Authorize chat without retaining a database session for the socket lifetime."""
+    async with session_factory() as session:
+        return await authenticate_verified_buddy_websocket(websocket, settings, session)
 
 
 def require_session_csrf(

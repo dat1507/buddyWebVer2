@@ -50,6 +50,61 @@ class ChatReadRequest(BaseModel):
     through_message_id: UUID
 
 
+class ChatWebSocketSendEvent(BaseModel):
+    """The only client-authored realtime event accepted by CHAT-003."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["message.send"]
+    client_message_id: UUID
+    body: StrictStr = Field(max_length=MAX_BUDDY_MESSAGE_CODE_POINTS)
+
+
+class ChatWebSocketReadyEvent(BaseModel):
+    """Confirms live subscription while naming REST as the gap-recovery source."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.ready"] = "chat.ready"
+    recovery: Literal["history"] = "history"
+
+
+class ChatWebSocketMessageEvent(BaseModel):
+    """One privacy-safe committed message projected for the receiving participant."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.message.created"] = "chat.message.created"
+    message: ChatMessageResponse
+
+
+class ChatWebSocketSendAcceptedEvent(BaseModel):
+    """Transport acknowledgement that never substitutes for persisted history."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.message.accepted"] = "chat.message.accepted"
+    message_id: UUID
+    realtime_delivery: Literal["published", "already_published", "unavailable"]
+    recovery: Literal["history"] = "history"
+
+
+class ChatWebSocketErrorEvent(BaseModel):
+    """Stable sanitized protocol failure without reflected request content."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.error"] = "chat.error"
+    code: Literal[
+        "CHAT_EVENT_INVALID",
+        "CHAT_MESSAGE_INVALID",
+        "CHAT_IDEMPOTENCY_KEY_REUSED",
+        "CHAT_RATE_LIMITED",
+        "CHAT_REALTIME_UNAVAILABLE",
+    ]
+    recoverable: bool
+
+
 def chat_message_response(
     *,
     message_id: UUID,

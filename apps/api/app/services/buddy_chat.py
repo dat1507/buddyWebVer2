@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from typing import Final
+from typing import Final, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import and_, func, or_, select, update
@@ -157,6 +157,46 @@ async def _require_authorized_active_conversation(
     if conversation is None:
         raise BuddyChatReadError(BuddyChatReadReason.CONVERSATION_NOT_FOUND)
     return conversation
+
+
+async def authorize_buddy_conversation(
+    session: AsyncSession,
+    *,
+    conversation_id: UUID,
+    authenticated_user_id: UUID,
+) -> BuddyConversation:
+    """Expose the CHAT-002 ACTIVE-participant policy to realtime transports."""
+    return await _require_authorized_active_conversation(
+        session,
+        conversation_id=conversation_id,
+        authenticated_user_id=authenticated_user_id,
+    )
+
+
+async def get_realtime_buddy_message(
+    session: AsyncSession,
+    *,
+    conversation_id: UUID,
+    authenticated_user_id: UUID,
+    message_id: UUID,
+    clock: Clock = _system_utc_now,
+) -> BuddyMessage | None:
+    """Load one effective message after reapplying exact conversation authorization."""
+    await _require_authorized_active_conversation(
+        session,
+        conversation_id=conversation_id,
+        authenticated_user_id=authenticated_user_id,
+    )
+    return cast(
+        BuddyMessage | None,
+        await session.scalar(
+            select(BuddyMessage).where(
+                BuddyMessage.id == message_id,
+                BuddyMessage.conversation_id == conversation_id,
+                BuddyMessage.expires_at > _utc_now(clock),
+            )
+        ),
+    )
 
 
 async def get_or_create_buddy_conversation(

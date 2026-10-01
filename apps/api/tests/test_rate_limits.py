@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from httpx2 import ASGITransport, AsyncClient
 from pydantic import SecretBytes
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,6 +32,8 @@ from app.core.rate_limits import (
     RateLimitExceeded,
     RateLimitUnavailable,
     check_user_rate_limit,
+    check_websocket_connection_rate_limit,
+    check_websocket_send_rate_limit,
     client_identifier,
     get_auth_rate_limiter,
     is_rate_limited_endpoint,
@@ -419,6 +421,30 @@ async def test_concurrent_ip_requests_do_not_over_admit() -> None:
 def test_ip_canonicalization(host: str, expected: str) -> None:
     request = Request({"type": "http", "client": (host, 1234), "headers": []})
     assert client_identifier(request) == expected
+
+
+@pytest.mark.anyio
+async def test_websocket_connect_and_send_reuse_shared_ip_and_user_quotas(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    limiter = get_auth_rate_limiter()
+    check_ip = AsyncMock()
+    check_user = AsyncMock()
+    monkeypatch.setattr(limiter, "check_ip", check_ip)
+    monkeypatch.setattr(limiter, "check_user", check_user)
+    websocket = WebSocket(
+        {"type": "websocket", "client": ("::ffff:192.0.2.10", 1234), "headers": []},
+        AsyncMock(),
+        AsyncMock(),
+    )
+    user = _user()
+
+    await check_websocket_connection_rate_limit(websocket)
+    await check_websocket_send_rate_limit(websocket, user)
+
+    assert check_ip.await_args_list[0].args == ("192.0.2.10",)
+    assert check_ip.await_args_list[1].args == ("192.0.2.10",)
+    check_user.assert_awaited_once_with(user)
 
 
 def test_email_normalization_and_no_raw_pii_in_account_key() -> None:

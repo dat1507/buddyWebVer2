@@ -17,7 +17,7 @@ from math import ceil
 from typing import TypeVar, cast
 from urllib.parse import urlsplit
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, WebSocket
 from fastapi.responses import JSONResponse
 from limits import RateLimitItem, RateLimitItemPerMinute
 from limits.storage import RedisStorage
@@ -74,14 +74,9 @@ class RateLimitExceeded(HTTPException):
         )
 
 
-def client_identifier(request: Request) -> str:
-    """Only use the transport peer (or Uvicorn's trusted-proxy-resolved peer).
-
-    Never read Forwarded/X-Forwarded-For/X-Real-IP here. Unknown peers share a bucket.
-    Equivalent IPv6 forms and IPv4-mapped IPv6 cannot create independent buckets.
-    """
+def _client_identifier_from_host(host: str) -> str:
     try:
-        address = ipaddress.ip_address(request.client.host if request.client else "")
+        address = ipaddress.ip_address(host)
     except ValueError:
         return "unknown"
     if isinstance(address, ipaddress.IPv6Address):
@@ -89,6 +84,20 @@ def client_identifier(request: Request) -> str:
             return str(address.ipv4_mapped)
         return address.compressed.split("%", maxsplit=1)[0]
     return str(address)
+
+
+def client_identifier(request: Request) -> str:
+    """Only use the transport peer (or Uvicorn's trusted-proxy-resolved peer).
+
+    Never read Forwarded/X-Forwarded-For/X-Real-IP here. Unknown peers share a bucket.
+    Equivalent IPv6 forms and IPv4-mapped IPv6 cannot create independent buckets.
+    """
+    return _client_identifier_from_host(request.client.host if request.client else "")
+
+
+def websocket_client_identifier(websocket: WebSocket) -> str:
+    """Apply the HTTP transport-peer normalization to a WebSocket peer."""
+    return _client_identifier_from_host(websocket.client.host if websocket.client else "")
 
 
 def login_identifier(email: str) -> str:
@@ -223,6 +232,18 @@ async def check_user_rate_limit(request: Request, user: User) -> None:
     limiter = getattr(request.state, "auth_rate_limiter", None)
     if not isinstance(limiter, AuthRateLimiter):
         raise RateLimitUnavailable()
+    await limiter.check_user(user)
+
+
+async def check_websocket_connection_rate_limit(websocket: WebSocket) -> None:
+    """Bound cookie-authenticated socket upgrades by their trusted transport peer."""
+    await get_auth_rate_limiter().check_ip(websocket_client_identifier(websocket))
+
+
+async def check_websocket_send_rate_limit(websocket: WebSocket, user: User) -> None:
+    """Apply both shared IP and current-user message quotas to a realtime send."""
+    limiter = get_auth_rate_limiter()
+    await limiter.check_ip(websocket_client_identifier(websocket))
     await limiter.check_user(user)
 
 

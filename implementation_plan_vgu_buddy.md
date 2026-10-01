@@ -6694,8 +6694,8 @@ The OPS-003 audit re-read the API readiness/Redis boundaries, MAIL/EMAIL source,
 | Matching frontend | **REC-004, INV-007 and BUDDY-003 implemented** | `/user/matching` consumes the strict privacy-safe recommendation, invitation and Current Buddies contracts; renders their gated cards, compatibility, preferences, availability and complete loading/empty/error/pagination states; and keeps `/user/buddy` as a safe compatibility redirect/focus surface. Admin matching remains unimplemented. | Reuse these sections unchanged in later chat/Admin work. CHAT-004 may replace the conversation locator destination with the real authorized chat UI; it must not create a second Buddy relationship store. |
 | Dashboard routing | **Implemented by REC-004** | `UserDashboardPage` is the actual `/user/dashboard` and `/user` index destination; USER login, workspace entry and completed onboarding return there, with the existing profile-readiness actions preserved. | Reuse the dashboard and Buddy Matching navigation; do not restore the temporary profile-editor redirect. |
 | Email delivery | **Implemented; deployed verification acceptance passed** | Migration `0009` creates private `app_private.transactional_outbox`; `0010` adds least-privilege claim/complete/fail functions; the Resend adapter, allowlisted template contract, Python fallback, `supabase/functions/email-worker`, one-minute Cron SQL and runbook are present; OPS-002 evidence records A–F and HTTP 200 | Reuse the outbox/provider/template contracts unchanged. Production is application/backend -> outbox -> Supabase Cron -> Edge Function -> Resend. Delivery failure never rolls back committed application state. Invitation/accepted templates remain owned by INV-008/009. |
-| Chat/realtime | **CHAT-001 persistence and CHAT-002 authorized HTTP recovery implemented; realtime/UI pending** | Migrations `0014_buddy_chat_persistence`/`0015_chat_send_idempotency`, `BuddyConversation`/`BuddyMessage`, `services/buddy_chat.py` and `/api/chat/conversations/{conversation_id}/messages` provide participant-authorized bounded history, idempotent fallback send, effective-expiry filtering and atomic first-read retention. No WebSocket route exists yet; `websockets` remains only an indirect Uvicorn dependency. | Reuse PostgreSQL as message authority and the HTTP recovery contract in CHAT-003, then add FastAPI WebSocket + Redis Pub/Sub. Do not add Supabase Realtime. |
-| Redis | **Implemented foundation** | Auth rate limits retain their Redis backend; Docker Compose now supplies loopback-only Redis and the backend has an async, environment-prefixed boundary with production `rediss://` enforcement | Reuse this boundary for later realtime/job coordination; Redis Pub/Sub remains owned by CHAT-003. |
+| Chat/realtime | **CHAT-001..003 persistence, HTTP recovery and authenticated realtime implemented; UI pending** | Migrations `0014_buddy_chat_persistence`/`0015_chat_send_idempotency`, CHAT-002 REST recovery and `WS /api/ws/chat/{conversation_id}` provide participant-authorized persistence, history, idempotent send, first-read retention and multi-worker Redis fan-out. PostgreSQL remains authoritative; reconnect gaps recover through REST. | Reuse these contracts in CHAT-004 without adding a second send/history store or Supabase Realtime. |
+| Redis | **Implemented foundation + CHAT-003 Pub/Sub** | Auth rate limits retain their Redis backend; Docker Compose supplies loopback-only Redis; the server-only async boundary enforces environment prefixes/production `rediss://`; CHAT-003 adds conversation-isolated ID-only Pub/Sub with bounded socket consumption and distributed retry dedupe. | Redis remains ephemeral fan-out, never durable chat history. Reuse the shared pool/TLS configuration for later coordination. |
 | Background work | **Implemented; deployed mail schedule accepted** | `python -m app.cli email-worker` is retained for local/debug/manual fallback; the deployed Edge worker and single Cron job reuse the same PostgreSQL leases, retry and idempotency contract | Production schedules only the bounded Edge worker once per minute with Supabase Cron. OPS-002 evidence confirms Python did not run in parallel. Disable/unschedule Cron before manually starting the fallback. |
 | Supabase Storage | **Implemented foundation** | Server-only REST transport, UUID object keys, private `profile-images`/`event-media`, public slider bucket, 300-second signed URLs, storage configure/reconcile CLI | Reuse for avatars. Add a distinct private semester-backup bucket/prefix and actual object-copy/export behavior; DB paths alone are insufficient. |
 | Admin auth/user views/audit | **Partial** | Admin CLI, role protection, `/api/admin/users`, audited detail/photo reads exist; overview statistics are em dashes; audit log is append-only but Admin-linked with `ON DELETE RESTRICT` | Reuse RBAC, tables/components and redaction. Add monitoring-only matching stats and dedicated reset-operation audit that survives student deletion. |
@@ -6860,7 +6860,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | BUDDY-003 (**Done 2026-10-01**) | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
 | CHAT-001 | Conversation/message persistence | BUDDY-001 | One conversation/Match; text messages and retention fields | Migration/model tests |
 | CHAT-002 (**Done 2026-10-01**) | History/read/retention service | CHAT-001, AUTH-V2-001 | Participant-only cursor history; idempotent send; atomic first-read retention formula | API/time/auth/PostgreSQL race tests |
-| CHAT-003 | WebSocket + Redis realtime | CHAT-002, OPS-001 | Authenticated WSS, Redis Pub/Sub, reconnect recovery | Integration/multi-worker/security tests |
+| CHAT-003 (**Done 2026-10-01**) | WebSocket + Redis realtime | CHAT-002, OPS-001 | Authenticated WSS, Redis Pub/Sub, reconnect recovery | Integration/multi-worker/security tests |
 | CHAT-004 | Text chat frontend | CHAT-003, BUDDY-003 | History/send/receive/read/reconnect; safe text rendering | UI/e2e/a11y tests |
 | CHAT-005 | Message cleanup job | CHAT-002, OPS-001 | Hard-delete expired; API never returns expired | Clock/job/idempotency tests |
 | ADMIN-V2-001 | Monitoring APIs | INV-006, BUDDY-002 | Counts by invitation state, Buddy counts, zero-Buddy users | RBAC/aggregate/privacy tests |
@@ -7694,6 +7694,33 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### CHAT-003 — Authenticated FastAPI WebSocket and Redis Pub/Sub
 
+- **Status:** **DONE — 2026-10-01.** Exact route
+  `WS /api/ws/chat/{conversation_id}` accepts only the strict `message.send` event with
+  `client_message_id` and plain `body`. The Origin must exactly match the configured credentialed
+  allowlist; identity comes only from the signed access cookie and current VERIFIED USER/profile;
+  the opaque locator is re-authorized against its ACTIVE Match before subscribe and again for
+  every inbound send/outbound delivery.
+- **Persistence and fan-out:** WebSocket send reuses CHAT-002 validation, sender derivation,
+  idempotency and PostgreSQL transaction. Only after commit does a server-owned Redis channel
+  publish the persisted message ID. Each worker/subscriber reloads the effective message through
+  PostgreSQL and emits the same privacy-safe CHAT-002 DTO from its recipient's perspective. A
+  cluster-slot-safe Lua publish/dedupe marker prevents immediate retry echoes without making Redis
+  durable; channel names contain neither message bodies nor participant identity.
+- **Failure/recovery:** Redis subscription failure rejects the upgrade with safe `1013`; publish
+  failure after commit returns a persisted-but-realtime-unavailable acknowledgement and closes for
+  REST recovery without rolling back or duplicating the row. Reconnect emits no synthetic Redis
+  history: CHAT-002 cursor history is the explicit gap-recovery path. Direct bounded socket writes,
+  a five-second slow-client deadline, 128-KiB client-event ceiling, Redis pull consumption and
+  deterministic unsubscribe/task cancellation avoid unbounded queues and leaked subscriptions.
+  Unsupported/binary/oversized/malformed events, rate-limit failures and idempotency conflicts use
+  stable sanitized events/close codes; read acknowledgement remains the CHAT-002 HTTP endpoint.
+- **Verification/security:** Actual FastAPI WebSocket + disposable PostgreSQL/Redis acceptance
+  proves commit-before-publish, two-participant delivery, separate-connection multi-worker fan-out,
+  conversation isolation, sender derivation, exact retry convergence, outsider/unverified denial,
+  reconnect ephemerality, cleanup and REST history recovery. Unit/integration coverage includes
+  exact Origin/cookie policy, no query-token auth, strict schemas, Redis connect/publish outage,
+  safe DTO/log allowlists, rate limits and CHAT-001/002 regressions. No database migration,
+  frontend, presence, typing/read-receipt event or Supabase Realtime behavior was added.
 - **Purpose:** Deliver realtime messages across backend workers while retaining REST recovery.
 - **Scope / likely files:** async Redis config/client, WebSocket router/connection manager, origin/session authorization and publish/subscribe adapter; backend host/deployment docs.
 - **Dependencies / ownership:** CHAT-002, OPS-001; Backend + Infrastructure.
@@ -8023,15 +8050,15 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 
 | Environment | Decision | Concrete blockers / milestone |
 |---|---|---|
-| **LOCAL** | **NOT READY (V2)** | `EMAIL-001`, `EMAIL-001A`, `MAIL-001`, `EMAIL-002`, `EMAIL-003`, `EMAIL-004`, `EMAIL-005`, `AUTH-V2-001` and `OPS-001` are complete; realtime Redis Pub/Sub/WebSocket and end-to-end flows remain absent. |
+| **LOCAL** | **NOT READY (V2)** | Auth/email/mail/OPS foundations and CHAT-001..003 backend persistence/recovery/realtime are complete; CHAT-004 frontend chat and remaining full vertical end-to-end flows remain absent. |
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `CHAT-003 — Authenticated FastAPI WebSocket and Redis Pub/Sub`.** CHAT-002 now
-provides the participant-authorized PostgreSQL recovery/history, HTTP fallback send, durable
-idempotency and first-read retention contract. CHAT-003 must reuse those services and PostgreSQL as
-authority while adding authenticated origin-checked WebSocket delivery and multi-worker Redis
-Pub/Sub; frontend chat remains deferred to CHAT-004 and physical expiry cleanup to CHAT-005.
+**Next step: `CHAT-004 — Accessible text chat frontend`.** CHAT-003 now provides the authenticated,
+origin-checked conversation WebSocket, persistence-before-publish Redis fan-out and explicit REST
+gap-recovery contract. CHAT-004 must consume those existing CHAT-002/003 transports to implement
+the accessible plain-text history/send/receive/read/reconnect UI; physical expiry cleanup remains
+deferred to CHAT-005.
 
 ### 26.19 Documentation-change boundary
 

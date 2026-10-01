@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app.api.admin_users import router as admin_users_router
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
+from app.api.chat_realtime import router as chat_realtime_router
 from app.api.health import router as health_router
 from app.api.matching import router as matching_router
 from app.api.profile import router as profile_router
@@ -68,6 +69,7 @@ app.include_router(profile_photos_router)
 app.include_router(admin_users_router)
 app.include_router(matching_router)
 app.include_router(chat_router)
+app.include_router(chat_realtime_router)
 
 
 @app.exception_handler(RequestValidationError)
