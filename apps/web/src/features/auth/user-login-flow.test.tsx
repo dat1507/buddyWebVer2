@@ -21,6 +21,8 @@ const user = {
   email_verified: false,
   email_verified_at: null,
 }
+const conversationId = '44444444-4444-4444-8444-444444444444'
+const conversationReturnTo = `/user/buddy?conversation=${conversationId}`
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 function deferred<T>() {
   let resolve!: (value: T) => void
@@ -222,6 +224,53 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       expect(fetch).not.toHaveBeenCalled()
     },
   )
+
+  it('returns a newly authenticated USER to the allowlisted email conversation target', async () => {
+    anonymousLogin(json({ user, csrf_token: 'session' }))
+    renderApp({
+      pathname: '/login',
+      search: `?returnTo=${encodeURIComponent(conversationReturnTo)}`,
+    })
+
+    submit()
+
+    expect(await screen.findByRole('heading', { name: 'My Buddy' })).toBeVisible()
+    expect(location()).toEqual({
+      pathname: '/user/buddy',
+      search: `?conversation=${conversationId}`,
+      hash: '',
+      state: null,
+    })
+    expect(fetch).toHaveBeenCalledTimes(3)
+  })
+
+  it('ignores an unsafe returnTo and keeps ADMIN out of USER email destinations', async () => {
+    anonymousLogin(json({ user: { ...user, role: 'ADMIN' }, csrf_token: 'session' }))
+    renderApp({
+      pathname: '/login',
+      search: `?returnTo=${encodeURIComponent('//attacker.example/user/buddy')}`,
+    })
+
+    submit()
+
+    expect(await screen.findByRole('heading', { name: 'Admin overview' })).toBeVisible()
+    expect(location()).toEqual({
+      pathname: '/admin/dashboard',
+      search: '',
+      hash: '',
+      state: null,
+    })
+  })
+
+  it('does not grant an ADMIN access to a valid USER conversation URL', async () => {
+    useAuthStore.getState().setAuthenticated({ ...user, role: 'ADMIN' })
+    renderApp(conversationReturnTo)
+
+    expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
+    expect(location()).toEqual({ pathname: '/', search: '', hash: '', state: null })
+    expect(document.querySelector('[data-layout="user"]')).toBeNull()
+    expect(fetch).not.toHaveBeenCalled()
+  })
 
   it.each(['unknown', 'loading', 'unauthenticated'] as const)(
     '%s session remains on public login without private rendering',

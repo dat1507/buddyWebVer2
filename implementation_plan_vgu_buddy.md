@@ -6855,7 +6855,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | INV-006 (**Done 2026-09-30**) | Decline/Cancel/Hide | INV-003, INV-005 | Owner transitions; accepted hide is non-destructive | State/auth/data-retention tests |
 | INV-007 (**Done 2026-10-01**) | Invitation UI | INV-004..006, REC-004 | Incoming/Sent/composer states match contract | UI/a11y/integration tests |
 | INV-008 (**Done 2026-10-01**) | Invitation email notification | INV-003, MAIL-001 | Post-commit retryable Open Invitation email | Template/outbox/delivery tests |
-| INV-009 | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
+| INV-009 (**Done 2026-10-01**) | Accepted email + safe deep links | INV-005, MAIL-001 | Start Chatting email and allowlisted `returnTo` | Template/outbox/link tests |
 | BUDDY-002 | Current Buddies API | BUDDY-001, INV-005 | All ACTIVE buddies with safe snapshots | Auth/privacy/query tests |
 | BUDDY-003 | Current Buddies UI | BUDDY-002, INV-007 | Multiple cards; Start Chatting; no Unmatch | UI/routing/a11y tests |
 | CHAT-001 | Conversation/message persistence | BUDDY-001 | One conversation/Match; text messages and retention fields | Migration/model tests |
@@ -7518,12 +7518,34 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### INV-009 — Accepted email and safe authenticated deep links
 
+- **Status:** **Done 2026-10-01.** The existing atomic
+  `MATCHING_INVITATION_ACCEPTED` outbox event now has separate hosted Edge and Python fallback
+  resolution/template paths. Delivery resolves the original sender's current eligible VERIFIED
+  address and the exact authoritative ACTIVE Match/conversation immediately before provider use;
+  invitation acceptance remains provider-independent and synchronous state is unchanged.
 - **Purpose:** Notify the sender after Accept and route both email CTAs safely through login when needed.
 - **Scope / likely files:** accepted email template/event/handler, frontend login `returnTo` allowlist and invitation/conversation target routing.
 - **Dependencies / ownership:** INV-005, MAIL-001; Backend + Frontend + Infrastructure.
 - **Security:** sender's current VERIFIED email only; opaque target IDs; allowlist same-origin relative routes; server reauthorizes destination; no open redirect.
 - **Acceptance / DoD:** accepted commit enqueues one retryable event; CTA opens exact conversation when authenticated or login→conversation when anonymous; invitation CTA also uses the same validated mechanism; foreign/invalid targets fail closed.
 - **Tests/gates:** template/outbox, duplicate event, authenticated/anonymous links, changed-email suppression and open-redirect/IDOR tests.
+- **Implementation / verification:** the persisted event keeps the already-committed minimal opaque
+  `{invitation_id, match_id, conversation_id}` reference and stable idempotency key. Both workers
+  revalidate the ACCEPTED invitation, original sender, ACTIVE Match and exact conversation before
+  rendering a deterministic English plain-text `Start chatting` email; no invitation message,
+  credential, token, email snapshot or internal identifier beyond the opaque conversation target is
+  exposed. The shared frontend parser accepts only canonical relative
+  `/user/matching?invitation=<UUID>` and `/user/buddy?conversation=<UUID>` destinations with one
+  expected query parameter, rejects external/scheme-relative/non-canonical/privilege-bearing input,
+  and uses the normal role-aware login flow for anonymous users. Route selection grants no resource
+  access: the protected USER boundary remains in force and conversation/invitation data must still be
+  authorized server-side. Focused backend tests pass 73 cases, focused frontend tests pass 59 cases
+  and Edge worker tests pass 14 cases; the complete backend suite passes 1,120 tests with 29 correctly
+  environment-gated live skips and the complete frontend suite passes 614 tests across 60 files.
+  Ruff, strict mypy, ESLint, TypeScript, Prettier, package and production builds, `pip check`, Alembic
+  graph/head, Docker Compose validation and both dependency audits pass with zero known
+  vulnerabilities. No schema, migration, dependency, provider configuration, chat API or chat UI
+  change was required; Alembic head remains `0014_buddy_chat_persistence`.
 - **Non-goals:** automatic login, bearer token in URL or non-email notifications.
 
 #### BUDDY-002 — Current Buddies API
@@ -7935,12 +7957,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. Full vertical-slice staging follows PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002; release-candidate staging requires ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `INV-009 — Accepted email and safe authenticated deep links`.** INV-008 now owns only
-the post-commit recipient notification for `MATCHING_INVITATION_CREATED` and its Open Invitation URL.
-INV-009 remains responsible for the separate accepted-invitation email to the sender, the Start
-Chatting CTA, and the shared allowlisted authenticated/anonymous `returnTo` behavior for both email
-destinations. It must reuse the same outbox, current-VERIFIED-address, retry, idempotency, redaction
-and same-origin URL policies without broadening INV-008 or adding automatic-login tokens.
+**Next step: `BUDDY-002 — Current Buddies API`.** INV-009 is complete and now provides the separate
+accepted-invitation email plus the shared allowlisted authenticated/anonymous deep-link mechanism.
+BUDDY-002 is the next registry task with completed `BUDDY-001`, `INV-005` and `AUTH-V2-001`
+dependencies; it owns participant-authorized ACTIVE Buddy projections and exact conversation IDs,
+without expanding into BUDDY-003 UI or CHAT-002 history/read/retention behavior.
 
 ### 26.19 Documentation-change boundary
 

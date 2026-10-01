@@ -1,6 +1,7 @@
 import postgres from "npm:postgres@3.4.7";
 
 import {
+  acceptedInvitationReferenceFromPayload,
   buildWorkerLogEvent,
   constantTimeSecretEquals,
   decodeSealingKey,
@@ -82,11 +83,9 @@ Deno.serve(async (request: Request): Promise<Response> => {
         return rows as unknown as OutboxJob[];
       },
       async resolve(job: OutboxJob): Promise<OutboxJob> {
-        if (job.event_type !== "MATCHING_INVITATION_CREATED") {
-          return job;
-        }
-        const invitationId = invitationIdFromCreationPayload(job.payload);
-        const rows = await database`
+        if (job.event_type === "MATCHING_INVITATION_CREATED") {
+          const invitationId = invitationIdFromCreationPayload(job.payload);
+          const rows = await database`
           SELECT
             recipient.email AS recipient_email,
             invitation.id::text AS invitation_id,
@@ -116,19 +115,76 @@ Deno.serve(async (request: Request): Promise<Response> => {
             AND outbox.aggregate_id = ${invitationId}::uuid
             AND outbox.deleted_at IS NULL
         `;
-        const resolved = rows[0];
-        if (resolved === undefined) {
-          return { ...job, recipient_email: null };
+          const resolved = rows[0];
+          if (resolved === undefined) {
+            return { ...job, recipient_email: null };
+          }
+          return {
+            ...job,
+            recipient_email: String(resolved.recipient_email),
+            payload: {
+              version: 1,
+              invitation_id: String(resolved.invitation_id),
+              sender_display_name: String(resolved.sender_display_name),
+            },
+          };
         }
-        return {
-          ...job,
-          recipient_email: String(resolved.recipient_email),
-          payload: {
-            version: 1,
-            invitation_id: String(resolved.invitation_id),
-            sender_display_name: String(resolved.sender_display_name),
-          },
-        };
+        if (job.event_type === "MATCHING_INVITATION_ACCEPTED") {
+          const reference = acceptedInvitationReferenceFromPayload(job.payload);
+          const rows = await database`
+            SELECT
+              original_sender.email AS recipient_email,
+              conversation.id::text AS conversation_id,
+              COALESCE(
+                NULLIF(
+                  regexp_replace(btrim(acceptor_profile.display_name), '[[:space:]]+', ' ', 'g'),
+                  ''
+                ),
+                'Your VGU Buddy'
+              ) AS acceptor_display_name
+            FROM app_private.transactional_outbox AS outbox
+            JOIN app_private.matching_invitations AS invitation
+              ON invitation.id = outbox.aggregate_id
+             AND invitation.sender_id = outbox.recipient_user_id
+             AND invitation.status = 'ACCEPTED'::app_private.invitation_status
+             AND invitation.deleted_at IS NULL
+            JOIN app_private.matches AS buddy_match
+              ON buddy_match.id = ${reference.matchId}::uuid
+             AND buddy_match.accepted_invitation_id = invitation.id
+             AND buddy_match.status = 'ACTIVE'::app_private.match_status
+             AND buddy_match.deleted_at IS NULL
+            JOIN app_private.buddy_conversations AS conversation
+              ON conversation.id = ${reference.conversationId}::uuid
+             AND conversation.match_id = buddy_match.id
+            JOIN app_private.users AS original_sender
+              ON original_sender.id = invitation.sender_id
+             AND original_sender.role = 'USER'::app_private.user_role
+             AND original_sender.is_active IS TRUE
+             AND original_sender.deleted_at IS NULL
+             AND original_sender.email_verified_at IS NOT NULL
+            LEFT JOIN app_private.student_profiles AS acceptor_profile
+              ON acceptor_profile.user_id = invitation.recipient_id
+             AND acceptor_profile.deleted_at IS NULL
+            WHERE outbox.id = ${job.id}::uuid
+              AND outbox.event_type = 'MATCHING_INVITATION_ACCEPTED'
+              AND outbox.aggregate_id = ${reference.invitationId}::uuid
+              AND outbox.deleted_at IS NULL
+          `;
+          const resolved = rows[0];
+          if (resolved === undefined) {
+            return { ...job, recipient_email: null };
+          }
+          return {
+            ...job,
+            recipient_email: String(resolved.recipient_email),
+            payload: {
+              version: 1,
+              conversation_id: String(resolved.conversation_id),
+              acceptor_display_name: String(resolved.acceptor_display_name),
+            },
+          };
+        }
+        return job;
       },
       async complete(
         jobId: string,

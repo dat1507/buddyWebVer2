@@ -1,4 +1,4 @@
-"""INV-008 current-address resolution and plain-text template tests."""
+"""INV-008/009 current-address resolution and plain-text template tests."""
 
 from __future__ import annotations
 
@@ -17,7 +17,10 @@ from app.services.email_outbox import (
     default_email_delivery_resolver_registry,
     default_email_template_registry,
 )
+from app.services.invitation_acceptance import MATCHING_INVITATION_ACCEPTED
 from app.services.invitation_email import (
+    MatchingInvitationAcceptedResolver,
+    MatchingInvitationAcceptedTemplate,
     MatchingInvitationCreatedResolver,
     MatchingInvitationCreatedTemplate,
 )
@@ -25,6 +28,8 @@ from app.services.invitation_sending import MATCHING_INVITATION_CREATED
 
 INVITATION_ID = UUID("11111111-1111-4111-8111-111111111111")
 RECIPIENT_ID = UUID("22222222-2222-4222-8222-222222222222")
+MATCH_ID = UUID("33333333-3333-4333-8333-333333333333")
+CONVERSATION_ID = UUID("44444444-4444-4444-8444-444444444444")
 SETTINGS = EmailVerificationDeliverySettings(
     public_app_base_url="https://staging.vgubuddyprogram.com",
     sealing_key=SecretBytes(bytes(range(32))),
@@ -149,7 +154,7 @@ def test_template_rejects_malformed_resolved_payload(payload: dict[str, object])
 
 
 @pytest.mark.anyio
-async def test_default_registries_allowlist_invitation_without_accepted_email() -> None:
+async def test_default_registries_keep_created_and_accepted_events_separate() -> None:
     templates = default_email_template_registry(SETTINGS)
     resolvers = default_email_delivery_resolver_registry()
     _mock, session = _session(("current@example.com", "Sender"))
@@ -172,9 +177,38 @@ async def test_default_registries_allowlist_invitation_without_accepted_email() 
         payload={"invitation_id": str(INVITATION_ID)},
     )
     assert delivery.recipient_email == "current@example.com"
+    accepted = templates.render(
+        MATCHING_INVITATION_ACCEPTED,
+        {
+            "version": 1,
+            "conversation_id": str(CONVERSATION_ID),
+            "acceptor_display_name": "Buddy",
+        },
+    )
+    assert accepted.subject == "Your VGU Buddy invitation was accepted"
+    accepted_delivery = await resolvers.resolve(
+        session,
+        event_type=MATCHING_INVITATION_ACCEPTED,
+        aggregate_id=INVITATION_ID,
+        recipient_user_id=RECIPIENT_ID,
+        recipient_email="acceptance-snapshot@example.com",
+        payload={
+            "invitation_id": str(INVITATION_ID),
+            "match_id": str(MATCH_ID),
+            "conversation_id": str(CONVERSATION_ID),
+        },
+    )
+    assert accepted_delivery.recipient_email == "current@example.com"
     with pytest.raises(EmailTemplateError) as raised:
-        templates.render("MATCHING_INVITATION_ACCEPTED", {})
-    assert raised.value.error_code == "template_unregistered"
+        templates.render(
+            MATCHING_INVITATION_CREATED,
+            {
+                "version": 1,
+                "conversation_id": str(CONVERSATION_ID),
+                "acceptor_display_name": "Buddy",
+            },
+        )
+    assert raised.value.error_code == "invitation_payload_invalid"
 
 
 def test_template_contract_is_time_independent_and_contains_no_expiry_guess() -> None:
@@ -187,3 +221,135 @@ def test_template_contract_is_time_independent_and_contains_no_expiry_guess() ->
     )
     assert str(datetime(2026, 10, 8, tzinfo=UTC).date()) not in content.text_body
     assert "7 days" not in content.text_body
+
+
+@pytest.mark.anyio
+async def test_accepted_resolver_uses_current_sender_address_and_authoritative_relationship() -> None:
+    mock, session = _session(("current-sender@example.com", "  <b>Buddy</b>\nFriend  "))
+
+    delivery = await MatchingInvitationAcceptedResolver().resolve(
+        session,
+        aggregate_id=INVITATION_ID,
+        recipient_user_id=RECIPIENT_ID,
+        payload={
+            "invitation_id": str(INVITATION_ID),
+            "match_id": str(MATCH_ID),
+            "conversation_id": str(CONVERSATION_ID),
+        },
+    )
+
+    assert delivery.recipient_email == "current-sender@example.com"
+    assert delivery.payload == {
+        "version": 1,
+        "conversation_id": str(CONVERSATION_ID),
+        "acceptor_display_name": "<b>Buddy</b> Friend",
+    }
+    assert "current-sender@example.com" not in repr(delivery)
+    statement = str(mock.execute.await_args.args[0])
+    assert "matching_invitations" in statement
+    assert "matches" in statement
+    assert "buddy_conversations" in statement
+
+
+@pytest.mark.anyio
+async def test_accepted_resolver_suppresses_unverified_inactive_deleted_or_foreign_sender() -> None:
+    _mock, session = _session(None)
+
+    with pytest.raises(EmailTemplateError) as raised:
+        await MatchingInvitationAcceptedResolver().resolve(
+            session,
+            aggregate_id=INVITATION_ID,
+            recipient_user_id=RECIPIENT_ID,
+            payload={
+                "invitation_id": str(INVITATION_ID),
+                "match_id": str(MATCH_ID),
+                "conversation_id": str(CONVERSATION_ID),
+            },
+        )
+
+    assert raised.value.error_code == "accepted_invitation_recipient_unavailable"
+    assert str(raised.value) == "Transactional email template is unavailable."
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},
+        {
+            "invitation_id": str(INVITATION_ID),
+            "match_id": str(MATCH_ID),
+            "conversation_id": "not-a-uuid",
+        },
+        {
+            "invitation_id": str(INVITATION_ID),
+            "match_id": str(MATCH_ID),
+            "conversation_id": str(CONVERSATION_ID),
+            "message": "private",
+        },
+    ],
+)
+async def test_accepted_resolver_rejects_malformed_or_expanded_payload(
+    payload: dict[str, object],
+) -> None:
+    mock, session = _session(("current-sender@example.com", "Buddy"))
+
+    with pytest.raises(EmailTemplateError) as raised:
+        await MatchingInvitationAcceptedResolver().resolve(
+            session,
+            aggregate_id=INVITATION_ID,
+            recipient_user_id=RECIPIENT_ID,
+            payload=payload,
+        )
+
+    assert raised.value.error_code == "accepted_invitation_payload_invalid"
+    mock.execute.assert_not_awaited()
+
+
+def test_accepted_template_renders_plain_text_start_chatting_cta() -> None:
+    content = MatchingInvitationAcceptedTemplate(SETTINGS).render(
+        {
+            "version": 1,
+            "conversation_id": str(CONVERSATION_ID),
+            "acceptor_display_name": "<script>alert(1)</script>",
+        }
+    )
+
+    assert content.subject == "Your VGU Buddy invitation was accepted"
+    assert content.text_body.startswith(
+        "<script>alert(1)</script> accepted your VGU Buddy invitation."
+    )
+    assert (
+        f"https://staging.vgubuddyprogram.com/user/buddy?conversation={CONVERSATION_ID}"
+        in content.text_body
+    )
+    assert "Start chatting:" in content.text_body
+    assert "message" not in content.text_body.lower()
+    assert "example.com" not in content.text_body
+    assert str(INVITATION_ID) not in content.text_body
+    assert str(MATCH_ID) not in content.text_body
+    assert "<script>alert(1)</script>" not in repr(content)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"version": 1, "conversation_id": "invalid", "acceptor_display_name": "Buddy"},
+        {
+            "version": 1,
+            "conversation_id": str(CONVERSATION_ID),
+            "acceptor_display_name": "Buddy\r\nBcc: victim@example.com",
+        },
+        {
+            "version": 2,
+            "conversation_id": str(CONVERSATION_ID),
+            "acceptor_display_name": "Buddy",
+        },
+    ],
+)
+def test_accepted_template_rejects_malformed_resolved_payload(
+    payload: dict[str, object],
+) -> None:
+    with pytest.raises(EmailTemplateError) as raised:
+        MatchingInvitationAcceptedTemplate(SETTINGS).render(payload)
+    assert raised.value.error_code == "accepted_invitation_payload_invalid"

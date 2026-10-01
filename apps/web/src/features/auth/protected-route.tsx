@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Navigate, Outlet, useLocation } from 'react-router'
 
+import { emailLoginPathForLocation } from '@/features/auth/email-deep-link'
 import { useAuthStore } from '@/stores/auth-store'
 
 interface ProtectedRouteProps {
@@ -25,9 +26,10 @@ function ProtectedRoute({ loginPath = '/login' }: ProtectedRouteProps) {
   }
 
   if (status === 'unauthenticated') {
+    const emailLoginPath = loginPath === '/login' ? emailLoginPathForLocation(location) : null
     return (
       <Navigate
-        to={loginPath}
+        to={emailLoginPath ?? loginPath}
         replace
         state={{
           from: { pathname: location.pathname, search: location.search, hash: location.hash },

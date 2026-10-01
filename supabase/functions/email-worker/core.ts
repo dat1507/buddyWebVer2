@@ -7,6 +7,7 @@ const PROVIDER_TIMEOUT_MS = 10_000;
 const MAX_PROVIDER_RESPONSE_BYTES = 4_096;
 const VERIFICATION_EVENT = "EMAIL_VERIFICATION_REQUESTED";
 const INVITATION_EVENT = "MATCHING_INVITATION_CREATED";
+const ACCEPTED_INVITATION_EVENT = "MATCHING_INVITATION_ACCEPTED";
 const VERIFICATION_AAD = new TextEncoder().encode(
   "vgu-buddy-email-verification-delivery-v1",
 );
@@ -246,6 +247,9 @@ export async function renderEmail(
   if (job.event_type === INVITATION_EVENT) {
     return renderInvitationEmail(job, settings);
   }
+  if (job.event_type === ACCEPTED_INVITATION_EVENT) {
+    return renderAcceptedInvitationEmail(job, settings);
+  }
   throw new TemplateFailure("template_unregistered");
 }
 
@@ -265,6 +269,28 @@ export function invitationIdFromCreationPayload(
     throw new TemplateFailure("invitation_payload_invalid");
   }
   return invitationId;
+}
+
+export function acceptedInvitationReferenceFromPayload(
+  payload: Record<string, unknown>,
+): { invitationId: string; matchId: string; conversationId: string } {
+  const expectedKeys = ["conversation_id", "invitation_id", "match_id"];
+  if (Object.keys(payload).sort().join("|") !== expectedKeys.join("|")) {
+    throw new TemplateFailure("accepted_invitation_payload_invalid");
+  }
+  const invitationId = requireUuid(
+    payload.invitation_id,
+    "accepted_invitation_payload_invalid",
+  );
+  const matchId = requireUuid(
+    payload.match_id,
+    "accepted_invitation_payload_invalid",
+  );
+  const conversationId = requireUuid(
+    payload.conversation_id,
+    "accepted_invitation_payload_invalid",
+  );
+  return { invitationId, matchId, conversationId };
 }
 
 export async function runEmailWorker(
@@ -473,6 +499,56 @@ function renderInvitationEmail(
       `${link}\n\n` +
       "Sign in to VGU Buddy to review and respond to this invitation.",
   };
+}
+
+function renderAcceptedInvitationEmail(
+  job: OutboxJob,
+  settings: TemplateSettings,
+): OutboundEmail {
+  if (typeof job.recipient_email !== "string") {
+    throw new TemplateFailure("accepted_invitation_recipient_unavailable");
+  }
+  const expectedKeys = ["acceptor_display_name", "conversation_id", "version"];
+  if (Object.keys(job.payload).sort().join("|") !== expectedKeys.join("|")) {
+    throw new TemplateFailure("accepted_invitation_payload_invalid");
+  }
+  const conversationId = requireUuid(
+    job.payload.conversation_id,
+    "accepted_invitation_payload_invalid",
+  );
+  const acceptorDisplayName = job.payload.acceptor_display_name;
+  if (
+    job.payload.version !== 1 ||
+    typeof acceptorDisplayName !== "string" ||
+    !acceptorDisplayName ||
+    Array.from(acceptorDisplayName).length > 80 ||
+    /[\r\n]/.test(acceptorDisplayName)
+  ) {
+    throw new TemplateFailure("accepted_invitation_payload_invalid");
+  }
+  const appOrigin = normalizePublicAppOrigin(settings.publicAppBaseUrl);
+  const link = `${appOrigin}/user/buddy?conversation=${encodeURIComponent(conversationId)}`;
+  return {
+    recipientEmail: job.recipient_email,
+    subject: "Your VGU Buddy invitation was accepted",
+    textBody:
+      `${acceptorDisplayName} accepted your VGU Buddy invitation.\n\n` +
+      "Start chatting:\n" +
+      `${link}\n\n` +
+      "Sign in to VGU Buddy to open this conversation.",
+  };
+}
+
+function requireUuid(value: unknown, errorCode: string): string {
+  if (
+    typeof value !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    )
+  ) {
+    throw new TemplateFailure(errorCode);
+  }
+  return value;
 }
 
 function normalizePublicAppOrigin(value: string): string {

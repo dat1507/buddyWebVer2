@@ -480,18 +480,30 @@ def default_email_template_registry(
 ) -> EmailTemplateRegistry:
     """Return the reviewed built-in transactional-email template allowlist."""
     from app.services.email_verification_requests import EmailVerificationTemplate
-    from app.services.invitation_email import MatchingInvitationCreatedTemplate
+    from app.services.invitation_email import (
+        MatchingInvitationAcceptedTemplate,
+        MatchingInvitationCreatedTemplate,
+    )
 
     return EmailTemplateRegistry(
         (
             EmailVerificationTemplate(settings),
             MatchingInvitationCreatedTemplate(settings),
+            MatchingInvitationAcceptedTemplate(settings),
         )
     )
 
 
 def default_email_delivery_resolver_registry() -> EmailDeliveryResolverRegistry:
     """Return current-address resolvers used by production and local fallback workers."""
-    from app.services.invitation_email import MatchingInvitationCreatedResolver
+    from app.services.invitation_email import (
+        MatchingInvitationAcceptedResolver,
+        MatchingInvitationCreatedResolver,
+    )
 
-    return EmailDeliveryResolverRegistry((MatchingInvitationCreatedResolver(),))
+    return EmailDeliveryResolverRegistry(
+        (
+            MatchingInvitationCreatedResolver(),
+            MatchingInvitationAcceptedResolver(),
+        )
+    )

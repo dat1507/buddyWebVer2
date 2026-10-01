@@ -14,6 +14,8 @@ const user = {
   email_verified: false,
 }
 const deepLink = '/private/profile?view=details#photo'
+const conversationId = '44444444-4444-4444-8444-444444444444'
+const emailDeepLink = `/user/buddy?conversation=${conversationId}`
 
 function LocationProbe() {
   const { pathname, search, hash, state } = useLocation()
@@ -42,9 +44,9 @@ describe('AUTH-005 ProtectedRoute with actual Zustand and router', () => {
     }, [])
     return <h1>Private profile</h1>
   }
-  const renderGuard = (loginPath?: '/login' | '/adminLogin') =>
+  const renderGuard = (loginPath?: '/login' | '/adminLogin', entry: string = deepLink) =>
     render(
-      <MemoryRouter initialEntries={['/start', deepLink]} initialIndex={1}>
+      <MemoryRouter initialEntries={['/start', entry]} initialIndex={1}>
         <LocationProbe />
         <Routes>
           <Route path="/start" element={<h1>Previous public page</h1>} />
@@ -52,6 +54,7 @@ describe('AUTH-005 ProtectedRoute with actual Zustand and router', () => {
           <Route path="/adminLogin" element={<LoginProbe />} />
           <Route element={<ProtectedRoute loginPath={loginPath} />}>
             <Route path="/private/:id" element={<PrivateContent />} />
+            <Route path="/user/buddy" element={<PrivateContent />} />
           </Route>
         </Routes>
       </MemoryRouter>,
@@ -135,6 +138,22 @@ describe('AUTH-005 ProtectedRoute with actual Zustand and router', () => {
     act(() => useAuthStore.getState().setAuthenticated(user))
     expect(screen.getByRole('heading', { name: 'Private profile' })).toBeVisible()
     expect(mounted).toHaveBeenCalledOnce()
+  })
+
+  it('preserves only an allowlisted email destination as a canonical login returnTo', async () => {
+    useAuthStore.getState().clearSession()
+    renderGuard(undefined, emailDeepLink)
+
+    await screen.findByRole('heading', { name: 'Sign in' })
+    expect(location()).toMatchObject({
+      pathname: '/login',
+      search: `?returnTo=${encodeURIComponent(emailDeepLink)}`,
+      hash: '',
+      state: {
+        from: { pathname: '/user/buddy', search: `?conversation=${conversationId}`, hash: '' },
+      },
+    })
+    expect(mounted).not.toHaveBeenCalled()
   })
 
   it('unmounts private content when account verification restarts without redirect flicker', () => {

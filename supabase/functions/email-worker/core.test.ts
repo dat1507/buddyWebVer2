@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  acceptedInvitationReferenceFromPayload,
   buildWorkerLogEvent,
   DeliveryFailure,
   encodeBase64Url,
@@ -454,6 +455,120 @@ test("INV-008 accepts only the minimal invitation-created reference payload", ()
   );
 });
 
+test("INV-009 resolves current sender and sends one plain-text Start Chatting email", async () => {
+  const job = acceptedInvitationJob("accepted-current");
+  class AcceptedInvitationGateway extends AtomicFakeGateway {
+    override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
+      return {
+        ...claimed,
+        recipient_email: "current-sender@example.invalid",
+        payload: {
+          version: 1,
+          conversation_id: "44444444-4444-4444-8444-444444444444",
+          acceptor_display_name: "<script>alert(1)</script>",
+        },
+      };
+    }
+  }
+  const gateway = new AcceptedInvitationGateway([job]);
+  const provider = new RecordingProvider(["provider-accepted"]);
+
+  const first = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-accepted-one",
+    now: NOW,
+  });
+  const replay = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-accepted-two",
+    now: NOW,
+  });
+
+  assert.equal(first.sent, 1);
+  assert.equal(replay.claimed, 0);
+  assert.equal(provider.deliveries.length, 1);
+  const delivery = provider.deliveries[0];
+  assert.equal(
+    delivery.message.recipientEmail,
+    "current-sender@example.invalid",
+  );
+  assert.equal(
+    delivery.message.subject,
+    "Your VGU Buddy invitation was accepted",
+  );
+  assert.match(
+    delivery.message.textBody,
+    /^<script>alert\(1\)<\/script> accepted your/,
+  );
+  assert.match(
+    delivery.message.textBody,
+    /https:\/\/staging\.vgubuddyprogram\.com\/user\/buddy\?conversation=44444444/,
+  );
+  assert.equal(
+    delivery.message.textBody.includes("private invitation message"),
+    false,
+  );
+  assert.deepEqual(
+    provider.deliveries.map(({ idempotencyKey }) => idempotencyKey),
+    [job.idempotency_key],
+  );
+});
+
+test("INV-009 suppresses delivery when the original sender is no longer verified", async () => {
+  const job = acceptedInvitationJob("accepted-unverified");
+  class UnverifiedSenderGateway extends AtomicFakeGateway {
+    override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
+      return { ...claimed, recipient_email: null };
+    }
+  }
+  const gateway = new UnverifiedSenderGateway([job]);
+  const provider = new RecordingProvider();
+
+  const report = await runEmailWorker(gateway, provider, TEMPLATE_SETTINGS, {
+    workerId: "edge-accepted-unverified",
+    now: NOW,
+  });
+
+  assert.equal(report.terminal_failed, 1);
+  assert.equal(provider.deliveries.length, 0);
+  assert.equal(
+    gateway.stored[0].lastErrorCode,
+    "accepted_invitation_recipient_unavailable",
+  );
+});
+
+test("INV-009 accepts only authoritative opaque IDs in the accepted event payload", () => {
+  assert.deepEqual(
+    acceptedInvitationReferenceFromPayload({
+      invitation_id: "11111111-1111-4111-8111-111111111111",
+      match_id: "33333333-3333-4333-8333-333333333333",
+      conversation_id: "44444444-4444-4444-8444-444444444444",
+    }),
+    {
+      invitationId: "11111111-1111-4111-8111-111111111111",
+      matchId: "33333333-3333-4333-8333-333333333333",
+      conversationId: "44444444-4444-4444-8444-444444444444",
+    },
+  );
+  assert.throws(
+    () =>
+      acceptedInvitationReferenceFromPayload({
+        invitation_id: "11111111-1111-4111-8111-111111111111",
+        match_id: "33333333-3333-4333-8333-333333333333",
+        conversation_id: "not-a-uuid",
+      }),
+    /Transactional email template is unavailable/,
+  );
+  assert.throws(
+    () =>
+      acceptedInvitationReferenceFromPayload({
+        invitation_id: "11111111-1111-4111-8111-111111111111",
+        match_id: "33333333-3333-4333-8333-333333333333",
+        conversation_id: "44444444-4444-4444-8444-444444444444",
+        message: "private",
+      }),
+    /Transactional email template is unavailable/,
+  );
+});
+
 async function verificationJob(suffix: string): Promise<OutboxJob> {
   const tokenBytes = Uint8Array.from(
     { length: 32 },
@@ -503,5 +618,19 @@ function invitationJob(suffix: string): OutboxJob {
     recipient_email: "creation-snapshot@example.invalid",
     idempotency_key: `matching-invitation-created:${suffix}`,
     payload: { invitation_id: "11111111-1111-4111-8111-111111111111" },
+  };
+}
+
+function acceptedInvitationJob(suffix: string): OutboxJob {
+  return {
+    id: crypto.randomUUID(),
+    event_type: "MATCHING_INVITATION_ACCEPTED",
+    recipient_email: "acceptance-snapshot@example.invalid",
+    idempotency_key: `matching-invitation-accepted:${suffix}`,
+    payload: {
+      invitation_id: "11111111-1111-4111-8111-111111111111",
+      match_id: "33333333-3333-4333-8333-333333333333",
+      conversation_id: "44444444-4444-4444-8444-444444444444",
+    },
   };
 }

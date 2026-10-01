@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { Link, Navigate } from 'react-router'
+import { Link, Navigate, useLocation } from 'react-router'
 import { LockKeyhole, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
 import { sessionClient } from '@/features/auth/session-client'
+import { emailReturnToFromLoginSearch } from '@/features/auth/email-deep-link'
 import { useAuthSubmission } from '@/features/auth/use-auth-submission'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -25,6 +26,8 @@ function UserLoginPage() {
   const submission = useAuthSubmission()
   const status = useAuthStore((state) => state.status)
   const role = useAuthStore((state) => state.role)
+  const location = useLocation()
+  const emailReturnTo = emailReturnToFromLoginSearch(location.search)
 
   const clearFieldFeedback = (field: LoginField) => {
     setErrors((currentErrors) => {
@@ -73,9 +76,9 @@ function UserLoginPage() {
     })
   }
 
-  // Login and reload bootstrap install only verified, sanitized identity. Never follow redirect input.
+  // Identity remains authoritative; only the two canonical email destinations may override home.
   if (status === 'authenticated' && role === 'USER')
-    return <Navigate to="/user/dashboard" replace />
+    return <Navigate to={emailReturnTo ?? '/user/dashboard'} replace />
   if (status === 'authenticated' && role === 'ADMIN')
     return <Navigate to="/admin/dashboard" replace />
 
