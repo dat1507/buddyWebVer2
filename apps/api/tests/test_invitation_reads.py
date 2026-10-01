@@ -250,7 +250,7 @@ async def test_profile_projection_uses_fixed_batch_queries_and_safe_columns() ->
         ]
     )
 
-    profiles = await reads._load_invitation_profiles(
+    profiles = await reads.load_safe_participant_profiles(
         cast(AsyncSession, mock),
         (PARTICIPANT_USER_ID,),
         locale="de",
@@ -297,7 +297,7 @@ async def test_incoming_page_preserves_message_and_projects_current_compatibilit
             PARTICIPANT_USER_ID: sender_profile,
         }
     )
-    monkeypatch.setattr(reads, "_load_invitation_profiles", load_profiles)
+    monkeypatch.setattr(reads, "load_safe_participant_profiles", load_profiles)
     session = MagicMock(spec=AsyncSession)
 
     result = await reads.list_incoming_invitations(
@@ -346,7 +346,7 @@ async def test_sent_page_omits_message_and_keeps_incomplete_participant_visible(
     )
     monkeypatch.setattr(
         reads,
-        "_load_invitation_profiles",
+        "load_safe_participant_profiles",
         AsyncMock(
             return_value={
                 CURRENT_USER_ID: current_profile,
@@ -384,7 +384,7 @@ async def test_empty_pages_do_not_issue_profile_queries(
         AsyncMock(return_value=((), 0)),
     )
     load_profiles = AsyncMock()
-    monkeypatch.setattr(reads, "_load_invitation_profiles", load_profiles)
+    monkeypatch.setattr(reads, "load_safe_participant_profiles", load_profiles)
     function = (
         reads.list_incoming_invitations if view == "incoming" else reads.list_sent_invitations
     )

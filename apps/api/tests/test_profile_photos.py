@@ -230,25 +230,23 @@ async def test_other_user_photo_id_cannot_be_resolved_for_delivery() -> None:
 
 
 @pytest.mark.anyio
-async def test_eligible_user_can_resolve_only_an_eligible_candidate_avatar(
+async def test_verified_user_can_resolve_an_active_buddy_avatar_before_eligibility(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     owner = _owner()
-    candidate_photo = _photo()
-    mock, session = _session(None)
-    matching_principal = EligibleMatchingPrincipal(
-        user_id=USER_ID,
-        profile_id=PROFILE_ID,
-        student_type=StudentType.VIETNAMESE,
-    )
-    verified_reader = AsyncMock(return_value=object())
-    eligibility_reader = AsyncMock(return_value=matching_principal)
-    candidate_reader = AsyncMock(return_value=candidate_photo)
+    buddy_photo = _photo()
+    _mock, session = _session(None)
+    verified_principal = object()
+    verified_reader = AsyncMock(return_value=verified_principal)
+    buddy_reader = AsyncMock(return_value=buddy_photo)
+    eligibility_reader = AsyncMock()
+    candidate_reader = AsyncMock()
     monkeypatch.setattr(
         profile_photo_service,
         "get_verified_buddy_principal",
         verified_reader,
     )
+    monkeypatch.setattr(profile_photo_service, "get_active_buddy_avatar", buddy_reader)
     monkeypatch.setattr(
         profile_photo_service,
         "get_eligible_matching_principal",
@@ -262,8 +260,51 @@ async def test_eligible_user_can_resolve_only_an_eligible_candidate_avatar(
 
     result = await get_authorized_profile_photo(session, owner, OLD_PHOTO_ID)
 
+    assert result is buddy_photo
+    verified_reader.assert_awaited_once_with(session, owner)
+    buddy_reader.assert_awaited_once_with(session, verified_principal, OLD_PHOTO_ID)
+    eligibility_reader.assert_not_awaited()
+    candidate_reader.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_eligible_user_can_resolve_only_an_eligible_candidate_avatar(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    owner = _owner()
+    candidate_photo = _photo()
+    mock, session = _session(None)
+    matching_principal = EligibleMatchingPrincipal(
+        user_id=USER_ID,
+        profile_id=PROFILE_ID,
+        student_type=StudentType.VIETNAMESE,
+    )
+    verified_reader = AsyncMock(return_value=object())
+    buddy_reader = AsyncMock(return_value=None)
+    eligibility_reader = AsyncMock(return_value=matching_principal)
+    candidate_reader = AsyncMock(return_value=candidate_photo)
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_verified_buddy_principal",
+        verified_reader,
+    )
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_eligible_matching_principal",
+        eligibility_reader,
+    )
+    monkeypatch.setattr(profile_photo_service, "get_active_buddy_avatar", buddy_reader)
+    monkeypatch.setattr(
+        profile_photo_service,
+        "get_eligible_candidate_avatar",
+        candidate_reader,
+    )
+
+    result = await get_authorized_profile_photo(session, owner, OLD_PHOTO_ID)
+
     assert result is candidate_photo
     verified_reader.assert_awaited_once_with(session, owner)
+    buddy_reader.assert_awaited_once_with(session, verified_reader.return_value, OLD_PHOTO_ID)
     eligibility_reader.assert_awaited_once()
     candidate_reader.assert_awaited_once_with(session, matching_principal, OLD_PHOTO_ID)
 

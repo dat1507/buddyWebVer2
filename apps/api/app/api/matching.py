@@ -16,6 +16,7 @@ from app.core.database import get_database_session
 from app.core.rate_limits import check_user_rate_limit
 from app.models import User
 from app.schemas.matching import (
+    CurrentBuddyListResponse,
     IncomingInvitationListResponse,
     InvitationAcceptResponse,
     InvitationCreateRequest,
@@ -27,6 +28,12 @@ from app.schemas.matching import (
 from app.schemas.profile_catalog import CatalogLocale
 from app.services.buddy_access import VerifiedBuddyPrincipal
 from app.services.csrf import CsrfTokenClaims
+from app.services.current_buddies import (
+    DEFAULT_CURRENT_BUDDY_PAGE_SIZE,
+    MAX_CURRENT_BUDDY_PAGE_SIZE,
+    CurrentBuddyReadStateError,
+    list_current_buddies,
+)
 from app.services.invitation_acceptance import (
     InvitationAcceptError,
     InvitationAcceptReason,
@@ -132,6 +139,43 @@ async def read_matching_recommendations(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Recommendations are temporarily unavailable.",
+            headers=_NO_STORE_HEADERS,
+        ) from None
+    _mark_private(response)
+    return result
+
+
+@router.get(
+    "/buddies",
+    response_model=CurrentBuddyListResponse,
+)
+async def read_current_buddies(
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+    locale: Annotated[CatalogLocale, Query()] = "en",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[
+        int,
+        Query(ge=1, le=MAX_CURRENT_BUDDY_PAGE_SIZE),
+    ] = DEFAULT_CURRENT_BUDDY_PAGE_SIZE,
+) -> CurrentBuddyListResponse:
+    """Return the current verified USER's authoritative ACTIVE Buddy page."""
+    try:
+        result = await list_current_buddies(
+            session,
+            current,
+            locale=locale,
+            page=page,
+            page_size=page_size,
+        )
+    except CurrentBuddyReadStateError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Current Buddies changed. Refresh and try again.",
             headers=_NO_STORE_HEADERS,
         ) from None
     _mark_private(response)

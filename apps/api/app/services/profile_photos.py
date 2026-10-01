@@ -17,6 +17,7 @@ from app.models import (
 )
 from app.models.profile import PROFILE_IMAGE_BUCKET
 from app.services.buddy_access import BuddyCapabilityError, get_verified_buddy_principal
+from app.services.current_buddies import get_active_buddy_avatar
 from app.services.image_storage import (
     ImageBucket,
     ImageStorageService,
@@ -226,11 +227,17 @@ async def get_authorized_profile_photo(
         if photo is None:
             try:
                 verified = await get_verified_buddy_principal(session, viewer)
-                current = await get_eligible_matching_principal(session, verified)
             except BuddyCapabilityError:
-                current = None
-            if current is not None:
-                photo = await get_eligible_candidate_avatar(session, current, photo_id)
+                verified = None
+            if verified is not None:
+                photo = await get_active_buddy_avatar(session, verified, photo_id)
+                if photo is None:
+                    try:
+                        current = await get_eligible_matching_principal(session, verified)
+                    except BuddyCapabilityError:
+                        current = None
+                    if current is not None:
+                        photo = await get_eligible_candidate_avatar(session, current, photo_id)
     if photo is None:
         raise ProfilePhotoNotFoundError("Profile photo was not found.")
     return photo

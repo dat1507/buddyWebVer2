@@ -216,6 +216,31 @@ class SafeInvitationProfile(BaseModel):
     availability: WeeklyAvailability | None
 
 
+class CurrentBuddy(BaseModel):
+    """One ACTIVE relationship projected without User or persistence internals."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    match_id: UUID
+    conversation_id: UUID
+    buddy: SafeInvitationProfile
+    score: int = Field(ge=0, le=100)
+    explanation: CompatibilityExplanation
+    reference_week_start: date
+
+
+class CurrentBuddyListResponse(BaseModel):
+    """One bounded deterministic page of the verified USER's ACTIVE Buddies."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[CurrentBuddy]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=50)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
+
+
 class _InvitationReadItem(BaseModel):
     """Shared safe invitation fields; participant identity is endpoint-specific."""
 

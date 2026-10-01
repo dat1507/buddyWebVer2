@@ -213,7 +213,7 @@ def _localized_label(
     return label_de if locale == "de" else label_en
 
 
-async def _load_invitation_profiles(
+async def load_safe_participant_profiles(
     session: AsyncSession,
     user_ids: tuple[UUID, ...],
     *,
@@ -537,7 +537,7 @@ async def list_incoming_invitations(
             reference_week_start=reference_week_start,
         )
     user_ids = tuple(dict.fromkeys((current.user.id, *(row.participant_user_id for row in rows))))
-    profiles = await _load_invitation_profiles(session, user_ids, locale=locale)
+    profiles = await load_safe_participant_profiles(session, user_ids, locale=locale)
     current_profile = profiles.get(current.user.id)
     if rows and current_profile is None:
         raise InvitationReadStateError
@@ -607,7 +607,7 @@ async def list_sent_invitations(
             reference_week_start=reference_week_start,
         )
     user_ids = tuple(dict.fromkeys((current.user.id, *(row.participant_user_id for row in rows))))
-    profiles = await _load_invitation_profiles(session, user_ids, locale=locale)
+    profiles = await load_safe_participant_profiles(session, user_ids, locale=locale)
     current_profile = profiles.get(current.user.id)
     if rows and current_profile is None:
         raise InvitationReadStateError
