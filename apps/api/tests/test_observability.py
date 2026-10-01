@@ -13,6 +13,7 @@ from app.core.observability import (
     LOGGER_NAME,
     ApiObservabilityMiddleware,
     emit_api_request_event,
+    emit_chat_cleanup_event,
     emit_chat_realtime_event,
     emit_invitation_expiry_event,
     get_operations_logger,
@@ -93,6 +94,38 @@ def test_invitation_expiry_event_contains_aggregate_allowlist_only(
         "sender_id",
         "recipient_id",
         "email",
+        "message",
+    }.intersection(event)
+
+
+def test_chat_cleanup_event_contains_aggregate_allowlist_only(
+    operations_log: io.StringIO,
+) -> None:
+    emit_chat_cleanup_event(
+        batch_size=20,
+        selected=3,
+        deleted=3,
+        duration_ms=9,
+        error_type="DatabaseError",
+    )
+
+    event = json.loads(operations_log.getvalue())
+    assert event == {
+        "timestamp": event["timestamp"],
+        "service": "vgu-buddy-api",
+        "event": "chat_message_cleanup_batch_completed",
+        "batch_size": 20,
+        "selected": 3,
+        "deleted": 3,
+        "duration_ms": 9,
+        "error_type": "DatabaseError",
+    }
+    assert not {
+        "message_id",
+        "conversation_id",
+        "sender_id",
+        "email",
+        "body",
         "message",
     }.intersection(event)
 

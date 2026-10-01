@@ -30,8 +30,14 @@ from app.core.database import (
     get_session_factory,
     migration_database_url,
 )
-from app.core.observability import emit_invitation_expiry_event
+from app.core.observability import emit_chat_cleanup_event, emit_invitation_expiry_event
 from app.services.auth import AdminCreationError, create_admin
+from app.services.chat_cleanup import (
+    DEFAULT_CHAT_CLEANUP_BATCH_SIZE,
+    ChatCleanupReport,
+    ChatCleanupValidationError,
+    process_chat_cleanup_batch,
+)
 from app.services.email_outbox import (
     DEFAULT_OUTBOX_BATCH_SIZE,
     MAX_OUTBOX_BATCH_SIZE,
@@ -65,6 +71,7 @@ STORAGE_ERROR_MESSAGE = "Storage reconciliation could not be completed."
 STORAGE_CONFIGURATION_ERROR_MESSAGE = "Storage bucket configuration could not be completed."
 EMAIL_WORKER_ERROR_MESSAGE = "Transactional email worker could not be started or completed."
 INVITATION_EXPIRY_ERROR_MESSAGE = "Invitation expiry batch could not be completed."
+CHAT_CLEANUP_ERROR_MESSAGE = "Expired Buddy message cleanup could not be completed."
 LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be configured."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
@@ -140,6 +147,16 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=DEFAULT_INVITATION_EXPIRY_BATCH_SIZE,
         help=f"Rows per batch (default: {DEFAULT_INVITATION_EXPIRY_BATCH_SIZE}).",
+    )
+    chat_cleanup_parser = commands.add_parser(
+        "cleanup-expired-chat-messages",
+        help="Hard-delete one bounded batch of authoritatively expired Buddy messages.",
+    )
+    chat_cleanup_parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_CHAT_CLEANUP_BATCH_SIZE,
+        help=f"Rows per batch (default: {DEFAULT_CHAT_CLEANUP_BATCH_SIZE}).",
     )
     return parser
 
@@ -287,6 +304,31 @@ async def _invitation_expiry_command(*, batch_size: int) -> InvitationExpiryRepo
         await dispose_database_engine()
 
 
+async def _chat_cleanup_command(*, batch_size: int) -> ChatCleanupReport:
+    started_at = perf_counter()
+    report = ChatCleanupReport(selected=0, deleted=0)
+    error_type: str | None = None
+    try:
+        report = await process_chat_cleanup_batch(
+            get_session_factory(),
+            batch_size=batch_size,
+        )
+        return report
+    except Exception as error:
+        error_type = type(error).__name__
+        raise
+    finally:
+        duration_ms = max(0, round((perf_counter() - started_at) * 1000))
+        emit_chat_cleanup_event(
+            batch_size=batch_size,
+            selected=report.selected,
+            deleted=report.deleted,
+            duration_ms=duration_ms,
+            error_type=error_type,
+        )
+        await dispose_database_engine()
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse and execute one operational command with sanitized terminal failures."""
     raw_arguments = list(argv) if argv is not None else sys.argv[1:]
@@ -404,6 +446,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(
             "Invitation expiry: "
             f"selected={expiry_report.selected}, expired={expiry_report.expired}"
+        )
+        return 0
+
+    if arguments.command == "cleanup-expired-chat-messages":
+        try:
+            cleanup_report = asyncio.run(_chat_cleanup_command(batch_size=arguments.batch_size))
+        except (
+            DatabaseConfigurationError,
+            ChatCleanupValidationError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {CHAT_CLEANUP_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Chat message cleanup: "
+            f"selected={cleanup_report.selected}, deleted={cleanup_report.deleted}"
         )
         return 0
 

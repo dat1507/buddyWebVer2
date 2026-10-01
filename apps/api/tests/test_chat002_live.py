@@ -606,6 +606,6 @@ def test_live_chat002_migration_concurrency_retention_and_isolation(
         asyncio.run(_run_acceptance(async_database_url, user_ids))
         _assert_downgrade_and_reupgrade(async_database_url, config)
     finally:
-        if asyncio.run(_current_revision(async_database_url)) == "0015_chat_send_idempotency":
+        if asyncio.run(_current_revision(async_database_url)) == "0016_chat_message_cleanup":
             command.downgrade(config, "0014_buddy_chat_persistence")
         get_migration_database_settings.cache_clear()

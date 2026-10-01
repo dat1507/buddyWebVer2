@@ -94,6 +94,32 @@ def emit_invitation_expiry_event(
     )
 
 
+def emit_chat_cleanup_event(
+    *,
+    batch_size: int,
+    selected: int,
+    deleted: int,
+    duration_ms: int,
+    error_type: str | None = None,
+) -> None:
+    """Emit aggregate cleanup telemetry without message or participant data."""
+    payload: dict[str, str | int] = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "service": "vgu-buddy-api",
+        "event": "chat_message_cleanup_batch_completed",
+        "batch_size": batch_size,
+        "selected": selected,
+        "deleted": deleted,
+        "duration_ms": duration_ms,
+    }
+    if error_type is not None:
+        payload["error_type"] = error_type
+    level: LogLevel = "error" if error_type is not None else "info"
+    getattr(get_operations_logger(), level)(
+        json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    )
+
+
 def emit_chat_realtime_event(*, lifecycle: ChatRealtimeLifecycle, close_code: int) -> None:
     """Emit socket lifecycle only; never accept participant, body, cookie, or channel data."""
     payload: dict[str, str | int] = {
