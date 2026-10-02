@@ -131,6 +131,25 @@ async def test_transport_upload_is_non_upsert_and_never_places_key_in_url() -> N
 
 
 @pytest.mark.anyio
+async def test_transport_downloads_private_object_without_signed_url() -> None:
+    transport = SupabaseStorageTransport(_settings())
+    request = AsyncMock(return_value=b"private avatar bytes")
+    transport._request = request  # type: ignore[method-assign]
+    reference = StorageObjectRef(
+        ImageBucket.PROFILE_IMAGES,
+        "00000000-0000-4000-8000-000000000015.png",
+    )
+
+    assert await transport.download(reference) == b"private avatar bytes"
+    request.assert_awaited_once_with(
+        "GET",
+        "https://project.supabase.co/storage/v1/object/authenticated/profile-images/"
+        "00000000-0000-4000-8000-000000000015.png",
+        maximum_response_bytes=5 * 1024 * 1024,
+    )
+
+
+@pytest.mark.anyio
 async def test_transport_updates_existing_bucket_configuration() -> None:
     transport = SupabaseStorageTransport(_settings())
     request = AsyncMock(return_value=b"{}")

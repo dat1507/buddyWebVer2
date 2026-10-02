@@ -58,17 +58,31 @@ class DatabaseBackupObjectRef:
     def object_key(self) -> str:
         return f"{self.backup_id}/database/{self.kind.value}"
 
+    @property
+    def content_type(self) -> str:
+        return self.kind.content_type
+
+
+class BackupStorageObjectRef(Protocol):
+    """Trusted server-generated reference accepted by the shared private store."""
+
+    @property
+    def object_key(self) -> str: ...
+
+    @property
+    def content_type(self) -> str: ...
+
 
 class DatabaseBackupArtifactStore(Protocol):
     """Minimal private object-store contract used by backup orchestration."""
 
-    def location(self, reference: DatabaseBackupObjectRef) -> str: ...
+    def location(self, reference: BackupStorageObjectRef) -> str: ...
 
-    async def put_file(self, reference: DatabaseBackupObjectRef, source: Path) -> None: ...
+    async def put_file(self, reference: BackupStorageObjectRef, source: Path) -> None: ...
 
-    async def get_file(self, reference: DatabaseBackupObjectRef, target: Path) -> None: ...
+    async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None: ...
 
-    async def delete(self, reference: DatabaseBackupObjectRef) -> None: ...
+    async def delete(self, reference: BackupStorageObjectRef) -> None: ...
 
 
 def _assert_bounded_file(path: Path) -> int:
@@ -92,13 +106,13 @@ class PrivateFileDatabaseBackupStore:
         except OSError:
             pass
 
-    def _path(self, reference: DatabaseBackupObjectRef) -> Path:
+    def _path(self, reference: BackupStorageObjectRef) -> Path:
         candidate = (self._root / reference.object_key).resolve()
         if self._root not in candidate.parents:
             raise DatabaseBackupStorageError("Database backup object identity is invalid.")
         return candidate
 
-    def location(self, reference: DatabaseBackupObjectRef) -> str:
+    def location(self, reference: BackupStorageObjectRef) -> str:
         return f"private-file://{DATABASE_BACKUP_BUCKET}/{reference.object_key}"
 
     @staticmethod
@@ -122,14 +136,14 @@ class PrivateFileDatabaseBackupStore:
             target.unlink(missing_ok=True)
             raise DatabaseBackupStorageError("Database backup storage is unavailable.") from error
 
-    async def put_file(self, reference: DatabaseBackupObjectRef, source: Path) -> None:
+    async def put_file(self, reference: BackupStorageObjectRef, source: Path) -> None:
         await asyncio.to_thread(self._copy_exclusive, source, self._path(reference))
 
-    async def get_file(self, reference: DatabaseBackupObjectRef, target: Path) -> None:
+    async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None:
         source = self._path(reference)
         await asyncio.to_thread(self._copy_exclusive, source, target)
 
-    async def delete(self, reference: DatabaseBackupObjectRef) -> None:
+    async def delete(self, reference: BackupStorageObjectRef) -> None:
         try:
             await asyncio.to_thread(self._path(reference).unlink, missing_ok=True)
         except OSError as error:
@@ -157,7 +171,7 @@ class SupabaseDatabaseBackupStore:
         self._secret_key = settings.secret_key.get_secret_value()
         self._timeout_seconds = timeout_seconds
 
-    def _url(self, operation: str, reference: DatabaseBackupObjectRef | None = None) -> str:
+    def _url(self, operation: str, reference: BackupStorageObjectRef | None = None) -> str:
         suffix = ""
         if reference is not None:
             key = "/".join(quote(part, safe="") for part in reference.object_key.split("/"))
@@ -227,10 +241,10 @@ class SupabaseDatabaseBackupStore:
         except (OSError, TimeoutError, URLError, ValueError):
             raise DatabaseBackupStorageError("Database backup storage is unavailable.") from None
 
-    def location(self, reference: DatabaseBackupObjectRef) -> str:
+    def location(self, reference: BackupStorageObjectRef) -> str:
         return f"supabase-storage://{DATABASE_BACKUP_BUCKET}/{reference.object_key}"
 
-    def _put_file_sync(self, reference: DatabaseBackupObjectRef, source: Path) -> None:
+    def _put_file_sync(self, reference: BackupStorageObjectRef, source: Path) -> None:
         size = _assert_bounded_file(source)
         try:
             content = source.read_bytes()
@@ -242,14 +256,14 @@ class SupabaseDatabaseBackupStore:
             "POST",
             self._url("object", reference),
             body=content,
-            content_type=reference.kind.content_type,
+            content_type=reference.content_type,
             extra_headers={"x-upsert": "false", "cache-control": "no-store"},
         )
 
-    async def put_file(self, reference: DatabaseBackupObjectRef, source: Path) -> None:
+    async def put_file(self, reference: BackupStorageObjectRef, source: Path) -> None:
         await asyncio.to_thread(self._put_file_sync, reference, source)
 
-    def _get_file_sync(self, reference: DatabaseBackupObjectRef, target: Path) -> None:
+    def _get_file_sync(self, reference: BackupStorageObjectRef, target: Path) -> None:
         content = self._request(
             "GET",
             self._url("object/authenticated", reference),
@@ -273,10 +287,10 @@ class SupabaseDatabaseBackupStore:
             target.unlink(missing_ok=True)
             raise DatabaseBackupStorageError("Database backup download failed.") from error
 
-    async def get_file(self, reference: DatabaseBackupObjectRef, target: Path) -> None:
+    async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None:
         await asyncio.to_thread(self._get_file_sync, reference, target)
 
-    async def delete(self, reference: DatabaseBackupObjectRef) -> None:
+    async def delete(self, reference: BackupStorageObjectRef) -> None:
         await asyncio.to_thread(
             self._request,
             "DELETE",
@@ -289,7 +303,13 @@ class SupabaseDatabaseBackupStore:
         policy = {
             "public": False,
             "file_size_limit": MAX_DATABASE_BACKUP_BYTES,
-            "allowed_mime_types": ["application/gzip", "application/json"],
+            "allowed_mime_types": [
+                "application/gzip",
+                "application/json",
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+            ],
         }
         try:
             await asyncio.to_thread(self._request, "GET", bucket_url)

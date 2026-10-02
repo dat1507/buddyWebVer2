@@ -69,6 +69,12 @@ from app.services.invitation_expiry import (
     InvitationExpiryValidationError,
     process_invitation_expiry_batch,
 )
+from app.services.semester_avatar_backup import (
+    AvatarBackupAdapter,
+    AvatarBackupError,
+    AvatarBackupReport,
+    create_semester_avatar_backup,
+)
 from app.services.semester_database_backup import (
     DatabaseBackupError,
     DatabaseBackupReport,
@@ -85,9 +91,8 @@ INVITATION_EXPIRY_ERROR_MESSAGE = "Invitation expiry batch could not be complete
 CHAT_CLEANUP_ERROR_MESSAGE = "Expired Buddy message cleanup could not be completed."
 LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be configured."
 DATABASE_BACKUP_ERROR_MESSAGE = "Semester database backup could not be completed."
-DATABASE_BACKUP_STORAGE_ERROR_MESSAGE = (
-    "Semester database backup storage could not be configured."
-)
+DATABASE_BACKUP_STORAGE_ERROR_MESSAGE = "Semester database backup storage could not be configured."
+AVATAR_BACKUP_ERROR_MESSAGE = "Semester avatar backup could not be completed."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
 )
@@ -126,6 +131,16 @@ def _parser() -> argparse.ArgumentParser:
         help="Create and verify the database artifact for an existing semester backup.",
     )
     database_backup_parser.add_argument(
+        "--backup-id",
+        required=True,
+        type=UUID,
+        help="Stable UUID of the existing CREATING semester backup.",
+    )
+    avatar_backup_parser = commands.add_parser(
+        "backup-semester-avatars",
+        help="Create and verify private avatar objects for an existing semester backup.",
+    )
+    avatar_backup_parser.add_argument(
         "--backup-id",
         required=True,
         type=UUID,
@@ -270,6 +285,21 @@ async def _database_backup_command(*, backup_id: UUID) -> DatabaseBackupReport:
         await dispose_database_engine()
 
 
+async def _avatar_backup_command(*, backup_id: UUID) -> AvatarBackupReport:
+    settings = get_storage_settings()
+    adapter = AvatarBackupAdapter(ImageStorageService(SupabaseStorageTransport(settings)))
+    storage = SupabaseDatabaseBackupStore(settings)
+    try:
+        return await create_semester_avatar_backup(
+            get_session_factory(),
+            backup_id=backup_id,
+            adapter=adapter,
+            storage=storage,
+        )
+    finally:
+        await dispose_database_engine()
+
+
 async def _configure_local_runtime_role_command() -> None:
     """Set a local-only runtime password without putting it in argv or SQL logs."""
     password = os.getenv("LOCAL_RUNTIME_DATABASE_PASSWORD")
@@ -380,8 +410,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Parse and execute one operational command with sanitized terminal failures."""
     raw_arguments = list(argv) if argv is not None else sys.argv[1:]
     if any(
-        argument == "--password" or argument.startswith("--password=")
-        for argument in raw_arguments
+        argument == "--password" or argument.startswith("--password=") for argument in raw_arguments
     ):
         print(f"Error: {UNSAFE_PASSWORD_ARGUMENT_MESSAGE}", file=sys.stderr)
         return 2
@@ -434,9 +463,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if arguments.command == "backup-semester-database":
         try:
-            backup_report = asyncio.run(
-                _database_backup_command(backup_id=arguments.backup_id)
-            )
+            backup_report = asyncio.run(_database_backup_command(backup_id=arguments.backup_id))
         except (
             DatabaseConfigurationError,
             StorageConfigurationError,
@@ -452,6 +479,27 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"backup_id={backup_report.backup_id}, tables={backup_report.table_count}, "
             f"rows={backup_report.row_count}, bytes={backup_report.artifact_size_bytes}, "
             f"state={backup_report.state.value}"
+        )
+        return 0
+
+    if arguments.command == "backup-semester-avatars":
+        try:
+            avatar_report = asyncio.run(_avatar_backup_command(backup_id=arguments.backup_id))
+        except (
+            DatabaseConfigurationError,
+            StorageConfigurationError,
+            AvatarBackupError,
+            DatabaseBackupStorageError,
+            StorageOperationError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {AVATAR_BACKUP_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Semester avatar backup: "
+            f"backup_id={avatar_report.backup_id}, objects={avatar_report.object_count}, "
+            f"bytes={avatar_report.total_bytes}, state={avatar_report.state.value}"
         )
         return 0
 
@@ -511,9 +559,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if arguments.command == "expire-invitations":
         try:
-            expiry_report = asyncio.run(
-                _invitation_expiry_command(batch_size=arguments.batch_size)
-            )
+            expiry_report = asyncio.run(_invitation_expiry_command(batch_size=arguments.batch_size))
         except (
             DatabaseConfigurationError,
             InvitationExpiryValidationError,
@@ -523,8 +569,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Error: {INVITATION_EXPIRY_ERROR_MESSAGE}", file=sys.stderr)
             return 1
         print(
-            "Invitation expiry: "
-            f"selected={expiry_report.selected}, expired={expiry_report.expired}"
+            f"Invitation expiry: selected={expiry_report.selected}, expired={expiry_report.expired}"
         )
         return 0
 

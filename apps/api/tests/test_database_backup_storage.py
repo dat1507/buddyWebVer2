@@ -75,7 +75,13 @@ async def test_supabase_bucket_is_always_private_and_mime_restricted() -> None:
     assert json.loads(update.kwargs["body"]) == {
         "public": False,
         "file_size_limit": 512 * 1024 * 1024,
-        "allowed_mime_types": ["application/gzip", "application/json"],
+        "allowed_mime_types": [
+            "application/gzip",
+            "application/json",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        ],
     }
 
 

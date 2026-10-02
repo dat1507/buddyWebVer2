@@ -10,11 +10,13 @@ from __future__ import annotations
 import asyncio
 import os
 from datetime import UTC, datetime, timedelta
+from io import BytesIO
 from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
 from alembic.config import Config
+from PIL import Image
 from pydantic import SecretStr
 from sqlalchemy import text
 from sqlalchemy.engine import URL, make_url
@@ -34,11 +36,29 @@ from app.core.config import (
 )
 from app.models import SemesterBackupState
 from app.services.database_backup_storage import (
+    BackupStorageObjectRef,
     DatabaseBackupArtifactStore,
     DatabaseBackupObjectKind,
     DatabaseBackupObjectRef,
     DatabaseBackupStorageError,
     PrivateFileDatabaseBackupStore,
+)
+from app.services.image_storage import (
+    ImageBucket,
+    ImageStorageService,
+    ListedStorageObject,
+    StorageObjectRef,
+    StorageOperationError,
+    prepare_image,
+)
+from app.services.semester_avatar_backup import (
+    AvatarBackupAdapter,
+    AvatarBackupAlreadyAttachedError,
+    AvatarBackupError,
+    AvatarBackupManifestRef,
+    create_semester_avatar_backup,
+    load_avatar_backup_from_storage,
+    restore_avatar_backup_for_rehearsal,
 )
 from app.services.semester_database_backup import (
     DatabaseBackupAlreadyAttachedError,
@@ -50,6 +70,19 @@ from app.services.semester_database_backup import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 10, 2, 8, 0, tzinfo=UTC)
+
+
+def _avatar_bytes() -> bytes:
+    output = BytesIO()
+    Image.new("RGB", (64, 64), (10, 20, 30)).save(output, format="JPEG")
+    return prepare_image(
+        original_name="avatar.jpg",
+        declared_content_type="image/jpeg",
+        content=output.getvalue(),
+    ).content
+
+
+AVATAR_BYTES = _avatar_bytes()
 
 
 def _config() -> Config:
@@ -96,6 +129,8 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
         "backup": uuid4(),
         "failure_operation": uuid4(),
         "failure_backup": uuid4(),
+        "avatar_failure_operation": uuid4(),
+        "avatar_failure_backup": uuid4(),
     }
     async with engine.begin() as connection:
         semester_row = (
@@ -149,10 +184,16 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
                 "INSERT INTO app_private.profile_photos "
                 "(id, profile_id, bucket, object_key, mime_type, byte_size, width, height, "
                 "is_avatar, processing_status, created_at) VALUES "
-                "(:photo, :profile_one, 'profile-images', :object_key, 'image/jpeg', 128, 64, "
+                "(:photo, :profile_one, 'profile-images', :object_key, 'image/jpeg', "
+                ":byte_size, 64, "
                 "64, true, 'READY', :now)"
             ),
-            {**ids, "object_key": f"{uuid4()}.jpg", "now": NOW},
+            {
+                **ids,
+                "object_key": f"{ids['photo']}.jpg",
+                "byte_size": len(AVATAR_BYTES),
+                "now": NOW,
+            },
         )
         await connection.execute(
             text(
@@ -287,7 +328,8 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
                 "(id, operation_type, state, semester_id, admin_actor_id, requested_at, "
                 "started_at) VALUES "
                 "(:operation, 'RESET', 'RUNNING', :semester, :admin, :now, :now), "
-                "(:failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL)"
+                "(:failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL), "
+                "(:avatar_failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL)"
             ),
             {**ids, "now": NOW},
         )
@@ -296,7 +338,8 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
                 "INSERT INTO app_private.semester_backups "
                 "(id, source_semester_id, source_boundary_at, created_by_operation_id) VALUES "
                 "(:backup, :semester, :boundary, :operation), "
-                "(:failure_backup, :semester, :boundary, :failure_operation)"
+                "(:failure_backup, :semester, :boundary, :failure_operation), "
+                "(:avatar_failure_backup, :semester, :boundary, :avatar_failure_operation)"
             ),
             {**ids, "boundary": source_boundary_at},
         )
@@ -357,22 +400,83 @@ async def _seed_target_references(engine: AsyncEngine, ids: dict[str, UUID]) -> 
         assert target_activity == ids["activity"]
 
 
+class _MemoryAvatarTransport:
+    def __init__(self) -> None:
+        self.objects: dict[StorageObjectRef, tuple[bytes, str]] = {}
+
+    async def upload(
+        self,
+        reference: StorageObjectRef,
+        content: bytes,
+        content_type: str,
+    ) -> None:
+        if reference in self.objects:
+            raise StorageOperationError("test collision", status_code=409)
+        self.objects[reference] = (content, content_type)
+
+    async def download(self, reference: StorageObjectRef) -> bytes:
+        try:
+            return self.objects[reference][0]
+        except KeyError:
+            raise StorageOperationError("test missing", status_code=404) from None
+
+    async def delete(self, reference: StorageObjectRef) -> None:
+        self.objects.pop(reference, None)
+
+    async def list_objects(
+        self,
+        bucket: ImageBucket,
+        *,
+        limit: int,
+        offset: int,
+    ) -> tuple[ListedStorageObject, ...]:
+        del bucket, limit, offset
+        return ()
+
+    async def create_signed_url(self, reference: StorageObjectRef, expires_in: int) -> str:
+        raise AssertionError((reference, expires_in))
+
+    def public_url(self, reference: StorageObjectRef) -> str:
+        raise AssertionError(reference)
+
+
 class _FailAfterArtifactStore(DatabaseBackupArtifactStore):
     def __init__(self, delegate: PrivateFileDatabaseBackupStore) -> None:
         self.delegate = delegate
 
-    def location(self, reference: DatabaseBackupObjectRef) -> str:
+    def location(self, reference: BackupStorageObjectRef) -> str:
         return self.delegate.location(reference)
 
-    async def put_file(self, reference: DatabaseBackupObjectRef, source: Path) -> None:
-        if reference.kind is DatabaseBackupObjectKind.MANIFEST:
+    async def put_file(self, reference: BackupStorageObjectRef, source: Path) -> None:
+        if isinstance(reference, DatabaseBackupObjectRef) and (
+            reference.kind is DatabaseBackupObjectKind.MANIFEST
+        ):
             raise DatabaseBackupStorageError("injected private detail")
         await self.delegate.put_file(reference, source)
 
-    async def get_file(self, reference: DatabaseBackupObjectRef, target: Path) -> None:
+    async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None:
         await self.delegate.get_file(reference, target)
 
-    async def delete(self, reference: DatabaseBackupObjectRef) -> None:
+    async def delete(self, reference: BackupStorageObjectRef) -> None:
+        await self.delegate.delete(reference)
+
+
+class _FailAvatarManifestStore(DatabaseBackupArtifactStore):
+    def __init__(self, delegate: PrivateFileDatabaseBackupStore) -> None:
+        self.delegate = delegate
+
+    def location(self, reference: BackupStorageObjectRef) -> str:
+        return self.delegate.location(reference)
+
+    async def put_file(self, reference: BackupStorageObjectRef, source: Path) -> None:
+        if isinstance(reference, AvatarBackupManifestRef):
+            raise OSError("injected private avatar storage detail")
+        await self.delegate.put_file(reference, source)
+
+    async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None:
+        await self.delegate.get_file(reference, target)
+
+    async def delete(self, reference: BackupStorageObjectRef) -> None:
         await self.delegate.delete(reference)
 
 
@@ -432,6 +536,74 @@ async def _exercise(
             assert metadata.verified_at is None
             assert metadata.expires_at is None
             assert metadata.failure_code is None
+
+        avatar_source = _MemoryAvatarTransport()
+        avatar_reference = StorageObjectRef(
+            ImageBucket.PROFILE_IMAGES,
+            f"{ids['photo']}.jpg",
+        )
+        orphan_reference = StorageObjectRef(
+            ImageBucket.PROFILE_IMAGES,
+            f"{uuid4()}.jpg",
+        )
+        avatar_source.objects[avatar_reference] = (AVATAR_BYTES, "image/jpeg")
+        avatar_source.objects[orphan_reference] = (AVATAR_BYTES, "image/jpeg")
+        avatar_report = await create_semester_avatar_backup(
+            source_factory,
+            backup_id=ids["backup"],
+            adapter=AvatarBackupAdapter(ImageStorageService(avatar_source)),
+            storage=store,
+        )
+        assert avatar_report.state is SemesterBackupState.CREATING
+        assert avatar_report.object_count == 1
+        assert avatar_report.total_bytes == len(AVATAR_BYTES)
+        with pytest.raises(AvatarBackupAlreadyAttachedError):
+            await create_semester_avatar_backup(
+                source_factory,
+                backup_id=ids["backup"],
+                adapter=AvatarBackupAdapter(ImageStorageService(avatar_source)),
+                storage=store,
+            )
+
+        async with source_engine.connect() as connection:
+            avatar_metadata = (
+                await connection.execute(
+                    text(
+                        "SELECT state, avatar_manifest_location, avatar_manifest_checksum, "
+                        "avatar_object_count, verified_at, expires_at, failure_code "
+                        "FROM app_private.semester_backups WHERE id = :id"
+                    ),
+                    {"id": ids["backup"]},
+                )
+            ).one()
+            assert avatar_metadata.state == "CREATING"
+            assert avatar_metadata.avatar_manifest_location.startswith("private-file://")
+            assert len(avatar_metadata.avatar_manifest_checksum) == 64
+            assert avatar_metadata.avatar_object_count == 1
+            assert avatar_metadata.verified_at is None
+            assert avatar_metadata.expires_at is None
+            assert avatar_metadata.failure_code is None
+
+        avatar_download = artifact_root / "avatar-downloaded"
+        avatar_download.mkdir(mode=0o700)
+        avatar_manifest, avatar_paths, avatar_content = await load_avatar_backup_from_storage(
+            store,
+            backup_id=ids["backup"],
+            manifest_checksum=avatar_report.manifest_checksum,
+            workspace=avatar_download,
+        )
+        assert avatar_manifest.objects[0].photo_id == ids["photo"]
+        assert avatar_manifest.objects[0].profile_id == ids["profile_one"]
+        assert avatar_manifest.objects[0].owner_user_id == ids["user_one"]
+        assert orphan_reference.object_key not in avatar_content.decode("utf-8")
+        avatar_target = _MemoryAvatarTransport()
+        await restore_avatar_backup_for_rehearsal(
+            ImageStorageService(avatar_target),
+            manifest_content=avatar_content,
+            object_paths=avatar_paths,
+            expected_manifest_checksum=avatar_report.manifest_checksum,
+        )
+        assert avatar_target.objects == {avatar_reference: (AVATAR_BYTES, "image/jpeg")}
 
         download_root = artifact_root / "downloaded"
         download_root.mkdir(mode=0o700)
@@ -534,6 +706,58 @@ async def _exercise(
                 == 2
             )
         assert not any(failing_store_root.rglob("*.*"))
+
+        avatar_failing_root = artifact_root / "avatar-failing"
+        async with source_engine.begin() as connection:
+            await connection.execute(
+                text(
+                    "UPDATE app_private.semester_operations SET state = 'FAILED', "
+                    "completed_at = :completed, failure_code = 'TEST_NEXT_AVATAR_BACKUP' "
+                    "WHERE id = :failure_operation"
+                ),
+                {**ids, "completed": NOW + timedelta(hours=3)},
+            )
+            await connection.execute(
+                text(
+                    "UPDATE app_private.semester_operations SET state = 'RUNNING', "
+                    "started_at = :started WHERE id = :avatar_failure_operation"
+                ),
+                {**ids, "started": NOW + timedelta(hours=3)},
+            )
+        avatar_delegate = PrivateFileDatabaseBackupStore(avatar_failing_root)
+        await create_semester_database_backup(
+            source_factory,
+            backup_id=ids["avatar_failure_backup"],
+            adapter=source_adapter,
+            storage=avatar_delegate,
+        )
+        failing_avatar_source = _MemoryAvatarTransport()
+        failing_avatar_source.objects[avatar_reference] = (AVATAR_BYTES, "image/jpeg")
+        with pytest.raises(AvatarBackupError):
+            await create_semester_avatar_backup(
+                source_factory,
+                backup_id=ids["avatar_failure_backup"],
+                adapter=AvatarBackupAdapter(ImageStorageService(failing_avatar_source)),
+                storage=_FailAvatarManifestStore(avatar_delegate),
+            )
+        async with source_engine.connect() as connection:
+            avatar_failed = (
+                await connection.execute(
+                    text(
+                        "SELECT state, failure_code, database_manifest_location, "
+                        "avatar_manifest_location, avatar_object_count "
+                        "FROM app_private.semester_backups WHERE id = :id"
+                    ),
+                    {"id": ids["avatar_failure_backup"]},
+                )
+            ).one()
+            assert avatar_failed.state == "FAILED"
+            assert avatar_failed.failure_code == "AVATAR_BACKUP_FAILED"
+            assert avatar_failed.database_manifest_location is not None
+            assert avatar_failed.avatar_manifest_location is None
+            assert avatar_failed.avatar_object_count == 0
+        avatar_prefix = avatar_failing_root / str(ids["avatar_failure_backup"]) / "avatars"
+        assert not any(avatar_prefix.rglob("*.*"))
     finally:
         await source_engine.dispose()
         await target_engine.dispose()

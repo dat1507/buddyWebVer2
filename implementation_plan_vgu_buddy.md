@@ -6867,7 +6867,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | ADMIN-V2-002 (**Done 2026-10-02**) | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
 | SEM-001 (**Done 2026-10-02**) | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
 | SEM-002 (**Done 2026-10-02**) | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
-| SEM-003 | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
+| SEM-003 (**Done 2026-10-02**) | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
 | SEM-004 | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
 | SEM-005 | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
 | SEM-006 | Restore + new-cohort block | SEM-005 | Exact restore; backend blocks after any new USER | Restore/idempotency/block tests |
@@ -7877,6 +7877,24 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-003 — Private avatar object backup and restore manifest
 
+- **Status:** **Done 2026-10-02.** Added deterministic private avatar packages linked to the
+  SEM-002 database-manifest checksum. The repeatable-read database export now records the exact
+  student avatar references in scope; SEM-003 downloads only those managed objects, validates
+  ownership/path/MIME/dimensions/size, computes SHA-256, and stores collision-safe object copies
+  plus a strict versioned manifest through the existing private non-upsert backup store. Orphan
+  bucket objects are excluded, while missing, corrupt, duplicate or unsafe referenced objects fail
+  closed. Remote read-back, retry-safe metadata attachment and compensating cleanup cover partial
+  failures without deleting the successful database artifact. Restore rehearsal validates the
+  complete package before writing exact original keys and cleans only objects created by the failed
+  attempt. Success deliberately remains `CREATING`; SEM-004 still exclusively owns combined
+  verification, `READY` and retention/expiry.
+- **Verification:** 112 targeted SEM/storage/profile regressions pass, including 14 CLI/storage
+  command regressions after the final typing fix. A real PostgreSQL 17 source/target acceptance
+  (`1 passed`) proved authoritative references, private object backup/read-back, clean-target exact
+  key/byte/owner restore, orphan exclusion, stable retry and injected partial-upload cleanup while
+  preserving the database manifest. The complete backend suite passes with 1,254 passed and 35
+  skipped. Ruff, strict mypy across 251 files, build, `pip check`, dependency audit, Compose and
+  Alembic drift/head gates pass.
 - **Purpose:** Back up actual avatar bytes with ownership and metadata.
 - **Scope / likely files:** Supabase Storage backup adapter/bucket configuration, object-copy/download-upload strategy, manifest linkage and restore helper.
 - **Dependencies / ownership:** SEM-001, EVS-003; Backend + Storage Infrastructure.
@@ -8138,12 +8156,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-003 — Private avatar object backup and restore manifest`.** SEM-002 is complete
-with the private restorable relational export, strict compatibility/integrity manifest, remote
-read-back verification and disposable second-database restore proof. SEM-003 is the next unfinished
-task in the recommended semester delivery order and owns only student avatar binaries plus their
-private restore manifest; combined verification/expiry, destructive reset and production restore
-remain SEM-004..006.
+**Next step: `SEM-004 — Backup verification, 30-day retention and expiry`.** SEM-002 and SEM-003
+now provide private, restorable relational and avatar packages with strict manifests, checksums,
+remote read-back and clean-target restore proof. SEM-004 is the next unfinished task in the
+recommended semester delivery order and exclusively owns combined verification, the transition to
+`READY`, and 30-day retention/expiry; destructive reset and production restore remain SEM-005/006.
 
 ### 26.19 Documentation-change boundary
 

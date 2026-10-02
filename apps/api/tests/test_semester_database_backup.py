@@ -64,6 +64,8 @@ class _FakePostgresConnection:
     async def fetch(self, query: str, *arguments: object) -> list[tuple[object]]:
         if "FROM app_private.users WHERE role = 'ADMIN'" in query:
             return []
+        if query.startswith("SELECT photo.id"):
+            return []
         if query.startswith("SELECT") and "ANY($1" in query:
             required = arguments[0] if arguments else []
             assert isinstance(required, list)

@@ -16,6 +16,7 @@ from app.services.image_storage import (
     StorageOperationError,
     StorageReconciliationError,
 )
+from app.services.semester_avatar_backup import AvatarBackupError, AvatarBackupReport
 from app.services.semester_database_backup import DatabaseBackupError, DatabaseBackupReport
 
 
@@ -212,4 +213,51 @@ def test_database_backup_cli_sanitizes_failures(
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err == f"Error: {cli.DATABASE_BACKUP_ERROR_MESSAGE}\n"
+    assert str(error) not in captured.err
+
+
+def test_avatar_backup_cli_uses_stable_id_and_only_reports_aggregates(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    backup_id = uuid4()
+    command = AsyncMock(
+        return_value=AvatarBackupReport(
+            backup_id=backup_id,
+            object_count=2,
+            total_bytes=2048,
+            manifest_checksum="b" * 64,
+            state=SemesterBackupState.CREATING,
+        )
+    )
+    monkeypatch.setattr(cli, "_avatar_backup_command", command)
+
+    assert cli.main(["backup-semester-avatars", "--backup-id", str(backup_id)]) == 0
+
+    captured = capsys.readouterr()
+    command.assert_awaited_once_with(backup_id=backup_id)
+    assert "objects=2, bytes=2048, state=CREATING" in captured.out
+    assert "manifest_checksum" not in captured.out
+    assert captured.err == ""
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        AvatarBackupError("private object path"),
+        StorageOperationError("secret storage detail"),
+    ),
+)
+def test_avatar_backup_cli_sanitizes_failures(
+    error: Exception,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(cli, "_avatar_backup_command", AsyncMock(side_effect=error))
+
+    assert cli.main(["backup-semester-avatars", "--backup-id", str(uuid4())]) == 1
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"Error: {cli.AVATAR_BACKUP_ERROR_MESSAGE}\n"
     assert str(error) not in captured.err

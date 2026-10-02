@@ -42,6 +42,10 @@ DATABASE_BACKUP_FORMAT_VERSION: Final = 1
 DATABASE_BACKUP_MANIFEST_VERSION: Final = 1
 DATABASE_BACKUP_FAILURE_CODE: Final = "DATABASE_BACKUP_FAILED"
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_MANAGED_AVATAR_OBJECT_KEY = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+    r"\.(?:jpg|png|webp)$"
+)
 _SNAPSHOT_TABLES = """SELECT id FROM app_private.users
 WHERE role = 'USER' AND semester_id = $1"""
 _SNAPSHOT_PROFILES = f"""SELECT id FROM app_private.student_profiles
@@ -147,6 +151,35 @@ class DatabaseBackupSharedReferences(_StrictManifestModel):
     event_ids: tuple[UUID, ...]
 
 
+class DatabaseBackupAvatarReference(_StrictManifestModel):
+    """Exact avatar row identity captured inside the database snapshot."""
+
+    photo_id: UUID
+    profile_id: UUID
+    owner_user_id: UUID
+    bucket: Literal["profile-images"]
+    object_key: str = Field(min_length=40, max_length=41)
+    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    byte_size: int = Field(gt=0, le=5 * 1024 * 1024)
+    width: int = Field(gt=0, le=4096)
+    height: int = Field(gt=0, le=4096)
+
+    @field_validator("object_key")
+    @classmethod
+    def validate_object_key(cls, value: str) -> str:
+        if _MANAGED_AVATAR_OBJECT_KEY.fullmatch(value) is None:
+            raise ValueError("Avatar object key is invalid.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_image_metadata(self) -> Self:
+        extension = self.object_key.rsplit(".", maxsplit=1)[1]
+        expected = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
+        if expected[extension] != self.mime_type or self.width * self.height > 4096 * 4096:
+            raise ValueError("Avatar image metadata is incompatible.")
+        return self
+
+
 class DatabaseBackupCompatibility(_StrictManifestModel):
     source_postgresql_major: int = Field(ge=15, le=99)
     required_target_postgresql_major: int = Field(ge=15, le=99)
@@ -176,6 +209,7 @@ class DatabaseBackupManifest(_StrictManifestModel):
     artifact_sha256: str
     tables: tuple[DatabaseBackupTableManifest, ...] = Field(min_length=1)
     shared_references: DatabaseBackupSharedReferences
+    avatar_references: tuple[DatabaseBackupAvatarReference, ...] = ()
     compatibility: DatabaseBackupCompatibility
 
     @field_validator("source_boundary_at", "created_at")
@@ -200,6 +234,18 @@ class DatabaseBackupManifest(_StrictManifestModel):
             raise ValueError("Backup table order is incompatible.")
         if self.shared_references.source_semester_ids != (self.source_semester_id,):
             raise ValueError("Source semester reference is incompatible.")
+        if len({item.photo_id for item in self.avatar_references}) != len(
+            self.avatar_references
+        ) or len({item.object_key for item in self.avatar_references}) != len(
+            self.avatar_references
+        ):
+            raise ValueError("Avatar references are duplicated.")
+        if tuple(sorted(self.avatar_references, key=lambda item: item.photo_id.int)) != (
+            self.avatar_references
+        ):
+            raise ValueError("Avatar references are not deterministic.")
+        if self.row_counts.get("profile_photos") != len(self.avatar_references):
+            raise ValueError("Avatar references do not match the profile photo snapshot.")
         return self
 
     @property
@@ -277,6 +323,23 @@ def _parse_manifest(content: bytes) -> DatabaseBackupManifest:
         raise DatabaseBackupValidationError("Database backup manifest is invalid.") from None
 
 
+def validate_database_backup_manifest(
+    content: bytes,
+    *,
+    expected_backup_id: UUID | None = None,
+    expected_manifest_checksum: str | None = None,
+) -> DatabaseBackupManifest:
+    """Validate the independently stored manifest before avatar linkage."""
+    if expected_manifest_checksum is not None:
+        actual = hashlib.sha256(content).hexdigest()
+        if actual != expected_manifest_checksum:
+            raise DatabaseBackupValidationError("Database backup manifest checksum mismatched.")
+    manifest = _parse_manifest(content)
+    if expected_backup_id is not None and manifest.backup_id != expected_backup_id:
+        raise DatabaseBackupValidationError("Database backup identity mismatched.")
+    return manifest
+
+
 def _table_columns(table_name: str) -> tuple[str, ...]:
     table = Base.metadata.tables[f"{APPLICATION_SCHEMA}.{table_name}"]
     return tuple(column.name for column in table.columns if column.computed is None)
@@ -352,6 +415,34 @@ async def _shared_references(connection: Any, semester_id: UUID) -> DatabaseBack
     )
 
 
+async def _avatar_references(
+    connection: Any, semester_id: UUID
+) -> tuple[DatabaseBackupAvatarReference, ...]:
+    rows = await connection.fetch(
+        "SELECT photo.id, photo.profile_id, profile.user_id, photo.bucket, "
+        "photo.object_key, photo.mime_type, photo.byte_size, photo.width, photo.height "
+        "FROM app_private.profile_photos AS photo "
+        "JOIN app_private.student_profiles AS profile ON profile.id = photo.profile_id "
+        "JOIN app_private.users AS owner ON owner.id = profile.user_id "
+        "WHERE owner.role = 'USER' AND owner.semester_id = $1 ORDER BY photo.id",
+        semester_id,
+    )
+    return tuple(
+        DatabaseBackupAvatarReference(
+            photo_id=UUID(str(row[0])),
+            profile_id=UUID(str(row[1])),
+            owner_user_id=UUID(str(row[2])),
+            bucket=cast(Literal["profile-images"], str(row[3])),
+            object_key=str(row[4]),
+            mime_type=cast(Literal["image/jpeg", "image/png", "image/webp"], str(row[5])),
+            byte_size=int(row[6]),
+            width=int(row[7]),
+            height=int(row[8]),
+        )
+        for row in rows
+    )
+
+
 def _build_archive(table_files: Sequence[tuple[str, Path]], target: Path) -> None:
     try:
         with target.open("xb") as raw:
@@ -385,13 +476,11 @@ def validate_database_backup_package(
     expected_manifest_checksum: str | None = None,
 ) -> DatabaseBackupManifest:
     """Validate manifest, outer checksum, members, sizes, and per-table checksums."""
-    if expected_manifest_checksum is not None:
-        actual_manifest_checksum = hashlib.sha256(manifest_content).hexdigest()
-        if actual_manifest_checksum != expected_manifest_checksum:
-            raise DatabaseBackupValidationError("Database backup manifest checksum mismatched.")
-    manifest = _parse_manifest(manifest_content)
-    if expected_backup_id is not None and manifest.backup_id != expected_backup_id:
-        raise DatabaseBackupValidationError("Database backup identity mismatched.")
+    manifest = validate_database_backup_manifest(
+        manifest_content,
+        expected_backup_id=expected_backup_id,
+        expected_manifest_checksum=expected_manifest_checksum,
+    )
     try:
         artifact_size = artifact_path.stat().st_size
     except OSError as error:
@@ -507,6 +596,7 @@ class PostgresBinaryCopyBackupAdapter:
         connection = await self._connection_factory(self._settings)
         table_manifests: list[DatabaseBackupTableManifest] = []
         table_files: list[tuple[str, Path]] = []
+        avatar_references: tuple[DatabaseBackupAvatarReference, ...] = ()
         try:
             async with connection.transaction(isolation="repeatable_read", readonly=True):
                 server_major = connection.get_server_version().major
@@ -547,6 +637,7 @@ class PostgresBinaryCopyBackupAdapter:
                     )
                     table_manifests.append(table_manifest)
                     table_files.append((spec.archive_name, path))
+                avatar_references = await _avatar_references(connection, source_semester_id)
         except DatabaseBackupError:
             raise
         except Exception:
@@ -569,6 +660,7 @@ class PostgresBinaryCopyBackupAdapter:
             artifact_sha256=_sha256_file(artifact_path),
             tables=tuple(table_manifests),
             shared_references=references,
+            avatar_references=avatar_references,
             compatibility=DatabaseBackupCompatibility(
                 source_postgresql_major=server_major,
                 required_target_postgresql_major=server_major,
@@ -692,14 +784,14 @@ class PostgresBinaryCopyBackupAdapter:
                 )
 
 
-async def _load_backup(session: AsyncSession, backup_id: UUID) -> SemesterBackup:
+async def load_semester_backup_metadata(session: AsyncSession, backup_id: UUID) -> SemesterBackup:
     backup = await session.scalar(select(SemesterBackup).where(SemesterBackup.id == backup_id))
     if backup is None:
         raise DatabaseBackupError("Semester backup does not exist.")
     return backup
 
 
-async def _assert_pre_delete_backup_eligibility(
+async def assert_pre_delete_backup_eligibility(
     session: AsyncSession, backup: SemesterBackup
 ) -> None:
     eligible = await session.scalar(
@@ -725,9 +817,11 @@ async def _assert_pre_delete_backup_eligibility(
         raise DatabaseBackupError("Semester backup is not eligible before reset.")
 
 
-async def _mark_backup_failed(session: AsyncSession, backup_id: UUID, *, failure_code: str) -> None:
+async def mark_semester_backup_failed(
+    session: AsyncSession, backup_id: UUID, *, failure_code: str
+) -> None:
     async with session.begin():
-        backup = await _load_backup(session, backup_id)
+        backup = await load_semester_backup_metadata(session, backup_id)
         if backup.state is SemesterBackupState.CREATING:
             backup.failure_code = failure_code
             backup.transition_to(SemesterBackupState.FAILED)
@@ -756,7 +850,7 @@ async def create_semester_database_backup(
             )
             if not locked:
                 raise DatabaseBackupBusyError("Semester database backup is already running.")
-            backup = await _load_backup(session, backup_id)
+            backup = await load_semester_backup_metadata(session, backup_id)
             if backup.state is not SemesterBackupState.CREATING:
                 raise DatabaseBackupError("Semester backup is not in the creating state.")
             attachment_fields = (
@@ -770,7 +864,7 @@ async def create_semester_database_backup(
                 )
             if any(attachment_fields):
                 raise DatabaseBackupError("Semester database backup metadata is incomplete.")
-            await _assert_pre_delete_backup_eligibility(session, backup)
+            await assert_pre_delete_backup_eligibility(session, backup)
             with tempfile.TemporaryDirectory(prefix="vgu-buddy-sem002-backup-") as temporary:
                 workspace = Path(temporary)
                 package = await adapter.export(
@@ -832,7 +926,7 @@ async def create_semester_database_backup(
         if not isinstance(error, (DatabaseBackupBusyError, DatabaseBackupAlreadyAttachedError)):
             try:
                 async with session_factory() as failure_session:
-                    await _mark_backup_failed(
+                    await mark_semester_backup_failed(
                         failure_session,
                         backup_id,
                         failure_code=DATABASE_BACKUP_FAILURE_CODE,

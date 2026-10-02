@@ -66,6 +66,7 @@ class FakeTransport:
         }
         self.upload_error: Exception | None = None
         self.delete_errors: set[StorageObjectRef] = set()
+        self.objects: dict[StorageObjectRef, bytes] = {}
 
     async def upload(
         self,
@@ -75,12 +76,22 @@ class FakeTransport:
     ) -> None:
         if self.upload_error is not None:
             raise self.upload_error
+        if reference in self.objects:
+            raise StorageOperationError("test storage collision", status_code=409)
         self.uploads.append((reference, content, content_type))
+        self.objects[reference] = content
 
     async def delete(self, reference: StorageObjectRef) -> None:
         self.deletes.append(reference)
         if reference in self.delete_errors:
             raise StorageOperationError("test storage failure")
+        self.objects.pop(reference, None)
+
+    async def download(self, reference: StorageObjectRef) -> bytes:
+        try:
+            return self.objects[reference]
+        except KeyError:
+            raise StorageOperationError("test storage missing", status_code=404) from None
 
     async def list_objects(
         self,

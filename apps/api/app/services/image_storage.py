@@ -134,6 +134,8 @@ class StorageTransport(Protocol):
 
     async def delete(self, reference: StorageObjectRef) -> None: ...
 
+    async def download(self, reference: StorageObjectRef) -> bytes: ...
+
     async def list_objects(
         self,
         bucket: ImageBucket,
@@ -185,6 +187,7 @@ class SupabaseStorageTransport:
         body: bytes | None = None,
         content_type: str | None = None,
         extra_headers: dict[str, str] | None = None,
+        maximum_response_bytes: int | None = None,
     ) -> bytes:
         headers = self._authentication_headers()
         if content_type is not None:
@@ -197,7 +200,15 @@ class SupabaseStorageTransport:
                 request,
                 timeout=self._timeout_seconds,
             ) as response:
-                return cast(bytes, response.read())
+                content = cast(
+                    bytes,
+                    response.read()
+                    if maximum_response_bytes is None
+                    else response.read(maximum_response_bytes + 1),
+                )
+                if maximum_response_bytes is not None and len(content) > maximum_response_bytes:
+                    raise StorageOperationError("Storage response exceeds the allowed size.")
+                return content
         except HTTPError as error:
             raise StorageOperationError(
                 f"Storage request failed with HTTP status {error.code}.",
@@ -240,6 +251,7 @@ class SupabaseStorageTransport:
         body: bytes | None = None,
         content_type: str | None = None,
         extra_headers: dict[str, str] | None = None,
+        maximum_response_bytes: int | None = None,
     ) -> bytes:
         return await asyncio.to_thread(
             self._request_sync,
@@ -248,6 +260,7 @@ class SupabaseStorageTransport:
             body=body,
             content_type=content_type,
             extra_headers=extra_headers,
+            maximum_response_bytes=maximum_response_bytes,
         )
 
     async def upload(
@@ -313,6 +326,16 @@ class SupabaseStorageTransport:
             "DELETE",
             self._url("object", reference.bucket.value, reference.object_key),
         )
+
+    async def download(self, reference: StorageObjectRef) -> bytes:
+        content = await self._request(
+            "GET",
+            self._url("object/authenticated", reference.bucket.value, reference.object_key),
+            maximum_response_bytes=MAX_IMAGE_BYTES,
+        )
+        if not content:
+            raise StorageOperationError("Storage returned an empty image object.")
+        return content
 
     async def list_objects(
         self,
@@ -439,6 +462,37 @@ class ImageStorageService:
     async def delete_image(self, reference: StorageObjectRef) -> None:
         await self._transport.delete(reference)
 
+    async def download_image(self, reference: StorageObjectRef) -> bytes:
+        """Read one trusted private image without creating a signed URL."""
+        if reference.bucket.is_public:
+            raise StorageOperationError("Public image objects are outside the private backup path.")
+        content = await self._transport.download(reference)
+        if not 1 <= len(content) <= MAX_IMAGE_BYTES:
+            raise StorageOperationError("Stored image size is invalid.")
+        return content
+
+    async def restore_image(
+        self,
+        reference: StorageObjectRef,
+        *,
+        content: bytes,
+        mime_type: str,
+        byte_size: int,
+        width: int,
+        height: int,
+    ) -> StoredImage:
+        """Validate and non-upsert one exact managed key during restore rehearsal."""
+        validate_stored_image_content(
+            reference,
+            content=content,
+            mime_type=mime_type,
+            byte_size=byte_size,
+            width=width,
+            height=height,
+        )
+        await self._transport.upload(reference, content, mime_type)
+        return StoredImage(reference, mime_type, byte_size, width, height)
+
     async def list_objects(
         self,
         bucket: ImageBucket,
@@ -527,6 +581,29 @@ def prepare_image(
         width=width,
         height=height,
     )
+
+
+def validate_stored_image_content(
+    reference: StorageObjectRef,
+    *,
+    content: bytes,
+    mime_type: str,
+    byte_size: int,
+    width: int,
+    height: int,
+) -> None:
+    """Fail closed when persisted avatar metadata and stored bytes disagree."""
+    if reference.bucket is not ImageBucket.PROFILE_IMAGES:
+        raise ImageValidationError("Only private profile images can be restored as avatars.")
+    if byte_size != len(content):
+        raise ImageValidationError("Stored image byte size does not match its metadata.")
+    prepared = prepare_image(
+        original_name=reference.object_key,
+        declared_content_type=mime_type,
+        content=content,
+    )
+    if prepared.width != width or prepared.height != height:
+        raise ImageValidationError("Stored image dimensions do not match their metadata.")
 
 
 def _validate_file_name(original_name: str) -> str:
