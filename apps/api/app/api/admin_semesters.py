@@ -26,6 +26,9 @@ from app.schemas.semester import (
     SemesterResetExecuteRequest,
     SemesterResetExecuteResponse,
     SemesterResetPreflightResponse,
+    SemesterRestoreExecuteRequest,
+    SemesterRestoreExecuteResponse,
+    SemesterRestorePreflightResponse,
 )
 from app.services.csrf import CsrfTokenClaims
 from app.services.database_backup_storage import SupabaseDatabaseBackupStore
@@ -40,6 +43,16 @@ from app.services.semester_reset import (
     SemesterResetStorageError,
     execute_semester_reset,
     get_semester_reset_preflight,
+)
+from app.services.semester_restore import (
+    SemesterRestoreAuthorizationError,
+    SemesterRestoreBusyError,
+    SemesterRestoreError,
+    SemesterRestorePackageError,
+    SemesterRestoreStateError,
+    SemesterRestoreStorageError,
+    execute_semester_restore,
+    get_semester_restore_preflight,
 )
 
 _NO_STORE_HEADERS: Final = {
@@ -172,6 +185,120 @@ async def execute_admin_semester_reset(
         new_semester_id=report.new_semester_id,
         deleted_counts=report.deleted_counts,
         avatar_objects_processed=report.avatar_objects_processed,
+        operation_state=report.operation_state,
+        backup_state=report.backup_state,
+        idempotent_replay=report.idempotent_replay,
+    )
+
+
+@router.get(
+    "/restore/{operation_id}/preflight",
+    response_model=SemesterRestorePreflightResponse,
+)
+async def read_semester_restore_preflight(
+    operation_id: UUID,
+    response: Response,
+    current_admin: Annotated[User, Depends(require_admin)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> SemesterRestorePreflightResponse:
+    """Return only persisted restore eligibility and aggregate package counts."""
+    try:
+        result = await get_semester_restore_preflight(
+            session,
+            current_admin,
+            operation_id=operation_id,
+        )
+    except SemesterRestoreStateError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Semester restore preflight is unavailable.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    _mark_private(response)
+    return SemesterRestorePreflightResponse(
+        operation_id=result.operation_id,
+        backup_id=result.backup_id,
+        source_semester_id=result.source_semester_id,
+        current_semester_id=result.current_semester_id,
+        backup_state=result.backup_state,
+        can_execute=result.can_execute,
+        restored_counts=result.restored_counts,
+        avatar_object_count=result.avatar_object_count,
+        confirmation_phrase=result.confirmation_phrase,
+    )
+
+
+@router.post(
+    "/restore/{operation_id}/execute",
+    response_model=SemesterRestoreExecuteResponse,
+    responses={
+        409: {"description": "Restore state, backup, or exclusive barrier is not eligible."},
+        503: {"description": "Restore storage or database execution failed safely."},
+    },
+)
+async def execute_admin_semester_restore(
+    operation_id: UUID,
+    payload: SemesterRestoreExecuteRequest,
+    response: Response,
+    current_admin: Annotated[User, Depends(require_admin)],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session_factory: Annotated[
+        async_sessionmaker[AsyncSession],
+        Depends(get_session_factory),
+    ],
+    restore_adapter: Annotated[PostgresBinaryCopyBackupAdapter, Depends(_snapshot_adapter)],
+    backup_storage: Annotated[SupabaseDatabaseBackupStore, Depends(_backup_storage)],
+    avatar_storage: Annotated[ImageStorageService, Depends(get_image_storage_service)],
+) -> SemesterRestoreExecuteResponse:
+    """Execute one phrase-confirmed, immediately re-authenticated restore."""
+    try:
+        report = await execute_semester_restore(
+            session_factory,
+            operation_id=operation_id,
+            backup_id=payload.backup_id,
+            admin_id=current_admin.id,
+            current_password=payload.current_password,
+            confirmation_phrase=payload.confirmation_phrase,
+            restore_adapter=restore_adapter,
+            backup_storage=backup_storage,
+            avatar_storage=avatar_storage,
+        )
+    except SemesterRestoreAuthorizationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Semester restore authorization failed.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    except (SemesterRestoreBusyError, SemesterRestoreStateError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Semester restore is not eligible.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    except (
+        SemesterRestoreStorageError,
+        SemesterRestorePackageError,
+        DBAPIError,
+        SQLAlchemyError,
+    ) as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Semester restore failed safely.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    except SemesterRestoreError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Semester restore failed safely.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    _mark_private(response)
+    return SemesterRestoreExecuteResponse(
+        operation_id=report.operation_id,
+        backup_id=report.backup_id,
+        source_semester_id=report.source_semester_id,
+        restored_counts=report.restored_counts,
+        avatar_objects_restored=report.avatar_objects_restored,
         operation_state=report.operation_state,
         backup_state=report.backup_state,
         idempotent_replay=report.idempotent_replay,

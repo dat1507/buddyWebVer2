@@ -7986,6 +7986,37 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-006 — Restore and new-cohort blocking
 
+- **Status:** **Done 2026-10-02.** Added an ADMIN-only, CSRF-protected restore preflight and
+  phrase-confirmed execution API with immediate password re-authentication. Migration
+  `0020_semester_restore_execution` changes the existing PostgreSQL semester write barrier to a
+  fail-fast shared lock while restore owns its exclusive lock, so a concurrent registration cannot
+  wait and enter the restored boundary afterward. The service validates the exact RESTORE
+  operation/reset/backup/closed-semester relationship, effective READY/unexpired status, immutable
+  database/avatar verification and the persisted monotonic new-cohort marker before reading or
+  mutating backup data, then repeats those predicates under the exclusive barrier immediately before
+  mutation. One post-reset USER permanently records/returns `RESTORE_BLOCKED_NEW_DATA`; there is no
+  override, merge or caller-selected restore target.
+- **Restore boundary and failure safety:** database import reuses the fixed SEM-002 table allowlist,
+  manifest checksums/counts and shared-reference validation on the already-guarded PostgreSQL
+  transaction. Avatar restore uses only exact managed keys from the verified private manifest and
+  never scans a bucket/prefix or uses signed URLs as identity. Existing objects are accepted only
+  when their bytes match the backup checksum; new uploads from the current attempt are compensated
+  if database restore/commit fails. Source USER/profile/preferences/invitation/Match/chat/outbox rows,
+  relationships and exact avatar bytes return with their original closed semester identity, while
+  ADMIN identities/passwords, shared catalogs, Events, unrelated objects and the empty current
+  boundary remain unchanged. Guarded aggregate-only state/audit updates make completed replay a
+  no-op, concurrent restore return busy, and injected failure retry converge without duplicate or
+  partial success.
+- **Verification:** 114 SEM targeted/regression tests passed with 3 opt-in skips; the SEM-006 live
+  PostgreSQL 17/private-storage acceptance ran and passed. Affected Auth/Admin/Profile/Preferences/
+  Invitation/Buddy/Chat regressions produced 849 passed, 22 skipped and 467 deselected. Live evidence
+  covered full Vietnamese/international graph restore, exact avatar recovery, ADMIN/catalog/Event/
+  unrelated-object preservation, new-cohort permanent blocking, concurrent registration/restore,
+  injected database failure with avatar compensation, safe retry and idempotent replay. The complete
+  backend suite produced 1,301 passed and 37 skipped; the known CHAT-003 teardown flake did not occur.
+  Ruff, scoped formatting, strict mypy across 265 files, wheel build, `pip check`, dependency audit,
+  Compose and Alembic head/history/drift/downgrade/re-upgrade gates pass. The final Alembic head is
+  `0020_semester_restore_execution`.
 - **Purpose:** Restore the pre-reset student dataset only while the new semester is still empty.
 - **Scope / likely files:** restore preflight/orchestration, DB import, avatar restore, reconciliation, backup state/audit updates and maintenance barrier.
 - **Dependencies / ownership:** SEM-005; Backend + Database + Storage + Operations.
@@ -8217,11 +8248,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-006 — Restore and new-cohort blocking`.** SEM-005 now provides the
-re-authenticated, write-barrier-protected reset, preserves the verified private backup and creates
-one empty authoritative current-semester boundary. SEM-006 is the next unfinished task in the
-recommended semester delivery order and owns exact database/avatar restore plus the backend-enforced
-monotonic block after any new-cohort USER appears; the Semester Management UI remains SEM-007.
+**Next step: `SEM-007 — Admin Semester Management safety UI`.** SEM-006 now provides the
+re-authenticated, write-barrier-protected exact database/avatar restore, idempotent failure recovery
+and backend-enforced monotonic block after any new-cohort USER appears. SEM-007 is the next unfinished
+task in the recommended semester delivery order and owns the Admin safety UX over the completed
+SEM-005/006 execution contracts.
 
 ### 26.19 Documentation-change boundary
 

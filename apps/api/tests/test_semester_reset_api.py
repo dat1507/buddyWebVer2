@@ -29,6 +29,11 @@ from app.services.semester_reset import (
     SemesterResetReport,
     SemesterResetStateError,
 )
+from app.services.semester_restore import (
+    SemesterRestorePreflight,
+    SemesterRestoreReport,
+    SemesterRestoreStateError,
+)
 from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
 
 ADMIN_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -125,6 +130,33 @@ def _report() -> SemesterResetReport:
         new_semester_id=NEW_SEMESTER_ID,
         deleted_counts={"users": 2},
         avatar_objects_processed=1,
+        operation_state=SemesterOperationState.SUCCEEDED,
+        backup_state=SemesterBackupState.READY,
+        idempotent_replay=False,
+    )
+
+
+def _restore_preflight() -> SemesterRestorePreflight:
+    return SemesterRestorePreflight(
+        operation_id=OPERATION_ID,
+        backup_id=BACKUP_ID,
+        source_semester_id=SEMESTER_ID,
+        current_semester_id=NEW_SEMESTER_ID,
+        backup_state=SemesterBackupState.READY,
+        can_execute=True,
+        restored_counts={"users": 2},
+        avatar_object_count=1,
+        confirmation_phrase=f"RESTORE {BACKUP_ID}",
+    )
+
+
+def _restore_report() -> SemesterRestoreReport:
+    return SemesterRestoreReport(
+        operation_id=OPERATION_ID,
+        backup_id=BACKUP_ID,
+        source_semester_id=SEMESTER_ID,
+        restored_counts={"users": 2},
+        avatar_objects_restored=1,
         operation_state=SemesterOperationState.SUCCEEDED,
         backup_state=SemesterBackupState.READY,
         idempotent_replay=False,
@@ -252,3 +284,105 @@ async def test_openapi_marks_password_write_only_and_exposes_no_row_content() ->
     assert request["properties"]["current_password"]["writeOnly"] is True
     assert "current_password" not in response["properties"]
     assert {"email", "message", "object_key", "signed_url"}.isdisjoint(response["properties"])
+
+    restore_request = document["components"]["schemas"]["SemesterRestoreExecuteRequest"]
+    restore_response = document["components"]["schemas"]["SemesterRestoreExecuteResponse"]
+    assert restore_request["properties"]["current_password"]["writeOnly"] is True
+    assert "current_password" not in restore_response["properties"]
+    assert {"email", "message", "object_key", "signed_url"}.isdisjoint(
+        restore_response["properties"]
+    )
+
+
+@pytest.mark.anyio
+async def test_restore_preflight_and_execute_are_admin_private_and_csrf_guarded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    preflight = AsyncMock(return_value=_restore_preflight())
+    execute = AsyncMock(return_value=_restore_report())
+    monkeypatch.setattr(semester_api, "get_semester_restore_preflight", preflight)
+    monkeypatch.setattr(semester_api, "execute_semester_restore", execute)
+    payload = {
+        "backup_id": str(BACKUP_ID),
+        "confirmation_phrase": f"RESTORE {BACKUP_ID}",
+        "current_password": "admin-current-password",
+    }
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        preflight_response = await client.get(
+            f"/api/admin/semesters/restore/{OPERATION_ID}/preflight"
+        )
+        denied = await client.post(
+            f"/api/admin/semesters/restore/{OPERATION_ID}/execute",
+            json=payload,
+        )
+        response = await client.post(
+            f"/api/admin/semesters/restore/{OPERATION_ID}/execute",
+            json=payload,
+            headers=headers,
+        )
+
+    assert preflight_response.status_code == 200
+    assert preflight_response.headers["cache-control"] == "private, no-store"
+    assert preflight_response.json()["restored_counts"] == {"users": 2}
+    assert denied.status_code == 403
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
+    assert response.json()["avatar_objects_restored"] == 1
+    assert "current_password" not in response.text
+    execute.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_restore_state_error_is_sanitized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    service = AsyncMock(side_effect=SemesterRestoreStateError("private object path"))
+    monkeypatch.setattr(semester_api, "execute_semester_restore", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        response = await client.post(
+            f"/api/admin/semesters/restore/{OPERATION_ID}/execute",
+            json={
+                "backup_id": str(BACKUP_ID),
+                "confirmation_phrase": f"RESTORE {BACKUP_ID}",
+                "current_password": "password",
+            },
+            headers=headers,
+        )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Semester restore is not eligible."}
+    assert "private" not in response.text
+
+
+@pytest.mark.anyio
+async def test_user_role_is_denied_before_restore_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor(UserRole.USER))
+    service = AsyncMock()
+    monkeypatch.setattr(semester_api, "execute_semester_restore", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        response = await client.post(
+            f"/api/admin/semesters/restore/{OPERATION_ID}/execute",
+            json={
+                "backup_id": str(BACKUP_ID),
+                "confirmation_phrase": f"RESTORE {BACKUP_ID}",
+                "current_password": "password",
+            },
+            headers=headers,
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Insufficient permissions."}
+    service.assert_not_awaited()

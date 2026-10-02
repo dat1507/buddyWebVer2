@@ -208,3 +208,48 @@ def test_reset_downgrade_removes_only_execution_primitives(
     assert "drop function app_private.acquire_semester_write_barrier" in sql
     assert "drop table app_private.users" not in sql
     assert "drop table app_private.semesters" not in sql
+
+
+def test_restore_upgrade_makes_shared_write_barrier_fail_fast(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.upgrade(
+            _config(),
+            "0019_semester_reset_execution:0020_semester_restore_execution",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "create or replace function app_private.acquire_semester_write_barrier()" in sql
+    assert "pg_try_advisory_xact_lock_shared" in sql
+    assert "semester maintenance write barrier is busy" in sql
+    assert "vgu-buddy:semester-write-barrier:v1" in sql
+    assert "drop table" not in sql
+
+
+def test_restore_downgrade_restores_blocking_shared_write_barrier(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.downgrade(
+            _config(),
+            "0020_semester_restore_execution:0019_semester_reset_execution",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "create or replace function app_private.acquire_semester_write_barrier()" in sql
+    assert "pg_advisory_xact_lock_shared" in sql
+    assert "pg_try_advisory_xact_lock_shared" not in sql
+    assert "drop table" not in sql

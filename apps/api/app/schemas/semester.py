@@ -57,3 +57,49 @@ class SemesterResetExecuteResponse(BaseModel):
     operation_state: SemesterOperationState
     backup_state: SemesterBackupState
     idempotent_replay: bool
+
+
+class SemesterRestoreExecuteRequest(BaseModel):
+    """Explicit step-up and stable backup identity for one restore."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    backup_id: UUID
+    confirmation_phrase: StrictStr = Field(min_length=1, max_length=64)
+    current_password: StrictStr = Field(
+        min_length=1,
+        max_length=BCRYPT_MAX_PASSWORD_BYTES,
+        repr=False,
+        json_schema_extra={"writeOnly": True},
+    )
+
+
+class SemesterRestorePreflightResponse(BaseModel):
+    """Aggregate-only restore eligibility and exact confirmation phrase."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operation_id: UUID
+    backup_id: UUID
+    source_semester_id: UUID
+    current_semester_id: UUID
+    backup_state: SemesterBackupState
+    can_execute: bool
+    restored_counts: dict[str, int]
+    avatar_object_count: int = Field(ge=0)
+    confirmation_phrase: str
+
+
+class SemesterRestoreExecuteResponse(BaseModel):
+    """Safe terminal restore summary without row or object identities."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    operation_id: UUID
+    backup_id: UUID
+    source_semester_id: UUID
+    restored_counts: dict[str, int]
+    avatar_objects_restored: int = Field(ge=0)
+    operation_state: SemesterOperationState
+    backup_state: SemesterBackupState
+    idempotent_replay: bool

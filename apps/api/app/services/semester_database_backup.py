@@ -737,17 +737,83 @@ class PostgresBinaryCopyBackupAdapter:
                 await connection.close()
         return manifest
 
+    async def restore_into_transaction(
+        self,
+        connection: Any,
+        *,
+        manifest_content: bytes,
+        artifact_path: Path,
+        expected_manifest_checksum: str,
+        accepted_manifest_heads: frozenset[str],
+        required_target_head: str,
+    ) -> DatabaseBackupManifest:
+        """Restore the fixed SEM-002 table set on an already guarded transaction.
+
+        SEM-006 owns the surrounding transaction, advisory barrier, restore state, and
+        external-avatar compensation. Keeping COPY on that same physical connection prevents a
+        registration from entering between the authoritative boundary check and the import.
+        """
+        manifest = validate_database_backup_package(
+            manifest_content,
+            artifact_path,
+            expected_manifest_checksum=expected_manifest_checksum,
+        )
+        with tempfile.TemporaryDirectory(prefix="vgu-buddy-sem006-restore-") as temporary:
+            workspace = Path(temporary)
+            try:
+                os.chmod(workspace, 0o700)
+            except OSError:
+                pass
+            extracted = _extract_validated_tables(manifest, artifact_path, workspace)
+            await self._validate_restore_target(
+                connection,
+                manifest,
+                accepted_manifest_heads=accepted_manifest_heads,
+                required_target_head=required_target_head,
+            )
+            try:
+                for table_manifest in manifest.tables:
+                    await connection.copy_to_table(
+                        table_manifest.table_name,
+                        schema_name=APPLICATION_SCHEMA,
+                        source=str(extracted[table_manifest.table_name]),
+                        columns=list(table_manifest.columns),
+                        format="binary",
+                    )
+                for spec, table_manifest in zip(BACKUP_TABLES, manifest.tables, strict=True):
+                    restored = await connection.fetchval(
+                        _table_count_query(spec), manifest.source_semester_id
+                    )
+                    if restored != table_manifest.row_count:
+                        raise DatabaseBackupValidationError(
+                            "Restored database row count mismatched."
+                        )
+            except DatabaseBackupError:
+                raise
+            except Exception:
+                raise DatabaseBackupError("Database backup production restore failed.") from None
+        return manifest
+
     async def _validate_restore_target(
         self,
         connection: Any,
         manifest: DatabaseBackupManifest,
+        *,
+        accepted_manifest_heads: frozenset[str] | None = None,
+        required_target_head: str | None = None,
     ) -> None:
         if connection.get_server_version().major != (
             manifest.compatibility.required_target_postgresql_major
         ):
             raise DatabaseBackupValidationError("Target PostgreSQL version is incompatible.")
         target_head = await connection.fetchval("SELECT version_num FROM alembic_version")
-        if target_head != manifest.compatibility.required_alembic_head:
+        compatible_head = (
+            target_head == manifest.compatibility.required_alembic_head
+            if accepted_manifest_heads is None and required_target_head is None
+            else target_head == required_target_head
+            and manifest.compatibility.required_alembic_head in (accepted_manifest_heads or ())
+        )
+        if not compatible_head:
             raise DatabaseBackupValidationError("Target migration head is incompatible.")
         existing_students = await connection.fetchval(
             "SELECT count(*) FROM app_private.users WHERE role = 'USER'"

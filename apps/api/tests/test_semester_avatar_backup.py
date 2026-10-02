@@ -27,6 +27,7 @@ from app.services.semester_avatar_backup import (
     AvatarBackupPackage,
     AvatarBackupValidationError,
     restore_avatar_backup_for_rehearsal,
+    restore_avatar_backup_idempotently,
     store_avatar_backup_package,
     validate_avatar_backup_manifest,
     validate_avatar_backup_package,
@@ -219,6 +220,38 @@ async def test_no_avatar_snapshot_produces_valid_empty_manifest(tmp_path: Path) 
         )
         == package.manifest
     )
+
+
+@pytest.mark.anyio
+async def test_restore_retry_accepts_only_byte_identical_existing_objects(tmp_path: Path) -> None:
+    content = _png((10, 20, 30, 255))
+    reference = _reference(1, content)
+    package, _, _ = await _package(tmp_path / "package", (reference,), (content,))
+    object_paths = {item.object_key: path for item, path in package.object_files}
+    target = _MemoryTransport()
+    key = StorageObjectRef(ImageBucket.PROFILE_IMAGES, reference.object_key)
+    target.objects[key] = (content, reference.mime_type)
+
+    retry = await restore_avatar_backup_idempotently(
+        ImageStorageService(target),
+        manifest_content=package.manifest_path.read_bytes(),
+        object_paths=object_paths,
+        expected_manifest_checksum=package.manifest_checksum,
+    )
+
+    assert retry.already_present == 1
+    assert retry.newly_restored == ()
+    assert target.deleted == []
+
+    target.objects[key] = (_png((99, 88, 77, 255)), reference.mime_type)
+    with pytest.raises(AvatarBackupError, match="collision"):
+        await restore_avatar_backup_idempotently(
+            ImageStorageService(target),
+            manifest_content=package.manifest_path.read_bytes(),
+            object_paths=object_paths,
+            expected_manifest_checksum=package.manifest_checksum,
+        )
+    assert target.deleted == []
 
 
 @pytest.mark.anyio

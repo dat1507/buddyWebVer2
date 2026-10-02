@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import tempfile
@@ -490,6 +491,74 @@ async def restore_avatar_backup_for_rehearsal(
             raise
         raise AvatarBackupError("Avatar backup rehearsal restore failed.") from None
     return manifest
+
+
+@dataclass(frozen=True, slots=True)
+class AvatarRestoreResult:
+    """Retry-safe exact-object result for SEM-006 orchestration."""
+
+    manifest: AvatarBackupManifest
+    newly_restored: tuple[StorageObjectRef, ...]
+    already_present: int
+
+
+async def restore_avatar_backup_idempotently(
+    target_storage: ImageStorageService,
+    *,
+    manifest_content: bytes,
+    object_paths: Mapping[str, Path],
+    expected_manifest_checksum: str,
+) -> AvatarRestoreResult:
+    """Restore exact managed keys without overwriting or duplicating existing objects.
+
+    A retry may encounter objects written by an earlier attempt whose database transaction later
+    failed. Only a byte-identical object is accepted as already restored; every other collision
+    fails closed. Objects created by the current attempt are compensated on failure.
+    """
+    manifest = validate_avatar_backup_package(
+        manifest_content,
+        object_paths,
+        expected_manifest_checksum=expected_manifest_checksum,
+    )
+    newly_restored: list[StorageObjectRef] = []
+    already_present = 0
+    try:
+        for item in manifest.objects:
+            reference = StorageObjectRef(ImageBucket.PROFILE_IMAGES, item.source_object_key)
+            content = object_paths[item.backup_object_key].read_bytes()
+            try:
+                await target_storage.restore_image(
+                    reference,
+                    content=content,
+                    mime_type=item.mime_type,
+                    byte_size=item.byte_size,
+                    width=item.width,
+                    height=item.height,
+                )
+                newly_restored.append(reference)
+            except StorageOperationError as error:
+                if error.status_code not in {400, 409}:
+                    raise
+                try:
+                    existing = await target_storage.download_image(reference)
+                except StorageOperationError:
+                    raise error from None
+                if not hmac.compare_digest(
+                    hashlib.sha256(existing).digest(),
+                    hashlib.sha256(content).digest(),
+                ):
+                    raise AvatarBackupError("Avatar restore object collision mismatched.") from None
+                already_present += 1
+    except Exception as error:
+        for reference in reversed(newly_restored):
+            try:
+                await target_storage.delete_image(reference)
+            except Exception:
+                pass
+        if isinstance(error, AvatarBackupError):
+            raise
+        raise AvatarBackupError("Avatar backup restore failed safely.") from None
+    return AvatarRestoreResult(manifest, tuple(newly_restored), already_present)
 
 
 async def create_semester_avatar_backup(

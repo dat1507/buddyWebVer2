@@ -197,6 +197,39 @@ async def test_restore_replays_tables_in_dependency_order_after_full_validation(
 
 
 @pytest.mark.anyio
+async def test_production_restore_reuses_the_guarded_connection_and_explicit_head_policy(
+    tmp_path: Path,
+) -> None:
+    source = _FakePostgresConnection()
+    target = _FakePostgresConnection(target=True)
+
+    async def connect(_settings: BackupDatabaseSettings) -> Any:
+        return source
+
+    adapter = PostgresBinaryCopyBackupAdapter(_settings(), connection_factory=connect)
+    package = await adapter.export(
+        backup_id=uuid4(),
+        source_semester_id=uuid4(),
+        source_boundary_at=NOW,
+        artifact_location="private://artifact",
+        workspace=tmp_path / "export",
+    )
+
+    restored = await adapter.restore_into_transaction(
+        target,
+        manifest_content=package.manifest_path.read_bytes(),
+        artifact_path=package.artifact_path,
+        expected_manifest_checksum=package.manifest_checksum,
+        accepted_manifest_heads=frozenset({"0018_backup_verification"}),
+        required_target_head="0018_backup_verification",
+    )
+
+    assert restored == package.manifest
+    assert target.copied_to == [spec.table_name for spec in BACKUP_TABLES]
+    assert target.closed is False
+
+
+@pytest.mark.anyio
 async def test_tampered_or_truncated_artifact_fails_before_restore_connection(
     tmp_path: Path,
 ) -> None:

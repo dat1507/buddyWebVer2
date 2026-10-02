@@ -56,9 +56,10 @@ def test_alembic_script_directory_is_loadable() -> None:
     semester_revision = script_directory.get_revision("0017_semester_boundary_metadata")
     semester_verification_revision = script_directory.get_revision("0018_backup_verification")
     semester_reset_revision = script_directory.get_revision("0019_semester_reset_execution")
+    semester_restore_revision = script_directory.get_revision("0020_semester_restore_execution")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0019_semester_reset_execution"]
+    assert script_directory.get_heads() == ["0020_semester_restore_execution"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -95,6 +96,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert semester_verification_revision.down_revision == "0017_semester_boundary_metadata"
     assert semester_reset_revision is not None
     assert semester_reset_revision.down_revision == "0018_backup_verification"
+    assert semester_restore_revision is not None
+    assert semester_restore_revision.down_revision == "0019_semester_reset_execution"
 
 
 def test_database_configuration_is_deferred() -> None:
