@@ -1,0 +1,254 @@
+"""ADMIN, CSRF, step-up, and response privacy tests for SEM-005 APIs."""
+
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
+from typing import cast
+from unittest.mock import AsyncMock, MagicMock
+from uuid import UUID
+
+import pytest
+from httpx2 import ASGITransport, AsyncClient
+from pydantic import SecretBytes
+from sqlalchemy.ext.asyncio import AsyncSession
+
+import app.api.admin_semesters as semester_api
+from app.api.dependencies import get_image_storage_service
+from app.core.config import (
+    AuthTokenSettings,
+    CsrfSettings,
+    get_auth_token_settings,
+    get_csrf_settings,
+)
+from app.core.database import get_database_session, get_session_factory
+from app.main import app
+from app.models import SemesterBackupState, SemesterOperationState, User, UserRole
+from app.services.csrf import CSRF_HEADER_NAME, create_session_csrf_token, csrf_cookie_name
+from app.services.semester_reset import (
+    SemesterResetPreflight,
+    SemesterResetReport,
+    SemesterResetStateError,
+)
+from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
+
+ADMIN_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+SEMESTER_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
+OPERATION_ID = UUID("cccccccc-cccc-4ccc-8ccc-cccccccccccc")
+BACKUP_ID = UUID("dddddddd-dddd-4ddd-8ddd-dddddddddddd")
+NEW_SEMESTER_ID = UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")
+SIGNING_KEY = bytes(range(32))
+ORIGIN = "http://testserver"
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"
+
+
+@pytest.fixture(autouse=True)
+def clear_dependency_overrides() -> Iterator[None]:
+    app.dependency_overrides.clear()
+    yield
+    app.dependency_overrides.clear()
+
+
+def _auth_settings() -> AuthTokenSettings:
+    return AuthTokenSettings(signing_key=SecretBytes(SIGNING_KEY), secure_cookies=False)
+
+
+def _csrf_settings() -> CsrfSettings:
+    return CsrfSettings(
+        signing_key=SecretBytes(bytes(reversed(SIGNING_KEY))),
+        secure_cookies=False,
+        trusted_origins=(ORIGIN,),
+    )
+
+
+def _actor(role: UserRole = UserRole.ADMIN) -> User:
+    return User(
+        id=ADMIN_ID,
+        email="admin@example.com",
+        password_hash="test-hash",
+        role=role,
+        is_active=True,
+        email_verified=True,
+    )
+
+
+def _install(actor: User) -> tuple[dict[str, str], dict[str, str]]:
+    session_mock = MagicMock(spec=AsyncSession)
+    session_mock.scalar = AsyncMock(return_value=actor)
+    session = cast(AsyncSession, session_mock)
+    session_factory = MagicMock()
+
+    async def database_session() -> AsyncIterator[AsyncSession]:
+        yield session
+
+    auth = _auth_settings()
+    csrf = _csrf_settings()
+    pair = create_token_pair(ADMIN_ID, UserRole.ADMIN, auth)
+    token = create_session_csrf_token(pair.session_id, csrf)
+    app.dependency_overrides[get_database_session] = database_session
+    app.dependency_overrides[get_session_factory] = lambda: session_factory
+    app.dependency_overrides[get_auth_token_settings] = lambda: auth
+    app.dependency_overrides[get_csrf_settings] = lambda: csrf
+    app.dependency_overrides[semester_api._snapshot_adapter] = lambda: MagicMock()
+    app.dependency_overrides[semester_api._backup_storage] = lambda: MagicMock()
+    app.dependency_overrides[get_image_storage_service] = lambda: MagicMock()
+    cookies = {
+        DEVELOPMENT_ACCESS_COOKIE_NAME: pair.access_token,
+        csrf_cookie_name(csrf): token.value,
+    }
+    headers = {"Origin": ORIGIN, CSRF_HEADER_NAME: token.value}
+    return cookies, headers
+
+
+def _preflight() -> SemesterResetPreflight:
+    return SemesterResetPreflight(
+        semester_id=SEMESTER_ID,
+        operation_id=OPERATION_ID,
+        backup_id=BACKUP_ID,
+        backup_state=SemesterBackupState.CREATING,
+        backup_verified=True,
+        can_execute=True,
+        affected_counts={"users": 2},
+        preserved_counts={"admins": 1},
+        confirmation_phrase=f"RESET {SEMESTER_ID}",
+    )
+
+
+def _report() -> SemesterResetReport:
+    return SemesterResetReport(
+        operation_id=OPERATION_ID,
+        backup_id=BACKUP_ID,
+        closed_semester_id=SEMESTER_ID,
+        new_semester_id=NEW_SEMESTER_ID,
+        deleted_counts={"users": 2},
+        avatar_objects_processed=1,
+        operation_state=SemesterOperationState.SUCCEEDED,
+        backup_state=SemesterBackupState.READY,
+        idempotent_replay=False,
+    )
+
+
+@pytest.mark.anyio
+async def test_admin_preflight_is_aggregate_only_and_private(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, _ = _install(_actor())
+    service = AsyncMock(return_value=_preflight())
+    monkeypatch.setattr(semester_api, "get_semester_reset_preflight", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        response = await client.get("/api/admin/semesters/reset/preflight")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
+    assert response.json()["affected_counts"] == {"users": 2}
+    assert response.json()["preserved_counts"] == {"admins": 1}
+    forbidden = {"email", "message", "object_key", "password", "signed_url"}
+    assert forbidden.isdisjoint(response.json())
+
+
+@pytest.mark.anyio
+async def test_admin_execute_requires_csrf_and_returns_safe_terminal_summary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    service = AsyncMock(return_value=_report())
+    monkeypatch.setattr(semester_api, "execute_semester_reset", service)
+    payload = {
+        "backup_id": str(BACKUP_ID),
+        "confirmation_phrase": f"RESET {SEMESTER_ID}",
+        "current_password": "admin-current-password",
+    }
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        denied = await client.post(
+            f"/api/admin/semesters/reset/{OPERATION_ID}/execute",
+            json=payload,
+        )
+        response = await client.post(
+            f"/api/admin/semesters/reset/{OPERATION_ID}/execute",
+            json=payload,
+            headers=headers,
+        )
+
+    assert denied.status_code == 403
+    assert response.status_code == 200
+    assert response.json()["backup_state"] == "READY"
+    assert response.json()["deleted_counts"] == {"users": 2}
+    assert "current_password" not in response.text
+    assert "confirmation_phrase" not in response.text
+    service.assert_awaited_once()
+    call = service.await_args
+    assert call is not None
+    assert call.kwargs["current_password"] == "admin-current-password"
+
+
+@pytest.mark.anyio
+async def test_user_role_is_denied_before_reset_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor(UserRole.USER))
+    service = AsyncMock()
+    monkeypatch.setattr(semester_api, "execute_semester_reset", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        response = await client.post(
+            f"/api/admin/semesters/reset/{OPERATION_ID}/execute",
+            json={
+                "backup_id": str(BACKUP_ID),
+                "confirmation_phrase": f"RESET {SEMESTER_ID}",
+                "current_password": "password",
+            },
+            headers=headers,
+        )
+
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Insufficient permissions."}
+    service.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_reset_state_error_is_sanitized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    service = AsyncMock(side_effect=SemesterResetStateError("private object path"))
+    monkeypatch.setattr(semester_api, "execute_semester_reset", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        response = await client.post(
+            f"/api/admin/semesters/reset/{OPERATION_ID}/execute",
+            json={
+                "backup_id": str(BACKUP_ID),
+                "confirmation_phrase": f"RESET {SEMESTER_ID}",
+                "current_password": "password",
+            },
+            headers=headers,
+        )
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Semester reset is not eligible."}
+    assert "private" not in response.text
+
+
+@pytest.mark.anyio
+async def test_openapi_marks_password_write_only_and_exposes_no_row_content() -> None:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=ORIGIN) as client:
+        document = (await client.get("/openapi.json")).json()
+
+    request = document["components"]["schemas"]["SemesterResetExecuteRequest"]
+    response = document["components"]["schemas"]["SemesterResetExecuteResponse"]
+    assert request["properties"]["current_password"]["writeOnly"] is True
+    assert "current_password" not in response["properties"]
+    assert {"email", "message", "object_key", "signed_url"}.isdisjoint(response["properties"])

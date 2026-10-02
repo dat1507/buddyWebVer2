@@ -6869,7 +6869,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | SEM-002 (**Done 2026-10-02**) | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
 | SEM-003 (**Done 2026-10-02**) | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
 | SEM-004 (**Done 2026-10-02**) | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
-| SEM-005 | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
+| SEM-005 (**Done 2026-10-02**) | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
 | SEM-006 | Restore + new-cohort block | SEM-005 | Exact restore; backend blocks after any new USER | Restore/idempotency/block tests |
 | SEM-007 | Semester Management UI | SEM-005/006, ADMIN-005 | Counts/warnings/phrase/re-auth/status/restore UX | UI/a11y/e2e tests |
 | OPS-001 | Local Redis/worker/config foundation | MAIL-001 | Local Redis, worker/scheduler, health/readiness, no heavyweight queue | Startup/failure/compose tests |
@@ -7941,6 +7941,41 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-005 — Safeguarded Semester Reset execution
 
+- **Status:** **Done 2026-10-02.** Added an ADMIN-only, CSRF-protected aggregate preflight and
+  phrase-confirmed execution API with immediate password re-authentication. Migration
+  `0019_semester_reset_execution` adds a transaction-scoped PostgreSQL shared/exclusive write
+  barrier across registration, profile/preference, invitation, Match, conversation/message,
+  event-registration, session/token and outbox writes, plus one private fixed-scope
+  `SECURITY DEFINER` reset function instead of granting runtime broad table deletion. The complete
+  pre-delete predicate requires the attributable RUNNING RESET, exact current semester/boundary,
+  same backup and immutable SEM-004 `verified_at` proof while the backup remains `CREATING`; after
+  the atomic reset succeeds, the existing verifier rechecks the retained packages and alone moves
+  the backup to effective `READY` with its exact 30-day expiry.
+- **Reset boundary and failure safety:** the verified database package is compared against a fresh
+  deterministic snapshot while the exclusive barrier is held. Exact managed avatar keys come only
+  from the cross-validated private manifest; missing objects are idempotent, provider failures abort
+  before database deletion, and no bucket/prefix scan or signed URL identity is used. The database
+  function checks immutable backed-up row counts, deletes messages/conversations, Matches,
+  invitations, transactional outbox rows, event registrations, predefined/custom profile links,
+  photos/profiles, verification/session rows and only the authoritative semester USER cohort in a
+  deterministic order, checks every delete count, closes that boundary, creates one empty current
+  semester and atomically succeeds the existing operation. ADMIN identities/password references,
+  shared Interest/Language/Activity catalogs, shared Events, backup artifacts/metadata, migrations
+  and system metadata remain unchanged. Aggregate-only audit/result metadata contains no row
+  content, message, email, object key, credential or provider detail. A stable operation ID supports
+  safe replay; a concurrent reset receives a busy result and cannot execute destructively in
+  parallel.
+- **Verification:** 63 SEM-001..005 targeted tests and 274 affected Auth/Admin/Profile/Preferences/
+  Invitation/Buddy/Chat regressions pass. PostgreSQL 17 plus disposable private-storage acceptance
+  (`1 passed`) proved unverified/mismatched-backup rejection with zero deletion, post-backup write
+  mismatch rejection, injected avatar failure and retry, exclusive-reset concurrency, exact
+  Vietnamese/international cohort cleanup, ADMIN password survival, catalog/Event/backup
+  preservation, exact unrelated-object preservation, no dangling graph, final `READY` retention and
+  idempotent replay. The complete backend suite produced 1,288 passed and 36 skipped; its only
+  failure was the documented unrelated CHAT-003 Starlette WebSocket teardown `CancelledError`, and
+  that exact test passed immediately in isolation and remains unchanged. Ruff, scoped formatting,
+  strict mypy across 261 files, package build, `pip check`, dependency audit, Alembic
+  upgrade/downgrade/re-upgrade/history/head/drift and Compose gates pass.
 - **Purpose:** Remove USER accounts and all student-owned data only after verified backups.
 - **Scope / likely files:** preflight/count API, reset orchestration/service, maintenance/write barrier, storage deletion/reconciliation, operation audit and verification.
 - **Dependencies / ownership:** SEM-004, AUTH-018, EVT-008; Backend + Database + Storage + Operations.
@@ -8182,11 +8217,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-005 — Safeguarded Semester Reset execution`.** SEM-002..004 now provide private,
-restorable relational/avatar packages, immutable pre-reset verification, post-reset `READY`
-finalization, exact 30-day retention and bounded effective-expiry cleanup. SEM-005 is the next
-unfinished task in the recommended semester delivery order and owns re-authenticated, write-barrier
-protected USER-data reset execution; production restore remains SEM-006.
+**Next step: `SEM-006 — Restore and new-cohort blocking`.** SEM-005 now provides the
+re-authenticated, write-barrier-protected reset, preserves the verified private backup and creates
+one empty authoritative current-semester boundary. SEM-006 is the next unfinished task in the
+recommended semester delivery order and owns exact database/avatar restore plus the backend-enforced
+monotonic block after any new-cohort USER appears; the Semester Management UI remains SEM-007.
 
 ### 26.19 Documentation-change boundary
 

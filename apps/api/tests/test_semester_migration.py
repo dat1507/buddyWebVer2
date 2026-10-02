@@ -142,3 +142,69 @@ def test_verification_downgrade_fails_closed_for_active_verified_backup(
     assert "cannot downgrade with a verified creating backup" in sql
     assert "state = 'creating' and verified_at is null" in sql
     assert "drop table app_private.semester_backups" not in sql
+
+
+def test_reset_upgrade_installs_private_fixed_scope_function_and_write_barrier(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.upgrade(
+            _config(),
+            "0018_backup_verification:0019_semester_reset_execution",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "create function app_private.acquire_semester_write_barrier()" in sql
+    assert "pg_advisory_xact_lock_shared" in sql
+    assert "vgu-buddy:semester-write-barrier:v1" in sql
+    assert "create trigger trg_users_semester_write_barrier" in sql
+    assert "create trigger trg_matching_invitations_semester_write_barrier" in sql
+    assert "create trigger trg_buddy_messages_semester_write_barrier" in sql
+    assert "create function app_private.execute_semester_reset(" in sql
+    assert "security definer" in sql
+    assert "set search_path = ''" in sql
+    assert "pg_try_advisory_xact_lock" in sql
+    assert "state = 'succeeded'" in sql
+    assert "insert into app_private.semesters" in sql
+    assert "delete from app_private.users" in sql
+    assert "delete from app_private.buddy_messages" in sql
+    assert "delete from app_private.transactional_outbox" in sql
+    assert "grant execute on function app_private.execute_semester_reset" in sql
+    assert "revoke all on function app_private.execute_semester_reset" in sql
+    assert "grant delete" not in sql
+    assert (
+        "execute format"
+        not in sql.split("create function app_private.execute_semester_reset", maxsplit=1)[1].split(
+            "$$;", maxsplit=1
+        )[0]
+    )
+
+
+def test_reset_downgrade_removes_only_execution_primitives(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.downgrade(
+            _config(),
+            "0019_semester_reset_execution:0018_backup_verification",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "drop function app_private.execute_semester_reset" in sql
+    assert "drop trigger trg_users_semester_write_barrier" in sql
+    assert "drop trigger trg_buddy_messages_semester_write_barrier" in sql
+    assert "drop function app_private.acquire_semester_write_barrier" in sql
+    assert "drop table app_private.users" not in sql
+    assert "drop table app_private.semesters" not in sql

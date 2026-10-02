@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.admin_matching import router as admin_matching_router
+from app.api.admin_semesters import router as admin_semesters_router
 from app.api.admin_users import router as admin_users_router
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
@@ -68,6 +69,7 @@ app.include_router(profile_router)
 app.include_router(profile_catalogs_router)
 app.include_router(profile_photos_router)
 app.include_router(admin_matching_router)
+app.include_router(admin_semesters_router)
 app.include_router(admin_users_router)
 app.include_router(matching_router)
 app.include_router(chat_router)
