@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
+from datetime import UTC, datetime, timedelta
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
@@ -22,8 +23,21 @@ from app.core.config import (
 )
 from app.core.database import get_database_session, get_session_factory
 from app.main import app
-from app.models import SemesterBackupState, SemesterOperationState, User, UserRole
+from app.models import (
+    SemesterBackupState,
+    SemesterOperationState,
+    SemesterOperationType,
+    SemesterStatus,
+    User,
+    UserRole,
+)
 from app.services.csrf import CSRF_HEADER_NAME, create_session_csrf_token, csrf_cookie_name
+from app.services.semester_management import (
+    SemesterBackupStatus,
+    SemesterManagementConflictError,
+    SemesterManagementStatus,
+    SemesterOperationStatus,
+)
 from app.services.semester_reset import (
     SemesterResetPreflight,
     SemesterResetReport,
@@ -161,6 +175,98 @@ def _restore_report() -> SemesterRestoreReport:
         backup_state=SemesterBackupState.READY,
         idempotent_replay=False,
     )
+
+
+def _management_status() -> SemesterManagementStatus:
+    now = datetime(2026, 10, 2, tzinfo=UTC)
+    return SemesterManagementStatus(
+        current_semester_id=NEW_SEMESTER_ID,
+        current_semester_status=SemesterStatus.CURRENT,
+        current_student_accounts_created=0,
+        reset_operation=SemesterOperationStatus(
+            id=OPERATION_ID,
+            operation_type=SemesterOperationType.RESET,
+            state=SemesterOperationState.SUCCEEDED,
+            requested_at=now,
+            started_at=now,
+            completed_at=now + timedelta(minutes=1),
+            failure_code=None,
+        ),
+        restore_operation=None,
+        backup=SemesterBackupStatus(
+            id=BACKUP_ID,
+            state=SemesterBackupState.READY,
+            created_at=now,
+            verified_at=now + timedelta(minutes=1),
+            expires_at=now + timedelta(days=30),
+        ),
+        can_prepare_reset=True,
+        can_prepare_restore=True,
+        restore_block_reason=None,
+    )
+
+
+@pytest.mark.anyio
+async def test_management_discovery_and_prepare_are_private_admin_csrf_contracts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    discovery = AsyncMock(return_value=_management_status())
+    reset_prepare = AsyncMock(return_value=(OPERATION_ID, BACKUP_ID))
+    restore_prepare = AsyncMock(return_value=(OPERATION_ID, BACKUP_ID))
+    monkeypatch.setattr(semester_api, "get_semester_management_status", discovery)
+    monkeypatch.setattr(semester_api, "prepare_semester_reset", reset_prepare)
+    monkeypatch.setattr(semester_api, "prepare_semester_restore", restore_prepare)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        status_response = await client.get("/api/admin/semesters/management")
+        denied = await client.post("/api/admin/semesters/reset/prepare")
+        reset_response = await client.post("/api/admin/semesters/reset/prepare", headers=headers)
+        restore_response = await client.post(
+            "/api/admin/semesters/restore/prepare", headers=headers
+        )
+
+    assert status_response.status_code == 200
+    assert status_response.headers["cache-control"] == "private, no-store"
+    assert status_response.json()["backup"]["state"] == "READY"
+    assert status_response.json()["can_prepare_restore"] is True
+    assert "confirmation_phrase" not in status_response.text
+    assert denied.status_code == 403
+    assert reset_response.json() == {
+        "operation_id": str(OPERATION_ID),
+        "backup_id": str(BACKUP_ID),
+    }
+    assert restore_response.status_code == 200
+    reset_prepare.assert_awaited_once()
+    restore_prepare.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_prepare_conflict_is_sanitized_and_user_is_denied(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cookies, headers = _install(_actor())
+    service = AsyncMock(side_effect=SemesterManagementConflictError("private database detail"))
+    monkeypatch.setattr(semester_api, "prepare_semester_restore", service)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=cookies
+    ) as client:
+        conflict = await client.post("/api/admin/semesters/restore/prepare", headers=headers)
+    assert conflict.status_code == 409
+    assert conflict.json() == {"detail": "Semester restore preparation is not eligible."}
+    assert "database" not in conflict.text
+
+    user_cookies, user_headers = _install(_actor(UserRole.USER))
+    denied_service = AsyncMock()
+    monkeypatch.setattr(semester_api, "prepare_semester_reset", denied_service)
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url=ORIGIN, cookies=user_cookies
+    ) as client:
+        denied = await client.post("/api/admin/semesters/reset/prepare", headers=user_headers)
+    assert denied.status_code == 403
+    denied_service.assert_not_awaited()
 
 
 @pytest.mark.anyio

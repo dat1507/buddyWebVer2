@@ -8027,6 +8027,35 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-007 — Admin Semester Management safety UI
 
+- **Status:** **Done 2026-10-02.** Added the minimal server-authoritative lifecycle bridge needed by
+  this UI without a migration or second state machine: an ADMIN/private/no-store management read
+  model plus CSRF-protected reset/restore preparation endpoints. PostgreSQL advisory locking and the
+  existing one-RUNNING-operation constraint make preparation idempotent and concurrency-safe; the
+  server creates every operation/backup identity. Reset preparation reuses the SEM-002/003/004
+  database export, exact-key avatar backup and verification services but never executes deletion.
+  Restore preparation accepts only the single effective READY, unexpired, unrestored backup while
+  the monotonic new-cohort marker is empty. Discovery exposes only safe lifecycle IDs/states/times,
+  effective backup expiry and bounded capability/block codes, so reload/resume requires no browser
+  persistence or client-generated authority.
+- **Frontend delivery:** `/admin/semesters` now uses the existing ADMIN route guard, layout and
+  navigation. Private React Query state renders the authoritative semester, operation and backup
+  lifecycle; aggregate remove/preserve/restore counts; exact 30-day policy; and explicit expired,
+  failed, running, completed and permanent new-cohort-block states. Reset and restore each require a
+  server preflight, current-password re-authentication, the exact server phrase and a deliberate
+  accessible alert-dialog action. Controls are disabled in flight, success is never optimistic,
+  state is refetched after mutation, errors stay sanitized, and password/phrase remain form-local and
+  are cleared on close/success/failure. EN/DE copy, keyboard/focus semantics and narrow-screen-safe
+  layouts are included; there is no override, arbitrary backup picker or browser lifecycle storage.
+- **Verification:** 24 focused lifecycle/API/SEM-005/006 tests and 68 SEM regressions passed with 4
+  opt-in live skips. The final complete backend run produced 1,304 passed and 37 skipped; its only
+  failure was the documented unrelated CHAT-003 Starlette WebSocket teardown `CancelledError`, which
+  also persisted in the single permitted isolation check and remains unchanged. Full frontend
+  produced 673 passed.
+  Ruff, scoped Python formatting, strict mypy across 266 files, ESLint, TypeScript, repository-wide
+  Prettier, backend/frontend production builds, `pip check`, both dependency audits, Alembic head/
+  history and Compose validation pass. Alembic remains `0020_semester_restore_execution`. Browser
+  acceptance was not claimed: the local HTTPS app was not running and no authenticated disposable
+  Admin browser session was available; no staging/production destructive action was attempted.
 - **Purpose:** Make reset/backup/restore consequences explicit and hard to trigger accidentally.
 - **Scope / likely files:** Admin route/navigation/page, preflight counts, warning/keep-delete lists, phrase confirmation, re-auth dialog, operation progress, backup expiry/restore state.
 - **Dependencies / ownership:** SEM-005/006, ADMIN-005; Frontend.
@@ -8248,11 +8277,10 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-007 — Admin Semester Management safety UI`.** SEM-006 now provides the
-re-authenticated, write-barrier-protected exact database/avatar restore, idempotent failure recovery
-and backend-enforced monotonic block after any new-cohort USER appears. SEM-007 is the next unfinished
-task in the recommended semester delivery order and owns the Admin safety UX over the completed
-SEM-005/006 execution contracts.
+**Next step: `ACCEPT-001 — Full V2 staging acceptance`.** SEM-007 now completes the Admin safety UX
+and reload-safe lifecycle bridge over SEM-005/006. All functional branches and OPS-003 converge at
+ACCEPT-001 for production-like staging acceptance; PROD-001 remains gated on that signed result and
+explicit release approval.
 
 ### 26.19 Documentation-change boundary
 

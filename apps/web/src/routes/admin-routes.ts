@@ -10,12 +10,14 @@ import {
   LayoutDashboard,
   Megaphone,
   Settings,
+  RotateCcwKey,
   Users,
   type LucideIcon,
 } from 'lucide-react'
 
 import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
+import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 
 type AdminRoute = {
   path: string
@@ -51,6 +53,14 @@ const adminRoutes: readonly AdminRoute[] = [
     Icon: HeartHandshake,
     kind: 'page',
     Component: AdminMatchingPage,
+  },
+  {
+    path: 'semesters',
+    title: 'Semester management',
+    labelKey: 'adminNavigation.semesters',
+    Icon: RotateCcwKey,
+    kind: 'page',
+    Component: AdminSemesterPage,
   },
   {
     path: 'events',

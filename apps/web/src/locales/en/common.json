@@ -332,12 +332,108 @@
       "error": "Participant details could not be loaded."
     }
   },
+  "adminSemester": {
+    "title": "Semester management",
+    "description": "Prepare, review, and execute semester reset or restore operations with server-verified safeguards.",
+    "loading": "Loading semester status…",
+    "loadError": "Semester status could not be loaded.",
+    "retry": "Try again",
+    "unavailable": "Not available",
+    "preparing": "Preparing and verifying backup…",
+    "preflightLoading": "Loading authoritative preflight…",
+    "running": "Operation running…",
+    "authoritative": "Status and eligibility come from the server and refresh after every action.",
+    "states": {
+      "CURRENT": "Current",
+      "REQUESTED": "Requested",
+      "RUNNING": "Running",
+      "SUCCEEDED": "Completed",
+      "FAILED": "Failed",
+      "CREATING": "Creating",
+      "READY": "Ready",
+      "RESTORE_BLOCKED_NEW_DATA": "Restore blocked",
+      "EXPIRED": "Expired"
+    },
+    "current": {
+      "title": "Current semester",
+      "students": "{{count}} student account created in this semester",
+      "students_other": "{{count}} student accounts created in this semester"
+    },
+    "operations": {
+      "title": "Operations",
+      "reset": "Latest reset",
+      "restore": "Latest restore"
+    },
+    "backup": {
+      "title": "Protected backup",
+      "created": "Created",
+      "expires": "Expires"
+    },
+    "reset": {
+      "title": "Safeguarded semester reset",
+      "description": "Reset removes the current student cohort only after a complete private backup is verified.",
+      "removed": "Student accounts and semester-owned profiles, preferences, invitations, Matches, chats, and avatars are removed.",
+      "adminPreserved": "Administrator accounts are preserved.",
+      "catalogsPreserved": "Shared Interest, Language, and Activity catalogs are preserved.",
+      "retention": "The verified backup is retained for exactly 30 days after reset completion.",
+      "prepare": "Prepare reset and backup",
+      "open": "Review and execute reset",
+      "warning": "This deletes the current student cohort. Confirm only after reviewing all affected counts.",
+      "dialogTitle": "Confirm semester reset",
+      "confirm": "Execute reset",
+      "deletedCounts": "Data to remove",
+      "preservedCounts": "Data to preserve"
+    },
+    "restore": {
+      "title": "Safeguarded restore",
+      "description": "Restore returns the exact verified pre-reset dataset only while the new semester remains empty.",
+      "prepare": "Prepare restore",
+      "open": "Review and execute restore",
+      "warning": "This restores the exact retained student dataset. It cannot merge with a new cohort.",
+      "dialogTitle": "Confirm semester restore",
+      "confirm": "Execute restore",
+      "restoredCounts": "Data to restore",
+      "blockReasons": {
+        "NEW_COHORT": "Restore is permanently blocked because a student account has been created in the new semester.",
+        "EXPIRED": "Restore is unavailable because the retained backup has expired.",
+        "NOT_READY": "Restore is unavailable because the backup is not verified and ready.",
+        "ALREADY_RESTORED": "This backup has already been restored.",
+        "OPERATION_RUNNING": "Another semester operation is currently running."
+      }
+    },
+    "dialog": {
+      "password": "Current administrator password",
+      "confirmation": "Type the exact confirmation phrase",
+      "cancel": "Cancel safely"
+    },
+    "feedback": {
+      "success": "The server completed the operation and refreshed the authoritative status.",
+      "error": "The operation was not completed. Review the current server status and try again when eligible."
+    },
+    "counts": {
+      "users": "Student accounts",
+      "student_profiles": "Profiles",
+      "profile_custom_preferences": "Custom preferences",
+      "matching_invitations": "Invitations",
+      "matches": "Buddy Matches",
+      "buddy_conversations": "Conversations",
+      "buddy_messages": "Chat messages",
+      "profile_photos": "Avatar objects",
+      "admins": "Administrator accounts",
+      "interests": "Shared Interests",
+      "languages": "Shared Languages",
+      "activities": "Shared Activities",
+      "events": "Shared Events",
+      "semester_backups": "Backup records"
+    }
+  },
   "adminNavigation": {
     "label": "Administrator navigation",
     "scaffoldHint": "Module pages are under development.",
     "overview": "Overview",
     "users": "Users",
     "matching": "Matching",
+    "semesters": "Semesters",
     "events": "Events",
     "eventSliders": "Event Sliders",
     "announcements": "Announcements",

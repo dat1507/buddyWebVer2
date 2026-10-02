@@ -1,0 +1,153 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import App from '@/App'
+import {
+  adminSemestersClient,
+  type SemesterManagementStatus,
+} from '@/features/admin-semesters/admin-semesters'
+import { clearPrivateQueries } from '@/features/auth/private-cache'
+import i18n from '@/i18n'
+import { useAuthStore } from '@/stores/auth-store'
+
+const admin = {
+  id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  email: 'admin@example.com',
+  role: 'ADMIN' as const,
+  email_verified: false,
+}
+const operationId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+const backupId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+const semesterId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+const now = '2026-10-02T08:00:00Z'
+const operation = {
+  id: operationId,
+  operation_type: 'RESET' as const,
+  state: 'RUNNING' as const,
+  requested_at: now,
+  started_at: now,
+  completed_at: null,
+  failure_code: null,
+}
+const readyStatus: SemesterManagementStatus = {
+  current_semester_id: semesterId,
+  current_semester_status: 'CURRENT',
+  current_student_accounts_created: 2,
+  reset_operation: operation,
+  restore_operation: null,
+  backup: {
+    id: backupId,
+    state: 'CREATING',
+    created_at: now,
+    verified_at: now,
+    expires_at: null,
+  },
+  can_prepare_reset: false,
+  can_prepare_restore: false,
+  restore_block_reason: 'NEW_COHORT',
+}
+const resetPreflight = {
+  semester_id: semesterId,
+  operation_id: operationId,
+  backup_id: backupId,
+  backup_state: 'CREATING' as const,
+  backup_verified: true,
+  can_execute: true,
+  affected_counts: { users: 2, buddy_messages: 4 },
+  preserved_counts: { admins: 1, interests: 8 },
+  confirmation_phrase: `RESET ${semesterId}`,
+  retention_days: 30 as const,
+}
+
+describe('SEM-007 Admin Semester Management safety UI', () => {
+  let client: QueryClient
+  const readStatus = vi.spyOn(adminSemestersClient, 'readStatus')
+  const readResetPreflight = vi.spyOn(adminSemestersClient, 'readResetPreflight')
+  const executeReset = vi.spyOn(adminSemestersClient, 'executeReset')
+  const prepareReset = vi.spyOn(adminSemestersClient, 'prepareReset')
+
+  beforeEach(async () => {
+    await i18n.changeLanguage('en')
+    useAuthStore.getState().resetSession()
+    client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    readStatus.mockReset().mockResolvedValue(readyStatus)
+    readResetPreflight.mockReset().mockResolvedValue(resetPreflight)
+    executeReset.mockReset().mockResolvedValue()
+    prepareReset.mockReset().mockResolvedValue()
+  })
+
+  afterEach(() => {
+    client.clear()
+    useAuthStore.getState().resetSession()
+    vi.clearAllMocks()
+  })
+
+  function renderPage(role: 'ADMIN' | 'USER' = 'ADMIN') {
+    useAuthStore.getState().setAuthenticated({ ...admin, role })
+    return render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/admin/semesters']}>
+          <App />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+  }
+
+  it('renders authoritative lifecycle, counts, retention, and non-bypassable block state', async () => {
+    renderPage()
+    expect(await screen.findByRole('heading', { name: 'Semester management' })).toBeVisible()
+    expect(screen.getByText('2 student accounts created in this semester')).toBeVisible()
+    expect(await screen.findByText('Chat messages')).toBeVisible()
+    expect(screen.getByText('Administrator accounts')).toBeVisible()
+    expect(screen.getByText(/permanently blocked/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: /override|force/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/exactly 30 days/)).toBeVisible()
+  })
+
+  it('requires password and exact phrase, submits once, and clears secrets', async () => {
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: 'Review and execute reset' }))
+    const confirm = screen.getByRole('button', { name: 'Execute reset' })
+    expect(confirm).toBeDisabled()
+    const password = screen.getByLabelText('Current administrator password')
+    const phrase = screen.getByLabelText('Type the exact confirmation phrase')
+    fireEvent.change(password, { target: { value: 'top-secret' } })
+    fireEvent.change(phrase, { target: { value: 'wrong' } })
+    expect(confirm).toBeDisabled()
+    fireEvent.change(phrase, { target: { value: resetPreflight.confirmation_phrase } })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+    await waitFor(() => expect(executeReset).toHaveBeenCalledTimes(1))
+    expect(executeReset).toHaveBeenCalledWith({
+      operationId,
+      backupId,
+      confirmationPhrase: resetPreflight.confirmation_phrase,
+      currentPassword: 'top-secret',
+    })
+    expect(screen.queryByDisplayValue('top-secret')).not.toBeInTheDocument()
+    expect(Object.values(localStorage)).not.toContain('top-secret')
+    expect(Object.values(localStorage)).not.toContain(resetPreflight.confirmation_phrase)
+    expect(Object.values(sessionStorage)).not.toContain('top-secret')
+    expect(Object.values(sessionStorage)).not.toContain(resetPreflight.confirmation_phrase)
+  })
+
+  it('denies USER before any private semester request', async () => {
+    renderPage('USER')
+    expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
+    expect(readStatus).not.toHaveBeenCalled()
+  })
+
+  it('keeps lifecycle in the private cache and clears it with session cleanup', async () => {
+    renderPage()
+    await screen.findByRole('heading', { name: 'Semester management' })
+    expect(
+      client.getQueryCache().findAll({ queryKey: ['private', 'admin-semesters'] }),
+    ).not.toHaveLength(0)
+    await clearPrivateQueries(client)
+    expect(
+      client.getQueryCache().findAll({ queryKey: ['private', 'admin-semesters'] }),
+    ).toHaveLength(0)
+  })
+})

@@ -9,6 +9,7 @@ const paths = [
   'dashboard',
   'users',
   'matching',
+  'semesters',
   'events',
   'event-sliders',
   'announcements',
@@ -26,6 +27,7 @@ const locales = [
       'Overview',
       'Users',
       'Matching',
+      'Semesters',
       'Events',
       'Event Sliders',
       'Announcements',
@@ -43,6 +45,7 @@ const locales = [
       'Übersicht',
       'Benutzer',
       'Zuordnung',
+      'Semester',
       'Veranstaltungen',
       'Veranstaltungsslider',
       'Mitteilungen',
@@ -61,7 +64,7 @@ describe('ADMIN-002 module navigation', () => {
   })
 
   it.each(locales)(
-    'provides eleven named native module links in %s',
+    'provides twelve named native module links in %s',
     async (language, name, labels) => {
       await i18n.changeLanguage(language)
       render(
@@ -70,7 +73,7 @@ describe('ADMIN-002 module navigation', () => {
         </MemoryRouter>,
       )
       const nav = screen.getByRole('navigation', { name })
-      expect(within(nav).getAllByRole('link')).toHaveLength(11)
+      expect(within(nav).getAllByRole('link')).toHaveLength(12)
       labels.forEach((label, index) => {
         const link = within(nav).getByRole('link', { name: label })
         expect(link.tagName).toBe('A')

@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
-from app.models import SemesterBackupState, SemesterOperationState
+from app.models import (
+    SemesterBackupState,
+    SemesterOperationState,
+    SemesterOperationType,
+    SemesterStatus,
+)
 from app.services.passwords import BCRYPT_MAX_PASSWORD_BYTES
 
 
@@ -103,3 +109,57 @@ class SemesterRestoreExecuteResponse(BaseModel):
     operation_state: SemesterOperationState
     backup_state: SemesterBackupState
     idempotent_replay: bool
+
+
+class SemesterOperationStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    operation_type: SemesterOperationType
+    state: SemesterOperationState
+    requested_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    failure_code: str | None
+
+
+class SemesterBackupStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    state: SemesterBackupState
+    created_at: datetime
+    verified_at: datetime | None
+    expires_at: datetime | None
+
+
+class SemesterManagementStatusResponse(BaseModel):
+    """Private reload-safe lifecycle projection without storage or database internals."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_semester_id: UUID
+    current_semester_status: SemesterStatus
+    current_student_accounts_created: int = Field(ge=0)
+    reset_operation: SemesterOperationStatusResponse | None
+    restore_operation: SemesterOperationStatusResponse | None
+    backup: SemesterBackupStatusResponse | None
+    can_prepare_reset: bool
+    can_prepare_restore: bool
+    restore_block_reason: (
+        Literal[
+            "NEW_COHORT",
+            "EXPIRED",
+            "NOT_READY",
+            "ALREADY_RESTORED",
+            "OPERATION_RUNNING",
+        ]
+        | None
+    )
+
+
+class SemesterOperationPreparedResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operation_id: UUID
+    backup_id: UUID

@@ -23,6 +23,10 @@ from app.core.config import (
 from app.core.database import get_database_session, get_session_factory
 from app.models import User, UserRole
 from app.schemas.semester import (
+    SemesterBackupStatusResponse,
+    SemesterManagementStatusResponse,
+    SemesterOperationPreparedResponse,
+    SemesterOperationStatusResponse,
     SemesterResetExecuteRequest,
     SemesterResetExecuteResponse,
     SemesterResetPreflightResponse,
@@ -34,6 +38,14 @@ from app.services.csrf import CsrfTokenClaims
 from app.services.database_backup_storage import SupabaseDatabaseBackupStore
 from app.services.image_storage import ImageStorageService
 from app.services.semester_database_backup import PostgresBinaryCopyBackupAdapter
+from app.services.semester_management import (
+    SemesterManagementConflictError,
+    SemesterManagementError,
+    SemesterManagementStatus,
+    get_semester_management_status,
+    prepare_semester_reset,
+    prepare_semester_restore,
+)
 from app.services.semester_reset import (
     SemesterResetAuthorizationError,
     SemesterResetBusyError,
@@ -87,6 +99,131 @@ def _snapshot_adapter(
     settings: Annotated[BackupDatabaseSettings, Depends(get_backup_database_settings)],
 ) -> PostgresBinaryCopyBackupAdapter:
     return PostgresBinaryCopyBackupAdapter(settings)
+
+
+def _management_response(result: SemesterManagementStatus) -> SemesterManagementStatusResponse:
+    operation_fields = (
+        "id",
+        "operation_type",
+        "state",
+        "requested_at",
+        "started_at",
+        "completed_at",
+        "failure_code",
+    )
+    reset = (
+        SemesterOperationStatusResponse(
+            **{field: getattr(result.reset_operation, field) for field in operation_fields}
+        )
+        if result.reset_operation is not None
+        else None
+    )
+    restore = (
+        SemesterOperationStatusResponse(
+            **{field: getattr(result.restore_operation, field) for field in operation_fields}
+        )
+        if result.restore_operation is not None
+        else None
+    )
+    backup = (
+        SemesterBackupStatusResponse(
+            id=result.backup.id,
+            state=result.backup.state,
+            created_at=result.backup.created_at,
+            verified_at=result.backup.verified_at,
+            expires_at=result.backup.expires_at,
+        )
+        if result.backup is not None
+        else None
+    )
+    return SemesterManagementStatusResponse(
+        current_semester_id=result.current_semester_id,
+        current_semester_status=result.current_semester_status,
+        current_student_accounts_created=result.current_student_accounts_created,
+        reset_operation=reset,
+        restore_operation=restore,
+        backup=backup,
+        can_prepare_reset=result.can_prepare_reset,
+        can_prepare_restore=result.can_prepare_restore,
+        restore_block_reason=result.restore_block_reason,
+    )
+
+
+@router.get("/management", response_model=SemesterManagementStatusResponse)
+async def read_semester_management_status(
+    response: Response,
+    current_admin: Annotated[User, Depends(require_admin)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> SemesterManagementStatusResponse:
+    try:
+        result = await get_semester_management_status(session, current_admin)
+    except SemesterManagementError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Semester management status is unavailable.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    _mark_private(response)
+    return _management_response(result)
+
+
+@router.post("/reset/prepare", response_model=SemesterOperationPreparedResponse)
+async def prepare_admin_semester_reset(
+    response: Response,
+    current_admin: Annotated[User, Depends(require_admin)],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session_factory: Annotated[async_sessionmaker[AsyncSession], Depends(get_session_factory)],
+    snapshot_adapter: Annotated[PostgresBinaryCopyBackupAdapter, Depends(_snapshot_adapter)],
+    backup_storage: Annotated[SupabaseDatabaseBackupStore, Depends(_backup_storage)],
+    avatar_storage: Annotated[ImageStorageService, Depends(get_image_storage_service)],
+) -> SemesterOperationPreparedResponse:
+    try:
+        operation_id, backup_id = await prepare_semester_reset(
+            session_factory,
+            actor=current_admin,
+            snapshot_adapter=snapshot_adapter,
+            backup_storage=backup_storage,
+            avatar_storage=avatar_storage,
+        )
+    except SemesterManagementConflictError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Semester reset preparation is not eligible.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    except SemesterManagementError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Semester reset preparation failed safely.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    _mark_private(response)
+    return SemesterOperationPreparedResponse(operation_id=operation_id, backup_id=backup_id)
+
+
+@router.post("/restore/prepare", response_model=SemesterOperationPreparedResponse)
+async def prepare_admin_semester_restore(
+    response: Response,
+    current_admin: Annotated[User, Depends(require_admin)],
+    _csrf: Annotated[CsrfTokenClaims, Depends(require_session_csrf)],
+    session_factory: Annotated[async_sessionmaker[AsyncSession], Depends(get_session_factory)],
+) -> SemesterOperationPreparedResponse:
+    try:
+        operation_id, backup_id = await prepare_semester_restore(session_factory, current_admin)
+    except SemesterManagementConflictError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Semester restore preparation is not eligible.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    except SemesterManagementError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Semester restore preparation failed safely.",
+            headers=_NO_STORE_HEADERS,
+        ) from error
+    _mark_private(response)
+    return SemesterOperationPreparedResponse(operation_id=operation_id, backup_id=backup_id)
 
 
 @router.get("/reset/preflight", response_model=SemesterResetPreflightResponse)

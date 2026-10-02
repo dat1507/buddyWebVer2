@@ -332,12 +332,108 @@
       "error": "Die Teilnehmendendetails konnten nicht geladen werden."
     }
   },
+  "adminSemester": {
+    "title": "Semesterverwaltung",
+    "description": "Semester-Reset und Wiederherstellung mit serverseitig geprüften Schutzmaßnahmen vorbereiten, prüfen und ausführen.",
+    "loading": "Semesterstatus wird geladen…",
+    "loadError": "Der Semesterstatus konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "unavailable": "Nicht verfügbar",
+    "preparing": "Backup wird vorbereitet und geprüft…",
+    "preflightLoading": "Verbindliche Vorprüfung wird geladen…",
+    "running": "Vorgang läuft…",
+    "authoritative": "Status und Berechtigung kommen vom Server und werden nach jeder Aktion aktualisiert.",
+    "states": {
+      "CURRENT": "Aktuell",
+      "REQUESTED": "Angefordert",
+      "RUNNING": "Läuft",
+      "SUCCEEDED": "Abgeschlossen",
+      "FAILED": "Fehlgeschlagen",
+      "CREATING": "Wird erstellt",
+      "READY": "Bereit",
+      "RESTORE_BLOCKED_NEW_DATA": "Wiederherstellung gesperrt",
+      "EXPIRED": "Abgelaufen"
+    },
+    "current": {
+      "title": "Aktuelles Semester",
+      "students": "{{count}} Studierendenkonto wurde in diesem Semester erstellt",
+      "students_other": "{{count}} Studierendenkonten wurden in diesem Semester erstellt"
+    },
+    "operations": {
+      "title": "Vorgänge",
+      "reset": "Letzter Reset",
+      "restore": "Letzte Wiederherstellung"
+    },
+    "backup": {
+      "title": "Geschütztes Backup",
+      "created": "Erstellt",
+      "expires": "Läuft ab"
+    },
+    "reset": {
+      "title": "Abgesicherter Semester-Reset",
+      "description": "Der Reset entfernt den aktuellen Studierendenjahrgang erst nach Prüfung eines vollständigen privaten Backups.",
+      "removed": "Studierendenkonten und semesterbezogene Profile, Präferenzen, Einladungen, Zuordnungen, Chats und Avatare werden entfernt.",
+      "adminPreserved": "Administratorkonten bleiben erhalten.",
+      "catalogsPreserved": "Gemeinsame Interessen-, Sprach- und Aktivitätskataloge bleiben erhalten.",
+      "retention": "Das geprüfte Backup wird nach Abschluss des Resets exakt 30 Tage aufbewahrt.",
+      "prepare": "Reset und Backup vorbereiten",
+      "open": "Reset prüfen und ausführen",
+      "warning": "Dies löscht den aktuellen Studierendenjahrgang. Bestätigen Sie erst nach Prüfung aller betroffenen Anzahlen.",
+      "dialogTitle": "Semester-Reset bestätigen",
+      "confirm": "Reset ausführen",
+      "deletedCounts": "Zu entfernende Daten",
+      "preservedCounts": "Zu erhaltende Daten"
+    },
+    "restore": {
+      "title": "Abgesicherte Wiederherstellung",
+      "description": "Die Wiederherstellung bringt den exakt geprüften Datensatz nur zurück, solange das neue Semester leer ist.",
+      "prepare": "Wiederherstellung vorbereiten",
+      "open": "Wiederherstellung prüfen und ausführen",
+      "warning": "Dies stellt den exakt aufbewahrten Studierendendatensatz wieder her. Eine Zusammenführung mit einem neuen Jahrgang ist nicht möglich.",
+      "dialogTitle": "Semester-Wiederherstellung bestätigen",
+      "confirm": "Wiederherstellung ausführen",
+      "restoredCounts": "Wiederherzustellende Daten",
+      "blockReasons": {
+        "NEW_COHORT": "Die Wiederherstellung ist dauerhaft gesperrt, weil im neuen Semester ein Studierendenkonto erstellt wurde.",
+        "EXPIRED": "Die Wiederherstellung ist nicht verfügbar, weil das Backup abgelaufen ist.",
+        "NOT_READY": "Die Wiederherstellung ist nicht verfügbar, weil das Backup nicht geprüft und bereit ist.",
+        "ALREADY_RESTORED": "Dieses Backup wurde bereits wiederhergestellt.",
+        "OPERATION_RUNNING": "Ein anderer Semestervorgang läuft derzeit."
+      }
+    },
+    "dialog": {
+      "password": "Aktuelles Administratorpasswort",
+      "confirmation": "Exakte Bestätigungsphrase eingeben",
+      "cancel": "Sicher abbrechen"
+    },
+    "feedback": {
+      "success": "Der Server hat den Vorgang abgeschlossen und den verbindlichen Status aktualisiert.",
+      "error": "Der Vorgang wurde nicht abgeschlossen. Prüfen Sie den aktuellen Serverstatus und versuchen Sie es erneut, sobald er zulässig ist."
+    },
+    "counts": {
+      "users": "Studierendenkonten",
+      "student_profiles": "Profile",
+      "profile_custom_preferences": "Benutzerdefinierte Präferenzen",
+      "matching_invitations": "Einladungen",
+      "matches": "Buddy-Zuordnungen",
+      "buddy_conversations": "Unterhaltungen",
+      "buddy_messages": "Chatnachrichten",
+      "profile_photos": "Avatarobjekte",
+      "admins": "Administratorkonten",
+      "interests": "Gemeinsame Interessen",
+      "languages": "Gemeinsame Sprachen",
+      "activities": "Gemeinsame Aktivitäten",
+      "events": "Gemeinsame Veranstaltungen",
+      "semester_backups": "Backup-Datensätze"
+    }
+  },
   "adminNavigation": {
     "label": "Administrationsnavigation",
     "scaffoldHint": "Die Modulseiten befinden sich in Entwicklung.",
     "overview": "Übersicht",
     "users": "Benutzer",
     "matching": "Zuordnung",
+    "semesters": "Semester",
     "events": "Veranstaltungen",
     "eventSliders": "Veranstaltungsslider",
     "announcements": "Mitteilungen",
