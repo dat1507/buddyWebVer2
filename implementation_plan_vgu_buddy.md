@@ -6866,7 +6866,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | ADMIN-V2-001 (**Done 2026-10-01**) | Monitoring APIs | INV-006, BUDDY-002 | Counts by invitation state, Buddy counts, zero-Buddy users | RBAC/aggregate/privacy tests |
 | ADMIN-V2-002 (**Done 2026-10-02**) | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
 | SEM-001 (**Done 2026-10-02**) | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
-| SEM-002 | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
+| SEM-002 (**Done 2026-10-02**) | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
 | SEM-003 | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
 | SEM-004 | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
 | SEM-005 | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
@@ -7849,6 +7849,24 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-002 — Restorable database backup adapter and manifest
 
+- **Status:** **Done 2026-10-02.** Added a PostgreSQL-native binary `COPY` adapter that exports the
+  exact student-owned table graph from one repeatable-read snapshot, packages deterministic private
+  table artifacts, and records a strict versioned manifest with SHA-256, byte sizes, row counts,
+  dependency order, shared-reference IDs, PostgreSQL/asyncpg compatibility and Alembic head. Added
+  a dedicated direct `DATABASE_BACKUP_URL`, private non-upsert Supabase bucket adapter, secure local
+  acceptance store, sanitized operational CLI, transaction-scoped concurrency lock, retry-safe
+  stable operation IDs, remote read-back verification, atomic SEM-001 metadata attachment and
+  fail-closed partial cleanup. A
+  successful database export deliberately remains `CREATING`; SEM-004 still exclusively owns the
+  combined database/avatar transition to `READY` and the expiry timestamp.
+- **Verification:** 61 targeted SEM/database/storage regressions pass. A real PostgreSQL 17 source
+  and second clean PostgreSQL 17 target proved representative accounts, profiles, predefined/custom
+  preferences, auth records, invitation, Match, conversation, message and outbox export/restore,
+  exact counts/relationships, shared Admin/catalog references without duplication, remote
+  checksum validation, partial-upload cleanup, `FAILED` metadata and downgrade cleanup. Ruff,
+  strict mypy across 249 files, build, `pip check`, dependency audit, Compose and Alembic drift gates
+  pass. The complete backend suite passes with 1,241 passed, 35 skipped and the pre-existing CHAT-003
+  WebSocket teardown flake explicitly deselected after reproducing its known `CancelledError`.
 - **Purpose:** Export all and only pre-reset student-owned relational data needed for exact restore.
 - **Scope / likely files:** backup service/provider/command, private object location, manifest schema/checksum/counts and operator docs; use a provider-native snapshot/export where available plus application manifest.
 - **Dependencies / ownership:** SEM-001, OPS-003; Backend + Database + Infrastructure.
@@ -8120,11 +8138,12 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-002 — Restorable database backup adapter and manifest`.** SEM-001 is now complete
-with migration `0017_semester_boundary_metadata`, atomic cohort stamping and the durable
-semester/operation/backup state foundation. SEM-002 is the next unfinished task in the recommended
-semester delivery order and owns only the private restorable relational export plus manifest; avatar
-objects, verification/expiry, destructive reset and restore remain SEM-003..006.
+**Next step: `SEM-003 — Private avatar object backup and restore manifest`.** SEM-002 is complete
+with the private restorable relational export, strict compatibility/integrity manifest, remote
+read-back verification and disposable second-database restore proof. SEM-003 is the next unfinished
+task in the recommended semester delivery order and owns only student avatar binaries plus their
+private restore manifest; combined verification/expiry, destructive reset and production restore
+remain SEM-004..006.
 
 ### 26.19 Documentation-change boundary
 

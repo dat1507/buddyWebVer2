@@ -22,6 +22,7 @@ from pydantic import (
 
 RUNTIME_URL_VARIABLE = "DATABASE_URL"
 MIGRATION_URL_VARIABLE = "DATABASE_MIGRATION_URL"
+BACKUP_URL_VARIABLE = "DATABASE_BACKUP_URL"
 CORS_ORIGINS_VARIABLE = "CORS_ALLOWED_ORIGINS"
 AUTH_JWT_SECRET_VARIABLE = "AUTH_JWT_SECRET"
 AUTH_CSRF_SECRET_VARIABLE = "AUTH_CSRF_SECRET"
@@ -75,6 +76,14 @@ class RuntimeDatabaseSettings(BaseModel):
 
 class MigrationDatabaseSettings(BaseModel):
     """Privileged direct credential used only by Alembic."""
+
+    model_config = ConfigDict(frozen=True)
+
+    url: SecretStr = Field(repr=False)
+
+
+class BackupDatabaseSettings(BaseModel):
+    """Dedicated direct read credential used only by semester backup jobs."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -422,6 +431,12 @@ def get_runtime_database_settings() -> RuntimeDatabaseSettings:
 def get_migration_database_settings() -> MigrationDatabaseSettings:
     """Load the Alembic credential without exposing it to application settings."""
     return MigrationDatabaseSettings(url=_read_required_secret(MIGRATION_URL_VARIABLE))
+
+
+@lru_cache(maxsize=1)
+def get_backup_database_settings() -> BackupDatabaseSettings:
+    """Load the server-only backup credential independently of runtime/Alembic."""
+    return BackupDatabaseSettings(url=_read_required_secret(BACKUP_URL_VARIABLE))
 
 
 @lru_cache(maxsize=1)

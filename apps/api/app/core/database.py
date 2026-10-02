@@ -20,6 +20,7 @@ from sqlalchemy.pool import NullPool
 
 from app.core.config import (
     APP_ENV_VARIABLE,
+    BackupDatabaseSettings,
     DatabaseConfigurationError,
     MigrationDatabaseSettings,
     RuntimeDatabaseSettings,
@@ -99,6 +100,11 @@ def runtime_database_url(settings: RuntimeDatabaseSettings) -> URL:
 
 def migration_database_url(settings: MigrationDatabaseSettings) -> URL:
     """Normalize the privileged direct URL used by Alembic."""
+    return _as_async_postgres_url(settings.url, allow_transaction_pooler=False)
+
+
+def backup_database_url(settings: BackupDatabaseSettings) -> URL:
+    """Normalize the direct, dedicated credential used by PostgreSQL backup jobs."""
     return _as_async_postgres_url(settings.url, allow_transaction_pooler=False)
 
 

@@ -3,16 +3,20 @@
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 
 import app.cli as cli
+from app.models import SemesterBackupState
+from app.services.database_backup_storage import DatabaseBackupStorageError
 from app.services.image_storage import (
     ImageBucket,
     ReconciliationReport,
     StorageOperationError,
     StorageReconciliationError,
 )
+from app.services.semester_database_backup import DatabaseBackupError, DatabaseBackupReport
 
 
 @pytest.fixture
@@ -148,3 +152,64 @@ async def test_apply_refuses_cleanup_without_reference_tables(
         await cli._reconcile_storage_command(apply=True, minimum_age_hours=24)
 
     dispose.assert_awaited_once_with()
+
+
+def test_configure_semester_backup_storage_is_separate_private_command(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    command = AsyncMock()
+    monkeypatch.setattr(cli, "_configure_semester_backup_storage_command", command)
+
+    assert cli.main(["configure-semester-backup-storage"]) == 0
+
+    command.assert_awaited_once_with()
+    assert capsys.readouterr().out == "Semester database backup storage configured.\n"
+
+
+def test_database_backup_cli_uses_stable_id_and_only_reports_aggregates(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    backup_id = uuid4()
+    command = AsyncMock(
+        return_value=DatabaseBackupReport(
+            backup_id=backup_id,
+            table_count=15,
+            row_count=42,
+            artifact_size_bytes=1024,
+            manifest_checksum="a" * 64,
+            state=SemesterBackupState.CREATING,
+        )
+    )
+    monkeypatch.setattr(cli, "_database_backup_command", command)
+
+    assert cli.main(["backup-semester-database", "--backup-id", str(backup_id)]) == 0
+
+    captured = capsys.readouterr()
+    command.assert_awaited_once_with(backup_id=backup_id)
+    assert "tables=15, rows=42, bytes=1024, state=CREATING" in captured.out
+    assert "manifest_checksum" not in captured.out
+    assert captured.err == ""
+
+
+@pytest.mark.parametrize(
+    "error",
+    (
+        DatabaseBackupError("secret database detail"),
+        DatabaseBackupStorageError("secret storage detail"),
+    ),
+)
+def test_database_backup_cli_sanitizes_failures(
+    error: Exception,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(cli, "_database_backup_command", AsyncMock(side_effect=error))
+
+    assert cli.main(["backup-semester-database", "--backup-id", str(uuid4())]) == 1
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"Error: {cli.DATABASE_BACKUP_ERROR_MESSAGE}\n"
+    assert str(error) not in captured.err

@@ -7,15 +7,19 @@ from pydantic import SecretStr
 from sqlalchemy.pool import NullPool
 
 from app.core.config import (
+    BACKUP_URL_VARIABLE,
     MIGRATION_URL_VARIABLE,
     RUNTIME_URL_VARIABLE,
+    BackupDatabaseSettings,
     DatabaseConfigurationError,
     MigrationDatabaseSettings,
     RuntimeDatabaseSettings,
+    get_backup_database_settings,
     get_migration_database_settings,
     get_runtime_database_settings,
 )
 from app.core.database import (
+    backup_database_url,
     create_runtime_engine,
     migration_database_url,
     runtime_database_url,
@@ -55,6 +59,26 @@ def test_runtime_and_migration_credentials_are_loaded_separately(
     assert runtime_settings.url != migration_settings.url
     assert "test-only-credential" not in repr(runtime_settings)
     assert "test-only-credential" not in repr(migration_settings)
+
+
+def test_backup_credential_is_separate_secret_and_requires_direct_connection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(BACKUP_URL_VARIABLE, _database_test_url("backup-reader"))
+    get_backup_database_settings.cache_clear()
+    try:
+        settings = get_backup_database_settings()
+    finally:
+        get_backup_database_settings.cache_clear()
+
+    assert "test-only-credential" not in repr(settings)
+    assert backup_database_url(settings).query["ssl"] == "require"
+    with pytest.raises(DatabaseConfigurationError, match="direct Supabase connection"):
+        backup_database_url(
+            BackupDatabaseSettings(
+                url=SecretStr(_database_test_url("backup-reader", port=6543))
+            )
+        )
 
 
 def test_missing_runtime_credential_fails_without_a_secret_value(

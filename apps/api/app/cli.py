@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from getpass import getpass
 from time import perf_counter
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -20,6 +20,7 @@ from app.core.config import (
     DatabaseConfigurationError,
     EmailConfigurationError,
     StorageConfigurationError,
+    get_backup_database_settings,
     get_email_provider_settings,
     get_email_verification_delivery_settings,
     get_migration_database_settings,
@@ -37,6 +38,10 @@ from app.services.chat_cleanup import (
     ChatCleanupReport,
     ChatCleanupValidationError,
     process_chat_cleanup_batch,
+)
+from app.services.database_backup_storage import (
+    DatabaseBackupStorageError,
+    SupabaseDatabaseBackupStore,
 )
 from app.services.email_outbox import (
     DEFAULT_OUTBOX_BATCH_SIZE,
@@ -64,6 +69,12 @@ from app.services.invitation_expiry import (
     InvitationExpiryValidationError,
     process_invitation_expiry_batch,
 )
+from app.services.semester_database_backup import (
+    DatabaseBackupError,
+    DatabaseBackupReport,
+    PostgresBinaryCopyBackupAdapter,
+    create_semester_database_backup,
+)
 
 DATABASE_ERROR_MESSAGE = "Admin account could not be created because the database is unavailable."
 PASSWORD_INPUT_ERROR_MESSAGE = "Admin password input was cancelled."
@@ -73,6 +84,10 @@ EMAIL_WORKER_ERROR_MESSAGE = "Transactional email worker could not be started or
 INVITATION_EXPIRY_ERROR_MESSAGE = "Invitation expiry batch could not be completed."
 CHAT_CLEANUP_ERROR_MESSAGE = "Expired Buddy message cleanup could not be completed."
 LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be configured."
+DATABASE_BACKUP_ERROR_MESSAGE = "Semester database backup could not be completed."
+DATABASE_BACKUP_STORAGE_ERROR_MESSAGE = (
+    "Semester database backup storage could not be configured."
+)
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
 )
@@ -101,6 +116,20 @@ def _parser() -> argparse.ArgumentParser:
     commands.add_parser(
         "configure-local-runtime-role",
         help="Set the local Compose runtime-role password after migrations.",
+    )
+    commands.add_parser(
+        "configure-semester-backup-storage",
+        help="Create or update the private semester database-backup bucket.",
+    )
+    database_backup_parser = commands.add_parser(
+        "backup-semester-database",
+        help="Create and verify the database artifact for an existing semester backup.",
+    )
+    database_backup_parser.add_argument(
+        "--backup-id",
+        required=True,
+        type=UUID,
+        help="Stable UUID of the existing CREATING semester backup.",
     )
     reconcile_parser = commands.add_parser(
         "reconcile-storage",
@@ -221,6 +250,24 @@ async def _configure_storage_command() -> int:
     for bucket in ImageBucket:
         await transport.configure_bucket(bucket)
     return len(ImageBucket)
+
+
+async def _configure_semester_backup_storage_command() -> None:
+    await SupabaseDatabaseBackupStore(get_storage_settings()).configure_bucket()
+
+
+async def _database_backup_command(*, backup_id: UUID) -> DatabaseBackupReport:
+    adapter = PostgresBinaryCopyBackupAdapter(get_backup_database_settings())
+    storage = SupabaseDatabaseBackupStore(get_storage_settings())
+    try:
+        return await create_semester_database_backup(
+            get_session_factory(),
+            backup_id=backup_id,
+            adapter=adapter,
+            storage=storage,
+        )
+    finally:
+        await dispose_database_engine()
 
 
 async def _configure_local_runtime_role_command() -> None:
@@ -374,6 +421,38 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"Error: {LOCAL_RUNTIME_ROLE_ERROR_MESSAGE}", file=sys.stderr)
             return 1
         print("Local runtime database role configured.")
+        return 0
+
+    if arguments.command == "configure-semester-backup-storage":
+        try:
+            asyncio.run(_configure_semester_backup_storage_command())
+        except (StorageConfigurationError, DatabaseBackupStorageError, OSError):
+            print(f"Error: {DATABASE_BACKUP_STORAGE_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print("Semester database backup storage configured.")
+        return 0
+
+    if arguments.command == "backup-semester-database":
+        try:
+            backup_report = asyncio.run(
+                _database_backup_command(backup_id=arguments.backup_id)
+            )
+        except (
+            DatabaseConfigurationError,
+            StorageConfigurationError,
+            DatabaseBackupError,
+            DatabaseBackupStorageError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {DATABASE_BACKUP_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Semester database backup: "
+            f"backup_id={backup_report.backup_id}, tables={backup_report.table_count}, "
+            f"rows={backup_report.row_count}, bytes={backup_report.artifact_size_bytes}, "
+            f"state={backup_report.state.value}"
+        )
         return 0
 
     if arguments.command == "reconcile-storage":
