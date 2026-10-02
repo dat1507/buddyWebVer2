@@ -63,6 +63,19 @@ from app.models.profile_catalog import (
     ProfileLanguage,
 )
 from app.models.refresh_session import RefreshSession
+from app.models.semester import (
+    SEMESTER_BACKUP_RETENTION,
+    SEMESTER_BACKUP_RETENTION_DAYS,
+    Semester,
+    SemesterBackup,
+    SemesterBackupState,
+    SemesterOperation,
+    SemesterOperationState,
+    SemesterOperationType,
+    SemesterStateTransitionError,
+    SemesterStatus,
+    semester_backup_expires_at,
+)
 from app.models.transactional_outbox import TransactionalOutbox
 from app.models.user import User, UserRole
 
@@ -110,6 +123,16 @@ __all__ = (
     "ProfileInterest",
     "ProfileLanguage",
     "RefreshSession",
+    "SEMESTER_BACKUP_RETENTION",
+    "SEMESTER_BACKUP_RETENTION_DAYS",
+    "Semester",
+    "SemesterBackup",
+    "SemesterBackupState",
+    "SemesterOperation",
+    "SemesterOperationState",
+    "SemesterOperationType",
+    "SemesterStateTransitionError",
+    "SemesterStatus",
     "StudentProfile",
     "StudentType",
     "TERMINAL_INVITATION_STATUSES",
@@ -120,5 +143,6 @@ __all__ = (
     "buddy_message_expires_at",
     "derive_event_phase",
     "invitation_expires_at",
+    "semester_backup_expires_at",
     "validate_buddy_message_body",
 )

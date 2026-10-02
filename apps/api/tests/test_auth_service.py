@@ -6,6 +6,7 @@ import inspect
 from datetime import UTC, datetime
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 from sqlalchemy.engine import make_url
@@ -31,6 +32,7 @@ from app.services import (
 TEST_PASSWORD = "Correct horse battery staple 🔒"
 TEST_PASSWORD_HASH = hash_password(TEST_PASSWORD)
 LOGIN_TIME = datetime(2026, 9, 16, 14, 30, tzinfo=UTC)
+CURRENT_SEMESTER_ID = uuid4()
 
 
 class _PostgresViolation(Exception):
@@ -109,6 +111,7 @@ def test_invalid_email_contract_fails_with_no_reflected_value(email: str) -> Non
 @pytest.mark.anyio
 async def test_registration_stages_only_a_canonical_least_privilege_user() -> None:
     mock, session = _session()
+    mock.scalar.return_value = CURRENT_SEMESTER_ID
 
     user = await register_user(session, "  Student@Example.COM ", TEST_PASSWORD)
 
@@ -121,11 +124,17 @@ async def test_registration_stages_only_a_canonical_least_privilege_user() -> No
     assert user.is_active is True
     assert user.email_verified is False
     assert user.email_verified_at is None
+    assert user.semester_id == CURRENT_SEMESTER_ID
     assert user.last_login is None
     assert user.deleted_at is None
     assert user.password_hash != TEST_PASSWORD
     assert verify_password(TEST_PASSWORD, user.password_hash) is True
     assert "role" not in inspect.signature(register_user).parameters
+    current_semester_query = mock.scalar.await_args.args[0]
+    dialect = make_url("postgresql+asyncpg://").get_dialect()()
+    compiled_query = str(current_semester_query.compile(dialect=dialect))
+    assert "FOR UPDATE" in compiled_query
+    mock.execute.assert_not_awaited()
 
 
 @pytest.mark.anyio
@@ -133,6 +142,7 @@ async def test_registration_maps_only_unique_violation_to_a_generic_conflict(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     mock, session = _session()
+    mock.scalar.return_value = CURRENT_SEMESTER_ID
     monkeypatch.setattr(auth_service, "hash_password", lambda _password: TEST_PASSWORD_HASH)
     mock.flush.side_effect = IntegrityError(
         "insert into users",
@@ -153,6 +163,7 @@ async def test_registration_rolls_back_and_preserves_non_unique_integrity_errors
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     mock, session = _session()
+    mock.scalar.return_value = CURRENT_SEMESTER_ID
     monkeypatch.setattr(auth_service, "hash_password", lambda _password: TEST_PASSWORD_HASH)
     integrity_error = IntegrityError(
         "insert into users",
@@ -165,6 +176,23 @@ async def test_registration_rolls_back_and_preserves_non_unique_integrity_errors
         await register_user(session, "student@example.com", TEST_PASSWORD)
 
     assert raised.value is integrity_error
+    mock.rollback.assert_awaited_once_with()
+
+
+@pytest.mark.anyio
+async def test_registration_fails_closed_without_a_current_semester(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock, session = _session()
+    mock.scalar.return_value = None
+    monkeypatch.setattr(auth_service, "hash_password", lambda _password: TEST_PASSWORD_HASH)
+
+    with pytest.raises(AccountRegistrationError, match="^Account registration failed\\.$"):
+        await register_user(session, "student@example.com", TEST_PASSWORD)
+
+    mock.add.assert_not_called()
+    mock.execute.assert_not_awaited()
+    mock.flush.assert_not_awaited()
     mock.rollback.assert_awaited_once_with()
 
 

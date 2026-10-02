@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import cast, get_args, get_type_hints
+from uuid import UUID
 
 from sqlalchemy import (
     Boolean,
@@ -32,6 +33,7 @@ def test_user_table_uses_private_schema_and_inherits_audit_fields() -> None:
         "email_verified",
         "email_verified_at",
         "last_login",
+        "semester_id",
         "id",
         "created_at",
         "updated_at",
@@ -65,6 +67,7 @@ def test_user_identity_and_password_columns_are_required_and_email_is_unique() -
     assert check_names == {
         "ck_users_email_not_blank",
         "ck_users_password_hash_not_empty",
+        "ck_users_role_semester",
     }
 
 
@@ -122,13 +125,13 @@ def test_user_state_defaults_and_verification_timestamp_contract() -> None:
 def test_user_model_declares_role_and_active_lookup_indexes_without_email_duplicate() -> None:
     table = cast(Table, User.__table__)
     indexes = {
-        index.name: tuple(column.name for column in index.columns)
-        for index in table.indexes
+        index.name: tuple(column.name for column in index.columns) for index in table.indexes
     }
 
     assert indexes == {
         "ix_users_role": ("role",),
         "ix_users_is_active": ("is_active",),
+        "ix_users_semester_id": ("semester_id",),
     }
 
 
@@ -142,6 +145,7 @@ def test_user_annotations_use_domain_python_types() -> None:
     assert get_args(annotations["email_verified"]) == (bool,)
     assert get_args(annotations["email_verified_at"]) == (datetime | None,)
     assert get_args(annotations["last_login"]) == (datetime | None,)
+    assert get_args(annotations["semester_id"]) == (UUID | None,)
 
 
 def test_current_email_verification_is_timestamp_backed_for_users_only() -> None:
@@ -182,7 +186,13 @@ def test_postgresql_ddl_matches_user_contract() -> None:
     assert "constraint uq_users_email unique (email)" in table_ddl
     assert "constraint ck_users_email_not_blank" in table_ddl
     assert "constraint ck_users_password_hash_not_empty" in table_ddl
+    assert "constraint ck_users_role_semester" in table_ddl
+    assert (
+        "foreign key(semester_id) references app_private.semesters (id) on delete restrict"
+        in table_ddl
+    )
     assert index_ddl == {
         "create index ix_users_role on app_private.users (role)",
         "create index ix_users_is_active on app_private.users (is_active)",
+        "create index ix_users_semester_id on app_private.users (semester_id)",
     }

@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import User, UserRole
+from app.models import Semester, SemesterStatus, User, UserRole
 from app.services.passwords import PasswordHashingError, hash_password, verify_password
 
 MAX_EMAIL_LENGTH: Final = 254
@@ -96,6 +96,13 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
     """Stage a least-privilege USER registration and flush it without committing."""
     canonical_email = canonicalize_email(email)
     password_hash = hash_password(password)
+    semester_id = await session.scalar(
+        select(Semester.id).where(Semester.status == SemesterStatus.CURRENT).with_for_update()
+    )
+    if semester_id is None:
+        await session.rollback()
+        raise AccountRegistrationError("Account registration failed.")
+
     user = User(
         email=canonical_email,
         password_hash=password_hash,
@@ -103,6 +110,7 @@ async def register_user(session: AsyncSession, email: str, password: str) -> Use
         is_active=True,
         email_verified=False,
         email_verified_at=None,
+        semester_id=semester_id,
     )
     session.add(user)
     try:

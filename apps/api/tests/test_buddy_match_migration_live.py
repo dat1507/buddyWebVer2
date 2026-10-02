@@ -208,11 +208,13 @@ async def _assert_upgrade_and_concurrency(database_url: str) -> None:
             assert len(matches) == 3
             assert all(match.status is MatchStatus.ACTIVE for match in matches)
             assert all(match.score == 75 for match in matches)
-            assert sum(
-                user_ids[0]
-                in {match.participant_one_user_id, match.participant_two_user_id}
-                for match in matches
-            ) == 2
+            assert (
+                sum(
+                    user_ids[0] in {match.participant_one_user_id, match.participant_two_user_id}
+                    for match in matches
+                )
+                == 2
+            )
             assert all(match.pair_low_user_id < match.pair_high_user_id for match in matches)
             for match in matches:
                 serialized = repr(match.score_breakdown).lower()
@@ -268,18 +270,15 @@ async def _assert_upgrade_and_concurrency(database_url: str) -> None:
                 )
                 is True
             )
-            assert (
-                await connection.scalar(
-                    text(
-                        "SELECT array_agg(enumlabel ORDER BY enumsortorder) "
-                        "FROM pg_enum JOIN pg_type ON pg_type.oid = enumtypid "
-                        "JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace "
-                        "WHERE pg_namespace.nspname = 'app_private' "
-                        "AND pg_type.typname = 'match_status'"
-                    )
+            assert await connection.scalar(
+                text(
+                    "SELECT array_agg(enumlabel ORDER BY enumsortorder) "
+                    "FROM pg_enum JOIN pg_type ON pg_type.oid = enumtypid "
+                    "JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace "
+                    "WHERE pg_namespace.nspname = 'app_private' "
+                    "AND pg_type.typname = 'match_status'"
                 )
-                == ["ACTIVE"]
-            )
+            ) == ["ACTIVE"]
             index_rows = {
                 row.relname: row.indisunique
                 for row in (
@@ -299,6 +298,7 @@ async def _assert_upgrade_and_concurrency(database_url: str) -> None:
             assert index_rows["uq_matches_active_pair"] is True
             assert index_rows["ix_matches_participant_one_status_activated_at"] is False
             assert index_rows["ix_matches_participant_two_status_activated_at"] is False
+            assert index_rows["ix_matches_semester_id"] is False
             semester_column = (
                 await connection.execute(
                     text(
@@ -308,7 +308,7 @@ async def _assert_upgrade_and_concurrency(database_url: str) -> None:
                     )
                 )
             ).one()
-            assert semester_column == ("uuid", "YES")
+            assert semester_column == ("uuid", "NO")
 
         duplicate_statement = (
             "INSERT INTO app_private.matches "
@@ -388,10 +388,7 @@ async def _assert_reupgraded(database_url: str) -> None:
                 )
                 == 5
             )
-            assert (
-                await connection.scalar(select(func.count()).select_from(BuddyMatch))
-                == 0
-            )
+            assert await connection.scalar(select(func.count()).select_from(BuddyMatch)) == 0
     finally:
         await engine.dispose()
 

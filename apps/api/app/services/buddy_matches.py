@@ -118,6 +118,8 @@ async def lock_buddy_match_participants(
         or recipient_profile is None
         or sender_profile.deleted_at is not None
         or recipient_profile.deleted_at is not None
+        or sender_user.semester_id is None
+        or sender_user.semester_id != recipient_user.semester_id
     ):
         raise BuddyMatchActivationError(BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID)
     if {sender_profile.student_type, recipient_profile.student_type} != {
@@ -211,6 +213,10 @@ async def activate_buddy_match(
     ):
         raise BuddyMatchActivationError(BuddyMatchActivationReason.ACTIVE_PAIR_EXISTS)
 
+    semester_id = participants.sender_user.semester_id
+    if semester_id is None or semester_id != participants.recipient_user.semester_id:
+        raise BuddyMatchActivationError(BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID)
+
     buddy_match = BuddyMatch(
         participant_one_user_id=invitation.sender_id,
         participant_two_user_id=invitation.recipient_id,
@@ -218,6 +224,7 @@ async def activate_buddy_match(
         participant_two_profile_id=participants.recipient_profile.id,
         status=MatchStatus.ACTIVE,
         accepted_invitation_id=invitation.id,
+        semester_id=semester_id,
         score=compatibility.score,
         score_breakdown=compatibility_score_snapshot(compatibility),
         activated_at=activated_at,

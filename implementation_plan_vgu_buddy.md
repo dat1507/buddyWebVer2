@@ -6865,7 +6865,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | CHAT-005 (**Done 2026-10-01**) | Message cleanup job | CHAT-002, OPS-001 | Hard-delete expired; API never returns expired | Clock/job/idempotency tests |
 | ADMIN-V2-001 (**Done 2026-10-01**) | Monitoring APIs | INV-006, BUDDY-002 | Counts by invitation state, Buddy counts, zero-Buddy users | RBAC/aggregate/privacy tests |
 | ADMIN-V2-002 (**Done 2026-10-02**) | Monitoring UI | ADMIN-V2-001, ADMIN-003/004 | No run/publish/override controls | UI/RBAC/a11y tests |
-| SEM-001 | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
+| SEM-001 (**Done 2026-10-02**) | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
 | SEM-002 | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
 | SEM-003 | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
 | SEM-004 | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
@@ -7825,6 +7825,20 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-001 — Semester boundary, operation and backup metadata
 
+- **Status:** **Done 2026-10-02.** Added Alembic revision
+  `0017_semester_boundary_metadata`, the authoritative Semester/operation/backup models and exact
+  persisted lifecycle enums. The migration creates one unambiguous current boundary, backfills and
+  constrains USER/Match/conversation semester links, enforces backend-only RLS/privileges, Admin
+  attribution, immutable identifiers/timestamps, valid monotonic transitions, one global RUNNING
+  operation and the exact five-state backup contract. Registration now locks the current semester,
+  stamps the new USER and atomically increments a never-decremented restore-block marker using a
+  server timestamp. The shared retention policy computes 30 days from a timezone-aware reset
+  completion timestamp; export, verification, reset and restore execution remain downstream.
+- **Verification:** Model/service/offline-migration regressions pass; disposable PostgreSQL proved
+  upgrade, current/running uniqueness, concurrent registration serialization, monotonic marker
+  survival after USER deletion, Admin/FK integrity, lifecycle constraints, Alembic drift check,
+  downgrade and re-upgrade. Backend lint, strict typing, package/dependency and Compose gates pass;
+  the final full backend run completed with 1,226 passed and 34 skipped.
 - **Purpose:** Persist the server-side cohort boundary and durable reset/restore state machine.
 - **Scope / likely files:** Semester, SemesterOperation, SemesterBackup models/enums/migration; stamp new USER with current semester at registration.
 - **Dependencies / ownership:** BUDDY-001, CHAT-001, existing User/Audit; Database + Backend.
@@ -8106,10 +8120,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-001 — Semester boundary, operation and backup metadata`.** ADMIN-V2-002 is now
-complete over the existing read-only monitoring APIs without decision or mutation controls. SEM-001
-is the next unfinished task in dependency order and owns the persisted cohort boundary plus durable
-reset/restore operation and backup metadata; it does not yet perform backup, reset or restore.
+**Next step: `SEM-002 — Restorable database backup adapter and manifest`.** SEM-001 is now complete
+with migration `0017_semester_boundary_metadata`, atomic cohort stamping and the durable
+semester/operation/backup state foundation. SEM-002 is the next unfinished task in the recommended
+semester delivery order and owns only the private restorable relational export plus manifest; avatar
+objects, verification/expiry, destructive reset and restore remain SEM-003..006.
 
 ### 26.19 Documentation-change boundary
 

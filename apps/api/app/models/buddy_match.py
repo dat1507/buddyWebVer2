@@ -93,6 +93,7 @@ class BuddyMatch(Base):
             "ix_matches_participant_two_profile_id",
             "participant_two_profile_id",
         ),
+        Index("ix_matches_semester_id", "semester_id"),
     )
 
     participant_one_user_id: Mapped[UUID] = mapped_column(
@@ -153,9 +154,10 @@ class BuddyMatch(Base):
         nullable=False,
         unique=True,
     )
-    semester_id: Mapped[UUID | None] = mapped_column(
+    semester_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
-        nullable=True,
+        ForeignKey(f"{APPLICATION_SCHEMA}.semesters.id", ondelete="RESTRICT"),
+        nullable=False,
     )
     score: Mapped[int] = mapped_column(Integer, nullable=False)
     score_breakdown: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)

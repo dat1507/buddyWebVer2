@@ -4,8 +4,20 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
+from uuid import UUID
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, Index, Text, false, true
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Text,
+    Uuid,
+    false,
+    true,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import APPLICATION_SCHEMA
@@ -29,8 +41,14 @@ class User(Base):
             "length(password_hash) > 0",
             name="ck_users_password_hash_not_empty",
         ),
+        CheckConstraint(
+            "(role = 'USER' AND semester_id IS NOT NULL) "
+            "OR (role = 'ADMIN' AND semester_id IS NULL)",
+            name="ck_users_role_semester",
+        ),
         Index("ix_users_role", "role"),
         Index("ix_users_is_active", "is_active"),
+        Index("ix_users_semester_id", "semester_id"),
     )
 
     email: Mapped[str] = mapped_column(
@@ -73,6 +91,11 @@ class User(Base):
     )
     last_login: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
+        nullable=True,
+    )
+    semester_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("app_private.semesters.id", ondelete="RESTRICT"),
         nullable=True,
     )
 

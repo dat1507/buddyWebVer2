@@ -54,6 +54,7 @@ class BuddyConversation(Base):
     """The single durable conversation derived from one authoritative ACTIVE Match."""
 
     __tablename__ = "buddy_conversations"
+    __table_args__ = (Index("ix_buddy_conversations_semester_id", "semester_id"),)
     # Conversations have no edit/delete lifecycle. Semester reset deletes the Match and
     # reaches this row through the database cascade.
     updated_at = None  # type: ignore[assignment]
@@ -65,9 +66,11 @@ class BuddyConversation(Base):
         nullable=False,
         unique=True,
     )
-    # SEM-001 owns the semesters table, backfill, and FK. Until then this mirrors
-    # the nullable Match linkage without inventing another cohort authority.
-    semester_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    semester_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(f"{APPLICATION_SCHEMA}.semesters.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
 
 
 class BuddyMessage(Base):

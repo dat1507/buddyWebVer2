@@ -41,7 +41,7 @@ def test_match_is_active_only_and_has_no_speculative_lifecycle_or_version() -> N
         "version",
     ):
         assert speculative_column not in table.c
-    assert table.c.semester_id.nullable is True
+    assert table.c.semester_id.nullable is False
 
 
 def test_match_model_persists_participants_provenance_and_safe_score_snapshot() -> None:
@@ -52,7 +52,7 @@ def test_match_model_persists_participants_provenance_and_safe_score_snapshot() 
         participant_one_profile_id=uuid4(),
         participant_two_profile_id=uuid4(),
         accepted_invitation_id=uuid4(),
-        semester_id=None,
+        semester_id=uuid4(),
         status=MatchStatus.ACTIVE,
         score=75,
         score_breakdown={
@@ -115,6 +115,7 @@ def test_postgresql_ddl_enforces_active_unordered_pair_and_query_indexes() -> No
         "ix_matches_participant_two_status_activated_at",
         "ix_matches_participant_one_profile_id",
         "ix_matches_participant_two_profile_id",
+        "ix_matches_semester_id",
     }
     assert set(foreign_keys) == {
         "fk_matches_participant_one_user_id_users",
@@ -122,6 +123,12 @@ def test_postgresql_ddl_enforces_active_unordered_pair_and_query_indexes() -> No
         "fk_matches_participant_one_profile_id_student_profiles",
         "fk_matches_participant_two_profile_id_student_profiles",
         "fk_matches_accepted_invitation_id_matching_invitations",
+        "fk_matches_semester_id_semesters",
     }
-    assert all(constraint.ondelete == "CASCADE" for constraint in foreign_keys.values())
+    assert all(
+        constraint.ondelete == "CASCADE"
+        for name, constraint in foreign_keys.items()
+        if name != "fk_matches_semester_id_semesters"
+    )
+    assert foreign_keys["fk_matches_semester_id_semesters"].ondelete == "RESTRICT"
     assert "uq_matches_accepted_invitation_id" in unique_constraints

@@ -126,11 +126,15 @@ def test_postgresql_ddl_enforces_match_sender_retention_and_query_indexes() -> N
     assert conversation_table.schema == "app_private"
     assert message_table.schema == "app_private"
     assert "uq_buddy_conversations_match_id" in conversation_uniques
-    assert set(conversation_fks) == {"fk_buddy_conversations_match_id_matches"}
+    assert set(conversation_fks) == {
+        "fk_buddy_conversations_match_id_matches",
+        "fk_buddy_conversations_semester_id_semesters",
+    }
     assert conversation_fks["fk_buddy_conversations_match_id_matches"].ondelete == "CASCADE"
-    assert "semester_id uuid" in conversation_ddl
-    assert "references app_private.semesters" not in conversation_ddl
-    assert conversation_indexes == {}
+    assert conversation_fks["fk_buddy_conversations_semester_id_semesters"].ondelete == "RESTRICT"
+    assert "semester_id uuid not null" in conversation_ddl
+    assert "references app_private.semesters (id) on delete restrict" in conversation_ddl
+    assert set(conversation_indexes) == {"ix_buddy_conversations_semester_id"}
 
     assert "body ~ '[^[:space:]]'" in message_ddl
     assert "char_length(body) <= 10000" in message_ddl

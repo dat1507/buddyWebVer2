@@ -39,6 +39,7 @@ SENDER_PROFILE_ID = UUID("10000000-0000-4000-8000-000000000002")
 RECIPIENT_USER_ID = UUID("20000000-0000-4000-8000-000000000001")
 RECIPIENT_PROFILE_ID = UUID("20000000-0000-4000-8000-000000000002")
 INVITATION_ID = UUID("30000000-0000-4000-8000-000000000001")
+SEMESTER_ID = UUID("40000000-0000-4000-8000-000000000001")
 
 
 class _ScalarRows:
@@ -83,13 +84,14 @@ def _invitation(status: InvitationStatus = InvitationStatus.ACCEPTED) -> Matchin
     )
 
 
-def _user(user_id: UUID) -> User:
+def _user(user_id: UUID, *, semester_id: UUID | None = SEMESTER_ID) -> User:
     return User(
         id=user_id,
         email=f"{user_id}@example.invalid",
         password_hash="test-only-hash",
         role=UserRole.USER,
         is_active=True,
+        semester_id=semester_id,
     )
 
 
@@ -112,12 +114,19 @@ def _session(
     sender_type: StudentType = StudentType.VIETNAMESE,
     recipient_type: StudentType = StudentType.INTERNATIONAL,
     existing_match_id: UUID | None = None,
+    sender_semester_id: UUID | None = SEMESTER_ID,
+    recipient_semester_id: UUID | None = SEMESTER_ID,
 ) -> tuple[MagicMock, AsyncSession]:
     mock = MagicMock(spec=AsyncSession)
     mock.scalar = AsyncMock(side_effect=[invitation, invitation, existing_match_id])
     mock.scalars = AsyncMock(
         side_effect=[
-            _ScalarRows((_user(SENDER_USER_ID), _user(RECIPIENT_USER_ID))),
+            _ScalarRows(
+                (
+                    _user(SENDER_USER_ID, semester_id=sender_semester_id),
+                    _user(RECIPIENT_USER_ID, semester_id=recipient_semester_id),
+                )
+            ),
             _ScalarRows(
                 (
                     _profile(SENDER_PROFILE_ID, SENDER_USER_ID, sender_type),
@@ -191,6 +200,7 @@ async def test_activation_creates_one_active_match_without_committing() -> None:
     assert result.participant_one_profile_id == SENDER_PROFILE_ID
     assert result.participant_two_profile_id == RECIPIENT_PROFILE_ID
     assert result.accepted_invitation_id == INVITATION_ID
+    assert result.semester_id == SEMESTER_ID
     assert result.score == 63
     assert result.activated_at == NOW
     assert mock.scalars.await_count == 2
@@ -260,6 +270,25 @@ async def test_activation_rejects_same_type_under_locked_profiles() -> None:
         )
 
     assert raised.value.reason is BuddyMatchActivationReason.OPPOSITE_TYPES_REQUIRED
+    mock.add.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_activation_rejects_participants_from_different_semesters() -> None:
+    mock, session = _session(
+        invitation=_invitation(),
+        recipient_semester_id=UUID("50000000-0000-4000-8000-000000000001"),
+    )
+
+    with pytest.raises(BuddyMatchActivationError) as raised:
+        await activate_buddy_match(
+            session,
+            accepted_invitation_id=INVITATION_ID,
+            compatibility=_compatibility(),
+            clock=lambda: NOW,
+        )
+
+    assert raised.value.reason is BuddyMatchActivationReason.PARTICIPANT_STATE_INVALID
     mock.add.assert_not_called()
 
 

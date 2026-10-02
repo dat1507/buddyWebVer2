@@ -44,6 +44,7 @@ RECIPIENT_PROFILE_ID = UUID("20000000-0000-4000-8000-000000000002")
 INVITATION_ID = UUID("30000000-0000-4000-8000-000000000001")
 MATCH_ID = UUID("40000000-0000-4000-8000-000000000001")
 CONVERSATION_ID = UUID("50000000-0000-4000-8000-000000000001")
+SEMESTER_ID = UUID("60000000-0000-4000-8000-000000000001")
 
 
 def _user(user_id: UUID, email: str) -> User:
@@ -55,6 +56,7 @@ def _user(user_id: UUID, email: str) -> User:
         is_active=True,
         email_verified=True,
         email_verified_at=NOW,
+        semester_id=SEMESTER_ID,
     )
 
 
