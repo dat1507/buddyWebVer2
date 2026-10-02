@@ -54,9 +54,10 @@ def test_alembic_script_directory_is_loadable() -> None:
     chat_idempotency_revision = script_directory.get_revision("0015_chat_send_idempotency")
     chat_cleanup_revision = script_directory.get_revision("0016_chat_message_cleanup")
     semester_revision = script_directory.get_revision("0017_semester_boundary_metadata")
+    semester_verification_revision = script_directory.get_revision("0018_backup_verification")
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0017_semester_boundary_metadata"]
+    assert script_directory.get_heads() == ["0018_backup_verification"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -89,6 +90,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert chat_cleanup_revision.down_revision == "0015_chat_send_idempotency"
     assert semester_revision is not None
     assert semester_revision.down_revision == "0016_chat_message_cleanup"
+    assert semester_verification_revision is not None
+    assert semester_verification_revision.down_revision == "0017_semester_boundary_metadata"
 
 
 def test_database_configuration_is_deferred() -> None:

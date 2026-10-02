@@ -49,7 +49,7 @@ class _FakePostgresConnection:
 
     async def fetchval(self, query: str, *_arguments: object) -> object:
         if query == "SELECT version_num FROM alembic_version":
-            return "0017_semester_boundary_metadata"
+            return "0018_backup_verification"
         if query == "SELECT statement_timestamp()":
             return NOW
         if query == "SELECT count(*) FROM app_private.users WHERE role = 'USER'":
@@ -141,9 +141,7 @@ async def test_native_copy_export_has_exact_scope_manifest_and_deterministic_ord
     assert package.manifest.expires_at is None
     assert package.manifest.retention_policy_days == 30
     assert package.manifest.compatibility.source_postgresql_major == 17
-    assert package.manifest.compatibility.required_alembic_head == (
-        "0017_semester_boundary_metadata"
-    )
+    assert package.manifest.compatibility.required_alembic_head == ("0018_backup_verification")
     assert tuple(table.table_name for table in package.manifest.tables) == tuple(
         spec.table_name for spec in BACKUP_TABLES
     )

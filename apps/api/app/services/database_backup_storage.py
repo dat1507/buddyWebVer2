@@ -30,6 +30,13 @@ class DatabaseBackupStorageError(RuntimeError):
         self.status_code = status_code
 
 
+class DatabaseBackupStorageNotFoundError(DatabaseBackupStorageError):
+    """A trusted private object does not exist."""
+
+    def __init__(self, message: str = "Database backup object does not exist.") -> None:
+        super().__init__(message, status_code=404)
+
+
 class DatabaseBackupObjectKind(StrEnum):
     ARTIFACT = "database-artifact-v1.tar.gz"
     MANIFEST = "database-manifest-v1.json"
@@ -141,6 +148,8 @@ class PrivateFileDatabaseBackupStore:
 
     async def get_file(self, reference: BackupStorageObjectRef, target: Path) -> None:
         source = self._path(reference)
+        if not source.is_file():
+            raise DatabaseBackupStorageNotFoundError()
         await asyncio.to_thread(self._copy_exclusive, source, target)
 
     async def delete(self, reference: BackupStorageObjectRef) -> None:
@@ -264,11 +273,16 @@ class SupabaseDatabaseBackupStore:
         await asyncio.to_thread(self._put_file_sync, reference, source)
 
     def _get_file_sync(self, reference: BackupStorageObjectRef, target: Path) -> None:
-        content = self._request(
-            "GET",
-            self._url("object/authenticated", reference),
-            maximum_response_bytes=MAX_DATABASE_BACKUP_BYTES,
-        )
+        try:
+            content = self._request(
+                "GET",
+                self._url("object/authenticated", reference),
+                maximum_response_bytes=MAX_DATABASE_BACKUP_BYTES,
+            )
+        except DatabaseBackupStorageError as error:
+            if error.status_code == 404:
+                raise DatabaseBackupStorageNotFoundError() from None
+            raise
         if not content:
             raise DatabaseBackupStorageError("Database backup storage returned an empty object.")
         target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -291,11 +305,15 @@ class SupabaseDatabaseBackupStore:
         await asyncio.to_thread(self._get_file_sync, reference, target)
 
     async def delete(self, reference: BackupStorageObjectRef) -> None:
-        await asyncio.to_thread(
-            self._request,
-            "DELETE",
-            self._url("object", reference),
-        )
+        try:
+            await asyncio.to_thread(
+                self._request,
+                "DELETE",
+                self._url("object", reference),
+            )
+        except DatabaseBackupStorageError as error:
+            if error.status_code != 404:
+                raise
 
     async def configure_bucket(self) -> None:
         """Create or converge the dedicated bucket as private and MIME-restricted."""

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -17,6 +18,12 @@ from app.services.image_storage import (
     StorageReconciliationError,
 )
 from app.services.semester_avatar_backup import AvatarBackupError, AvatarBackupReport
+from app.services.semester_backup_verification import (
+    SemesterBackupExpiryError,
+    SemesterBackupExpiryReport,
+    SemesterBackupVerificationError,
+    SemesterBackupVerificationReport,
+)
 from app.services.semester_database_backup import DatabaseBackupError, DatabaseBackupReport
 
 
@@ -260,4 +267,92 @@ def test_avatar_backup_cli_sanitizes_failures(
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err == f"Error: {cli.AVATAR_BACKUP_ERROR_MESSAGE}\n"
+    assert str(error) not in captured.err
+
+
+def test_combined_backup_verification_cli_reports_only_safe_aggregates(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    backup_id = uuid4()
+    now = datetime(2026, 10, 2, 12, 0, tzinfo=UTC)
+    command = AsyncMock(
+        return_value=SemesterBackupVerificationReport(
+            backup_id=backup_id,
+            persisted_state=SemesterBackupState.READY,
+            effective_state=SemesterBackupState.READY,
+            verified_at=now,
+            expires_at=now,
+            database_rows=42,
+            avatar_objects=2,
+            newly_verified=True,
+            newly_ready=True,
+        )
+    )
+    monkeypatch.setattr(cli, "_backup_verification_command", command)
+
+    assert cli.main(["verify-semester-backup", "--backup-id", str(backup_id)]) == 0
+
+    captured = capsys.readouterr()
+    command.assert_awaited_once_with(backup_id=backup_id)
+    assert "state=READY, effective_state=READY" in captured.out
+    assert "database_rows=42, avatar_objects=2" in captured.out
+    assert "newly_verified=true, newly_ready=true" in captured.out
+    assert "manifest" not in captured.out
+    assert "checksum" not in captured.out
+    assert captured.err == ""
+
+
+def test_combined_backup_verification_cli_sanitizes_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    error = SemesterBackupVerificationError("private path and checksum")
+    monkeypatch.setattr(cli, "_backup_verification_command", AsyncMock(side_effect=error))
+
+    assert cli.main(["verify-semester-backup", "--backup-id", str(uuid4())]) == 1
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"Error: {cli.BACKUP_VERIFICATION_ERROR_MESSAGE}\n"
+    assert str(error) not in captured.err
+
+
+@pytest.mark.parametrize("failed,expected_exit", ((0, 0), (1, 1)))
+def test_backup_expiry_cli_is_bounded_and_observable(
+    failed: int,
+    expected_exit: int,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    command = AsyncMock(
+        return_value=SemesterBackupExpiryReport(
+            selected=2,
+            expired=2 - failed,
+            cleaned=2 - failed,
+            failed=failed,
+        )
+    )
+    monkeypatch.setattr(cli, "_backup_expiry_command", command)
+
+    assert cli.main(["expire-semester-backups", "--batch-size", "7"]) == expected_exit
+
+    captured = capsys.readouterr()
+    command.assert_awaited_once_with(batch_size=7)
+    assert f"failed={failed}" in captured.out
+    assert captured.err == ""
+
+
+def test_backup_expiry_cli_sanitizes_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    error = SemesterBackupExpiryError("private object identity")
+    monkeypatch.setattr(cli, "_backup_expiry_command", AsyncMock(side_effect=error))
+
+    assert cli.main(["expire-semester-backups"]) == 1
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"Error: {cli.BACKUP_EXPIRY_ERROR_MESSAGE}\n"
     assert str(error) not in captured.err

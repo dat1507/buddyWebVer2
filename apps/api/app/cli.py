@@ -31,7 +31,11 @@ from app.core.database import (
     get_session_factory,
     migration_database_url,
 )
-from app.core.observability import emit_chat_cleanup_event, emit_invitation_expiry_event
+from app.core.observability import (
+    emit_chat_cleanup_event,
+    emit_invitation_expiry_event,
+    emit_semester_backup_expiry_event,
+)
 from app.services.auth import AdminCreationError, create_admin
 from app.services.chat_cleanup import (
     DEFAULT_CHAT_CLEANUP_BATCH_SIZE,
@@ -75,6 +79,16 @@ from app.services.semester_avatar_backup import (
     AvatarBackupReport,
     create_semester_avatar_backup,
 )
+from app.services.semester_backup_verification import (
+    DEFAULT_BACKUP_EXPIRY_BATCH_SIZE,
+    SemesterBackupExpiryError,
+    SemesterBackupExpiryReport,
+    SemesterBackupExpiryValidationError,
+    SemesterBackupVerificationError,
+    SemesterBackupVerificationReport,
+    process_expired_semester_backup_batch,
+    verify_semester_backup,
+)
 from app.services.semester_database_backup import (
     DatabaseBackupError,
     DatabaseBackupReport,
@@ -93,6 +107,8 @@ LOCAL_RUNTIME_ROLE_ERROR_MESSAGE = "Local runtime database role could not be con
 DATABASE_BACKUP_ERROR_MESSAGE = "Semester database backup could not be completed."
 DATABASE_BACKUP_STORAGE_ERROR_MESSAGE = "Semester database backup storage could not be configured."
 AVATAR_BACKUP_ERROR_MESSAGE = "Semester avatar backup could not be completed."
+BACKUP_VERIFICATION_ERROR_MESSAGE = "Semester backup verification could not be completed."
+BACKUP_EXPIRY_ERROR_MESSAGE = "Semester backup expiry cleanup could not be completed."
 UNSAFE_PASSWORD_ARGUMENT_MESSAGE = (
     "Command-line passwords are not supported; use the hidden prompt or --password-stdin."
 )
@@ -145,6 +161,26 @@ def _parser() -> argparse.ArgumentParser:
         required=True,
         type=UUID,
         help="Stable UUID of the existing CREATING semester backup.",
+    )
+    backup_verification_parser = commands.add_parser(
+        "verify-semester-backup",
+        help="Verify both private packages and finalize eligible retention metadata.",
+    )
+    backup_verification_parser.add_argument(
+        "--backup-id",
+        required=True,
+        type=UUID,
+        help="Stable UUID of the semester backup to verify.",
+    )
+    backup_expiry_parser = commands.add_parser(
+        "expire-semester-backups",
+        help="Expire and clean one bounded batch of due private semester backups.",
+    )
+    backup_expiry_parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=DEFAULT_BACKUP_EXPIRY_BATCH_SIZE,
+        help=f"Backups per batch (default: {DEFAULT_BACKUP_EXPIRY_BATCH_SIZE}).",
     )
     reconcile_parser = commands.add_parser(
         "reconcile-storage",
@@ -297,6 +333,47 @@ async def _avatar_backup_command(*, backup_id: UUID) -> AvatarBackupReport:
             storage=storage,
         )
     finally:
+        await dispose_database_engine()
+
+
+async def _backup_verification_command(*, backup_id: UUID) -> SemesterBackupVerificationReport:
+    storage = SupabaseDatabaseBackupStore(get_storage_settings())
+    try:
+        return await verify_semester_backup(
+            get_session_factory(),
+            backup_id=backup_id,
+            storage=storage,
+        )
+    finally:
+        await dispose_database_engine()
+
+
+async def _backup_expiry_command(*, batch_size: int) -> SemesterBackupExpiryReport:
+    storage = SupabaseDatabaseBackupStore(get_storage_settings())
+    started_at = perf_counter()
+    report = SemesterBackupExpiryReport(selected=0, expired=0, cleaned=0, failed=0)
+    error_type: str | None = None
+    try:
+        report = await process_expired_semester_backup_batch(
+            get_session_factory(),
+            storage=storage,
+            batch_size=batch_size,
+        )
+        return report
+    except Exception as error:
+        error_type = type(error).__name__
+        raise
+    finally:
+        duration_ms = max(0, round((perf_counter() - started_at) * 1000))
+        emit_semester_backup_expiry_event(
+            batch_size=batch_size,
+            selected=report.selected,
+            expired=report.expired,
+            cleaned=report.cleaned,
+            failed=report.failed,
+            duration_ms=duration_ms,
+            error_type=error_type,
+        )
         await dispose_database_engine()
 
 
@@ -502,6 +579,58 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"bytes={avatar_report.total_bytes}, state={avatar_report.state.value}"
         )
         return 0
+
+    if arguments.command == "verify-semester-backup":
+        try:
+            verification_report = asyncio.run(
+                _backup_verification_command(backup_id=arguments.backup_id)
+            )
+        except (
+            DatabaseConfigurationError,
+            StorageConfigurationError,
+            SemesterBackupVerificationError,
+            DatabaseBackupStorageError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {BACKUP_VERIFICATION_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Semester backup verification: "
+            f"backup_id={verification_report.backup_id}, "
+            f"state={verification_report.persisted_state.value}, "
+            f"effective_state={verification_report.effective_state.value}, "
+            f"database_rows={verification_report.database_rows}, "
+            f"avatar_objects={verification_report.avatar_objects}, "
+            f"newly_verified={str(verification_report.newly_verified).lower()}, "
+            f"newly_ready={str(verification_report.newly_ready).lower()}"
+        )
+        return 0
+
+    if arguments.command == "expire-semester-backups":
+        try:
+            backup_expiry_report = asyncio.run(
+                _backup_expiry_command(batch_size=arguments.batch_size)
+            )
+        except (
+            DatabaseConfigurationError,
+            StorageConfigurationError,
+            SemesterBackupExpiryError,
+            SemesterBackupExpiryValidationError,
+            DatabaseBackupStorageError,
+            OSError,
+            SQLAlchemyError,
+        ):
+            print(f"Error: {BACKUP_EXPIRY_ERROR_MESSAGE}", file=sys.stderr)
+            return 1
+        print(
+            "Semester backup expiry: "
+            f"selected={backup_expiry_report.selected}, "
+            f"expired={backup_expiry_report.expired}, "
+            f"cleaned={backup_expiry_report.cleaned}, "
+            f"failed={backup_expiry_report.failed}"
+        )
+        return 1 if backup_expiry_report.failed else 0
 
     if arguments.command == "reconcile-storage":
         try:

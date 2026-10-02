@@ -60,6 +60,13 @@ from app.services.semester_avatar_backup import (
     load_avatar_backup_from_storage,
     restore_avatar_backup_for_rehearsal,
 )
+from app.services.semester_backup_verification import (
+    SemesterBackupPackageError,
+    SemesterBackupVerificationBusyError,
+    SemesterBackupVerificationReport,
+    process_expired_semester_backup_batch,
+    verify_semester_backup,
+)
 from app.services.semester_database_backup import (
     DatabaseBackupAlreadyAttachedError,
     DatabaseBackupError,
@@ -131,6 +138,8 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
         "failure_backup": uuid4(),
         "avatar_failure_operation": uuid4(),
         "avatar_failure_backup": uuid4(),
+        "verification_failure_operation": uuid4(),
+        "verification_failure_backup": uuid4(),
     }
     async with engine.begin() as connection:
         semester_row = (
@@ -329,7 +338,9 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
                 "started_at) VALUES "
                 "(:operation, 'RESET', 'RUNNING', :semester, :admin, :now, :now), "
                 "(:failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL), "
-                "(:avatar_failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL)"
+                "(:avatar_failure_operation, 'RESET', 'REQUESTED', :semester, :admin, :now, NULL), "
+                "(:verification_failure_operation, 'RESET', 'REQUESTED', :semester, :admin, "
+                ":now, NULL)"
             ),
             {**ids, "now": NOW},
         )
@@ -339,7 +350,9 @@ async def _seed_source(engine: AsyncEngine) -> dict[str, UUID]:
                 "(id, source_semester_id, source_boundary_at, created_by_operation_id) VALUES "
                 "(:backup, :semester, :boundary, :operation), "
                 "(:failure_backup, :semester, :boundary, :failure_operation), "
-                "(:avatar_failure_backup, :semester, :boundary, :avatar_failure_operation)"
+                "(:avatar_failure_backup, :semester, :boundary, :avatar_failure_operation), "
+                "(:verification_failure_backup, :semester, :boundary, "
+                ":verification_failure_operation)"
             ),
             {**ids, "boundary": source_boundary_at},
         )
@@ -584,6 +597,88 @@ async def _exercise(
             assert avatar_metadata.expires_at is None
             assert avatar_metadata.failure_code is None
 
+        preverified = await verify_semester_backup(
+            source_factory,
+            backup_id=ids["backup"],
+            storage=store,
+        )
+        assert preverified.persisted_state is SemesterBackupState.CREATING
+        assert preverified.effective_state is SemesterBackupState.CREATING
+        assert preverified.newly_verified is True
+        assert preverified.newly_ready is False
+        assert preverified.verified_at is not None
+        assert preverified.expires_at is None
+
+        verified_retry = await verify_semester_backup(
+            source_factory,
+            backup_id=ids["backup"],
+            storage=store,
+        )
+        assert verified_retry.verified_at == preverified.verified_at
+        assert verified_retry.newly_verified is False
+        assert verified_retry.expires_at is None
+
+        reset_completed_at = preverified.verified_at
+        async with source_engine.begin() as connection:
+            await connection.execute(
+                text(
+                    "UPDATE app_private.semester_operations SET backup_id = :backup, "
+                    "state = 'SUCCEEDED', completed_at = :completed "
+                    "WHERE id = :operation"
+                ),
+                {**ids, "completed": reset_completed_at},
+            )
+
+        concurrent_results = await asyncio.gather(
+            verify_semester_backup(
+                source_factory,
+                backup_id=ids["backup"],
+                storage=store,
+            ),
+            verify_semester_backup(
+                source_factory,
+                backup_id=ids["backup"],
+                storage=store,
+            ),
+            return_exceptions=True,
+        )
+        successful_verifications = [
+            result
+            for result in concurrent_results
+            if isinstance(result, SemesterBackupVerificationReport)
+        ]
+        assert successful_verifications
+        assert any(report.newly_ready for report in successful_verifications)
+        assert all(
+            isinstance(
+                result, (SemesterBackupVerificationReport, SemesterBackupVerificationBusyError)
+            )
+            for result in concurrent_results
+        )
+        async with source_engine.connect() as connection:
+            ready_metadata = (
+                await connection.execute(
+                    text(
+                        "SELECT state, verified_at, expires_at, failure_code "
+                        "FROM app_private.semester_backups WHERE id = :id"
+                    ),
+                    {"id": ids["backup"]},
+                )
+            ).one()
+        assert ready_metadata.state == "READY"
+        assert ready_metadata.verified_at == preverified.verified_at
+        assert ready_metadata.expires_at == reset_completed_at + timedelta(days=30)
+        assert ready_metadata.failure_code is None
+
+        ready_retry = await verify_semester_backup(
+            source_factory,
+            backup_id=ids["backup"],
+            storage=store,
+        )
+        assert ready_retry.newly_verified is False
+        assert ready_retry.newly_ready is False
+        assert ready_retry.expires_at == ready_metadata.expires_at
+
         avatar_download = artifact_root / "avatar-downloaded"
         avatar_download.mkdir(mode=0o700)
         avatar_manifest, avatar_paths, avatar_content = await load_avatar_backup_from_storage(
@@ -663,16 +758,47 @@ async def _exercise(
                 == 1
             )
 
+        unrelated_artifact = artifact_root / "successful" / "unrelated" / "keep.json"
+        unrelated_artifact.parent.mkdir(mode=0o700)
+        unrelated_artifact.write_text('{"keep":true}', encoding="utf-8")
+        before_expiry = await process_expired_semester_backup_batch(
+            source_factory,
+            storage=store,
+            batch_size=1,
+            expiry_now=ready_metadata.expires_at - timedelta(microseconds=1),
+        )
+        assert before_expiry.selected == 0
+        expiry_reports = await asyncio.gather(
+            process_expired_semester_backup_batch(
+                source_factory,
+                storage=store,
+                batch_size=1,
+                expiry_now=ready_metadata.expires_at,
+            ),
+            process_expired_semester_backup_batch(
+                source_factory,
+                storage=store,
+                batch_size=1,
+                expiry_now=ready_metadata.expires_at,
+            ),
+        )
+        assert sum(item.expired for item in expiry_reports) == 1
+        assert sum(item.cleaned for item in expiry_reports) == 1
+        assert sum(item.failed for item in expiry_reports) == 0
+        async with source_engine.connect() as connection:
+            assert (
+                await connection.scalar(
+                    text("SELECT state FROM app_private.semester_backups WHERE id = :id"),
+                    {"id": ids["backup"]},
+                )
+                == "EXPIRED"
+            )
+        successful_prefix = artifact_root / "successful" / str(ids["backup"])
+        assert not any(successful_prefix.rglob("*.*"))
+        assert unrelated_artifact.read_text(encoding="utf-8") == '{"keep":true}'
+
         failing_store_root = artifact_root / "failing"
         async with source_engine.begin() as connection:
-            await connection.execute(
-                text(
-                    "UPDATE app_private.semester_operations SET state = 'FAILED', "
-                    "completed_at = :completed, failure_code = 'TEST_NEXT_BACKUP' "
-                    "WHERE id = :operation"
-                ),
-                {**ids, "completed": NOW + timedelta(hours=2)},
-            )
             await connection.execute(
                 text(
                     "UPDATE app_private.semester_operations SET state = 'RUNNING', "
@@ -758,6 +884,69 @@ async def _exercise(
             assert avatar_failed.avatar_object_count == 0
         avatar_prefix = avatar_failing_root / str(ids["avatar_failure_backup"]) / "avatars"
         assert not any(avatar_prefix.rglob("*.*"))
+
+        verification_failing_root = artifact_root / "verification-failing"
+        async with source_engine.begin() as connection:
+            await connection.execute(
+                text(
+                    "UPDATE app_private.semester_operations SET state = 'FAILED', "
+                    "completed_at = :completed, failure_code = 'TEST_NEXT_VERIFICATION' "
+                    "WHERE id = :avatar_failure_operation"
+                ),
+                {**ids, "completed": NOW + timedelta(hours=4)},
+            )
+            await connection.execute(
+                text(
+                    "UPDATE app_private.semester_operations SET state = 'RUNNING', "
+                    "started_at = :started WHERE id = :verification_failure_operation"
+                ),
+                {**ids, "started": NOW + timedelta(hours=4)},
+            )
+        verification_store = PrivateFileDatabaseBackupStore(verification_failing_root)
+        await create_semester_database_backup(
+            source_factory,
+            backup_id=ids["verification_failure_backup"],
+            adapter=source_adapter,
+            storage=verification_store,
+        )
+        verification_avatar_source = _MemoryAvatarTransport()
+        verification_avatar_source.objects[avatar_reference] = (AVATAR_BYTES, "image/jpeg")
+        await create_semester_avatar_backup(
+            source_factory,
+            backup_id=ids["verification_failure_backup"],
+            adapter=AvatarBackupAdapter(ImageStorageService(verification_avatar_source)),
+            storage=verification_store,
+        )
+        corrupt_artifact = (
+            verification_failing_root
+            / str(ids["verification_failure_backup"])
+            / "database"
+            / DatabaseBackupObjectKind.ARTIFACT.value
+        )
+        corrupt_artifact.write_bytes(corrupt_artifact.read_bytes() + b"tampered")
+        with pytest.raises(SemesterBackupPackageError):
+            await verify_semester_backup(
+                source_factory,
+                backup_id=ids["verification_failure_backup"],
+                storage=verification_store,
+            )
+        async with source_engine.connect() as connection:
+            verification_failed = (
+                await connection.execute(
+                    text(
+                        "SELECT state, failure_code, verified_at, expires_at "
+                        "FROM app_private.semester_backups WHERE id = :id"
+                    ),
+                    {"id": ids["verification_failure_backup"]},
+                )
+            ).one()
+        assert verification_failed == (
+            "FAILED",
+            "BACKUP_VERIFICATION_FAILED",
+            None,
+            None,
+        )
+        assert corrupt_artifact.is_file()
     finally:
         await source_engine.dispose()
         await target_engine.dispose()

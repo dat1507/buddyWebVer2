@@ -336,7 +336,7 @@ class SemesterBackup(Base):
             name="ck_semester_backups_failure_code_length",
         ),
         CheckConstraint(
-            "(state = 'CREATING' AND verified_at IS NULL AND failure_code IS NULL) OR "
+            "(state = 'CREATING' AND expires_at IS NULL AND failure_code IS NULL) OR "
             "(state IN ('READY', 'RESTORE_BLOCKED_NEW_DATA', 'EXPIRED') "
             "AND verified_at IS NOT NULL AND expires_at IS NOT NULL "
             "AND database_manifest_location IS NOT NULL "

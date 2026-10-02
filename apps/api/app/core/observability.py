@@ -120,6 +120,36 @@ def emit_chat_cleanup_event(
     )
 
 
+def emit_semester_backup_expiry_event(
+    *,
+    batch_size: int,
+    selected: int,
+    expired: int,
+    cleaned: int,
+    failed: int,
+    duration_ms: int,
+    error_type: str | None = None,
+) -> None:
+    """Emit aggregate backup cleanup telemetry without private artifact metadata."""
+    payload: dict[str, str | int] = {
+        "timestamp": datetime.now(UTC).isoformat(),
+        "service": "vgu-buddy-api",
+        "event": "semester_backup_expiry_batch_completed",
+        "batch_size": batch_size,
+        "selected": selected,
+        "expired": expired,
+        "cleaned": cleaned,
+        "failed": failed,
+        "duration_ms": duration_ms,
+    }
+    if error_type is not None:
+        payload["error_type"] = error_type
+    level: LogLevel = "error" if error_type is not None or failed else "info"
+    getattr(get_operations_logger(), level)(
+        json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    )
+
+
 def emit_chat_realtime_event(*, lifecycle: ChatRealtimeLifecycle, close_code: int) -> None:
     """Emit socket lifecycle only; never accept participant, body, cookie, or channel data."""
     payload: dict[str, str | int] = {

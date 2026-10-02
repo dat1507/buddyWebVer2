@@ -16,6 +16,7 @@ from app.core.observability import (
     emit_chat_cleanup_event,
     emit_chat_realtime_event,
     emit_invitation_expiry_event,
+    emit_semester_backup_expiry_event,
     get_operations_logger,
 )
 
@@ -127,6 +128,42 @@ def test_chat_cleanup_event_contains_aggregate_allowlist_only(
         "email",
         "body",
         "message",
+    }.intersection(event)
+
+
+def test_semester_backup_expiry_event_contains_aggregate_allowlist_only(
+    operations_log: io.StringIO,
+) -> None:
+    emit_semester_backup_expiry_event(
+        batch_size=20,
+        selected=3,
+        expired=2,
+        cleaned=2,
+        failed=1,
+        duration_ms=15,
+        error_type="StorageError",
+    )
+
+    event = json.loads(operations_log.getvalue())
+    assert event == {
+        "timestamp": event["timestamp"],
+        "service": "vgu-buddy-api",
+        "event": "semester_backup_expiry_batch_completed",
+        "batch_size": 20,
+        "selected": 3,
+        "expired": 2,
+        "cleaned": 2,
+        "failed": 1,
+        "duration_ms": 15,
+        "error_type": "StorageError",
+    }
+    assert not {
+        "backup_id",
+        "manifest_location",
+        "manifest_checksum",
+        "object_key",
+        "signed_url",
+        "credential",
     }.intersection(event)
 
 

@@ -179,6 +179,16 @@ async def _assert_upgrade_invariants(
             },
         )
         await connection.execute(
+            text("UPDATE app_private.semester_backups SET verified_at = :verified WHERE id = :id"),
+            {"verified": completed_at, "id": backup_id},
+        )
+    await _expect_integrity_error(
+        engine,
+        "UPDATE app_private.semester_backups SET verified_at = :changed WHERE id = :id",
+        {"changed": completed_at + timedelta(seconds=1), "id": backup_id},
+    )
+    async with engine.begin() as connection:
+        await connection.execute(
             text(
                 "UPDATE app_private.semester_backups SET "
                 "state = 'READY', database_manifest_location = 'private/db/manifest.json', "
@@ -221,6 +231,11 @@ async def _assert_upgrade_invariants(
         assert persisted.expires_at - completed_at == timedelta(days=30)
         assert persisted.database_row_counts == {"users": 1}
         assert persisted.avatar_object_count == 0
+    await _expect_integrity_error(
+        engine,
+        "UPDATE app_private.semester_backups SET expires_at = :changed WHERE id = :id",
+        {"changed": expires_at + timedelta(seconds=1), "id": backup_id},
+    )
 
     new_user_ids = await asyncio.gather(
         _register(factory, "semester-race-a@example.invalid"),

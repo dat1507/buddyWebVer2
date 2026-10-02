@@ -18,6 +18,7 @@ from app.services.database_backup_storage import (
     DatabaseBackupObjectKind,
     DatabaseBackupObjectRef,
     DatabaseBackupStorageError,
+    DatabaseBackupStorageNotFoundError,
     PrivateFileDatabaseBackupStore,
     SupabaseDatabaseBackupStore,
 )
@@ -56,6 +57,10 @@ async def test_private_file_store_round_trips_without_exposing_host_path(tmp_pat
     with pytest.raises(DatabaseBackupStorageError, match="already exists"):
         await store.put_file(reference, source)
     await store.delete(reference)
+    await store.delete(reference)
+    with pytest.raises(DatabaseBackupStorageNotFoundError) as raised:
+        await store.get_file(reference, tmp_path / "missing.json")
+    assert raised.value.status_code == 404
 
 
 @pytest.mark.anyio

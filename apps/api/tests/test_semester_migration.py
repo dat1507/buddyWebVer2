@@ -96,3 +96,49 @@ def test_downgrade_removes_only_semester_contract(
     assert "drop table app_private.users" not in sql
     assert "drop table app_private.matches" not in sql
     assert "drop table app_private.buddy_conversations" not in sql
+
+
+def test_verification_upgrade_allows_pre_reset_proof_and_locks_retention(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.upgrade(
+            _config(),
+            "0017_semester_boundary_metadata:0018_backup_verification",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "drop constraint ck_semester_backups_lifecycle" in sql
+    assert "state = 'creating' and expires_at is null and failure_code is null" in sql
+    assert "old.verified_at is not null" in sql
+    assert "new.verified_at is distinct from old.verified_at" in sql
+    assert "old.expires_at is not null" in sql
+    assert "new.expires_at is distinct from old.expires_at" in sql
+    assert "create type app_private.semester_backup_state" not in sql
+
+
+def test_verification_downgrade_fails_closed_for_active_verified_backup(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.downgrade(
+            _config(),
+            "0018_backup_verification:0017_semester_boundary_metadata",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "cannot downgrade with a verified creating backup" in sql
+    assert "state = 'creating' and verified_at is null" in sql
+    assert "drop table app_private.semester_backups" not in sql

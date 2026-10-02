@@ -6868,7 +6868,7 @@ Every task below is **Planned** unless its task contract is explicitly marked **
 | SEM-001 (**Done 2026-10-02**) | Semester/boundary/backup metadata | BUDDY-001, CHAT-001 | Persisted cohort boundary and operation states | Migration/invariant tests |
 | SEM-002 (**Done 2026-10-02**) | Database backup export | SEM-001, OPS-003 | Private restorable scoped DB backup + manifest | Disposable DB restore test |
 | SEM-003 (**Done 2026-10-02**) | Avatar binary backup | SEM-001, EVS-003 | Actual private objects, keys/owners/metadata | Storage copy/checksum/restore tests |
-| SEM-004 | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
+| SEM-004 (**Done 2026-10-02**) | Backup verify/retention | SEM-002/003 | READY only after both verified; expire after 30 days | Failure/clock/cleanup tests |
 | SEM-005 | Safe reset execution | SEM-004, AUTH-018, EVT-008 | Re-auth, write barrier, verified backup, USER data deletion only | Destructive staging tests |
 | SEM-006 | Restore + new-cohort block | SEM-005 | Exact restore; backend blocks after any new USER | Restore/idempotency/block tests |
 | SEM-007 | Semester Management UI | SEM-005/006, ADMIN-005 | Counts/warnings/phrase/re-auth/status/restore UX | UI/a11y/e2e tests |
@@ -7905,6 +7905,32 @@ composer remain deferred until `INV-007`, after INV-004..006 and REC-004 are com
 
 #### SEM-004 — Backup verification, 30-day retention and expiry
 
+- **Status:** **Done 2026-10-02.** Added one combined, retry-safe verification service and
+  aggregate-only CLI that reuse the full SEM-002/003 package validators, then enforce exact
+  backup/semester/boundary/operation IDs, persisted locations/counts, database compatibility,
+  avatar identities and the cross-manifest database checksum. Migration
+  `0018_backup_verification` preserves the exact five states while allowing an immutable
+  pre-reset `verified_at` proof on `CREATING`; this is the SEM-005 pre-delete gate. The same
+  service re-verifies both private packages after the attributable RESET operation is `SUCCEEDED`,
+  derives `expires_at` only from its immutable server/database `completed_at + 30 days`, and moves
+  to `READY`. Retries cannot change either timestamp or revive `FAILED`/`EXPIRED` backups.
+- **Expiry/cleanup:** Effective state uses the inclusive `server_now >= expires_at` boundary, so a
+  stale persisted `READY`/`RESTORE_BLOCKED_NEW_DATA` backup is unusable before cleanup runs. The
+  bounded cleanup CLI selects due rows deterministically with PostgreSQL `FOR UPDATE SKIP LOCKED`,
+  validates surviving strict manifests, deletes only server-generated keys for that backup UUID,
+  keeps manifests until the final cleanup steps, treats missing objects idempotently, and persists
+  `EXPIRED` only after cleanup succeeds. Aggregate structured telemetry contains no backup ID,
+  object identity, path, checksum, credential or signed URL. Existing OPS-001 scheduling is reused;
+  no new worker or paid service was added.
+- **Verification:** 148 targeted SEM/storage/profile/CLI/observability regressions pass. A separate
+  PostgreSQL 17 source/target acceptance (`1 passed`)
+  proved pre-reset verification, concurrent finalization, exact 30-day persistence without retry
+  extension, before/equal expiry boundaries, concurrent physical cleanup, unrelated-object
+  preservation and corrupt-package rejection. The latest complete backend run had 1,274 passed and
+  35 skipped; its only failure was the documented unrelated CHAT-003 WebSocket teardown
+  `CancelledError`, reproduced in isolation and left unchanged. Ruff, scoped formatting, strict
+  mypy across 254 files, build, `pip check`, dependency audit, Compose and Alembic
+  upgrade/history/drift/downgrade gates pass.
 - **Purpose:** Gate reset on a proven complete backup and enforce the retention window.
 - **Scope / likely files:** orchestration state transitions, verification reports, expiration/cleanup worker and admin read DTO.
 - **Dependencies / ownership:** SEM-002/003, OPS-001; Backend + Infrastructure.
@@ -8156,11 +8182,11 @@ Maximum-savings architecture: keep Vercel for the SPA; keep the FastAPI request 
 | **STAGING** | **OPS-002 AND OPS-003 DONE** | Early infrastructure, restore/migration, Edge/Cron A–F, real verification acceptance and primary/backup alert routing passed. The implemented PROFILE-V2-002 + CHAT-004 + INV-008/009 + ADMIN-V2-002 vertical slice still needs staging acceptance; release-candidate staging requires SEM-007 and ACCEPT-001. |
 | **PRODUCTION** | **NOT READY** | Requires all functional/security/infrastructure/operational gates, destructive staging rehearsal and ACCEPT-001; PROD-001 is the final release gate. |
 
-**Next step: `SEM-004 — Backup verification, 30-day retention and expiry`.** SEM-002 and SEM-003
-now provide private, restorable relational and avatar packages with strict manifests, checksums,
-remote read-back and clean-target restore proof. SEM-004 is the next unfinished task in the
-recommended semester delivery order and exclusively owns combined verification, the transition to
-`READY`, and 30-day retention/expiry; destructive reset and production restore remain SEM-005/006.
+**Next step: `SEM-005 — Safeguarded Semester Reset execution`.** SEM-002..004 now provide private,
+restorable relational/avatar packages, immutable pre-reset verification, post-reset `READY`
+finalization, exact 30-day retention and bounded effective-expiry cleanup. SEM-005 is the next
+unfinished task in the recommended semester delivery order and owns re-authenticated, write-barrier
+protected USER-data reset execution; production restore remains SEM-006.
 
 ### 26.19 Documentation-change boundary
 
