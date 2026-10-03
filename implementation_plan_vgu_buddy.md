@@ -1402,7 +1402,7 @@ Shared storage is pulled forward from Phase 10A; its existing task ID is retaine
 | ADMIN-009 | Create event publish, unpublish and cancel controls | 2 | ADMIN-006, EVT-009 | P0 |
 | ADMIN-010 | Create event deletion with dependency-aware confirmation | 2 | ADMIN-005, ADMIN-006, EVT-009 | P0 |
 | ADMIN-011 | Create admin event registration detail view | 2 | ADMIN-006, EVT-007 | P1 |
-| ADMIN-012 | Create Admin User Management page (DataTable) | 3 | ADMIN-004, BE-013 | P0 |
+| ADMIN-012 | Create Admin User Management page (DataTable) — ✅ Completed | 3 | ADMIN-004, BE-013 | P0 |
 | ADMIN-013 | Create User detail view (profile, match status, activity) | 2 | ADMIN-012 | P0 |
 | ADMIN-EVT-001 | Create recap editor and publish controls | 2 | ADMIN-008, EVT-013 | P0 |
 | ADMIN-EVT-002 | Create recap gallery upload and ordering UI | 2 | ADMIN-EVT-001, EVT-011 | P1 |
@@ -4332,7 +4332,7 @@ Next: ADMIN-007               Create Event form with managed cover upload [P0; P
 Next: ADMIN-008               Create Edit Event form [P0; Phase 11]
 Next: ADMIN-009               Create event publish, unpublish and cancel controls [P0; Phase 11]
 Next: ADMIN-010               Create event deletion with dependency-aware confirmation [P0; Phase 11]
-Next: ADMIN-012               Create Admin User Management page (DataTable) [P0; Phase 11]
+Done: ADMIN-012               Create Admin User Management page (DataTable) [P0; Phase 11; completed 2026-10-03]
 Next: ADMIN-013               Create User detail view (profile, match status, activity) [P0; Phase 11]
 Next: ADMIN-EVT-001           Create recap editor and publish controls [P0; Phase 11]
 Next: ADMIN-SLIDER-001        Create `/admin/event-sliders` list with status/visibility filters and loading/error/empty states [P0; Phase 11A]
@@ -9084,3 +9084,26 @@ available for Part 27 but is dormant in this release.
 No Part 27 task is current-release scope, and none may be marked complete because the static carousel
 ships. Any later dynamic implementation must satisfy its original API, RBAC, Storage, audit, UI and
 staging acceptance contract before the future Event flag is enabled.
+
+### 28.6 ADMIN-012 completion record
+
+- **Task ID / Status:** `ADMIN-012` — **DONE — 2026-10-03**; implementation commit `a9a7b2a`,
+  mobile-overflow fix `43feb4e`.
+- **Delivered behavior:** `/admin/users` renders the real reusable DataTable with strict allowlisted
+  DTO parsing, debounced backend search, server pagination/page-size controls, deterministic
+  out-of-range recovery and distinct loading/empty/no-results/error/retry states. Private React Query
+  keys are cleared on logout/account changes; EN/DE copy and direct-route refresh are supported.
+- **Backend/security boundary:** reuse the completed BE-013 `GET /api/admin/users` contract without a
+  backend change. Staging confirms ADMIN access, USER 403 and anonymous 401, all with no-store
+  behavior; logout returns `/api/auth/me` to 401, removes the Admin table, and protected-route reopen
+  renders no stale user records.
+- **Verification:** focused Admin User/layout coverage passed 32 tests and the full frontend suite
+  passed 74 files / 701 tests. TypeScript, ESLint, Prettier, production build and `git diff --check`
+  passed. The previously accepted BE-013 focused suite remains 12/12 passing.
+- **Staging acceptance:** bundle `index-D4iD9lXp.js` passed real-data load, search, page-size controls,
+  refresh, EN/DE, empty/error automation coverage, clean console and desktop/tablet/mobile checks.
+  At 375×812 the document has no horizontal overflow; the wide table remains in its own focusable
+  horizontal scroller and search, pagination and Admin navigation remain usable.
+- **Scope boundary / next task:** `ADMIN-013` remains **NOT STARTED**. `ACCEPT-001` remains blocked and
+  was not resumed. The next authorized task is `ADMIN-013 — Create User detail view (profile, match
+  status, activity)`.
