@@ -148,7 +148,7 @@ function AdminUsersPage() {
   return (
     <section aria-labelledby={titleId} className="min-w-0 space-y-6 py-6">
       <header className="space-y-2">
-        <Typography as="h1" variant="h2" id={titleId}>
+        <Typography as="h1" variant="h2" id={titleId} className="break-words text-3xl sm:text-4xl">
           {t('adminUsers.title')}
         </Typography>
         <Typography variant="lead" className="max-w-3xl">
