@@ -18,6 +18,7 @@ import {
 import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
+import { eventsLaunchEnabled } from '@/config/launch-scope'
 
 type AdminRoute = {
   path: string
@@ -62,20 +63,24 @@ const adminRoutes: readonly AdminRoute[] = [
     kind: 'page',
     Component: AdminSemesterPage,
   },
-  {
-    path: 'events',
-    title: 'Event management',
-    labelKey: 'adminNavigation.events',
-    Icon: CalendarDays,
-    kind: 'placeholder',
-  },
-  {
-    path: 'event-sliders',
-    title: 'Event sliders',
-    labelKey: 'adminNavigation.eventSliders',
-    Icon: Images,
-    kind: 'placeholder',
-  },
+  ...(eventsLaunchEnabled
+    ? ([
+        {
+          path: 'events',
+          title: 'Event management',
+          labelKey: 'adminNavigation.events',
+          Icon: CalendarDays,
+          kind: 'placeholder',
+        },
+        {
+          path: 'event-sliders',
+          title: 'Event sliders',
+          labelKey: 'adminNavigation.eventSliders',
+          Icon: Images,
+          kind: 'placeholder',
+        },
+      ] satisfies readonly AdminRoute[])
+    : []),
   {
     path: 'announcements',
     title: 'Announcements',

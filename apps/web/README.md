@@ -38,7 +38,12 @@ environment; never expose backend secrets through a `VITE_*` variable. The API m
 through the same-site cookie topology documented in the root README before authentication can be
 accepted in staging.
 
-Production builds do not use the event fixtures, even with `VITE_EVENT_SLIDER_USE_MOCKS=true`. Without a working event API configured at build time, the carousel displays its error state in preview. Authentication uses the configured `VITE_API_URL` in both modes; a missing/unavailable API displays safe feedback and permits retry.
+Production builds exclude the incomplete Event/Event Slider/Admin Event track unless
+`VITE_EVENTS_LAUNCH_ENABLED=true` is set explicitly at build time. Leave it unset for the core Buddy
+release. Development keeps the event fixtures available by default; an exact `false` disables them
+for release-like local checks. `VITE_EVENT_SLIDER_USE_MOCKS` still controls only the development
+carousel datasource. Authentication uses the configured `VITE_API_URL` in both modes; a
+missing/unavailable API displays safe feedback and permits retry.
 
 ## In-memory session store (AUTH-004)
 

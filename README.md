@@ -176,8 +176,10 @@ the local runtime-role password.
 
 Committed templates:
 
-- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
-  development event-fixture flag.
+- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder,
+  development event-fixture flag, and the explicit Event-track launch opt-in. Production excludes
+  the unfinished Event/Event Slider/Admin Event surfaces unless
+  `VITE_EVENTS_LAUNCH_ENABLED=true` is deliberately configured at build time.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
   URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 

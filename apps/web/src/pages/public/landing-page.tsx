@@ -7,6 +7,7 @@ import { CtaSection } from '@/components/landing/cta-section'
 import { EventsSlider } from '@/components/landing/events-slider'
 import { HeroSection } from '@/components/landing/hero-section'
 import { TestimonialsMarquee } from '@/components/landing/testimonials-marquee'
+import { eventsLaunchEnabled } from '@/config/launch-scope'
 
 function LandingPage() {
   const { t } = useTranslation()
@@ -22,7 +23,7 @@ function LandingPage() {
         </p>
       ) : null}
       <HeroSection />
-      <EventsSlider />
+      {eventsLaunchEnabled ? <EventsSlider /> : null}
       <AboutSection />
       <BenefitsGrid />
       <TestimonialsMarquee />
