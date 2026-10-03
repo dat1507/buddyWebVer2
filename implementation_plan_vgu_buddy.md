@@ -1,4 +1,4 @@
-# VGU Student Companion Platform — Complete Implementation Plan v2.6
+# VGU Student Companion Platform — Complete Implementation Plan v2.8
 
 > **Transforming VGU Buddy Program Website → VGU Student Companion Platform**
 > A production-quality student companion system with research-depth in matching algorithms, RAG systems, and interactive campus features.
@@ -6,6 +6,10 @@
 > **v2 Changes**: RBAC architecture (USER/ADMIN) deeply integrated into all layers. Free hosting strategy. EN/DE only.
 >
 > **v2.1 Changes**: Event Slider is admin-managed dynamic content backed by PostgreSQL/API and Supabase Storage. Frontend mock data is development-only.
+
+> **v2.8 — 2026-10-03, current-launch static Upcoming Events amendment:** Part 28 is the controlling source for the current Event release boundary. The Landing page restores the project-owned six-poster Upcoming Events carousel as typed, bundled frontend content with no Event API, database, Storage, Admin CRUD, or dynamic detail dependency. Part 27 is preserved as the approved future architecture, but every task in its dynamic chain is **DEFERRED / POST-DEPLOYMENT** and receives no completion credit from the static launch. `VITE_EVENTS_LAUNCH_ENABLED` now gates only those future API-backed User/Admin surfaces; it never hides the static Landing carousel.
+
+> **v2.7 — 2026-10-03, Admin-managed Event Slider planning amendment:** Part 27 is the controlling source for the Event/Event Slider launch track. The product owner confirmed a working staging ADMIN login and Dashboard, restored Events to planned launch scope, and required database-driven public slider/detail pages plus ADMIN-managed Event content and poster replacement. This amendment is audit/planning only: it changes no migration, API, UI, bucket, deployment, or staging data. It preserves the 2026-10-03 temporary release exclusion as history, reuses the implemented `events`/`event_media` foundation and existing task IDs, and supersedes the unimplemented separate `event_sliders` persistence/Admin-slider architecture for MVP.
 
 > **v2.6 — 2026-09-26, OPS-002 and OPS-003 completion:** Sanitized staging evidence records migration `0010`, the single one-minute Cron job, scheduled Edge HTTP 200, A–F, real verification delivery/confirm/replay rejection, Free-plan/capacity checks and the remaining application/Redis smoke gates as passed. OPS-002 is **DONE**. OPS-003 adds fixed-field redacted API/Edge logs, read-only Cron/outbox monitoring, alert thresholds, deployment rollback, DB migration recovery, email/Redis/backup recovery and credential-rotation runbooks plus repository game-day evidence. Sanitized primary/backup alert-routing acceptance is recorded; OPS-003 is **DONE**.
 >
@@ -8245,7 +8249,7 @@ The **second mandatory staging milestone** is after the complete user vertical s
 Mandatory production release gates:
 
 - **Functional:** Register/Login/Logout/refresh; profile/avatar/custom preferences; evidence-only legacy USER verification migration with Admin access preserved; verification and email re-verification; recommendations with exact weights; invitation message trimming and exact 500-word/10,000-code-point limits; invitation/send email/Accept/Decline/Cancel/sent hide; post-Accept `student_type` lock; multiple Buddies; Current Buddies; accepted email; chat/read/retention/cleanup; Admin monitoring; full Semester Reset DB+avatar backup, restore and new-cohort blocking.
-- **Launch-scope integrity:** existing non-V2 P0 features (notably the Event/Event Slider/Admin Event track) must either pass their own acceptance gates or be explicitly excluded from the production launch; release navigation must not advertise placeholder routes as delivered features.
+- **Launch-scope integrity:** existing non-V2 P0 features must pass their own acceptance gates before production navigation advertises them. The Event/Event Slider/Admin Event track is restored to planned launch scope by controlling Part 27 and must pass `ACCEPT-EVENT-001`; until then its existing production feature gate remains off and placeholder routes are not advertised as delivered features.
 - **Security:** current-tree/history secret scan and credential rotation; no tracked populated `.env`; bcrypt passwords; Secure HttpOnly cookies; exact CSRF/CORS/proxy; no synthesized legacy verification timestamps; backend-enforced type lock/opposite-type activation; authoritative invitation limits/plain-text rendering; verification/invitation/message rate limits; resource authorization and WSS Origin/auth; private backups; destructive phrase + recent re-auth + audit; diff inspection.
 - **Infrastructure:** production PostgreSQL and verified migration backup; least-privilege runtime/separate migration access; TLS Redis; private Supabase avatar and backup buckets; production email sender/provider; DNS/HTTPS; verified same-site cookie topology; WebSocket host; health/readiness plus the Cron/Edge email transport.
 - **Operational:** error/health/job/outbox/WSS/backup monitoring; rollback owners/procedure; migration recovery; credential rotation; backup restore and Semester Reset runbooks; staging game-day evidence.
@@ -8295,3 +8299,788 @@ All three former stop gates were confirmed by the product owner on 2026-09-24. T
 3. **Legacy USER email verification migration.** Source provenance is limited to an initialization/status boolean: USER registration writes false, trusted CLI ADMIN bootstrap writes true, and current admin services read the flag; no trustworthy verification event timestamp exists. Therefore every legacy USER receives `email_verified_at=NULL` unless a separately auditable authoritative timestamp source is supplied. Never infer a timestamp from account creation, last login, profile update, activity history or the boolean itself. An old `true` is not converted into a fake time. ADMIN is handled separately: current Admin authentication/bootstrap/RBAC must remain usable and must not depend on student `email_verified_at`; an Admin without timestamp evidence may stay NULL. Correctness and Buddy-access security take priority over preserving legacy USER access.
 
 No additional business rule is implied by these confirmations. Any unrelated ambiguity remains subject to its existing task contract rather than being silently resolved here.
+
+---
+
+## PART 27 — ADMIN-MANAGED EVENT SLIDER AND GENERIC EVENT DETAIL (v2.7)
+
+> **v2.8 deferral:** This approved dynamic design is retained for post-deployment execution only.
+> Part 28 controls the current release. None of the tasks below is implemented or accepted by the
+> temporary static Landing carousel.
+
+### 27.1 Authority, product decision and change boundary
+
+This Part is the controlling Event-track plan after the product decision of 2026-10-03. It
+supersedes conflicting **unimplemented** Event/EventSlider sequencing and contracts in Parts 15,
+19, 21, 24 and 25. Completed historical task records remain true and must not be reimplemented.
+
+- **Previous staging decision — preserved as history:** commit `9022e2b` temporarily excluded the
+  unfinished Event/Event Slider/Admin Event surfaces from production by default. The
+  `VITE_EVENTS_LAUNCH_ENABLED` guard prevented a missing backend from rendering a broken Landing
+  error state or advertising placeholder Admin/User routes.
+- **New product decision:** Event Slider is restored to planned launch scope. Event content and its
+  poster are ADMIN-managed, persisted in PostgreSQL/Supabase Storage, and visible through a public
+  Landing slider and one reusable `/events/:eventId` detail template.
+- **Release rule:** keep the feature flag as a fail-closed deployment gate until
+  `ACCEPT-EVENT-001` passes. After that acceptance, production enables the Event track; the flag is
+  not evidence of implementation and must not be used to expose placeholders.
+- **This v2.7 amendment is plan/audit only.** It does not create or apply a migration, change an API
+  or React component, create a Storage bucket, deploy, mutate staging, or claim a live Event flow.
+- **Confirmed staging context supplied by the product owner:** ADMIN login succeeds and the Admin
+  Dashboard is accessible. No Event-specific staging database/bucket/API acceptance was performed
+  during this planning task.
+
+### 27.2 Current source audit — 2026-10-03
+
+The audit used the current working tree and Git history. A folder name, task text, mock, or
+placeholder route is not counted as implemented behavior.
+
+| Area | Classification | Source-backed finding |
+|---|---|---|
+| Event database | **IMPLEMENTED foundation** | Alembic `0007_event_tables` creates private-schema `events`, `event_media`, and `event_registrations`, enums, constraints, indexes, backend-only grants/RLS, and same-Event cover ownership. The current chain reaches `0020_semester_restore_execution`, so `0007` is a repository prerequisite; the live staging schema/head was not queried in this audit. |
+| `event_sliders` database | **NOT IMPLEMENTED** | No model, table, migration, or persisted slider ordering/window exists. Do not infer one from the frontend DTO or old plan. |
+| Event model/schema/service | **PARTIAL** | `Event`, `EventMedia`, localized request schemas, Admin response schema, draft create/update, publish/unpublish/cancel, optimistic versioning, dependency-aware delete, and post-commit media cleanup exist. There is no public query service, list service, Event router, media router, or audit wiring. |
+| Public Event API | **NOT IMPLEMENTED** | `app.main` includes no Event router. Neither `GET /api/events` nor `GET /api/events/:id` exists. |
+| Admin Event API | **NOT IMPLEMENTED API / PARTIAL service** | Backend mutation services exist, but `/api/admin/events` routes, RBAC/CSRF endpoint wiring, list/detail queries, upload endpoints and HTTP tests do not. |
+| Event Slider backend | **NOT IMPLEMENTED** | The frontend calls `GET /api/event-sliders?locale=en|de`; no server endpoint, model, service or serializer provides it. |
+| Storage foundation | **IMPLEMENTED foundation / staging unverified** | `ImageBucket` defines private `event-media`, public `event-slider-images`, and private `profile-images`; `configure-storage` converges all three through the Storage API with JPEG/PNG/WebP and 5 MiB limits. Migration `0005_storage_buckets` restricts browser-role object operations. UUID keys, safe decoding/re-encoding, signed URLs, replacement compensation and orphan reconciliation exist. The staging evidence names `profile-images`; existence/configuration of `event-media` was not verified here. |
+| Event poster lifecycle | **PARTIAL** | `Event.cover_media_id`, `EventMedia(EVENT_COVER)` and generic Storage helpers exist. No Event-specific upload/replace/delete/read API attaches a poster yet. |
+| Landing Event Slider | **PARTIAL, production-disabled** | Accessible responsive carousel, Zod DTO, React Query adapter, loading/error/empty states, EN/DE copy, retry, reduced-motion behavior and development fixtures exist. Production uses the API adapter but the whole section is hidden unless the launch flag is enabled. Fixture slides have no authoritative schedule/detail CTA. |
+| Event Detail frontend | **NOT IMPLEMENTED** | There is no public `/events/:eventId` route/page/repository. The current slider does not guarantee a detail CTA. |
+| Admin Event UI | **PLACEHOLDER, production-disabled** | `/admin/events` and `/admin/event-sliders` are guarded placeholder routes when the launch flag is enabled; neither has a list, form, upload, save or publication workflow. |
+| Previous Event removal | **IMPLEMENTED temporary release guard** | Commit `9022e2b` hides Landing/Admin/User Event surfaces by default in production and documents the opt-in. This remains a safety gate until final Event acceptance, not the new product scope. |
+
+### 27.3 MVP product and data contract
+
+#### One canonical Event source
+
+The MVP deliberately reuses `app_private.events` and `app_private.event_media`; it does **not** add
+an `event_sliders` table. The Landing slider is a read-only projection of visible Event rows:
+
+```text
+PostgreSQL events + event_media
+  -> public Event query/service
+     -> GET /api/events and GET /api/events/:eventId
+     -> GET /api/event-sliders compatibility projection
+        -> Landing Event Slider -> /events/:eventId
+
+Admin Event UI
+  -> authenticated, CSRF-protected /api/admin/events + /media
+     -> Event/EventMedia persistence + Supabase Storage
+        -> public projections change after save/refetch
+```
+
+This avoids two independently editable titles, descriptions, dates, locations and posters. The
+existing frontend endpoint name `/api/event-sliders` is retained to minimize churn, but it owns no
+mutation API and no independent record. Its `id` is the Event UUID, its CTA is always the internal
+`/events/{eventId}` route, and its `sort_order` is the zero-based position in the deterministic
+query result rather than a persisted field.
+
+#### Event identity, visibility and ordering
+
+- MVP detail URLs use the existing UUID: `/events/:eventId`. A slug is optional follow-up; no slug
+  column/migration is invented now.
+- Anonymous Landing and detail reads expose only active, non-deleted, `PUBLISHED` + `PUBLIC` Events.
+  The existing `MEMBERS` enum remains available for an authenticated-member read contract in
+  `EVT-005`, but member-only content never appears in the anonymous Landing projection.
+- Upcoming projection includes events whose `end_date >= now`, orders by `start_date ASC, id ASC`,
+  and is capped at 12. This includes an in-progress event without keeping expired events in the
+  “Upcoming Events” slider. Empty results return `200 []`.
+- `DRAFT`, unpublished, deleted, incomplete-cover, and `CANCELLED` Events do not appear in the
+  Landing projection. Hidden/unknown direct detail requests return the same sanitized 404.
+- Localized public DTOs contain only allowlisted title, description/excerpt, schedule/timezone,
+  location, poster URL/alt text and Event ID. They exclude email, creator/updater IDs, object keys,
+  credentials, registration rows and internal audit data.
+- EN/DE remain the supported locales. Existing publication validation requiring both localized
+  title/description/location values and cover remains authoritative.
+
+#### UX behavior
+
+- The Landing section renders responsive fixed-aspect poster space to limit layout shift, usable
+  click/tap and keyboard navigation, reduced-motion behavior, localized loading/error/empty states,
+  and an internal detail link for every slide.
+- `200 []` is normal: hide the complete Event section on Landing for MVP. It must not show
+  “Upcoming events could not be loaded” merely because there are no visible Events. A real network,
+  parse or 5xx failure may show the existing retryable error state without leaking internals.
+- Event Detail is one generic reusable page, fetches by URL ID after direct refresh, and never
+  depends on Landing router state. Unknown/deleted/hidden Events use the public not-found UX.
+- Admin supports a real create path, not seeded-only content. Creation starts as a DRAFT so an Event
+  ID exists before poster upload. Forms validate, surface field/upload/save errors, disable duplicate
+  submission, warn about unsaved work where appropriate, and never silently discard entered data.
+
+### 27.4 Poster Storage, RBAC and cache contract
+
+#### Bucket and object lifecycle
+
+- **Bucket:** reuse the existing private `event-media` bucket and `EventMedia(EVENT_COVER)` metadata.
+  Do not create a new bucket for MVP and do not copy the same poster into
+  `event-slider-images`. The pre-existing public promotional bucket remains unused by this MVP.
+- **Object naming:** server-generated UUID v4 plus normalized extension only
+  (`<uuid>.jpg|png|webp`); requests never select a bucket or object key and uploads use no upsert.
+- **Upload ownership:** the authenticated ADMIN uploads through FastAPI. FastAPI chooses the bucket,
+  validates/normalizes bytes, writes EventMedia ownership and stores the actor in `created_by`.
+  Browser code never receives the Supabase secret/service key and never uploads directly.
+- **Validation:** JPEG, PNG or WebP only; declared MIME, extension, signature and decoded format must
+  agree; maximum 5 MiB after safe re-encode; maximum 4096×4096 and 4096² decoded pixels; reject
+  animation, path-like names, malformed/empty/decompression-bomb content; strip metadata.
+- **Replacement:** upload a new UUID object, attach new EventMedia/set `cover_media_id` in one DB
+  transaction, commit, then delete the prior unreferenced metadata/object. A failed DB attach deletes
+  the new object best-effort; a failed post-commit delete reports cleanup pending and leaves an orphan
+  eligible for reconciliation. Never overwrite the old key.
+- **Orphans:** existing `reconcile-storage` remains dry-run by default; apply mode may delete only
+  managed UUID objects older than the configured safety age (operational default 24 hours) and absent
+  from canonical DB references. Record aggregate counts only.
+- **Deletion:** deleting an active cover is rejected until another cover is attached. Eligible Event
+  deletion commits relational cleanup first, then removes objects best-effort; cleanup failure is
+  retryable and must not resurrect the Event. `ADMIN-010` UI remains optional follow-up even though
+  the existing service/delete API contract is preserved.
+- **Read access:** the bucket stays private. The backend issues at most five-minute signed URLs only
+  after applying the parent Event audience rule. Draft/member poster access never becomes anonymous.
+- **Cache:** uploaded objects retain `cache-control: 3600`, while replacement always creates a new
+  key, so old CDN/browser objects cannot mask the new poster. Public/Admin Event JSON uses
+  `Cache-Control: no-store` for MVP; React Query refetches/invalidation make successful Admin changes
+  observable within 60 seconds and immediately after explicit invalidation/reload. A signed URL must
+  never be persisted in PostgreSQL.
+
+Before Event staging acceptance, an operator verifies the `event-media` bucket is private with the
+documented MIME/size limits. If it is absent or drifted, run the existing idempotent server-only
+`python -m app.cli configure-storage`; this is a manual infrastructure gate in `EVT-011`, not a new
+bucket-development task.
+
+This contract follows current official Supabase guidance: bucket configuration owns MIME/size
+limits; private objects require authenticated download or a signed URL; public buckets bypass read
+access controls; service/secret keys bypass Storage RLS and must remain server-only; replacement
+should use a new path because overwriting may serve stale CDN content; and Storage object/bucket
+metadata should be treated as read-only and mutated through the Storage API. See
+[Storage buckets](https://supabase.com/docs/guides/storage/buckets/fundamentals),
+[access control](https://supabase.com/docs/guides/storage/security/access-control),
+[standard uploads](https://supabase.com/docs/guides/storage/uploads/standard-uploads), and
+[Storage schema](https://supabase.com/docs/guides/storage/schema/design).
+
+#### Security boundary
+
+- Public safe reads require no CSRF. Optional session awareness must never turn an invalid session
+  into broader public access.
+- Every `/api/admin/events*` read requires authenticated `ADMIN`; anonymous is 401 and current USER
+  is 403. Every POST/PUT/PATCH/DELETE/upload additionally requires the existing session-bound CSRF
+  check and exact Origin/Referer policy.
+- Frontend `RoleGuard` is UX only. Backend RBAC, allowlisted Pydantic inputs, optimistic versioning,
+  transaction-owned audit records and private/no-store Admin responses are authoritative.
+- Neither public nor Admin DTOs expose password/session/token fields, Supabase credentials, raw
+  storage object keys, service errors, or unnecessary account data.
+
+### 27.5 Task disposition and scope control
+
+#### Reused completed prerequisites — do not rerun
+
+| Task | Current truth | Use in v2.7 |
+|---|---|---|
+| `EVT-001` | **DONE** | Existing Event status/time/visibility contract; UUID route means no new schema contract is needed. |
+| `EVT-002` | **DONE but out of Event MVP** | Registration model exists; registration workflow is not required here. |
+| `EVT-003` | **DONE** | Existing Event/EventMedia migration is the MVP persistence migration. No new Event migration is planned. |
+| `EVT-004` | **DONE** | Reuse draft/update/status/delete service and optimistic versioning. |
+| `EVT-008` | **DONE** | Reuse transactional audit foundation. |
+| `EVT-010` | **DONE** | Reuse EventMedia ownership/cover metadata. |
+| `EVS-003` | **DONE foundation** | Reuse Storage transport, bucket configuration, validation, signed URLs and reconciliation. Live `event-media` configuration is still a manual gate. |
+| `FE-014` | **DONE component foundation** | Reuse the accessible carousel and API adapter; production/live behavior remains pending in `FE-014B`. |
+
+#### Modified pending tasks
+
+`EVT-005`, `EVT-006`, `EVT-009`, `EVT-011`, `EVS-005`, `EVS-007`, `ADMIN-006`,
+`ADMIN-007`, `ADMIN-008`, `ADMIN-009`, `FE-031`, and `FE-014B` are updated by the full
+contracts below. None is marked DONE.
+
+#### Superseded planned-only tasks
+
+The following IDs remain in history but are **SUPERSEDED — DO NOT IMPLEMENT FOR MVP**:
+
+- `EVS-001` and `EVS-002`: separate EventSlider model/schema/migration; replaced by the existing
+  Event schema plus the `EVS-005` derived projection.
+- `EVS-004`: independent slider CRUD/projection service; replaced by `EVT-005` + `EVS-005`.
+- `EVS-006`: Admin EventSlider CRUD/reorder/upload API; replaced by `EVT-006` + `EVT-011`.
+- `ADMIN-SLIDER-001..004`: separate slider list/form/status/drag-order UI; replaced by
+  `ADMIN-006..009`. No parallel `/admin/event-sliders` business page ships in MVP.
+
+`EVT-007`, `EVT-012`, `EVT-013`, `ADMIN-010`, `ADMIN-011`, `ADMIN-EVT-001/002`, `FE-030`,
+`FE-032`, and `FE-EVENT-CALENDAR-001` remain optional/post-MVP work. `FE-031` no longer depends on
+recap task `EVT-013`; a generic Event Detail page is independently useful and required now.
+
+### 27.6 Dependency graph
+
+```text
+DONE: EVT-001 + EVT-003 + EVT-004 + EVT-008 + EVT-010 + EVS-003 + auth/RBAC/CSRF + FE-014
+  -> EVT-005
+  -> EVT-006
+  -> EVT-009
+  -> EVT-011
+  -> EVS-005
+  -> ADMIN-006 -> ADMIN-007 -> ADMIN-008 -> ADMIN-009
+  -> FE-031
+  -> FE-014B
+  -> EVS-007
+  -> ACCEPT-EVENT-001
+```
+
+This is the recommended single-agent linear path. Dependencies listed in each contract remain the
+technical source of truth even where independent backend/frontend preparation could run in parallel.
+
+### 27.7 Full task contracts
+
+#### EVT-005 — Public Event list/detail contract and queries
+
+- **Task ID / Status:** `EVT-005` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** expose authoritative, localized, audience-safe Event list/detail data from the
+  existing Event tables.
+- **Dependencies:** `EVT-004`, `EVT-010`, `EVS-003`, `AUTH-017` and migration `0007` DONE.
+- **Scope:** public/member query predicates; `GET /api/events`; `GET /api/events/{event_id}`; locale,
+  stable pagination/order and allowlisted DTOs; UUID 404 behavior.
+- **Non-goals:** slug migration, registration, recap, calendar UI, Event mutation or separate slider
+  persistence.
+- **Backend changes:** add Event query service, public schemas and router; join/batch cover metadata;
+  create audience-checked signed cover URL; return `no-store`; include timezone-aware schedule.
+- **Frontend changes:** none beyond shared contract fixtures/types if needed.
+- **Database changes:** none; use existing indexes/constraints. A live-head mismatch is a stop gate,
+  not permission to edit staging ad hoc.
+- **Storage changes:** signed read only; no upload/bucket mutation.
+- **Security requirements:** PUBLIC/PUBLISHED/non-deleted predicate for anonymous; optional verified
+  USER may additionally read MEMBERS per existing visibility model; hidden and unknown both 404;
+  no internal IDs/keys/account data.
+- **Acceptance Criteria / DoD:** list/detail return correct localized fields and poster; direct ID is
+  authoritative; invalid UUID is 422 or route-safe 404 by documented contract; unknown/deleted/
+  unauthorized is sanitized 404; one joined/batched database query family prevents N+1; pagination
+  is bounded and deterministic.
+- **Tests/Gates:** public list/detail, member visibility, anonymous denial of MEMBERS, unknown/deleted
+  404, locale fallback/rejection, invalid ranges/fields, no-N+1 query-count assertion, signed URL
+  bound, pytest/Ruff/mypy/Alembic-head checks.
+- **Staging acceptance:** read a seeded/persisted PUBLIC Event and verify hidden DRAFT/MEMBERS rows do
+  not leak; do not create production content in this task.
+- **Next Task:** `EVT-006`.
+
+#### EVT-006 — Admin Event list/detail/CRUD/status API
+
+- **Task ID / Status:** `EVT-006` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** expose the implemented Event domain service through authenticated Admin endpoints.
+- **Dependencies:** `EVT-004`, `EVT-005`, `AUTH-018`, `AUTH-011A`, `EVT-008`.
+- **Scope:** Admin list/detail/create/update/delete/status routes, filters/pagination, version conflicts,
+  transaction ownership and consistent error mapping.
+- **Non-goals:** poster bytes, registration/recap, bulk import, recurrence or client-supplied actor/
+  role/status timestamps.
+- **Backend changes:** add `/api/admin/events` router; reuse strict schemas/service; add list/detail;
+  map validation 422, missing 404, stale version 409 and dependency conflicts 409; commit only after
+  domain/audit success.
+- **Frontend changes:** none.
+- **Database changes:** none.
+- **Storage changes:** eligible delete consumes the existing post-commit cleanup plan; upload remains
+  `EVT-011`.
+- **Security requirements:** all routes ADMIN-only; mutations require CSRF + Origin/Referer; USER 403;
+  anonymous 401; private/no-store responses; allowlists only.
+- **Acceptance Criteria / DoD:** ADMIN can list, inspect, create a DRAFT, update fields, transition
+  status and call guarded delete; USER cannot read or mutate; failures preserve content/version and
+  never create partial audit/storage state.
+- **Tests/Gates:** ADMIN/USER/anonymous matrix for every method, missing/invalid CSRF, invalid fields,
+  stale version, publish validation, persistence/reload, delete conflict/cleanup plan, response header
+  and DTO leak tests, full API gates.
+- **Staging acceptance:** authenticated Admin API smoke with a disposable DRAFT only after explicit
+  staging test-data approval; otherwise defer all writes to final acceptance.
+- **Next Task:** `EVT-009`.
+
+#### EVT-009 — Event audit and freshness integration
+
+- **Task ID / Status:** `EVT-009` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** make Admin Event mutations auditable and public changes predictably observable.
+- **Dependencies:** `EVT-006`, `EVT-008`.
+- **Scope:** transactional audit records for create/update/status/delete/media linkage; cache/query
+  invalidation contract; no-store response policy and 60-second freshness target.
+- **Non-goals:** WebSocket/Supabase Realtime, analytics dashboards or payload logging.
+- **Backend changes:** add safe audit action/resource metadata in the mutation transaction; emit no
+  false audit on rollback; set Admin/public Event JSON cache headers.
+- **Frontend changes:** define Event query-key invalidation requirements for later Admin mutations.
+- **Database changes:** none.
+- **Storage changes:** audit object identity only; never log object key, signed URL or image bytes.
+- **Security requirements:** audit actor is session-derived; logs exclude Event description, email,
+  credentials, CSRF/auth data and storage secrets.
+- **Acceptance Criteria / DoD:** every committed Admin mutation has one correct audit record; failed
+  mutations have none; a separate client observes saved content within 60 seconds or after explicit
+  invalidation/reload.
+- **Tests/Gates:** transaction rollback/audit atomicity, sanitized fields, cache headers, refetch timing
+  contract and regressions for existing audit consumers.
+- **Staging acceptance:** confirm a disposable Event edit creates redacted audit evidence without
+  sensitive content during `ACCEPT-EVENT-001`.
+- **Next Task:** `EVT-011`.
+
+#### EVT-011 — Event poster lifecycle API and Storage readiness
+
+- **Task ID / Status:** `EVT-011` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** let ADMIN upload, replace and safely remove Event covers while public reads receive
+  audience-checked poster URLs.
+- **Dependencies:** `EVT-010`, `EVS-003`, `EVT-006`, `EVT-009`.
+- **Scope:** Event-cover upload/attach/replace/delete endpoints, media metadata/alt text, failure-safe
+  cleanup, signed delivery and `event-media` staging configuration gate.
+- **Non-goals:** recap gallery, browser-direct Supabase upload, public bucket duplication, arbitrary
+  files, image editing or persisted signed URLs.
+- **Backend changes:** add multipart limits before buffering, reuse safe decoder, create
+  `EventMedia(EVENT_COVER)`, atomically switch `cover_media_id`, protect active cover deletion, expose
+  signed read through Event DTO/service and report cleanup-pending safely.
+- **Frontend changes:** typed media request/error contract only; form UI belongs to `ADMIN-007/008`.
+- **Database changes:** no migration; persist existing EventMedia fields and remove superseded,
+  unreferenced metadata transactionally.
+- **Storage changes:** verify/converge private `event-media`; UUID non-upsert objects; JPEG/PNG/WebP,
+  5 MiB, 4096 limits; replacement compensation; 24-hour guarded orphan reconciliation.
+- **Security requirements:** ADMIN + CSRF for mutations; USER/anonymous upload 403/401; server chooses
+  bucket/key; service key server-only; signed read only after Event audience authorization.
+- **Acceptance Criteria / DoD:** valid upload attaches and persists; invalid MIME/signature/size/
+  dimensions/animation fail before durable attachment; replacement returns new poster and cleans old
+  reference safely; unauthorized/cross-Event operations fail; no secret/key leaks.
+- **Tests/Gates:** valid upload, each invalid-file class, oversized/multipart bound, USER/anonymous
+  denial, CSRF, cross-Event IDOR, signed expiry, replacement/rollback/cleanup-pending/orphan dry-run
+  tests and live disposable Storage test when configured.
+- **Staging acceptance:** operator verifies bucket privacy/limits and performs one Admin upload +
+  replacement without recording signed URLs or credentials. Manual configuration may be required
+  here through the existing command.
+- **Next Task:** `EVS-005`.
+
+#### EVS-005 — Public Event-derived slider endpoint
+
+- **Task ID / Status:** `EVS-005` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** satisfy the existing Landing adapter with a read-only projection of canonical Events.
+- **Dependencies:** `EVT-005`, `EVT-011`.
+- **Scope:** `GET /api/event-sliders?locale=en|de`, deterministic upcoming filter/order/cap, DTO
+  mapping, internal detail CTA and `200 []` empty behavior.
+- **Non-goals:** EventSlider table, admin slider mutations, manual ordering, activation flag,
+  visibility window or standalone promotional slide.
+- **Backend changes:** project Event + cover in one query/bounded projection; produce excerpt,
+  zero-based response order and `/events/{id}` CTA; return no-store and sanitized errors.
+- **Frontend changes:** none beyond contract fixture alignment.
+- **Database changes:** none.
+- **Storage changes:** use the Event cover signed URL; no new object.
+- **Security requirements:** anonymous projection is strictly PUBLIC/PUBLISHED/non-deleted with ready
+  cover and active schedule; no member/draft/cancelled/internal data.
+- **Acceptance Criteria / DoD:** API shape passes current Zod parser; no hardcoded/mock data is a
+  production source; no Events returns `200 []`; each slide points to its own generic detail URL;
+  query count is constant/bounded and cap is 12.
+- **Tests/Gates:** public filtering, expired/cancelled/draft/member exclusion, order/tie/cap, locale,
+  poster/CTA mapping, empty list, no N+1 and API failure sanitization.
+- **Staging acceptance:** compare one API item with the authoritative Admin Event and public detail.
+- **Next Task:** `ADMIN-006`.
+
+#### ADMIN-006 — Admin Event list page
+
+- **Task ID / Status:** `ADMIN-006` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** replace `/admin/events` placeholder with an authorized, usable Event inventory.
+- **Dependencies:** `ADMIN-004`, `EVT-006`, `EVT-009`.
+- **Scope:** paginated table, search/status/visibility/time filters, create/edit links, loading/error/
+  empty states, localized phase/status labels.
+- **Non-goals:** calendar, analytics, drag ordering, registration or separate slider list.
+- **Backend changes:** none beyond consuming Admin list API.
+- **Frontend changes:** page, typed repository/query, private query keys, navigation replacement and
+  EN/DE copy.
+- **Database changes:** none.
+- **Storage changes:** display existing signed thumbnail only; no upload.
+- **Security requirements:** existing Admin RoleGuard plus backend authority; clear private query
+  cache on logout/account switch; never persist Event/Admin data in Web Storage.
+- **Acceptance Criteria / DoD:** Admin sees every editorial state with stable pagination and can
+  reach create/edit; USER route access is denied; loading, API failure and true empty list differ.
+- **Tests/Gates:** list/filter/pagination states, 401/403 UX, route guard, EN/DE, accessibility,
+  no-store/private cache cleanup, typecheck/lint/build.
+- **Staging acceptance:** current confirmed Admin account opens `/admin/events` and loads real API
+  data without exposing the old placeholder.
+- **Next Task:** `ADMIN-007`.
+
+#### ADMIN-007 — Admin Event create form with poster upload
+
+- **Task ID / Status:** `ADMIN-007` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** let ADMIN create a database-backed Event and attach its first poster.
+- **Dependencies:** `ADMIN-006`, `EVT-011`.
+- **Scope:** shared EN/DE form fields, schedule/timezone/location, PUBLIC/MEMBERS visibility, DRAFT
+  creation, cover upload/alt text, validation/feedback and recoverable multi-step flow.
+- **Non-goals:** seed-only workflow, recurrence, registration, recap, delete or publish action.
+- **Backend changes:** none beyond consuming existing Admin/media APIs.
+- **Frontend changes:** reusable Event form primitives; create DRAFT first, then upload/attach poster;
+  disable double submit; retain user input on recoverable error; explicit success destination.
+- **Database changes:** none.
+- **Storage changes:** multipart upload through backend only.
+- **Security requirements:** credentials included through shared client; CSRF header; no Supabase key,
+  bucket/key selector or direct SDK in browser.
+- **Acceptance Criteria / DoD:** valid Event persists across refresh with correct poster; field/file
+  errors are actionable; partial upload/save failure does not claim success or silently lose data;
+  one click cannot create duplicates.
+- **Tests/Gates:** validation boundaries, create persistence, double-submit, draft-first/upload failure/
+  retry, invalid/oversize file feedback, USER denial, EN/DE and a11y/build gates.
+- **Staging acceptance:** Admin creates one disposable DRAFT with poster; it does not appear publicly
+  before publication.
+- **Next Task:** `ADMIN-008`.
+
+#### ADMIN-008 — Admin Event edit and poster replacement form
+
+- **Task ID / Status:** `ADMIN-008` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** edit canonical Event content and replace its poster without code/deployment changes.
+- **Dependencies:** `ADMIN-007`.
+- **Scope:** preload by ID, reuse form, optimistic version, save feedback, poster preview/replacement,
+  conflict recovery and unsaved-change protection.
+- **Non-goals:** separate slider fields, bulk editor, history UI or delete.
+- **Backend changes:** none beyond consuming update/media APIs.
+- **Frontend changes:** edit route/page, mutation sequencing, query invalidation for Admin/public Event
+  and slider keys, conflict reload/review UX.
+- **Database changes:** none.
+- **Storage changes:** invoke failure-safe replacement; never reuse/overwrite old object key.
+- **Security requirements:** RoleGuard + backend ADMIN/CSRF; sanitized errors; clear selected file after
+  terminal result without clearing unrelated form data.
+- **Acceptance Criteria / DoD:** title/description/time/location/poster changes survive refresh;
+  stale update never overwrites silently; success/error are explicit; public caches are invalidated.
+- **Tests/Gates:** prefill/save/reload, version 409, poster replace/cleanup-pending, retry and double
+  submit, navigation with dirty form, EN/DE/a11y/type/build.
+- **Staging acceptance:** Admin changes the disposable Event and sees the persisted values after F5.
+- **Next Task:** `ADMIN-009`.
+
+#### ADMIN-009 — Event publish/unpublish/cancel controls
+
+- **Task ID / Status:** `ADMIN-009` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** provide the minimal editorial action that controls whether an Event can appear
+  publicly while preserving the implemented status model.
+- **Dependencies:** `ADMIN-008`, `EVT-009`.
+- **Scope:** DRAFT/PUBLISHED/CANCELLED actions, publication-readiness feedback, confirmation for
+  hiding/cancelling, pending/error/success states and public query invalidation.
+- **Non-goals:** active boolean, visibility windows, scheduled publish, manual complete or notification
+  email.
+- **Backend changes:** none beyond status API.
+- **Frontend changes:** status controls with disabled duplicate action and localized explanations.
+- **Database changes:** none.
+- **Storage changes:** publication requires valid attached ready cover; no object mutation.
+- **Security requirements:** ADMIN/CSRF enforced by API; UI state is never authority; no optimistic
+  public-success claim before server response.
+- **Acceptance Criteria / DoD:** publish rejects incomplete Event clearly; successful publish makes a
+  PUBLIC upcoming Event eligible for slider/detail; unpublish/cancel removes it from slider; reload
+  reflects server state.
+- **Tests/Gates:** each transition, incomplete validation, 401/403/CSRF, repeated click, cache
+  invalidation, EN/DE/a11y/build.
+- **Staging acceptance:** publish the disposable Event with the current Admin account and verify the
+  API eligibility before public browser acceptance.
+- **Next Task:** `FE-031`.
+
+#### FE-031 — Generic public Event Detail page
+
+- **Task ID / Status:** `FE-031` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** render every readable Event through one reusable database-driven detail page.
+- **Dependencies:** `FE-006`, `EVT-005`, `EVT-011`; `EVT-013` recap dependency removed.
+- **Scope:** public `/events/:eventId` route, authoritative fetch, poster/title/description/date-time/
+  timezone/location, responsive/accessibility/EN-DE states and not-found UX.
+- **Non-goals:** registration, recap/gallery, per-Event React page, router-state data authority or slug.
+- **Backend changes:** none beyond consuming public detail API.
+- **Frontend changes:** typed Event repository/query, page/route, fixed poster aspect/reserved space,
+  localized date formatting, loading/failure/404 and retry behavior.
+- **Database changes:** none.
+- **Storage changes:** render signed URL; refetch before/after expiry as needed without persisting it.
+- **Security requirements:** no HTML injection, internal data or signed URL persistence; public 404
+  does not distinguish hidden/deleted/missing.
+- **Acceptance Criteria / DoD:** click target and direct/F5 URL load the same Event; each Event ID
+  changes content through data, not component code; unknown/deleted/hidden shows not-found; layout is
+  keyboard/mobile usable with limited shift.
+- **Tests/Gates:** direct route, refresh-equivalent fetch, correct fields/poster, unknown 404, API
+  failure/retry, ID change, EN/DE, a11y, typecheck/lint/build.
+- **Staging acceptance:** open the final URL directly in a fresh anonymous session and verify all five
+  required fields.
+- **Next Task:** `FE-014B`.
+
+#### FE-014B — Landing Event Slider live integration
+
+- **Task ID / Status:** `FE-014B` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** restore the Landing Event section using only the live Event-derived API.
+- **Dependencies:** `FE-014`, `EVS-005`, `FE-031`, `ADMIN-009`.
+- **Scope:** align DTO/repository, require detail links, production mock exclusion, empty-section hide,
+  loading/error behavior, poster responsiveness and query invalidation/refetch.
+- **Non-goals:** persisted slider ordering, standalone promotions, admin slider page or hardcoded
+  production Events.
+- **Backend changes:** none.
+- **Frontend changes:** make whole slide/clear CTA accessible; hide section for `200 []`; retain
+  retryable real-error UI; reserve poster aspect; ensure production provider cannot import mocks;
+  update launch-scope tests without enabling deployment yet.
+- **Database changes:** none.
+- **Storage changes:** none.
+- **Security requirements:** trust only parsed HTTPS poster URL and internal Event CTA; reject unsafe
+  payloads; no client storage of Event/admin data.
+- **Acceptance Criteria / DoD:** backend Events render; correct poster/title/basic info/detail link;
+  tap/click/keyboard works; empty data has no error card and no section; API failure is distinct;
+  mocks are development-only; update appears within 60 seconds/refetch.
+- **Tests/Gates:** render live-shaped Events, no mock dependency in production build, click correct
+  detail, responsive/a11y/reduced motion, empty hide, loading, API/parse failure, EN/DE and build.
+- **Staging acceptance:** Anonymous/User Landing shows the published Event and correct poster, then
+  opens the matching detail page.
+- **Next Task:** `EVS-007`.
+
+#### EVS-007 — Event integration, security and regression gates
+
+- **Task ID / Status:** `EVS-007` — **DEFERRED / POST-DEPLOYMENT**, modified existing; P0.
+- **Objective:** prove the complete Admin-to-public Event flow and protect unrelated Buddy features.
+- **Dependencies:** `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031`, `FE-014B`.
+- **Scope:** cross-layer automated tests, security matrix, persistence/freshness, Storage failure paths,
+  query counts and repository-wide regression gates.
+- **Non-goals:** staging sign-off, new product behavior, registration/recap/calendar or deployment.
+- **Backend changes:** test/support fixtures only unless a failing required contract reveals a bug.
+- **Frontend changes:** test fixtures/harness only unless a failing required contract reveals a bug.
+- **Database changes:** disposable test migrations only; no new production migration is planned.
+- **Storage changes:** fake/disposable transport tests plus opt-in live test; never staging mutation.
+- **Security requirements:** cover anonymous/USER/ADMIN/CSRF/IDOR, DTO/key/secret leaks, private bucket
+  behavior and no-store responses.
+- **Acceptance Criteria / DoD:** all Backend, Frontend and Storage cases required by Part 27 pass;
+  full lint/typecheck/build and relevant Buddy auth/matching/invitation/email/chat regressions pass;
+  no N+1 and no hardcoded production Event source remain.
+- **Tests/Gates:** public list/detail/404/filtering; USER cannot mutate; ADMIN can mutate; CSRF and
+  invalid fields; persistence; Admin list/create/edit/publish; poster valid/invalid/oversize/denied/
+  replace/orphan; Landing/detail/empty/error/direct URL/EN-DE; Ruff/mypy/pytest, ESLint/TypeScript/
+  Vitest/build, Alembic single head/history and secret/diff review.
+- **Staging acceptance:** none; successful automation makes `ACCEPT-EVENT-001` ready.
+- **Next Task:** `ACCEPT-EVENT-001`.
+
+#### ACCEPT-EVENT-001 — Real Admin and public staging acceptance
+
+- **Task ID / Status:** `ACCEPT-EVENT-001` — **DEFERRED / POST-DEPLOYMENT**, new; P0 release gate.
+- **Objective:** prove the exact product-owner flow on the deployed staging stack before production
+  Event opt-in.
+- **Dependencies:** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,
+  private `event-media` readiness, current ADMIN account.
+- **Scope:** one designated disposable Event; Admin create/update/poster/publish; anonymous Landing;
+  direct detail; update propagation; USER authorization denial; sanitized evidence and cleanup plan.
+- **Non-goals:** production deploy, load test, registration, recap, calendar, ordering/windows or
+  destructive database reset.
+- **Backend changes:** none; a discovered defect returns to its owning task.
+- **Frontend changes:** none; a discovered defect returns to its owning task.
+- **Database changes:** verify `alembic current`/expected head only; no manual SQL or migration here.
+- **Storage changes:** verify configured private bucket and exercise upload/replacement only through
+  Admin UI/API; no Dashboard-direct object manipulation.
+- **Security requirements:** use separate ADMIN and normal USER/anonymous sessions; redact email,
+  cookies, tokens, signed URLs, object keys and credentials from evidence.
+- **Acceptance Criteria / DoD:** Scenario A Admin creates/opens Event, uploads/changes poster, sets
+  name/description/date-time/location and saves successfully; Scenario B anonymous/user Landing shows
+  it with correct poster; Scenario C click and direct refresh show correct detail; Scenario D Admin
+  edit/poster replacement propagates after refetch/F5 and within 60 seconds; Scenario E USER Admin UI
+  is denied and direct Admin API mutation returns 403. No unrelated Buddy regression is observed.
+- **Tests/Gates:** record deployed SHAs, timestamp, environment, PASS/FAIL per A–E, browser console/
+  network sanity, 401/403/CSRF evidence and cleanup outcome without sensitive payloads.
+- **Staging acceptance:** this task is the acceptance. Only a complete signed PASS authorizes enabling
+  the production Event launch flag; failure keeps the release guard off.
+- **Next Task:** explicit product/release approval; no automatic production deployment.
+
+### 27.8 Exact post-deployment execution order and manual gates
+
+#### EXECUTION ORDER
+
+1. `EVT-005` — Public Event list/detail contract and queries
+
+   - **Why first:** all public views and the slider need one authoritative audience-safe Event read
+     model.
+   - **Dependencies:** completed Event model/migration/service, auth and Storage foundation.
+   - **Expected result:** working `/api/events` list/detail with signed cover and sanitized 404.
+
+2. `EVT-006` — Admin Event list/detail/CRUD/status API
+
+   - **Why now:** Admin UI needs a complete authenticated persistence boundary.
+   - **Dependencies:** `EVT-005` plus completed domain/RBAC/CSRF.
+   - **Expected result:** ADMIN can persist Event data; USER/anonymous cannot.
+
+3. `EVT-009` — Event audit and freshness integration
+
+   - **Why now:** mutation atomicity/observability must be fixed before media and UI build on it.
+   - **Dependencies:** `EVT-006`, audit foundation.
+   - **Expected result:** transactional audit, no-store semantics and explicit invalidation contract.
+
+4. `EVT-011` — Event poster lifecycle API and Storage readiness
+
+   - **Why now:** a publishable Event requires a managed poster and failure-safe replacement.
+   - **Dependencies:** `EVT-006`, `EVT-009`, completed Storage/EventMedia foundation.
+   - **Expected result:** secure Admin upload/replace/delete plus audience-checked signed reads.
+   - **Manual gate:** verify/converge private staging `event-media`; no new bucket design.
+
+5. `EVS-005` — Public Event-derived slider endpoint
+
+   - **Why now:** canonical Event reads and poster delivery are stable.
+   - **Dependencies:** `EVT-005`, `EVT-011`.
+   - **Expected result:** `/api/event-sliders` returns upcoming Events, not a duplicate slider store.
+
+6. `ADMIN-006` — Admin Event list page
+
+   - **Why now:** establishes Admin navigation/query/error patterns before form mutations.
+   - **Dependencies:** `EVT-006`, `EVT-009`, reusable Admin DataTable.
+   - **Expected result:** real `/admin/events` inventory replaces placeholder.
+
+7. `ADMIN-007` — Admin Event create form with poster upload
+
+   - **Why now:** list/API/media contracts are available.
+   - **Dependencies:** `ADMIN-006`, `EVT-011`.
+   - **Expected result:** Admin creates a durable DRAFT and initial poster.
+
+8. `ADMIN-008` — Admin Event edit and poster replacement
+
+   - **Why now:** reuse the accepted create form before adding editorial transitions.
+   - **Dependencies:** `ADMIN-007`.
+   - **Expected result:** edits/replacements persist, invalidate queries and survive refresh.
+
+9. `ADMIN-009` — Event publish/unpublish/cancel controls
+
+   - **Why now:** a complete, poster-backed Event can safely enter/leave public views.
+   - **Dependencies:** `ADMIN-008`, `EVT-009`.
+   - **Expected result:** Admin controls public eligibility with clear validation and no double submit.
+   - **Admin browser gate:** local authenticated flow before proceeding to public UI.
+
+10. `FE-031` — Generic public Event Detail page
+
+    - **Why now:** published authoritative data and poster access are stable.
+    - **Dependencies:** `EVT-005`, `EVT-011`.
+    - **Expected result:** reusable `/events/:eventId` works by click, direct URL and refresh.
+
+11. `FE-014B` — Landing Event Slider live integration
+
+    - **Why now:** every slide can point to a finished detail destination.
+    - **Dependencies:** `EVS-005`, `FE-031`, `ADMIN-009`.
+    - **Expected result:** Landing renders backend Events, hides true empty data and uses no production
+      mocks.
+
+12. `EVS-007` — Event integration/security/regression gates
+
+    - **Why now:** all layers exist and can be exercised as one flow.
+    - **Dependencies:** every implementation task above.
+    - **Expected result:** required backend/frontend/storage/security tests and repository gates pass.
+
+13. `ACCEPT-EVENT-001` — Real Admin and public staging acceptance
+
+    - **Why last:** it validates deployed behavior, not local implementation claims.
+    - **Dependencies:** `EVS-007`, deployed SHAs, migration/bucket readiness, current Admin account.
+    - **Expected result:** Scenarios A–E pass with sanitized evidence; only then may production enable
+      Events.
+
+#### Session grouping guidance
+
+- **May safely combine when one session has capacity:** `EVT-005` + `EVS-005` only if the poster
+  signing dependency is already satisfied and each keeps separate tests/commit boundaries;
+  `ADMIN-007` + `ADMIN-008` because they intentionally share form primitives; `FE-031` + `FE-014B`
+  after every backend/Admin dependency is accepted.
+- **Should not be combined:** `EVT-011` Storage/security work with any UI task; Admin API and Admin UI
+  before backend authorization tests pass; `EVS-007` with staging acceptance; or
+  `ACCEPT-EVENT-001` with implementation/deployment fixes. A failing acceptance returns to the owner
+  task and is rerun from a clean deployed SHA.
+- **Database migration point:** the MVP Event persistence migration is already-completed `EVT-003`
+  (`0007_event_tables`). There is no new planned schema migration and no `event_sliders` migration.
+  Verify the environment head before API work and again before staging acceptance.
+- **Supabase manual point:** `EVT-011` verifies/converges `event-media` through the existing
+  server-only command if staging is missing/drifted. Do not expose the secret key or configure from
+  the browser.
+- **Admin browser points:** a local authenticated smoke follows `ADMIN-009`; the real deployed Admin
+  + public/USER flow is exclusively `ACCEPT-EVENT-001`.
+
+### 27.9 Product decisions / optional follow-up
+
+No decision below blocks the approved MVP contract:
+
+- **Delete Event UI:** backend service/delete contract is preserved; `ADMIN-010` remains optional
+  because current requirements do not require a browser delete action. Decide retention/archival UX
+  before promoting it.
+- **Manual Event/slider ordering:** not in MVP. Current deterministic order is start time then UUID.
+  Add a field/table only if product needs curated order independent of schedule.
+- **Active/inactive:** no separate boolean in MVP; DRAFT/PUBLISHED/CANCELLED plus visibility is the
+  existing source. Avoid overlapping state until a concrete use case exists.
+- **Visibility start/end window / scheduled publishing:** not in MVP; publication is an explicit
+  Admin action.
+- **Draft:** already part of the implemented Event model and required by the create-then-upload flow;
+  it is in MVP.
+- **Publish/unpublish:** required in MVP because it is the public visibility boundary.
+- **Cancelled Event public detail/slider behavior:** MVP suppresses cancelled items from Landing;
+  product can later decide whether a known public detail should remain as a cancellation notice.
+- **Slug URLs:** UUID is approved for MVP. Add immutable unique slug/redirect policy only as a future
+  migration after naming/SEO rules are decided.
+- **Separate promotional slides:** the old public `event-slider-images` bucket and standalone slide
+  idea are not used now. Revisit only for non-Event campaigns with independent content/window/order.
+- **Registration, recap/gallery, user Event list/calendar:** remain separate P1/post-MVP tasks and do
+  not block the Admin-managed slider/detail launch.
+
+### 27.10 Planning amendment completion record
+
+This v2.7 amendment completed only its requested source/plan audit and task decomposition. Part 28
+now preserves every dynamic Event implementation and acceptance task above as
+**DEFERRED / POST-DEPLOYMENT**. The static current-launch implementation does not satisfy, partially
+complete, or change the acceptance criteria of any Part 27 task.
+
+---
+
+## PART 28 — CURRENT-LAUNCH STATIC UPCOMING EVENTS (v2.8)
+
+### 28.1 Authority and release boundary
+
+This Part is authoritative for the 2026-10-03 current release and supersedes only Part 27's launch
+timing. It does not delete or weaken the future dynamic architecture.
+
+- Restore Upcoming Events on the public Landing page from project-owned frontend assets and typed
+  static data.
+- Add no `/api/events` or `/api/event-sliders` call, Event database/Storage dependency, Admin Event
+  CRUD, or dynamic Event detail page to this release.
+- Treat each slide as a promotional card. No click target or CTA is shown because the audited legacy
+  destinations are obsolete static posts and no reusable current detail route exists.
+- When the static array is empty, hide the complete section. Static mode has no loading, network
+  error, or Retry UI.
+- Keep `VITE_EVENTS_LAUNCH_ENABLED` fail-closed for future API-backed User/Admin Event surfaces only.
+  The flag must not hide or alter the static Landing carousel.
+
+### 28.2 Legacy source and asset audit
+
+The read-only source audit used `VGU_Buddy_Website/VGU_Buddy_Website/main`:
+
+- `index.html` contains the old Upcoming Events carousel and its six poster references.
+- `script.js` provides previous/next controls, three-second autoplay, hover pause, and looping.
+- `calendar/calendar.html` and the linked `post/*/*.html` pages contain obsolete dates, dummy data,
+  and standalone markup; they are references only and are not migrated as current facts/routes.
+- The six posters already present in BuddyWebv2 are byte-for-byte copies of the legacy assets, so no
+  asset import or external download is required. They move from the mock-only folder to the canonical
+  `features/events/assets` folder without content modification.
+
+### 28.3 Temporary architecture and behavior
+
+```text
+bundled project-owned posters
+  -> typed static-upcoming-events module (localized title/alt; no invented schedule/location)
+  -> LandingPage supplies readonly EventSlider[]
+  -> EventsSlider renders accessible promotional carousel
+  -> empty array returns null
+```
+
+The existing responsive carousel, previous/next controls, autoplay, hover/focus pause, reduced-motion
+handling, localized labels, keyboard operation and image alternative text remain. The Landing path
+does not import the Event query hook or repository. The deferred repository/mock/query code remains
+available for Part 27 but is dormant in this release.
+
+### 28.4 Task contract
+
+#### FE-EVENT-STATIC-001 — Restore static Upcoming Events for the current release
+
+- **Task ID / Status:** `FE-EVENT-STATIC-001` — **DONE — IMPLEMENTED AND LOCALLY VERIFIED**, current
+  release; P0.
+- **Dependencies:** completed Landing/carousel foundation and the six audited project-owned posters.
+- **Frontend changes:** canonical static asset folder; typed localized data module; props-driven
+  `EventsSlider`; unconditional Landing placement; static empty state hides the section; future
+  dynamic feature gate renamed and limited to User/Admin surfaces.
+- **Backend/API/database/Storage/Admin changes:** none.
+- **Click behavior:** promotional-only; no detail route or legacy-post link.
+- **Acceptance Criteria / DoD:** six posters render in deterministic legacy order in EN/DE; controls,
+  autoplay, focus/hover pause and reduced-motion behavior remain accessible; an empty array removes
+  the entire section; no Event endpoint is requested; unrelated Landing/login/Admin entry behavior
+  is unchanged; targeted/full tests, typecheck, lint, formatting, build and diff check pass.
+- **Verification — 2026-10-03:** focused Event/Landing/config coverage passed 18 tests; the complete
+  frontend suite passed 72 files / 685 tests after one timing-only test was rerun cleanly; TypeScript,
+  ESLint, Prettier, production build and `git diff --check` passed. Local production-build browser
+  smoke verified EN/DE content, carousel navigation, User/Admin login routes, zero console errors and
+  zero `/api/events` or `/api/event-sliders` resource requests.
+- **Deployment checkpoint:** verify the pushed SHA on frontend staging before current-release
+  acceptance. That check neither enables the dynamic Event flag nor gives Part 27 completion credit.
+- **Next Task:** complete remaining Admin/core staging acceptance, then `ACCEPT-001`.
+
+### 28.5 Current release and post-deployment sequence
+
+1. `FE-EVENT-STATIC-001` — implement and verify the frontend-only Upcoming Events restoration.
+2. Complete the remaining Admin/core staging acceptance already required by the current release.
+3. `ACCEPT-001` — run full Buddy Matching V2 staging/regression acceptance.
+4. Deploy and accept the current release through the existing production operator gate; there is no
+   automatic production deployment in this task.
+5. After deployment, resume the untouched Part 27 chain in this exact order:
+   `EVT-005 → EVT-006 → EVT-009 → EVT-011 → EVS-005 → ADMIN-006 → ADMIN-007 → ADMIN-008 →`
+   `ADMIN-009 → FE-031 → FE-014B → EVS-007 → ACCEPT-EVENT-001`.
+
+No Part 27 task is current-release scope, and none may be marked complete because the static carousel
+ships. Any later dynamic implementation must satisfy its original API, RBAC, Storage, audit, UI and
+staging acceptance contract before the future Event flag is enabled.

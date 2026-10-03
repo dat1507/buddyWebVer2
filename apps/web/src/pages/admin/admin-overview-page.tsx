@@ -11,15 +11,15 @@ import { useTranslation } from 'react-i18next'
 
 import { Card } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { eventsLaunchEnabled } from '@/config/launch-scope'
+import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 const metrics = [
   { id: 'totalUsers', Icon: Users },
   { id: 'activeMatches', Icon: HeartHandshake },
-  ...(eventsLaunchEnabled ? [{ id: 'publishedEvents' as const, Icon: CalendarDays }] : []),
+  ...(dynamicEventsLaunchEnabled ? [{ id: 'publishedEvents' as const, Icon: CalendarDays }] : []),
   { id: 'aiQueriesToday', Icon: MessageSquare },
   { id: 'unmatchedStudents', Icon: UserRound },
-  ...(eventsLaunchEnabled ? [{ id: 'upcomingEvents' as const, Icon: CalendarClock }] : []),
+  ...(dynamicEventsLaunchEnabled ? [{ id: 'upcomingEvents' as const, Icon: CalendarClock }] : []),
 ] as const
 
 function AdminOverviewPage() {

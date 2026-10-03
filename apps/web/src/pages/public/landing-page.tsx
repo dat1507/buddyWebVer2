@@ -7,11 +7,15 @@ import { CtaSection } from '@/components/landing/cta-section'
 import { EventsSlider } from '@/components/landing/events-slider'
 import { HeroSection } from '@/components/landing/hero-section'
 import { TestimonialsMarquee } from '@/components/landing/testimonials-marquee'
-import { eventsLaunchEnabled } from '@/config/launch-scope'
+import type { EventSliderLocale } from '@/features/events/event-slider'
+import { getStaticUpcomingEvents } from '@/features/events/data/static-upcoming-events'
 
 function LandingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { state } = useLocation()
+  const eventLocale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
+  const upcomingEvents = getStaticUpcomingEvents(eventLocale)
+
   return (
     <main>
       {state?.authNotice === 'adminDenied' ? (
@@ -23,7 +27,7 @@ function LandingPage() {
         </p>
       ) : null}
       <HeroSection />
-      {eventsLaunchEnabled ? <EventsSlider /> : null}
+      <EventsSlider events={upcomingEvents} />
       <AboutSection />
       <BenefitsGrid />
       <TestimonialsMarquee />

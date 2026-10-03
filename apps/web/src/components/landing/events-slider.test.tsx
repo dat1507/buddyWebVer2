@@ -1,10 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { EventsSlider } from '@/components/landing/events-slider'
 import type { EventSlider } from '@/features/events/event-slider'
-import type { EventSliderRepository } from '@/features/events/repositories/event-slider-repository'
 import i18n from '@/i18n'
 
 const events: EventSlider[] = [
@@ -34,20 +32,8 @@ const events: EventSlider[] = [
   },
 ]
 
-function renderSlider(repository: EventSliderRepository) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  })
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <EventsSlider repository={repository} />
-    </QueryClientProvider>,
-  )
-}
-
-function repositoryReturning(result: EventSlider[]): EventSliderRepository {
-  return { listPublished: async () => result }
+function renderSlider(result: readonly EventSlider[]) {
+  return render(<EventsSlider events={result} />)
 }
 
 function setReducedMotion(matches: boolean) {
@@ -72,59 +58,46 @@ describe('EventsSlider', () => {
     await i18n.changeLanguage('en')
   })
 
-  it('shows a loading state while the repository is pending', () => {
-    renderSlider({ listPublished: () => new Promise(() => undefined) })
+  it('hides the complete section when the static dataset is empty', () => {
+    const { container } = renderSlider([])
 
-    expect(screen.getByRole('status')).toHaveTextContent('Loading upcoming events')
+    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByRole('heading', { name: 'Upcoming Events' })).not.toBeInTheDocument()
   })
 
-  it('shows the localized empty state', async () => {
-    await i18n.changeLanguage('de')
-    renderSlider(repositoryReturning([]))
+  it('has no network error or retry UI in static mode', () => {
+    renderSlider(events)
 
-    expect(
-      await screen.findByText('Derzeit gibt es keine bevorstehenden Veranstaltungen.'),
-    ).toBeVisible()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
-  it('allows a failed request to be retried', async () => {
-    let requestCount = 0
-    const repository: EventSliderRepository = {
-      listPublished: async () => {
-        requestCount += 1
-        if (requestCount === 1) throw new Error('Unavailable')
-        return events
-      },
-    }
-    renderSlider(repository)
+  it('renders typed static content and supports manual navigation', () => {
+    renderSlider(events)
 
-    expect(await screen.findByRole('alert')).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    expect((await screen.findAllByText('Welcome Day')).length).toBeGreaterThan(0)
-  })
-
-  it('renders API-shaped content and supports manual navigation', async () => {
-    renderSlider(repositoryReturning(events))
-
-    expect((await screen.findAllByText('Welcome Day')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Welcome Day').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('img', { name: 'Students at Welcome Day' }).length).toBeGreaterThan(
+      0,
+    )
     expect(screen.getByText('Event 1 of 2')).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: 'Show next event' }))
     expect(screen.getByText('Event 2 of 2')).toBeVisible()
   })
 
-  it('omits navigation controls for a single event', async () => {
-    renderSlider(repositoryReturning(events.slice(0, 1)))
+  it('omits navigation controls and detail links for one promotional card', () => {
+    renderSlider(events.slice(0, 1))
 
-    expect(await screen.findByText('Welcome Day')).toBeVisible()
+    expect(screen.getByText('Welcome Day')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Show next event' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(screen.getByText('Event 1 of 1')).toBeVisible()
   })
 
-  it('keeps manual navigation usable when reduced motion is enabled', async () => {
+  it('keeps manual navigation usable when reduced motion is enabled', () => {
     setReducedMotion(true)
-    renderSlider(repositoryReturning(events))
+    renderSlider(events)
 
-    await screen.findAllByText('Welcome Day')
+    screen.getAllByText('Welcome Day')
     const nextButton = screen.getByRole('button', { name: 'Show next event' })
     fireEvent.click(nextButton)
     expect(screen.getByText('Event 2 of 2')).toBeVisible()

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 
 import { userRoutes, type UserRoutePath } from '@/routes/user-routes'
-import { eventsLaunchEnabled } from '@/config/launch-scope'
+import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 type UserNavigationItem = {
   id: string
@@ -30,7 +30,9 @@ const definitions: readonly {
   { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
   { id: 'matching', route: 'matching', Icon: Users },
   { id: 'myBuddy', route: 'buddy', Icon: HeartHandshake },
-  ...(eventsLaunchEnabled ? [{ id: 'events', route: 'events' as const, Icon: CalendarDays }] : []),
+  ...(dynamicEventsLaunchEnabled
+    ? [{ id: 'events', route: 'events' as const, Icon: CalendarDays }]
+    : []),
   { id: 'settings', route: 'settings', Icon: Settings },
 ]
 

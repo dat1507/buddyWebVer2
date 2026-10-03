@@ -16,7 +16,10 @@ npm ci
 npm run dev
 ```
 
-The landing page uses development event fixtures by default. No backend or environment file is required for this mode. For custom settings, copy `.env.example` to `.env.local`; see the [environment reference](../../README.md#environment-variables).
+The Landing page uses typed static Upcoming Events and bundled project-owned posters in development
+and deployed builds. It makes no Event API request and needs no backend or environment file. For
+custom settings, copy `.env.example` to `.env.local`; see the
+[environment reference](../../README.md#environment-variables).
 
 ## Commands
 
@@ -38,12 +41,12 @@ environment; never expose backend secrets through a `VITE_*` variable. The API m
 through the same-site cookie topology documented in the root README before authentication can be
 accepted in staging.
 
-Production builds exclude the incomplete Event/Event Slider/Admin Event track unless
-`VITE_EVENTS_LAUNCH_ENABLED=true` is set explicitly at build time. Leave it unset for the core Buddy
-release. Development keeps the event fixtures available by default; an exact `false` disables them
-for release-like local checks. `VITE_EVENT_SLIDER_USE_MOCKS` still controls only the development
-carousel datasource. Authentication uses the configured `VITE_API_URL` in both modes; a
-missing/unavailable API displays safe feedback and permits retry.
+The static Landing carousel is current-release content and is independent of
+`VITE_EVENTS_LAUNCH_ENABLED`. That flag gates only the future API-backed User/Admin Event surfaces;
+keep it unset or `false` for the current release. `VITE_EVENT_SLIDER_USE_MOCKS` is retained only for
+post-deployment adapter development and is also ignored by the static Landing. Static Upcoming
+Events have no loading, network-error or retry state; an empty typed array hides the whole section.
+Authentication continues to use the configured `VITE_API_URL` and its existing safe failure flows.
 
 ## In-memory session store (AUTH-004)
 
@@ -546,29 +549,29 @@ is performed by ADMIN-004; direct-to-main workflow continues.
 
 ## Source entry points
 
-| Path                                    | Responsibility                                                        |
-| --------------------------------------- | --------------------------------------------------------------------- |
-| `src/main.tsx`                          | React mount, router, query provider, and localization initialization  |
-| `src/App.tsx`                           | Public, student, and administrator route definitions                  |
-| `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata    |
-| `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery     |
-| `src/routes/admin-routes.ts`            | Canonical Admin module routes and localized navigation descriptors    |
-| `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                  |
-| `src/components/ui/data-table.tsx`      | Generic client-side table and localized accessible controls           |
-| `src/components/ui/data-table-model.ts` | Typed columns, immutable search/filter/sort processing and page sizes |
-| `src/components/landing/`               | Landing sections, carousel, and demo dialog                           |
-| `src/pages/public/`                     | Landing and authentication forms                                      |
-| `src/pages/admin/`                      | Guarded Admin pages, including overview stats placeholders            |
-| `src/features/events/`                  | Event schema, API/mock repositories, and query hook                   |
-| `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types              |
-| `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions               |
-| `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination       |
-| `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                           |
-| `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                       |
-| `src/features/auth/role-guard.tsx`      | Exact-role outlet gating and fixed public wrong-role redirect         |
-| `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                    |
-| `src/i18n.ts` and `src/locales/`        | English/German localization                                           |
-| `src/test/setup.ts`                     | Test environment setup; test files are colocated with source          |
+| Path                                    | Responsibility                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| `src/main.tsx`                          | React mount, router, query provider, and localization initialization     |
+| `src/App.tsx`                           | Public, student, and administrator route definitions                     |
+| `src/routes/user-routes.ts`             | Student route components/placeholders and shared delivery metadata       |
+| `src/routes/user-navigation.ts`         | Scoped sidebar items and availability derived from route delivery        |
+| `src/routes/admin-routes.ts`            | Canonical Admin module routes and localized navigation descriptors       |
+| `src/components/layout/`                | Navbar, footer, language toggle, and layout wrappers                     |
+| `src/components/ui/data-table.tsx`      | Generic client-side table and localized accessible controls              |
+| `src/components/ui/data-table-model.ts` | Typed columns, immutable search/filter/sort processing and page sizes    |
+| `src/components/landing/`               | Landing sections, carousel, and demo dialog                              |
+| `src/pages/public/`                     | Landing and authentication forms                                         |
+| `src/pages/admin/`                      | Guarded Admin pages, including overview stats placeholders               |
+| `src/features/events/`                  | Static launch content plus deferred API/mock repositories and query hook |
+| `src/features/auth/session-user.ts`     | Sanitized session User validation and readonly DTO types                 |
+| `src/stores/auth-store.ts`              | Non-persisted status/user/role state and atomic actions                  |
+| `src/features/auth/session-client.ts`   | CSRF, bootstrap, refresh, login/logout and account coordination          |
+| `src/features/auth/private-cache.ts`    | Targeted private-query cancellation/removal                              |
+| `src/features/auth/protected-route.tsx` | Pending/authenticated/anonymous outlet behavior                          |
+| `src/features/auth/role-guard.tsx`      | Exact-role outlet gating and fixed public wrong-role redirect            |
+| `src/lib/api.ts`                        | Credentialed JSON/CSRF client using `VITE_API_URL`                       |
+| `src/i18n.ts` and `src/locales/`        | English/German localization                                              |
+| `src/test/setup.ts`                     | Test environment setup; test files are colocated with source             |
 
 The `@/` alias resolves to `src/`. Tests run through `vitest.config.ts`; the build uses `vite.config.ts`. ESLint and Prettier are the configured lint/format tools.
 

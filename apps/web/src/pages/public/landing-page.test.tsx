@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PublicLayout } from '@/components/layout/public-layout'
 import { LandingPage } from '@/pages/public/landing-page'
@@ -27,7 +27,20 @@ function renderLandingPage() {
 
 describe('LandingPage (FE-019 Assembly)', () => {
   beforeEach(async () => {
+    vi.restoreAllMocks()
     await i18n.changeLanguage('en')
+  })
+
+  it('renders static Upcoming Events without calling an Event API', () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+
+    renderLandingPage()
+
+    expect(screen.getByRole('heading', { level: 2, name: 'Upcoming Events' })).toBeVisible()
+    expect(screen.getAllByText('Halloween').length).toBeGreaterThan(0)
+    expect(fetchSpy).not.toHaveBeenCalled()
+    expect(screen.queryByText('Upcoming events could not be loaded.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
   })
 
   it('renders all 6 landing sections in the correct sequence within <main>', () => {

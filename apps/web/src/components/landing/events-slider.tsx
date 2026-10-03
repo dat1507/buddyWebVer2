@@ -5,14 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import type { EventSlider, EventSliderLocale } from '@/features/events/event-slider'
-import { useEventSliders } from '@/features/events/queries/use-event-sliders'
-import type { EventSliderRepository } from '@/features/events/repositories/event-slider-repository'
 import { cn } from '@/lib/utils'
 
 const autoplayDelay = 3_000
 
 interface EventsSliderProps {
-  repository?: EventSliderRepository
+  events: readonly EventSlider[]
 }
 
 interface CarouselSlide {
@@ -130,7 +128,13 @@ function EventSlide({
   )
 }
 
-function EventCarousel({ events, locale }: { events: EventSlider[]; locale: EventSliderLocale }) {
+function EventCarousel({
+  events,
+  locale,
+}: {
+  events: readonly EventSlider[]
+  locale: EventSliderLocale
+}) {
   const { t } = useTranslation()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [slideIndex, setSlideIndex] = useState(events.length > 1 ? 1 : 0)
@@ -273,10 +277,11 @@ function EventCarousel({ events, locale }: { events: EventSlider[]; locale: Even
   )
 }
 
-function EventsSlider({ repository }: EventsSliderProps) {
+function EventsSlider({ events }: EventsSliderProps) {
   const { t, i18n } = useTranslation()
   const locale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
-  const { data: events, error, isPending, refetch } = useEventSliders(locale, repository)
+
+  if (events.length === 0) return null
 
   return (
     <section
@@ -293,38 +298,11 @@ function EventsSlider({ repository }: EventsSliderProps) {
           </Typography>
         </div>
 
-        {isPending ? (
-          <div
-            className="mx-auto aspect-[5/4] w-full max-w-4xl animate-pulse rounded-2xl border border-white/10 bg-zinc-900 motion-reduce:animate-none"
-            role="status"
-          >
-            <span className="sr-only">{t('stats.loading')}</span>
-          </div>
-        ) : error ? (
-          <div
-            className="mx-auto max-w-xl rounded-2xl border border-red-500/30 bg-red-950/20 p-8 text-center"
-            role="alert"
-          >
-            <p className="text-base text-zinc-200">{t('stats.error')}</p>
-            <Button className="mt-5" type="button" variant="outline" onClick={() => void refetch()}>
-              {t('stats.retry')}
-            </Button>
-          </div>
-        ) : events.length === 0 ? (
-          <div
-            className="mx-auto max-w-xl rounded-2xl border border-white/10 bg-black/30 p-8 text-center"
-            role="status"
-          >
-            <CalendarDays aria-hidden="true" className="mx-auto size-10 text-orange-500" />
-            <p className="mt-4 text-base text-zinc-300">{t('stats.empty')}</p>
-          </div>
-        ) : (
-          <EventCarousel
-            key={events.map((event) => event.id).join(':')}
-            events={events}
-            locale={locale}
-          />
-        )}
+        <EventCarousel
+          key={events.map((event) => event.id).join(':')}
+          events={events}
+          locale={locale}
+        />
       </div>
     </section>
   )

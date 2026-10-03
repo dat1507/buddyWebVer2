@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { eventsLaunchEnabled } from '@/config/launch-scope'
 
 /**
  * The six benefit cards are informational only.
@@ -26,10 +25,6 @@ const benefits = [
   { key: 'global', icon: Building2 },
 ] as const
 
-const launchBenefits = eventsLaunchEnabled
-  ? benefits
-  : benefits.filter(({ key }) => key !== 'events')
-
 function BenefitsGrid() {
   const { t } = useTranslation()
 
@@ -50,7 +45,7 @@ function BenefitsGrid() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {launchBenefits.map(({ key, icon: Icon }) => (
+          {benefits.map(({ key, icon: Icon }) => (
             <Card
               key={key}
               className="group border-white/10 bg-zinc-900/70 shadow-lg transition-[border-color,box-shadow] duration-300 ease-out hover:border-vgu-orange/50 hover:shadow-[0_8px_30px_rgba(255,103,13,0.12)] motion-reduce:transition-none"

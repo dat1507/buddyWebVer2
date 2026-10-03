@@ -14,8 +14,8 @@ matching workflow are still under active development.
 
 Implemented:
 
-- Responsive EN/DE public landing page, navigation, development event carousel, and accessible demo
-  dialog.
+- Responsive EN/DE public landing page, navigation, bundled static Upcoming Events carousel, and
+  accessible demo dialog.
 - API-connected registration, User/Admin login, session bootstrap/refresh/logout, protected routes,
   exact-role guards, and private-query cleanup.
 - Backend-owned bcrypt passwords, rotating JWT cookie sessions, signed double-submit CSRF,
@@ -102,7 +102,8 @@ npm ci
 npm run dev
 ```
 
-The development event fixtures work without a backend. Copy `apps/web/.env.example` to an ignored
+The current-launch Upcoming Events carousel uses typed, bundled frontend content in every
+environment and makes no Event API request. Copy `apps/web/.env.example` to an ignored
 `apps/web/.env.local` only when local overrides are needed.
 
 ### Backend
@@ -176,10 +177,11 @@ the local runtime-role password.
 
 Committed templates:
 
-- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder,
-  development event-fixture flag, and the explicit Event-track launch opt-in. Production excludes
-  the unfinished Event/Event Slider/Admin Event surfaces unless
-  `VITE_EVENTS_LAUNCH_ENABLED=true` is deliberately configured at build time.
+- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
+  dormant post-deployment dynamic Event settings. The static Landing carousel ignores both Event
+  variables and is part of the current release. `VITE_EVENTS_LAUNCH_ENABLED` gates only future
+  API-backed User/Admin Event surfaces; keep it `false` until the deferred Part 27 work and
+  `ACCEPT-EVENT-001` are complete.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
   URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 
