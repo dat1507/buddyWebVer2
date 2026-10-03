@@ -209,7 +209,10 @@ async def test_activation_creates_one_active_match_without_committing() -> None:
     scalar_statements = [str(call.args[0]).lower() for call in mock.scalar.await_args_list]
     assert "for update" not in scalar_statements[0]
     assert "for update" in scalar_statements[1]
-    assert "for update" in scalar_statements[2]
+    # The canonical USER/profile locks serialize activations for this pair. Keep
+    # the immutable Match existence probe read-only so the runtime role does not
+    # need UPDATE privilege merely to execute SELECT ... FOR UPDATE.
+    assert "for update" not in scalar_statements[2]
     mock.add.assert_called_once_with(result)
     mock.flush.assert_awaited_once()
     mock.commit.assert_not_called()

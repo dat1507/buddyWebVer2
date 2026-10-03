@@ -143,13 +143,11 @@ async def _active_pair_exists(
 ) -> bool:
     pair_low, pair_high = canonical_user_pair(first_user_id, second_user_id)
     match_id = await session.scalar(
-        select(BuddyMatch.id)
-        .where(
+        select(BuddyMatch.id).where(
             BuddyMatch.pair_low_user_id == pair_low,
             BuddyMatch.pair_high_user_id == pair_high,
             BuddyMatch.status == MatchStatus.ACTIVE,
         )
-        .with_for_update()
     )
     return match_id is not None
 
