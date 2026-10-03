@@ -96,6 +96,22 @@ class BuddyReadAcknowledgement:
     marked_read_count: int
 
 
+@dataclass(frozen=True, slots=True)
+class BuddyUnreadConversation:
+    """Authoritative unread count for one ACTIVE Buddy conversation."""
+
+    conversation_id: UUID
+    unread_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class BuddyUnreadSummary:
+    """Private unread totals derived only from effective persisted messages."""
+
+    conversations: tuple[BuddyUnreadConversation, ...]
+    total_unread_messages: int
+
+
 def _system_utc_now() -> datetime:
     return datetime.now(UTC)
 
@@ -170,6 +186,67 @@ async def authorize_buddy_conversation(
         session,
         conversation_id=conversation_id,
         authenticated_user_id=authenticated_user_id,
+    )
+
+
+async def list_active_buddy_conversation_ids(
+    session: AsyncSession,
+    *,
+    authenticated_user_id: UUID,
+) -> tuple[UUID, ...]:
+    """Return every conversation the current USER may receive realtime events for."""
+    return tuple(
+        (
+            await session.scalars(
+                select(BuddyConversation.id)
+                .join(BuddyMatch, BuddyMatch.id == BuddyConversation.match_id)
+                .where(
+                    BuddyMatch.status == MatchStatus.ACTIVE,
+                    BuddyMatch.deleted_at.is_(None),
+                    or_(
+                        BuddyMatch.participant_one_user_id == authenticated_user_id,
+                        BuddyMatch.participant_two_user_id == authenticated_user_id,
+                    ),
+                )
+                .order_by(BuddyConversation.id)
+            )
+        ).all()
+    )
+
+
+async def get_buddy_unread_summary(
+    session: AsyncSession,
+    *,
+    authenticated_user_id: UUID,
+    clock: Clock = _system_utc_now,
+) -> BuddyUnreadSummary:
+    """Count effective unread incoming messages across authoritative ACTIVE Matches."""
+    now = _utc_now(clock)
+    result = await session.execute(
+        select(BuddyConversation.id, func.count(BuddyMessage.id))
+        .join(BuddyMatch, BuddyMatch.id == BuddyConversation.match_id)
+        .join(BuddyMessage, BuddyMessage.conversation_id == BuddyConversation.id)
+        .where(
+            BuddyMatch.status == MatchStatus.ACTIVE,
+            BuddyMatch.deleted_at.is_(None),
+            or_(
+                BuddyMatch.participant_one_user_id == authenticated_user_id,
+                BuddyMatch.participant_two_user_id == authenticated_user_id,
+            ),
+            BuddyMessage.sender_id != authenticated_user_id,
+            BuddyMessage.read_at.is_(None),
+            BuddyMessage.expires_at > now,
+        )
+        .group_by(BuddyConversation.id)
+        .order_by(BuddyConversation.id)
+    )
+    conversations = tuple(
+        BuddyUnreadConversation(conversation_id=conversation_id, unread_count=int(unread_count))
+        for conversation_id, unread_count in result.tuples().all()
+    )
+    return BuddyUnreadSummary(
+        conversations=conversations,
+        total_unread_messages=sum(item.unread_count for item in conversations),
     )
 
 

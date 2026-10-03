@@ -5,6 +5,8 @@ import {
   countChatCodePoints,
   isValidChatBody,
   mergeChatMessages,
+  parseChatUnreadSummary,
+  parseChatUnreadWebSocketEvent,
   parseChatMessagePage,
   parseChatWebSocketEvent,
 } from '@/features/chat/chat'
@@ -76,5 +78,37 @@ describe('CHAT-004 frontend contracts', () => {
       }),
     ).toThrow(ApiError)
     expect(() => parseChatWebSocketEvent({ type: 'typing.started' })).toThrow(ApiError)
+  })
+
+  it('validates authoritative unread totals and content-free realtime hints', () => {
+    const conversationId = '20000000-0000-4000-8000-000000000001'
+    expect(
+      parseChatUnreadSummary({
+        total_unread_messages: 2,
+        conversations: [{ conversation_id: conversationId, unread_count: 2 }],
+      }),
+    ).toEqual({
+      total_unread_messages: 2,
+      conversations: [{ conversation_id: conversationId, unread_count: 2 }],
+    })
+    expect(() =>
+      parseChatUnreadSummary({
+        total_unread_messages: 3,
+        conversations: [{ conversation_id: conversationId, unread_count: 2 }],
+      }),
+    ).toThrow(ApiError)
+    expect(
+      parseChatUnreadWebSocketEvent({
+        type: 'chat.unread.changed',
+        recovery: 'unread-summary',
+      }),
+    ).toEqual({ type: 'chat.unread.changed', recovery: 'unread-summary' })
+    expect(() =>
+      parseChatUnreadWebSocketEvent({
+        type: 'chat.unread.changed',
+        recovery: 'unread-summary',
+        unread_count: 2,
+      }),
+    ).toThrow(ApiError)
   })
 })

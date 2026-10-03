@@ -69,6 +69,10 @@ describe('FE-023 profile-aware User Dashboard', () => {
       'href',
       '/user/matching',
     )
+    expect(screen.getByRole('link', { name: 'View my Buddies' })).toHaveAttribute(
+      'href',
+      '/user/buddy',
+    )
     expect(screen.getByRole('link', { name: 'Explore events' })).toHaveAttribute(
       'href',
       '/user/events',

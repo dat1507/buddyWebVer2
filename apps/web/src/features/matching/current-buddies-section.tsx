@@ -13,6 +13,8 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { UnreadBadge } from '@/components/ui/unread-badge'
+import { unreadCountForConversation, useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import { currentBuddyPath } from '@/features/matching/current-buddy'
 import type { CurrentBuddy } from '@/features/matching/current-buddy'
 import {
@@ -35,10 +37,12 @@ function CurrentBuddyCard({
   currentBuddy,
   focused,
   locale,
+  unreadCount,
 }: {
   currentBuddy: CurrentBuddy
   focused: boolean
   locale: CatalogLocale
+  unreadCount: number
 }) {
   const { t } = useTranslation()
   const titleId = useId()
@@ -69,6 +73,10 @@ function CurrentBuddyCard({
               <CardTitle id={titleId} className="break-words">
                 {name}
               </CardTitle>
+              <UnreadBadge
+                count={unreadCount}
+                label={t('chat.unreadMessages', { count: unreadCount })}
+              />
               <CardDescription>
                 {currentBuddy.buddy.student_type
                   ? t(`recommendedBuddies.studentTypes.${currentBuddy.buddy.student_type}`)
@@ -167,6 +175,7 @@ function CurrentBuddiesSection({
   targetConversationId: string | null
 }) {
   const { t } = useTranslation()
+  const { summary: unreadSummary } = useBuddyUnread()
   const {
     data,
     error,
@@ -270,6 +279,7 @@ function CurrentBuddiesSection({
               currentBuddy={currentBuddy}
               focused={currentBuddy.conversation_id === targetConversationId}
               locale={locale}
+              unreadCount={unreadCountForConversation(unreadSummary, currentBuddy.conversation_id)}
             />
           ))}
         </div>

@@ -822,6 +822,11 @@
       "finishProfile": "Finish profile"
     },
     "actionsTitle": "Continue your Buddy journey",
+    "myBuddy": {
+      "title": "My Buddy",
+      "description": "View every active Buddy and open the existing private conversation.",
+      "open": "View my Buddies"
+    },
     "matching": {
       "title": "Buddy matching",
       "readyDescription": "Your profile is eligible to enter the matching experience.",
@@ -907,6 +912,11 @@
     "page": "Page {{page}} of {{totalPages}}",
     "end": "You have reached the end of the current recommendations."
   },
+  "myBuddy": {
+    "eyebrow": "Your Buddy connections",
+    "title": "My Buddies",
+    "subtitle": "Choose an active Buddy to open your existing private conversation."
+  },
   "currentBuddies": {
     "title": "Current Buddies",
     "subtitle": "Your active Buddy relationships, profile details and saved compatibility snapshots.",
@@ -933,6 +943,8 @@
   "chat": {
     "title": "Buddy chat",
     "subtitle": "A private plain-text conversation with your current Buddy.",
+    "unreadMessages_one": "{{count}} unread Buddy message",
+    "unreadMessages_other": "{{count}} unread Buddy messages",
     "backToBuddies": "Back to Current Buddies",
     "loading": "Loading conversation history…",
     "loadOlder": "Load older messages",

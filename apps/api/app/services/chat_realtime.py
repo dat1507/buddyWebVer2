@@ -73,9 +73,9 @@ async def _close_pubsub(pubsub: PubSub) -> None:
 class ChatRedisSubscription:
     """One bounded-pull Redis subscription owned by exactly one socket."""
 
-    def __init__(self, pubsub: PubSub, channel: str) -> None:
+    def __init__(self, pubsub: PubSub, channels: tuple[str, ...]) -> None:
         self._pubsub = pubsub
-        self._channel = channel
+        self._channels = channels
         self._closed = False
 
     async def next_notification(self) -> ChatRedisNotification:
@@ -90,7 +90,7 @@ class ChatRedisSubscription:
             channel = raw.get("channel")
             if isinstance(channel, bytes):
                 channel = channel.decode("utf-8", errors="ignore")
-            if channel != self._channel:
+            if channel not in self._channels:
                 continue
             data = raw.get("data")
             if isinstance(data, str):
@@ -118,7 +118,7 @@ class ChatRedisSubscription:
             return
         self._closed = True
         with suppress(RedisError):
-            await self._pubsub.unsubscribe(self._channel)
+            await self._pubsub.unsubscribe(*self._channels)
         with suppress(RedisError):
             await _close_pubsub(self._pubsub)
 
@@ -131,14 +131,26 @@ class ChatRealtimeTransport:
         self._key_prefix = key_prefix
 
     async def subscribe(self, conversation_id: UUID) -> ChatRedisSubscription:
-        channel = _conversation_channel(self._key_prefix, conversation_id)
+        return await self.subscribe_many((conversation_id,))
+
+    async def subscribe_many(
+        self,
+        conversation_ids: tuple[UUID, ...],
+    ) -> ChatRedisSubscription:
+        """Subscribe once to a verified USER's bounded ACTIVE conversation set."""
+        channels = tuple(
+            _conversation_channel(self._key_prefix, conversation_id)
+            for conversation_id in dict.fromkeys(conversation_ids)
+        )
+        if not channels:
+            raise ValueError("At least one Buddy conversation is required.")
         pubsub = self._redis.pubsub(ignore_subscribe_messages=True)
         try:
-            await pubsub.subscribe(channel)
+            await pubsub.subscribe(*channels)
         except Exception:
             await _close_pubsub(pubsub)
             raise
-        return ChatRedisSubscription(pubsub, channel)
+        return ChatRedisSubscription(pubsub, channels)
 
     async def publish_committed(
         self,

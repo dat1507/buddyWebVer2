@@ -27,6 +27,8 @@ from app.core.rate_limits import (
     check_websocket_send_rate_limit,
 )
 from app.schemas.chat import (
+    ChatUnreadWebSocketChangedEvent,
+    ChatUnreadWebSocketReadyEvent,
     ChatWebSocketErrorEvent,
     ChatWebSocketMessageEvent,
     ChatWebSocketReadyEvent,
@@ -41,6 +43,7 @@ from app.services.buddy_chat import (
     BuddyMessagePersistenceReason,
     authorize_buddy_conversation,
     get_realtime_buddy_message,
+    list_active_buddy_conversation_ids,
     send_buddy_message,
 )
 from app.services.chat_realtime import (
@@ -252,6 +255,135 @@ async def _close_if_connected(websocket: WebSocket, closure: _SocketClosure) -> 
             await websocket.close(code=closure.code, reason=closure.reason)
         except RuntimeError:
             pass
+
+
+async def _wait_for_notification_client(websocket: WebSocket) -> None:
+    """Keep the receive side bounded and reject client-authored notification events."""
+    message = await websocket.receive()
+    if message["type"] == "websocket.disconnect":
+        raise WebSocketDisconnect(
+            code=int(message.get("code", status.WS_1000_NORMAL_CLOSURE)),
+            reason=str(message.get("reason", "")),
+        )
+    raise _SocketClosure(_POLICY_CLOSE, "CHAT_NOTIFICATION_EVENTS_READ_ONLY")
+
+
+async def _forward_unread_changes(
+    *,
+    websocket: WebSocket,
+    sender: _SocketSender,
+    subscription: ChatRedisSubscription,
+    session_factory: async_sessionmaker[AsyncSession],
+    auth_settings: AuthTokenSettings,
+) -> None:
+    while True:
+        await subscription.next_notification()
+        try:
+            async with session_factory() as session:
+                await authenticate_verified_buddy_websocket(websocket, auth_settings, session)
+        except WebSocketException as error:
+            raise _as_socket_closure(error) from None
+        await sender.send(ChatUnreadWebSocketChangedEvent())
+
+
+@router.websocket("/notifications")
+async def chat_unread_notifications_websocket(
+    websocket: WebSocket,
+    principal: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_chat_websocket),
+    ],
+    session_factory: Annotated[
+        async_sessionmaker[AsyncSession],
+        Depends(get_session_factory),
+    ],
+    auth_settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+    transport: Annotated[ChatRealtimeTransport, Depends(get_chat_realtime_transport)],
+) -> None:
+    """Signal unread changes without making Redis or WebSocket authoritative."""
+    try:
+        await check_websocket_connection_rate_limit(websocket)
+        async with session_factory() as session:
+            conversation_ids = await list_active_buddy_conversation_ids(
+                session,
+                authenticated_user_id=principal.user.id,
+            )
+    except RateLimitExceeded:
+        raise WebSocketException(code=_POLICY_CLOSE, reason="CHAT_RATE_LIMITED") from None
+    except RateLimitUnavailable:
+        raise WebSocketException(
+            code=_UNAVAILABLE_CLOSE,
+            reason="CHAT_REALTIME_UNAVAILABLE",
+        ) from None
+
+    subscription: ChatRedisSubscription | None = None
+    if conversation_ids:
+        try:
+            subscription = await transport.subscribe_many(conversation_ids)
+        except RedisError:
+            raise WebSocketException(
+                code=_UNAVAILABLE_CLOSE,
+                reason="CHAT_REALTIME_UNAVAILABLE",
+            ) from None
+
+    sender = _SocketSender(websocket)
+    tasks: set[asyncio.Task[None]] = set()
+    closure: _SocketClosure | None = None
+    accepted = False
+    try:
+        await websocket.accept()
+        accepted = True
+        await sender.send(ChatUnreadWebSocketReadyEvent())
+        tasks.add(asyncio.create_task(_wait_for_notification_client(websocket)))
+        if subscription is not None:
+            tasks.add(
+                asyncio.create_task(
+                    _forward_unread_changes(
+                        websocket=websocket,
+                        sender=sender,
+                        subscription=subscription,
+                        session_factory=session_factory,
+                        auth_settings=auth_settings,
+                    )
+                )
+            )
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        for task in pending:
+            task.cancel()
+        await asyncio.gather(*pending, return_exceptions=True)
+        for task in done:
+            try:
+                task.result()
+            except asyncio.CancelledError:
+                pass
+            except WebSocketDisconnect:
+                pass
+            except _SocketClosure as error:
+                closure = error
+            except RedisError:
+                closure = _SocketClosure(_UNAVAILABLE_CLOSE, "CHAT_REALTIME_UNAVAILABLE")
+            except Exception:
+                closure = _SocketClosure(
+                    status.WS_1011_INTERNAL_ERROR,
+                    "CHAT_REALTIME_INTERNAL_ERROR",
+                )
+    except WebSocketDisconnect:
+        pass
+    finally:
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        if subscription is not None:
+            await subscription.close()
+        if closure is not None:
+            await _close_if_connected(websocket, closure)
+        if accepted:
+            emit_chat_realtime_event(
+                lifecycle="disconnected",
+                close_code=(closure.code if closure is not None else status.WS_1000_NORMAL_CLOSURE),
+            )
 
 
 @router.websocket("/{conversation_id}")

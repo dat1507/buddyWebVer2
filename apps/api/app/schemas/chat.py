@@ -50,6 +50,24 @@ class ChatReadRequest(BaseModel):
     through_message_id: UUID
 
 
+class ChatUnreadConversationResponse(BaseModel):
+    """Unread count for one authorized conversation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    conversation_id: UUID
+    unread_count: int = Field(ge=1)
+
+
+class ChatUnreadSummaryResponse(BaseModel):
+    """Recoverable aggregate backed by persisted message read state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    total_unread_messages: int = Field(ge=0)
+    conversations: list[ChatUnreadConversationResponse]
+
+
 class ChatWebSocketSendEvent(BaseModel):
     """The only client-authored realtime event accepted by CHAT-003."""
 
@@ -67,6 +85,24 @@ class ChatWebSocketReadyEvent(BaseModel):
 
     type: Literal["chat.ready"] = "chat.ready"
     recovery: Literal["history"] = "history"
+
+
+class ChatUnreadWebSocketReadyEvent(BaseModel):
+    """Confirms workspace notification coverage while naming REST recovery."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.unread.ready"] = "chat.unread.ready"
+    recovery: Literal["unread-summary"] = "unread-summary"
+
+
+class ChatUnreadWebSocketChangedEvent(BaseModel):
+    """A content-free hint to reconcile authoritative unread state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["chat.unread.changed"] = "chat.unread.changed"
+    recovery: Literal["unread-summary"] = "unread-summary"
 
 
 class ChatWebSocketMessageEvent(BaseModel):

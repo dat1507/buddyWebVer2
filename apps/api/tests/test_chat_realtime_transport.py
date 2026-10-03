@@ -87,3 +87,23 @@ async def test_subscription_filters_untrusted_payload_and_releases_only_pubsub()
     pubsub.unsubscribe.assert_awaited_once_with(CHANNEL)
     pubsub.aclose.assert_awaited_once()
     redis.aclose.assert_not_called()
+
+
+@pytest.mark.anyio
+async def test_workspace_subscription_reuses_one_pubsub_for_unique_conversations() -> None:
+    second = UUID("10000000-0000-4000-8000-000000000002")
+    pubsub = MagicMock()
+    pubsub.subscribe = AsyncMock()
+    pubsub.unsubscribe = AsyncMock()
+    pubsub.aclose = AsyncMock()
+    redis = MagicMock(spec=Redis)
+    redis.pubsub.return_value = pubsub
+    transport = ChatRealtimeTransport(cast(Redis, redis), PREFIX)
+
+    subscription = await transport.subscribe_many((CONVERSATION_ID, second, CONVERSATION_ID))
+    await subscription.close()
+
+    expected = (CHANNEL, f"{PREFIX}:chat:{{{second.hex}}}:events:v1")
+    pubsub.subscribe.assert_awaited_once_with(*expected)
+    pubsub.unsubscribe.assert_awaited_once_with(*expected)
+    pubsub.aclose.assert_awaited_once()

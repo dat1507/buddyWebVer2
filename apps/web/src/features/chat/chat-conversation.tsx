@@ -18,6 +18,7 @@ import { Typography } from '@/components/ui/typography'
 import { CHAT_MESSAGE_MAX_CODE_POINTS, countChatCodePoints } from '@/features/chat/chat'
 import type { ChatMessage } from '@/features/chat/chat'
 import type { PendingChatMessage } from '@/features/chat/use-chat-conversation'
+import { currentBuddiesDestination } from '@/features/matching/current-buddy'
 import { useChatConversation } from '@/features/chat/use-chat-conversation'
 import { cn } from '@/lib/utils'
 
@@ -171,7 +172,7 @@ function ChatConversation({ conversationId, userId }: { conversationId: string; 
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline">
-              <Link to="/user/matching#current-buddies">
+              <Link to={currentBuddiesDestination(null)}>
                 <ArrowLeft aria-hidden="true" />
                 {t('chat.backToBuddies')}
               </Link>
@@ -208,7 +209,7 @@ function ChatConversation({ conversationId, userId }: { conversationId: string; 
               {t('chat.loadError.retry')}
             </Button>
             <Button asChild variant="outline">
-              <Link to="/user/matching#current-buddies">{t('chat.backToBuddies')}</Link>
+              <Link to={currentBuddiesDestination(null)}>{t('chat.backToBuddies')}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -221,7 +222,7 @@ function ChatConversation({ conversationId, userId }: { conversationId: string; 
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <Button asChild variant="outline" size="sm" className="mb-3">
-            <Link to="/user/matching#current-buddies">
+            <Link to={currentBuddiesDestination(null)}>
               <ArrowLeft aria-hidden="true" />
               {t('chat.backToBuddies')}
             </Link>

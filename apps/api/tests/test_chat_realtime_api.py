@@ -148,6 +148,13 @@ class _FakeTransport:
         self.subscriptions.setdefault(conversation_id, []).append(subscription)
         return subscription
 
+    async def subscribe_many(
+        self,
+        conversation_ids: tuple[UUID, ...],
+    ) -> _FakeSubscription:
+        assert len(conversation_ids) == 1
+        return await self.subscribe(conversation_ids[0])
+
     async def publish_committed(
         self,
         *,
@@ -276,6 +283,13 @@ def _installed_route(
     async def no_rate_limit(*_args: object) -> None:
         return None
 
+    async def active_conversations(
+        _session: AsyncSession,
+        *,
+        authenticated_user_id: UUID,
+    ) -> tuple[UUID, ...]:
+        return (CONVERSATION_ID,) if authenticated_user_id in {USER_A_ID, USER_B_ID} else ()
+
     app.dependency_overrides[get_session_factory] = lambda: cast(
         async_sessionmaker[AsyncSession], factory
     )
@@ -293,6 +307,7 @@ def _installed_route(
     monkeypatch.setattr(chat_ws, "authorize_buddy_conversation", authorize)
     monkeypatch.setattr(chat_ws, "send_buddy_message", persist)
     monkeypatch.setattr(chat_ws, "get_realtime_buddy_message", load)
+    monkeypatch.setattr(chat_ws, "list_active_buddy_conversation_ids", active_conversations)
     monkeypatch.setattr(chat_ws, "check_websocket_connection_rate_limit", no_rate_limit)
     monkeypatch.setattr(chat_ws, "check_websocket_send_rate_limit", no_rate_limit)
     try:
@@ -307,6 +322,37 @@ def _receive_types(socket: object, count: int) -> dict[str, dict[str, object]]:
         event = socket.receive_json()  # type: ignore[attr-defined]
         received[cast(str, event["type"])] = cast(dict[str, object], event)
     return received
+
+
+def test_workspace_unread_socket_emits_content_free_reconcile_hint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    order: list[str] = []
+    messages: dict[UUID, BuddyMessage] = {}
+    transport = _FakeTransport(order)
+    with _installed_route(
+        monkeypatch,
+        transport=transport,
+        order=order,
+        messages=messages,
+    ):
+        with TestClient(app) as client:
+            headers = {"origin": TRUSTED_ORIGIN, "cookie": _cookie("a")}
+            with client.websocket_connect("/api/ws/chat/notifications", headers=headers) as socket:
+                assert socket.receive_json() == {
+                    "type": "chat.unread.ready",
+                    "recovery": "unread-summary",
+                }
+                asyncio.run(
+                    transport.publish_committed(
+                        conversation_id=CONVERSATION_ID,
+                        message_id=uuid4(),
+                    )
+                )
+                assert socket.receive_json() == {
+                    "type": "chat.unread.changed",
+                    "recovery": "unread-summary",
+                }
 
 
 def test_websocket_two_participant_fanout_is_safe_idempotent_and_isolated(

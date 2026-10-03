@@ -31,6 +31,8 @@ from app.services.buddy_chat import (
     BuddyMessagePage,
     BuddyMessagePersistenceError,
     BuddyMessagePersistenceReason,
+    BuddyUnreadConversation,
+    BuddyUnreadSummary,
 )
 from app.services.csrf import CsrfTokenClaims
 from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
@@ -103,6 +105,41 @@ def _install(*, csrf: bool = True) -> tuple[MagicMock, AsyncSession, VerifiedBud
     if csrf:
         app.dependency_overrides[require_session_csrf] = lambda: cast(CsrfTokenClaims, MagicMock())
     return mock, session, principal
+
+
+@pytest.mark.anyio
+async def test_unread_summary_is_private_authoritative_and_owner_derived(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock, session, principal = _install()
+    service = AsyncMock(
+        return_value=BuddyUnreadSummary(
+            conversations=(
+                BuddyUnreadConversation(
+                    conversation_id=CONVERSATION_ID,
+                    unread_count=2,
+                ),
+            ),
+            total_unread_messages=2,
+        )
+    )
+    monkeypatch.setattr(chat_api, "get_buddy_unread_summary", service)
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get("/api/chat/unread-summary")
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "private, no-store"
+    assert response.json() == {
+        "total_unread_messages": 2,
+        "conversations": [{"conversation_id": str(CONVERSATION_ID), "unread_count": 2}],
+    }
+    assert str(USER_ID) not in response.text
+    assert "email" not in response.text
+    service.assert_awaited_once_with(session, authenticated_user_id=principal.user.id)
+    mock.commit.assert_not_awaited()
 
 
 @pytest.mark.anyio

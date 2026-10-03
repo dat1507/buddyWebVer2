@@ -63,9 +63,41 @@ const chatWebSocketEventSchema = z.discriminatedUnion('type', [
     .strict(),
 ])
 
+const chatUnreadSummarySchema = z
+  .object({
+    total_unread_messages: z.number().int().min(0),
+    conversations: z.array(
+      z
+        .object({
+          conversation_id: z.string().uuid(),
+          unread_count: z.number().int().min(1),
+        })
+        .strict(),
+    ),
+  })
+  .strict()
+  .superRefine((summary, context) => {
+    const ids = summary.conversations.map(({ conversation_id: id }) => id)
+    const total = summary.conversations.reduce((sum, item) => sum + item.unread_count, 0)
+    if (new Set(ids).size !== ids.length || total !== summary.total_unread_messages) {
+      context.addIssue({ code: 'custom', message: 'Inconsistent unread chat summary.' })
+    }
+  })
+
+const chatUnreadWebSocketEventSchema = z.discriminatedUnion('type', [
+  z
+    .object({ type: z.literal('chat.unread.ready'), recovery: z.literal('unread-summary') })
+    .strict(),
+  z
+    .object({ type: z.literal('chat.unread.changed'), recovery: z.literal('unread-summary') })
+    .strict(),
+])
+
 type ChatMessage = Readonly<z.infer<typeof chatMessageSchema>>
 type ChatMessagePage = Readonly<z.infer<typeof chatMessagePageSchema>>
 type ChatWebSocketEvent = Readonly<z.infer<typeof chatWebSocketEventSchema>>
+type ChatUnreadSummary = Readonly<z.infer<typeof chatUnreadSummarySchema>>
+type ChatUnreadWebSocketEvent = Readonly<z.infer<typeof chatUnreadWebSocketEventSchema>>
 
 function parseContract<T>(schema: z.ZodType<T>, payload: unknown): T {
   const result = schema.safeParse(payload)
@@ -83,6 +115,14 @@ function parseChatMessagePage(payload: unknown): ChatMessagePage {
 
 function parseChatWebSocketEvent(payload: unknown): ChatWebSocketEvent {
   return parseContract(chatWebSocketEventSchema, payload)
+}
+
+function parseChatUnreadSummary(payload: unknown): ChatUnreadSummary {
+  return parseContract(chatUnreadSummarySchema, payload)
+}
+
+function parseChatUnreadWebSocketEvent(payload: unknown): ChatUnreadWebSocketEvent {
+  return parseContract(chatUnreadWebSocketEventSchema, payload)
 }
 
 function countChatCodePoints(value: string): number {
@@ -115,8 +155,16 @@ export {
   countChatCodePoints,
   isValidChatBody,
   mergeChatMessages,
+  parseChatUnreadSummary,
+  parseChatUnreadWebSocketEvent,
   parseChatMessage,
   parseChatMessagePage,
   parseChatWebSocketEvent,
 }
-export type { ChatMessage, ChatMessagePage, ChatWebSocketEvent }
+export type {
+  ChatMessage,
+  ChatMessagePage,
+  ChatUnreadSummary,
+  ChatUnreadWebSocketEvent,
+  ChatWebSocketEvent,
+}

@@ -3,8 +3,9 @@ import {
   CHAT_MESSAGE_PAGE_SIZE,
   parseChatMessage,
   parseChatMessagePage,
+  parseChatUnreadSummary,
 } from '@/features/chat/chat'
-import type { ChatMessage, ChatMessagePage } from '@/features/chat/chat'
+import type { ChatMessage, ChatMessagePage, ChatUnreadSummary } from '@/features/chat/chat'
 import { ApiError } from '@/lib/api'
 
 interface ReadChatMessagesRequest {
@@ -29,7 +30,7 @@ function conversationMessagesPath(conversationId: string): string {
   return `/chat/conversations/${encodeURIComponent(conversationId)}/messages`
 }
 
-function chatWebSocketUrl(conversationId: string): string {
+function websocketUrl(path: string): string {
   const configured = import.meta.env.VITE_API_URL?.replace(/\/+$/, '')
   if (!configured) throw new ApiError(0, 'configuration')
   let apiUrl: URL
@@ -42,13 +43,26 @@ function chatWebSocketUrl(conversationId: string): string {
     throw new ApiError(0, 'configuration')
   }
   apiUrl.protocol = apiUrl.protocol === 'https:' ? 'wss:' : 'ws:'
-  apiUrl.pathname = `${apiUrl.pathname.replace(/\/+$/, '')}/ws/chat/${encodeURIComponent(conversationId)}`
+  apiUrl.pathname = `${apiUrl.pathname.replace(/\/+$/, '')}${path}`
   apiUrl.search = ''
   apiUrl.hash = ''
   return apiUrl.toString()
 }
 
+function chatWebSocketUrl(conversationId: string): string {
+  return websocketUrl(`/ws/chat/${encodeURIComponent(conversationId)}`)
+}
+
+function chatUnreadWebSocketUrl(): string {
+  return websocketUrl('/ws/chat/notifications')
+}
+
 const chatClient = {
+  async readUnreadSummary(signal?: AbortSignal): Promise<ChatUnreadSummary> {
+    return parseChatUnreadSummary(
+      await sessionClient.authenticatedJson('/chat/unread-summary', { signal }),
+    )
+  },
   async readMessages({
     conversationId,
     before,
@@ -87,5 +101,5 @@ const chatClient = {
   },
 }
 
-export { chatClient, chatWebSocketUrl, conversationMessagesPath }
+export { chatClient, chatUnreadWebSocketUrl, chatWebSocketUrl, conversationMessagesPath }
 export type { AcknowledgeChatMessagesRequest, ReadChatMessagesRequest, SendChatMessageRequest }

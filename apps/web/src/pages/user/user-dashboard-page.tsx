@@ -15,6 +15,8 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
+import { UnreadBadge } from '@/components/ui/unread-badge'
+import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import type { ProfileCompletion } from '@/features/profile/profile-completion'
 import type { OwnProfile } from '@/features/profile/profile'
 import { useOwnProfile, useProfileCompletion } from '@/features/profile/queries/use-own-profile'
@@ -167,18 +169,27 @@ function DashboardAction({
   description,
   action,
   to,
+  unreadCount = 0,
 }: {
   Icon: LucideIcon
   title: string
   description: string
   action: string
   to: string
+  unreadCount?: number
 }) {
+  const { t } = useTranslation()
   return (
     <Card className="flex min-w-0 flex-col">
       <CardHeader>
         <Icon className="size-6 text-vgu-orange" aria-hidden="true" />
-        <CardTitle>{title}</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>{title}</CardTitle>
+          <UnreadBadge
+            count={unreadCount}
+            label={t('chat.unreadMessages', { count: unreadCount })}
+          />
+        </div>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="mt-auto">
@@ -195,6 +206,7 @@ function UserDashboardPage() {
   const titleId = useId()
   const profile = useOwnProfile()
   const completion = useProfileCompletion()
+  const { summary: unreadSummary } = useBuddyUnread()
 
   if (profile.isPending || completion.isPending) {
     return (
@@ -271,6 +283,14 @@ function UserDashboardPage() {
           {t('userDashboard.actionsTitle')}
         </Typography>
         <div className="grid min-w-0 gap-4 md:grid-cols-2">
+          <DashboardAction
+            Icon={HeartHandshake}
+            title={t('userDashboard.myBuddy.title')}
+            description={t('userDashboard.myBuddy.description')}
+            action={t('userDashboard.myBuddy.open')}
+            to="/user/buddy"
+            unreadCount={unreadSummary.total_unread_messages}
+          />
           <DashboardAction
             Icon={HeartHandshake}
             title={t('userDashboard.matching.title')}

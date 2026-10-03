@@ -822,6 +822,11 @@
       "finishProfile": "Profil vervollständigen"
     },
     "actionsTitle": "Setze deine Buddy-Reise fort",
+    "myBuddy": {
+      "title": "Mein Buddy",
+      "description": "Sieh alle aktiven Buddys an und öffne die bestehende private Unterhaltung.",
+      "open": "Meine Buddys anzeigen"
+    },
     "matching": {
       "title": "Buddy-Matching",
       "readyDescription": "Dein Profil ist für das Matching freigeschaltet.",
@@ -907,6 +912,11 @@
     "page": "Seite {{page}} von {{totalPages}}",
     "end": "Du hast das Ende der aktuellen Empfehlungen erreicht."
   },
+  "myBuddy": {
+    "eyebrow": "Deine Buddy-Verbindungen",
+    "title": "Meine Buddys",
+    "subtitle": "Wähle einen aktiven Buddy aus, um eure bestehende private Unterhaltung zu öffnen."
+  },
   "currentBuddies": {
     "title": "Aktuelle Buddys",
     "subtitle": "Deine aktiven Buddy-Beziehungen mit Profildetails und gespeicherten Kompatibilitätswerten.",
@@ -933,6 +943,8 @@
   "chat": {
     "title": "Buddy-Chat",
     "subtitle": "Eine private Klartext-Unterhaltung mit deinem aktuellen Buddy.",
+    "unreadMessages_one": "{{count}} ungelesene Buddy-Nachricht",
+    "unreadMessages_other": "{{count}} ungelesene Buddy-Nachrichten",
     "backToBuddies": "Zurück zu aktuellen Buddys",
     "loading": "Unterhaltungsverlauf wird geladen…",
     "loadOlder": "Ältere Nachrichten laden",

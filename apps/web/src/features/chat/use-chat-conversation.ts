@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
 import { chatClient, chatWebSocketUrl } from '@/features/chat/chat-client'
+import { buddyUnreadQueryKeys } from '@/features/chat/buddy-unread-state'
 import {
   CHAT_MESSAGE_PAGE_SIZE,
   isValidChatBody,
@@ -370,6 +371,10 @@ function useChatConversation({
       .acknowledgeMessages({ conversationId, throughMessageId: latestIncomingMessageId })
       .then(() => {
         lastReadMessageRef.current = latestIncomingMessageId
+        void queryClient.invalidateQueries({
+          queryKey: buddyUnreadQueryKeys.summary(userId),
+          exact: true,
+        })
       })
       .catch((error: unknown) => {
         if (isAccessFailure(error)) denyAccessRef.current()
@@ -377,7 +382,15 @@ function useChatConversation({
       .finally(() => {
         if (readFlightRef.current === latestIncomingMessageId) readFlightRef.current = null
       })
-  }, [accessDenied, connectionState, conversationId, latestIncomingMessageId, visibilityGeneration])
+  }, [
+    accessDenied,
+    connectionState,
+    conversationId,
+    latestIncomingMessageId,
+    queryClient,
+    userId,
+    visibilityGeneration,
+  ])
 
   const dispatchPending = useCallback(
     (clientMessageId: string) => {

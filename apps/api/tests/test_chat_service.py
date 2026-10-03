@@ -19,6 +19,7 @@ from app.services.buddy_chat import (
     acknowledge_buddy_messages_read,
     decode_buddy_message_cursor,
     encode_buddy_message_cursor,
+    get_buddy_unread_summary,
     list_buddy_messages,
     send_buddy_message,
 )
@@ -258,3 +259,33 @@ async def test_read_ack_rejects_foreign_expired_or_unknown_boundary_without_upda
 
     assert raised.value.reason is BuddyChatReadReason.MESSAGE_NOT_FOUND
     mock.scalars.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_unread_summary_counts_only_effective_incoming_active_match_messages() -> None:
+    other_conversation = UUID("10000000-0000-4000-8000-000000000002")
+    mock, session = _session()
+    rows = MagicMock()
+    rows.tuples.return_value.all.return_value = [
+        (CONVERSATION_ID, 2),
+        (other_conversation, 1),
+    ]
+    mock.execute = AsyncMock(return_value=rows)
+
+    summary = await get_buddy_unread_summary(
+        session,
+        authenticated_user_id=READER_ID,
+        clock=lambda: NOW,
+    )
+
+    assert summary.total_unread_messages == 3
+    assert [(item.conversation_id, item.unread_count) for item in summary.conversations] == [
+        (CONVERSATION_ID, 2),
+        (other_conversation, 1),
+    ]
+    statement = str(mock.execute.await_args.args[0]).lower()
+    assert "matches.status" in statement and "matches.deleted_at is null" in statement
+    assert "buddy_messages.sender_id !=" in statement
+    assert "buddy_messages.read_at is null" in statement
+    assert "buddy_messages.expires_at >" in statement
+    assert "group by app_private.buddy_conversations.id" in statement

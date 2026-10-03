@@ -77,9 +77,7 @@ function conversationIdFromBuddyLocation(location: {
 }
 
 function currentBuddiesDestination(conversationId: string | null): string {
-  return conversationId
-    ? `/user/matching?conversation=${conversationId}#current-buddies`
-    : '/user/matching#current-buddies'
+  return conversationId ? currentBuddyPath(conversationId) : '/user/buddy'
 }
 
 export {

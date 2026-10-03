@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { chatClient } from '@/features/chat/chat-client'
+import { buddyUnreadQueryKeys } from '@/features/chat/buddy-unread-state'
 import { ChatConversation } from '@/features/chat/chat-conversation'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
@@ -97,6 +98,7 @@ describe('CHAT-004 accessible conversation UI', () => {
     )
 
   it('renders chronological bounded history, safely prepends older messages and acknowledges the latest incoming boundary', async () => {
+    const invalidate = vi.spyOn(client, 'invalidateQueries')
     const older = message(
       '30000000-0000-4000-8000-000000000010',
       'buddy',
@@ -137,6 +139,10 @@ describe('CHAT-004 accessible conversation UI', () => {
         throughMessageId: incoming.id,
       }),
     )
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: buddyUnreadQueryKeys.summary(userId),
+      exact: true,
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Load older messages' }))
     expect(await within(log).findByText('Oldest')).toBeVisible()

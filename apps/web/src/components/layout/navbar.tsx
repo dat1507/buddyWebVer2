@@ -6,6 +6,8 @@ import { Link } from 'react-router'
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
+import { UnreadBadge } from '@/components/ui/unread-badge'
+import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import { useModalIsolation } from '@/hooks/use-modal-isolation'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -32,6 +34,8 @@ function Navbar() {
   const status = useAuthStore((state) => state.status)
   const role = useAuthStore((state) => state.role)
   const workspacePath = role === 'ADMIN' ? '/admin/dashboard' : '/user/dashboard'
+  const { summary } = useBuddyUnread()
+  const workspaceUnreadCount = role === 'USER' ? summary.total_unread_messages : 0
 
   useModalIsolation(drawerOverlayRef, isMenuOpen)
 
@@ -158,6 +162,10 @@ function Navbar() {
               <Link to={workspacePath}>
                 <UserRound aria-hidden="true" className="size-4" />
                 {t('nav.openWorkspace')}
+                <UnreadBadge
+                  count={workspaceUnreadCount}
+                  label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
+                />
               </Link>
             </Button>
           ) : (
@@ -290,6 +298,10 @@ function Navbar() {
                   >
                     <UserRound aria-hidden="true" className="size-4" />
                     {t('nav.openWorkspace')}
+                    <UnreadBadge
+                      count={workspaceUnreadCount}
+                      label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
+                    />
                   </Link>
                 ) : (
                   <>

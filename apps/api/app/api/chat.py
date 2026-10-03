@@ -16,6 +16,8 @@ from app.schemas.chat import (
     ChatMessagePageResponse,
     ChatMessageResponse,
     ChatReadRequest,
+    ChatUnreadConversationResponse,
+    ChatUnreadSummaryResponse,
     chat_message_response,
 )
 from app.services.buddy_access import VerifiedBuddyPrincipal
@@ -27,6 +29,7 @@ from app.services.buddy_chat import (
     BuddyMessagePersistenceError,
     BuddyMessagePersistenceReason,
     acknowledge_buddy_messages_read,
+    get_buddy_unread_summary,
     list_buddy_messages,
     send_buddy_message,
 )
@@ -55,6 +58,33 @@ def _chat_read_http_exception(error: BuddyChatReadError) -> HTTPException:
         status_code=status_code,
         detail=error.reason.value,
         headers=_NO_STORE_HEADERS,
+    )
+
+
+@router.get("/unread-summary", response_model=ChatUnreadSummaryResponse)
+async def read_chat_unread_summary(
+    response: Response,
+    current: Annotated[
+        VerifiedBuddyPrincipal,
+        Depends(require_verified_buddy_capability),
+    ],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> ChatUnreadSummaryResponse:
+    """Return persisted unread counts for the current VERIFIED ACTIVE participant."""
+    summary = await get_buddy_unread_summary(
+        session,
+        authenticated_user_id=current.user.id,
+    )
+    _mark_private(response)
+    return ChatUnreadSummaryResponse(
+        total_unread_messages=summary.total_unread_messages,
+        conversations=[
+            ChatUnreadConversationResponse(
+                conversation_id=item.conversation_id,
+                unread_count=item.unread_count,
+            )
+            for item in summary.conversations
+        ],
     )
 
 

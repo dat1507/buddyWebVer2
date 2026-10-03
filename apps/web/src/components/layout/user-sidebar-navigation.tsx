@@ -4,6 +4,8 @@ import { matchPath, NavLink, useLocation } from 'react-router'
 
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Typography } from '@/components/ui/typography'
+import { UnreadBadge } from '@/components/ui/unread-badge'
+import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import { cn } from '@/lib/utils'
 import { userNavigationItems, type UserNavigationItem } from '@/routes/user-navigation'
 
@@ -24,6 +26,8 @@ function UserSidebarNavigation({
   const { pathname } = useLocation()
   const unavailableId = useId()
   const hasUnavailableItems = items.some(({ available }) => !available)
+  const { summary } = useBuddyUnread()
+  const unreadCount = summary.total_unread_messages
 
   return (
     <nav aria-label={t('userNavigation.label')} className="min-w-0 space-y-3">
@@ -45,6 +49,12 @@ function UserSidebarNavigation({
                 >
                   <Icon aria-hidden="true" />
                   <span className="min-w-0 break-words">{t(labelKey)}</span>
+                  {id === 'myBuddy' ? (
+                    <UnreadBadge
+                      count={unreadCount}
+                      label={t('chat.unreadMessages', { count: unreadCount })}
+                    />
+                  ) : null}
                 </NavLink>
               ) : (
                 <span

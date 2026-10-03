@@ -48,9 +48,9 @@ describe('BUDDY-003 Current Buddy contracts', () => {
     }
     expect(conversationIdFromBuddyLocation(location)).toBe(conversationId)
     expect(currentBuddiesDestination(conversationId)).toBe(
-      `/user/matching?conversation=${conversationId}#current-buddies`,
+      `/user/buddy?conversation=${conversationId}`,
     )
-    expect(currentBuddiesDestination(null)).toBe('/user/matching#current-buddies')
+    expect(currentBuddiesDestination(null)).toBe('/user/buddy')
   })
 
   it.each([

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { sessionClient } from '@/features/auth/session-client'
-import { chatClient, chatWebSocketUrl } from '@/features/chat/chat-client'
+import { chatClient, chatUnreadWebSocketUrl, chatWebSocketUrl } from '@/features/chat/chat-client'
 
 const conversationId = '20000000-0000-4000-8000-000000000001'
 const clientMessageId = '20000000-0000-4000-8000-000000000002'
@@ -60,11 +60,22 @@ describe('CHAT-004 API and WebSocket client', () => {
     })
   })
 
+  it('reads the persisted unread summary without browser-owned state', async () => {
+    const summary = {
+      total_unread_messages: 1,
+      conversations: [{ conversation_id: conversationId, unread_count: 1 }],
+    }
+    const request = vi.spyOn(sessionClient, 'authenticatedJson').mockResolvedValue(summary)
+    await expect(chatClient.readUnreadSummary()).resolves.toEqual(summary)
+    expect(request).toHaveBeenCalledWith('/chat/unread-summary', { signal: undefined })
+  })
+
   it('derives a credential-free WSS URL with no query string', () => {
     const url = new URL(chatWebSocketUrl(conversationId))
     expect(url.href).toBe(`wss://api.example.test/api/ws/chat/${conversationId}`)
     expect(url.username).toBe('')
     expect(url.password).toBe('')
     expect(url.search).toBe('')
+    expect(chatUnreadWebSocketUrl()).toBe('wss://api.example.test/api/ws/chat/notifications')
   })
 })
