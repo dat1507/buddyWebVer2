@@ -262,6 +262,42 @@
       "upcomingEvents": "Bevorstehende Veranstaltungen"
     }
   },
+  "adminUsers": {
+    "title": "Benutzerverwaltung",
+    "description": "Studierendenkonten und Profilstatus anhand der für die Koordination freigegebenen Zusammenfassung prüfen.",
+    "caption": "Studierendenkonten",
+    "unavailable": "Nicht angegeben",
+    "error": "Die Benutzerliste konnte nicht geladen werden.",
+    "empty": "Es sind keine Studierendenkonten vorhanden.",
+    "noResults": "Keine Studierendenkonten entsprechen dieser Suche.",
+    "search": {
+      "label": "Benutzer suchen",
+      "placeholder": "E-Mail, vollständiger Name oder Anzeigename",
+      "help": "Durchsucht E-Mail, vollständigen Namen und Anzeigenamen.",
+      "clear": "Benutzersuche löschen"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "E-Mail",
+      "studentType": "Studierendentyp",
+      "profile": "Profil",
+      "verified": "E-Mail-Bestätigung",
+      "account": "Konto",
+      "created": "Erstellt"
+    },
+    "studentTypes": {
+      "VIETNAMESE": "Vietnamesische Studierende",
+      "INTERNATIONAL": "Internationale Studierende"
+    },
+    "status": {
+      "profileAvailable": "Vorhanden",
+      "noProfile": "Nicht erstellt",
+      "verified": "Bestätigt",
+      "unverified": "Nicht bestätigt",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    }
+  },
   "adminMatching": {
     "title": "Zuordnungsmonitoring",
     "description": "Überwache die Teilnahme am Buddy-Programm, Einladungen und aktive Buddy-Beziehungen.",

@@ -67,7 +67,11 @@ describe('ADMIN-001 guarded App and session integration', () => {
 
   it.each([
     ['/admin', '/admin/dashboard', 'Admin overview'],
-    ['/admin/users?view=details#profile', '/admin/users?view=details#profile', 'User management'],
+    [
+      '/admin/announcements?view=details#entry',
+      '/admin/announcements?view=details#entry',
+      'Announcements',
+    ],
   ])('renders verified ADMIN route %s with one content main', (path, destination, title) => {
     useAuthStore.getState().setAuthenticated(admin)
     renderApp(path)
@@ -156,13 +160,13 @@ describe('ADMIN-001 guarded App and session integration', () => {
 
   it('uses the shared language toggle without losing its route or nested content', async () => {
     useAuthStore.getState().setAuthenticated(admin)
-    renderApp('/admin/users?view=details#profile')
+    renderApp('/admin/audit-log?view=details#entry')
     const main = screen.getByRole('main', { name: 'Administrator content' })
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     expect(await screen.findByRole('main', { name: 'Inhalte der Administration' })).toBe(main)
     expect(screen.getByRole('complementary', { name: 'Administrationsbereich' })).toBeVisible()
-    expect(within(main).getByRole('heading', { name: 'User management' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/admin/users?view=details#profile')
+    expect(within(main).getByRole('heading', { name: 'Audit log' })).toBeVisible()
+    expect(screen.getByTestId('location').textContent).toBe('/admin/audit-log?view=details#entry')
     expect(fetch).not.toHaveBeenCalled()
   })
 })

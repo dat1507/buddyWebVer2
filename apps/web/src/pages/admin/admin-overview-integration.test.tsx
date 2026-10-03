@@ -128,7 +128,7 @@ describe('ADMIN-003 actual guarded overview and session flow', () => {
 
   it('opens Overview from another module and leaves other module scaffolds intact', () => {
     useAuthStore.getState().setAuthenticated(admin)
-    renderApp('/admin/users')
+    renderApp('/admin/announcements')
     const main = screen.getByRole('main', { name: 'Administrator content' })
     const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
     fireEvent.click(within(nav).getByRole('link', { name: 'Overview' }))

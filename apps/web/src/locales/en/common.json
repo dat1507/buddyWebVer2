@@ -262,6 +262,42 @@
       "upcomingEvents": "Upcoming Events"
     }
   },
+  "adminUsers": {
+    "title": "User management",
+    "description": "Review student accounts and profile status using the coordinator-safe account summary.",
+    "caption": "Student accounts",
+    "unavailable": "Not provided",
+    "error": "The user list could not be loaded.",
+    "empty": "There are no student accounts to show.",
+    "noResults": "No student accounts match this search.",
+    "search": {
+      "label": "Search users",
+      "placeholder": "Email, full name, or display name",
+      "help": "Searches email, full name, and display name.",
+      "clear": "Clear user search"
+    },
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "studentType": "Student type",
+      "profile": "Profile",
+      "verified": "Email verification",
+      "account": "Account",
+      "created": "Created"
+    },
+    "studentTypes": {
+      "VIETNAMESE": "Vietnamese student",
+      "INTERNATIONAL": "International student"
+    },
+    "status": {
+      "profileAvailable": "Available",
+      "noProfile": "Not created",
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
   "adminMatching": {
     "title": "Matching monitoring",
     "description": "Monitor Buddy Program participation, invitations, and active Buddy relationships.",

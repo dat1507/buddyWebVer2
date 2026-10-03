@@ -18,6 +18,7 @@ import {
 import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
+import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 type AdminRoute = {
@@ -45,7 +46,8 @@ const adminRoutes: readonly AdminRoute[] = [
     title: 'User management',
     labelKey: 'adminNavigation.users',
     Icon: Users,
-    kind: 'placeholder',
+    kind: 'page',
+    Component: AdminUsersPage,
   },
   {
     path: 'matching',

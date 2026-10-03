@@ -217,7 +217,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
   })
 
   it.each([
-    ['/admin/users', 'ADMIN', 'USER', 'User management'],
+    ['/admin/audit-log', 'ADMIN', 'USER', 'Audit log'],
     ['/user/profile/edit', 'USER', 'ADMIN', 'Edit profile'],
   ])(
     'verified refresh role change removes %s and clears private cache',
