@@ -351,6 +351,12 @@ def _quoted_columns(columns: Sequence[str]) -> str:
     return ", ".join(f'"{column}"' for column in columns)
 
 
+def _quoted_identifier(identifier: str) -> str:
+    if re.fullmatch(r"[a-z][a-z0-9_]*", identifier) is None:
+        raise DatabaseBackupValidationError("Database backup table identity is invalid.")
+    return f'"{identifier}"'
+
+
 def _order_columns(table_name: str) -> tuple[str, ...]:
     table = Base.metadata.tables[f"{APPLICATION_SCHEMA}.{table_name}"]
     primary_keys = tuple(column.name for column in table.primary_key.columns)
@@ -772,13 +778,27 @@ class PostgresBinaryCopyBackupAdapter:
                 required_target_head=required_target_head,
             )
             try:
-                for table_manifest in manifest.tables:
+                for table_index, table_manifest in enumerate(manifest.tables):
+                    staging_table = f"semester_restore_stage_{table_index:02d}"
+                    quoted_columns = _quoted_columns(table_manifest.columns)
+                    await connection.execute(
+                        f"CREATE TEMP TABLE {_quoted_identifier(staging_table)} ON COMMIT DROP AS "
+                        f"SELECT {quoted_columns} FROM "
+                        f"{_quoted_identifier(APPLICATION_SCHEMA)}."
+                        f"{_quoted_identifier(table_manifest.table_name)} WITH NO DATA"
+                    )
                     await connection.copy_to_table(
-                        table_manifest.table_name,
-                        schema_name=APPLICATION_SCHEMA,
+                        staging_table,
+                        schema_name="pg_temp",
                         source=str(extracted[table_manifest.table_name]),
                         columns=list(table_manifest.columns),
                         format="binary",
+                    )
+                    await connection.execute(
+                        f"INSERT INTO {_quoted_identifier(APPLICATION_SCHEMA)}."
+                        f"{_quoted_identifier(table_manifest.table_name)} ({quoted_columns}) "
+                        f"SELECT {quoted_columns} FROM pg_temp."
+                        f"{_quoted_identifier(staging_table)}"
                     )
                 for spec, table_manifest in zip(BACKUP_TABLES, manifest.tables, strict=True):
                     restored = await connection.fetchval(

@@ -39,6 +39,8 @@ class _FakePostgresConnection:
         self.target = target
         self.closed = False
         self.copied_to: list[str] = []
+        self.copy_targets: list[tuple[str, str]] = []
+        self.executed: list[str] = []
         self.restored_counts: dict[str, int] = {}
 
     def transaction(self, **_kwargs: object) -> _Transaction:
@@ -94,12 +96,24 @@ class _FakePostgresConnection:
         columns: list[str],
         format: str,
     ) -> None:
-        assert schema_name == "app_private"
+        assert schema_name in {"app_private", "pg_temp"}
         assert Path(source).is_file()
         assert columns
         assert format == "binary"
         self.copied_to.append(table_name)
-        self.restored_counts[table_name] = 2 if table_name == "users" else 0
+        self.copy_targets.append((schema_name, table_name))
+        if schema_name == "app_private":
+            self.restored_counts[table_name] = 2 if table_name == "users" else 0
+
+    async def execute(self, query: str) -> None:
+        self.executed.append(query)
+        if not query.startswith('INSERT INTO "app_private".'):
+            return
+        for spec in BACKUP_TABLES:
+            if f'."{spec.table_name}"' in query:
+                self.restored_counts[spec.table_name] = 2 if spec.table_name == "users" else 0
+                return
+        raise AssertionError(f"Unexpected restore insert: {query}")
 
     async def close(self) -> None:
         self.closed = True
@@ -225,7 +239,22 @@ async def test_production_restore_reuses_the_guarded_connection_and_explicit_hea
     )
 
     assert restored == package.manifest
-    assert target.copied_to == [spec.table_name for spec in BACKUP_TABLES]
+    expected_staging_tables = [
+        f"semester_restore_stage_{index:02d}" for index, _spec in enumerate(BACKUP_TABLES)
+    ]
+    assert target.copied_to == expected_staging_tables
+    assert target.copy_targets == [("pg_temp", table) for table in expected_staging_tables]
+    assert len(target.executed) == 2 * len(BACKUP_TABLES)
+    for index, spec in enumerate(BACKUP_TABLES):
+        staging_table = expected_staging_tables[index]
+        assert target.executed[index * 2].startswith(
+            f'CREATE TEMP TABLE "{staging_table}" ON COMMIT DROP AS SELECT '
+        )
+        assert f'FROM "app_private"."{spec.table_name}" WITH NO DATA' in target.executed[index * 2]
+        assert target.executed[index * 2 + 1].startswith(
+            f'INSERT INTO "app_private"."{spec.table_name}" ('
+        )
+        assert f'FROM pg_temp."{staging_table}"' in target.executed[index * 2 + 1]
     assert target.closed is False
 
 
