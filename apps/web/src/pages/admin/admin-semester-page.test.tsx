@@ -8,6 +8,7 @@ import {
   adminSemestersClient,
   type SemesterManagementStatus,
 } from '@/features/admin-semesters/admin-semesters'
+import { adminSemesterKeys } from '@/features/admin-semesters/queries/use-admin-semesters'
 import { clearPrivateQueries } from '@/features/auth/private-cache'
 import i18n from '@/i18n'
 import { useAuthStore } from '@/stores/auth-store'
@@ -21,6 +22,7 @@ const admin = {
 const operationId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const backupId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const semesterId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+const restoreOperationId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
 const now = '2026-10-02T08:00:00Z'
 const operation = {
   id: operationId,
@@ -60,11 +62,49 @@ const resetPreflight = {
   confirmation_phrase: `RESET ${semesterId}`,
   retention_days: 30 as const,
 }
+const staleRestorePreflight = {
+  operation_id: restoreOperationId,
+  backup_id: backupId,
+  source_semester_id: semesterId,
+  current_semester_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  backup_state: 'READY' as const,
+  can_execute: true,
+  restored_counts: { users: 3, buddy_messages: 3 },
+  avatar_object_count: 3,
+  confirmation_phrase: `RESTORE ${backupId}`,
+}
+const restoredStatus: SemesterManagementStatus = {
+  ...readyStatus,
+  current_student_accounts_created: 0,
+  reset_operation: {
+    ...operation,
+    state: 'SUCCEEDED',
+    completed_at: now,
+  },
+  restore_operation: {
+    id: restoreOperationId,
+    operation_type: 'RESTORE',
+    state: 'SUCCEEDED',
+    requested_at: now,
+    started_at: now,
+    completed_at: now,
+    failure_code: null,
+  },
+  backup: {
+    id: backupId,
+    state: 'READY',
+    created_at: now,
+    verified_at: now,
+    expires_at: '2026-11-01T08:00:00Z',
+  },
+  restore_block_reason: 'ALREADY_RESTORED',
+}
 
 describe('SEM-007 Admin Semester Management safety UI', () => {
   let client: QueryClient
   const readStatus = vi.spyOn(adminSemestersClient, 'readStatus')
   const readResetPreflight = vi.spyOn(adminSemestersClient, 'readResetPreflight')
+  const readRestorePreflight = vi.spyOn(adminSemestersClient, 'readRestorePreflight')
   const executeReset = vi.spyOn(adminSemestersClient, 'executeReset')
   const prepareReset = vi.spyOn(adminSemestersClient, 'prepareReset')
 
@@ -74,6 +114,7 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     readStatus.mockReset().mockResolvedValue(readyStatus)
     readResetPreflight.mockReset().mockResolvedValue(resetPreflight)
+    readRestorePreflight.mockReset().mockResolvedValue(staleRestorePreflight)
     executeReset.mockReset().mockResolvedValue()
     prepareReset.mockReset().mockResolvedValue()
   })
@@ -149,5 +190,21 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
     expect(
       client.getQueryCache().findAll({ queryKey: ['private', 'admin-semesters'] }),
     ).toHaveLength(0)
+  })
+
+  it('hides cached restore preflight actions after the operation succeeds', async () => {
+    readStatus.mockResolvedValue(restoredStatus)
+    client.setQueryData(
+      adminSemesterKeys.restorePreflight(restoreOperationId),
+      staleRestorePreflight,
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('This backup has already been restored.')).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'Review and execute restore' }),
+    ).not.toBeInTheDocument()
+    expect(readRestorePreflight).not.toHaveBeenCalled()
   })
 })

@@ -204,6 +204,8 @@ function AdminSemesterPage() {
   const restoreRunning = status.data?.restore_operation?.state === 'RUNNING'
   const resetPreflight = useResetPreflight(resetRunning)
   const restorePreflight = useRestorePreflight(restoreId, restoreRunning)
+  const activeResetPreflight = resetRunning ? resetPreflight.data : undefined
+  const activeRestorePreflight = restoreRunning ? restorePreflight.data : undefined
   const prepareReset = usePrepareReset()
   const prepareRestore = usePrepareRestore()
   const executeReset = useExecuteReset()
@@ -222,7 +224,7 @@ function AdminSemesterPage() {
     resetSensitiveState()
   }
   const currentPreflight: ResetPreflight | RestorePreflight | undefined =
-    dialog === 'reset' ? resetPreflight.data : restorePreflight.data
+    dialog === 'reset' ? activeResetPreflight : activeRestorePreflight
   const mutation = dialog === 'reset' ? executeReset : executeRestore
   const phrase = currentPreflight?.confirmation_phrase ?? ''
   const canSubmit = Boolean(
@@ -292,22 +294,22 @@ function AdminSemesterPage() {
               <li>{t('adminSemester.reset.catalogsPreserved')}</li>
               <li>{t('adminSemester.reset.retention')}</li>
             </ul>
-            {resetPreflight.data ? (
+            {activeResetPreflight ? (
               <>
                 <Counts
                   title={t('adminSemester.reset.deletedCounts')}
-                  counts={resetPreflight.data.affected_counts}
+                  counts={activeResetPreflight.affected_counts}
                 />
                 <Counts
                   title={t('adminSemester.reset.preservedCounts')}
-                  counts={resetPreflight.data.preserved_counts}
+                  counts={activeResetPreflight.preserved_counts}
                 />
               </>
             ) : null}
             {resetRunning && resetPreflight.isPending ? (
               <p role="status">{t('adminSemester.preflightLoading')}</p>
             ) : null}
-            {resetRunning && resetPreflight.data && !resetPreflight.data.can_execute ? (
+            {activeResetPreflight && !activeResetPreflight.can_execute ? (
               <p role="status">{t('adminSemester.preparing')}</p>
             ) : null}
             <div className="flex flex-wrap gap-3">
@@ -323,7 +325,7 @@ function AdminSemesterPage() {
                     : t('adminSemester.reset.prepare')}
                 </Button>
               ) : null}
-              {resetPreflight.data?.can_execute ? (
+              {activeResetPreflight?.can_execute ? (
                 <Button type="button" variant="destructive" onClick={() => setDialog('reset')}>
                   {t('adminSemester.reset.open')}
                 </Button>
@@ -346,10 +348,10 @@ function AdminSemesterPage() {
                 <p>{t(`adminSemester.restore.blockReasons.${blocked}`)}</p>
               </div>
             ) : null}
-            {restorePreflight.data ? (
+            {activeRestorePreflight ? (
               <Counts
                 title={t('adminSemester.restore.restoredCounts')}
-                counts={restorePreflight.data.restored_counts}
+                counts={activeRestorePreflight.restored_counts}
               />
             ) : null}
             <div className="flex flex-wrap gap-3">
@@ -367,7 +369,7 @@ function AdminSemesterPage() {
                     : t('adminSemester.restore.prepare')}
                 </Button>
               ) : null}
-              {restorePreflight.data?.can_execute ? (
+              {activeRestorePreflight?.can_execute ? (
                 <Button type="button" variant="destructive" onClick={() => setDialog('restore')}>
                   {t('adminSemester.restore.open')}
                 </Button>
