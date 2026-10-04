@@ -344,8 +344,7 @@ absent. Source validation and cryptographic cookie verification precede database
 prefers a verified refresh cookie (access may be expired), falling back to valid access when
 refresh is missing/invalid, as logout does. It verifies the owner-bound persisted family is
 present, non-deleted, non-revoked and unexpired; a refresh credential must also match current JTI.
-Invalid/missing credentials or family yield generic no-store 401; database errors yield sanitized
-503. Access fallback permits logout even without refresh; it does not issue refresh credentials.
+Invalid/missing credentials or family yield generic no-store 401; database errors yield sanitized 503. Access fallback permits logout even without refresh; it does not issue refresh credentials.
 No active-user/role/verification gate is added to recovery, so inactive accounts can still logout;
 `/me` and refresh retain their authoritative User checks.
 
