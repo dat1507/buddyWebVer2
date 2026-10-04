@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+from httpx2 import ASGITransport, AsyncClient
 from redis.exceptions import RedisError
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
