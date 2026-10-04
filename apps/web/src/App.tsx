@@ -4,6 +4,7 @@ import { AdminLayout } from '@/components/layout/admin-layout'
 import { PublicLayout } from '@/components/layout/public-layout'
 import { UserLayout } from '@/components/layout/user-layout'
 import { AdminLoginPage } from '@/pages/public/admin-login-page'
+import { AdminUserDetailPage } from '@/pages/admin/admin-user-detail-page'
 import { LandingPage } from '@/pages/public/landing-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
@@ -74,6 +75,7 @@ function App() {
                 }
               />
             ))}
+            <Route path="users/:userId" element={<AdminUserDetailPage />} />
           </Route>
         </Route>
 

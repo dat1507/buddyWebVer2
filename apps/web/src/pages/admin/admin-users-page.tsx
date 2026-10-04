@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
@@ -136,6 +137,19 @@ function AdminUsersPage() {
           new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(
             new Date(user.created_at),
           ),
+      },
+      {
+        id: 'details',
+        header: t('adminUsers.columns.details'),
+        cell: (user) => {
+          const name =
+            user.profile?.display_name?.trim() || user.profile?.full_name?.trim() || user.email
+          return (
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/admin/users/${user.id}`}>{t('adminUsers.viewDetails', { name })}</Link>
+            </Button>
+          )
+        },
       },
     ],
     [language, t, unavailable],

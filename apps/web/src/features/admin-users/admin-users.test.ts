@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  adminUserDetailPath,
   adminUserListPath,
   adminUsersClient,
+  type AdminUserDetail,
   type AdminUserList,
 } from '@/features/admin-users/admin-users'
 import { useAuthStore } from '@/stores/auth-store'
@@ -30,7 +32,32 @@ const page: AdminUserList = {
   total_pages: 2,
 }
 
-describe('ADMIN-012 admin users API contract', () => {
+const detail: AdminUserDetail = {
+  ...user,
+  profile: {
+    ...user.profile,
+    nationality: 'British',
+    major: 'Computer Science',
+    study_year: 2,
+    bio: 'Exchange student',
+    home_university: 'Example University',
+    arrival_date: '2026-09-01',
+    departure_date: '2027-02-28',
+    matching_opt_in: true,
+    onboarding_completed_at: '2026-09-21T10:00:00Z',
+    avatar: {
+      id: '33333333-3333-4333-8333-333333333333',
+      mime_type: 'image/webp',
+      byte_size: 12_345,
+      width: 400,
+      height: 400,
+      processing_status: 'READY',
+      created_at: '2026-09-21T10:00:00Z',
+    },
+  },
+}
+
+describe('ADMIN-012/013 admin users API contracts', () => {
   let fetch: ReturnType<typeof vi.fn<typeof globalThis.fetch>>
 
   beforeEach(() => {
@@ -70,6 +97,43 @@ describe('ADMIN-012 admin users API contract', () => {
       'https://api.example.test/api/admin/users?page=2&page_size=10&search=Ada',
       expect.objectContaining({ method: 'GET', credentials: 'include' }),
     )
+  })
+
+  it('reads the strict coordinator-safe user detail through the BE-013 route', async () => {
+    fetch.mockResolvedValueOnce(Response.json(detail))
+
+    await expect(adminUsersClient.readUserDetail({ userId: user.id })).resolves.toEqual(detail)
+    expect(adminUserDetailPath(user.id)).toBe(`/admin/users/${user.id}`)
+    expect(fetch).toHaveBeenCalledWith(
+      `https://api.example.test/api/admin/users/${user.id}`,
+      expect.objectContaining({ method: 'GET', credentials: 'include' }),
+    )
+  })
+
+  it.each([
+    { ...detail, password_hash: 'private' },
+    { ...detail, last_login: '2026-09-20T08:30:00Z' },
+    { ...detail, profile: { ...detail.profile, object_key: 'private/avatar' } },
+    {
+      ...detail,
+      profile: detail.profile
+        ? { ...detail.profile, avatar: { ...detail.profile.avatar, storage_key: 'private/avatar' } }
+        : null,
+    },
+  ])('rejects unexpected private fields from user detail', async (payload) => {
+    fetch.mockResolvedValueOnce(Response.json(payload))
+    await expect(adminUsersClient.readUserDetail({ userId: user.id })).rejects.toMatchObject({
+      code: 'invalidResponse',
+    })
+  })
+
+  it('rejects a detail response whose account id differs from the requested id', async () => {
+    fetch.mockResolvedValueOnce(
+      Response.json({ ...detail, id: '44444444-4444-4444-8444-444444444444' }),
+    )
+    await expect(adminUsersClient.readUserDetail({ userId: user.id })).rejects.toMatchObject({
+      code: 'invalidResponse',
+    })
   })
 
   it.each([

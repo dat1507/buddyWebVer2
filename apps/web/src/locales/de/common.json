@@ -270,6 +270,7 @@
     "error": "Die Benutzerliste konnte nicht geladen werden.",
     "empty": "Es sind keine Studierendenkonten vorhanden.",
     "noResults": "Keine Studierendenkonten entsprechen dieser Suche.",
+    "viewDetails": "Details für {{name}} anzeigen",
     "search": {
       "label": "Benutzer suchen",
       "placeholder": "E-Mail, vollständiger Name oder Anzeigename",
@@ -283,7 +284,8 @@
       "profile": "Profil",
       "verified": "E-Mail-Bestätigung",
       "account": "Konto",
-      "created": "Erstellt"
+      "created": "Erstellt",
+      "details": "Details"
     },
     "studentTypes": {
       "VIETNAMESE": "Vietnamesische Studierende",
@@ -296,6 +298,72 @@
       "unverified": "Nicht bestätigt",
       "active": "Aktiv",
       "inactive": "Inaktiv"
+    }
+  },
+  "adminUserDetail": {
+    "title": "Benutzerdetails",
+    "description": "Für die Koordination freigegebene Konto-, Profil-, Zuordnungs- und Aktivitätsinformationen prüfen.",
+    "back": "Zurück zur Benutzerliste",
+    "readOnly": "Diese Ansicht ist schreibgeschützt. Konto- und Profiländerungen sind hier nicht verfügbar.",
+    "unavailable": "Nicht angegeben",
+    "loading": "Benutzerdetails werden geladen…",
+    "error": "Die Benutzerdetails konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "notFound": {
+      "title": "Benutzerkonto nicht gefunden",
+      "description": "Dieses Studierendenkonto ist nicht verfügbar oder existiert nicht mehr."
+    },
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "verified": "Bestätigt",
+      "unverified": "Nicht bestätigt",
+      "available": "Vorhanden",
+      "unavailable": "Nicht vorhanden",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "account": {
+      "title": "Kontozusammenfassung",
+      "email": "E-Mail",
+      "role": "Kontotyp",
+      "student": "Studierendenkonto",
+      "status": "Kontostatus",
+      "verification": "E-Mail-Bestätigung",
+      "created": "Konto erstellt"
+    },
+    "profile": {
+      "title": "Profilinformationen",
+      "missing": "Für dieses Konto wurde kein Studierendenprofil erstellt.",
+      "fullName": "Vollständiger Name",
+      "displayName": "Anzeigename",
+      "studentType": "Studierendentyp",
+      "nationality": "Nationalität",
+      "major": "Studiengang",
+      "studyYear": "Studienjahr",
+      "homeUniversity": "Heimatuniversität",
+      "stay": "Aufenthaltszeitraum",
+      "stayValue": "{{arrival}} – {{departure}}",
+      "avatar": "Profilfoto",
+      "bio": "Kurzbiografie"
+    },
+    "matching": {
+      "title": "Buddy-Status",
+      "unavailable": "Ohne Studierendenprofil sind keine Zuordnungsinformationen verfügbar.",
+      "optIn": "Teilnahme an der Zuordnung",
+      "buddies": "Aktive Buddys",
+      "status": "Beziehungsstatus",
+      "hasBuddies": "Aktive Buddy-Beziehung",
+      "noBuddies": "Keine aktive Buddy-Beziehung"
+    },
+    "activity": {
+      "title": "Aktivitäten und Meilensteine",
+      "accountCreated": "Konto erstellt",
+      "onboardingCompleted": "Onboarding abgeschlossen",
+      "notCompleted": "Nicht abgeschlossen",
+      "preferences": "Bevorzugte Aktivitäten",
+      "none": "Es wurden keine Aktivitätspräferenzen angegeben.",
+      "unavailable": "Ohne Studierendenprofil sind keine Aktivitätsinformationen verfügbar."
     }
   },
   "adminMatching": {

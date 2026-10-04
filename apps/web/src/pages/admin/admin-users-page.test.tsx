@@ -99,7 +99,10 @@ describe('ADMIN-012 guarded Admin User Management page', () => {
       expect.objectContaining({ page: 1, pageSize: 20, search: '' }),
     )
     expect(screen.queryByText(/password|last.login|object.key/i)).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /details/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View details for Ada' })).toHaveAttribute(
+      'href',
+      `/admin/users/${student.id}`,
+    )
   })
 
   it('debounces backend search and resets pagination before requesting filtered results', async () => {

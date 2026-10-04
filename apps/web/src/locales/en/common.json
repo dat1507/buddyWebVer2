@@ -270,6 +270,7 @@
     "error": "The user list could not be loaded.",
     "empty": "There are no student accounts to show.",
     "noResults": "No student accounts match this search.",
+    "viewDetails": "View details for {{name}}",
     "search": {
       "label": "Search users",
       "placeholder": "Email, full name, or display name",
@@ -283,7 +284,8 @@
       "profile": "Profile",
       "verified": "Email verification",
       "account": "Account",
-      "created": "Created"
+      "created": "Created",
+      "details": "Details"
     },
     "studentTypes": {
       "VIETNAMESE": "Vietnamese student",
@@ -296,6 +298,72 @@
       "unverified": "Not verified",
       "active": "Active",
       "inactive": "Inactive"
+    }
+  },
+  "adminUserDetail": {
+    "title": "User details",
+    "description": "Review the coordinator-safe account, profile, matching, and activity information.",
+    "back": "Back to users",
+    "readOnly": "This view is read-only. Account and profile changes are not available here.",
+    "unavailable": "Not provided",
+    "loading": "Loading user details…",
+    "error": "The user details could not be loaded.",
+    "retry": "Try again",
+    "notFound": {
+      "title": "User not found",
+      "description": "This student account is unavailable or no longer exists."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "available": "Available",
+      "unavailable": "Not available",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "account": {
+      "title": "Account summary",
+      "email": "Email",
+      "role": "Account type",
+      "student": "Student",
+      "status": "Account status",
+      "verification": "Email verification",
+      "created": "Account created"
+    },
+    "profile": {
+      "title": "Profile information",
+      "missing": "This account does not have a student profile.",
+      "fullName": "Full name",
+      "displayName": "Display name",
+      "studentType": "Student type",
+      "nationality": "Nationality",
+      "major": "Major",
+      "studyYear": "Study year",
+      "homeUniversity": "Home university",
+      "stay": "Stay period",
+      "stayValue": "{{arrival}} – {{departure}}",
+      "avatar": "Profile photo",
+      "bio": "Bio"
+    },
+    "matching": {
+      "title": "Buddy status",
+      "unavailable": "Matching information is unavailable without a student profile.",
+      "optIn": "Matching participation",
+      "buddies": "Active Buddies",
+      "status": "Relationship status",
+      "hasBuddies": "Active Buddy relationship",
+      "noBuddies": "No active Buddy relationship"
+    },
+    "activity": {
+      "title": "Activity and milestones",
+      "accountCreated": "Account created",
+      "onboardingCompleted": "Onboarding completed",
+      "notCompleted": "Not completed",
+      "preferences": "Preferred activities",
+      "none": "No activity preferences are shared.",
+      "unavailable": "Activity information is unavailable without a student profile."
     }
   },
   "adminMatching": {

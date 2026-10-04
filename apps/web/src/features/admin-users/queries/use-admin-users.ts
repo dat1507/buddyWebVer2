@@ -8,6 +8,7 @@ const adminUserKeys = {
   root: ['private', 'admin-users'] as const,
   list: ({ page, pageSize, search }: AdminUserQueryRequest) =>
     ['private', 'admin-users', 'list', { page, pageSize, search }] as const,
+  detail: (userId: string) => ['private', 'admin-users', 'detail', userId] as const,
 }
 
 function useAdminUsers(request: AdminUserQueryRequest) {
@@ -18,4 +19,13 @@ function useAdminUsers(request: AdminUserQueryRequest) {
   })
 }
 
-export { adminUserKeys, useAdminUsers }
+function useAdminUserDetail(userId: string | null) {
+  return useQuery({
+    queryKey: adminUserKeys.detail(userId ?? 'none'),
+    queryFn: ({ signal }) => adminUsersClient.readUserDetail({ userId: userId!, signal }),
+    enabled: userId !== null,
+    meta: { private: true },
+  })
+}
+
+export { adminUserKeys, useAdminUserDetail, useAdminUsers }
