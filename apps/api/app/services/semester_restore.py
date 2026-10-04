@@ -49,9 +49,13 @@ SEMESTER_RESTORE_AUDIT_ACTION: Final = "semester.restore_execute"
 SEMESTER_RESTORE_CONFIRMATION_PREFIX: Final = "RESTORE"
 SEMESTER_RESTORE_BLOCKED_CODE: Final = "RESTORE_BLOCKED_NEW_DATA"
 SEMESTER_RESTORE_EXPIRED_CODE: Final = "RESTORE_BACKUP_EXPIRED"
-SEMESTER_RESTORE_ALEMBIC_HEAD: Final = "0020_semester_restore_execution"
+SEMESTER_RESTORE_ALEMBIC_HEAD: Final = "0021_restore_runtime_permissions"
 SEMESTER_RESTORE_COMPATIBLE_MANIFEST_HEADS: Final = frozenset(
-    {"0019_semester_reset_execution", SEMESTER_RESTORE_ALEMBIC_HEAD}
+    {
+        "0019_semester_reset_execution",
+        "0020_semester_restore_execution",
+        SEMESTER_RESTORE_ALEMBIC_HEAD,
+    }
 )
 _WRITE_BARRIER_SQL: Final = (
     "SELECT pg_try_advisory_xact_lock(hashtextextended('vgu-buddy:semester-write-barrier:v1', 0))"

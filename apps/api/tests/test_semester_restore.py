@@ -147,8 +147,10 @@ def test_restore_rejects_mismatched_reset_and_existing_restore_metadata() -> Non
 def test_restore_summary_and_schema_compatibility_are_bounded() -> None:
     assert SEMESTER_RESTORE_COMPATIBLE_MANIFEST_HEADS == {
         "0019_semester_reset_execution",
+        "0020_semester_restore_execution",
         SEMESTER_RESTORE_ALEMBIC_HEAD,
     }
+    assert SEMESTER_RESTORE_ALEMBIC_HEAD == "0021_restore_runtime_permissions"
     assert _integer_counts({"users": 2, "buddy_messages": 1}) == {
         "users": 2,
         "buddy_messages": 1,

@@ -34,9 +34,16 @@ class _Transaction(AbstractAsyncContextManager[None]):
 
 
 class _FakePostgresConnection:
-    def __init__(self, *, major: int = 17, target: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        major: int = 17,
+        target: bool = False,
+        alembic_head: str = "0018_backup_verification",
+    ) -> None:
         self.major = major
         self.target = target
+        self.alembic_head = alembic_head
         self.closed = False
         self.copied_to: list[str] = []
         self.copy_targets: list[tuple[str, str]] = []
@@ -51,7 +58,7 @@ class _FakePostgresConnection:
 
     async def fetchval(self, query: str, *_arguments: object) -> object:
         if query == "SELECT version_num FROM alembic_version":
-            return "0018_backup_verification"
+            return self.alembic_head
         if query == "SELECT statement_timestamp()":
             return NOW
         if query == "SELECT count(*) FROM app_private.users WHERE role = 'USER'":
@@ -256,6 +263,40 @@ async def test_production_restore_reuses_the_guarded_connection_and_explicit_hea
         )
         assert f'FROM pg_temp."{staging_table}"' in target.executed[index * 2 + 1]
     assert target.closed is False
+
+
+@pytest.mark.anyio
+async def test_production_restore_rejects_an_outdated_target_before_copy(tmp_path: Path) -> None:
+    source = _FakePostgresConnection(alembic_head="0020_semester_restore_execution")
+    target = _FakePostgresConnection(
+        target=True,
+        alembic_head="0020_semester_restore_execution",
+    )
+
+    async def connect(_settings: BackupDatabaseSettings) -> Any:
+        return source
+
+    adapter = PostgresBinaryCopyBackupAdapter(_settings(), connection_factory=connect)
+    package = await adapter.export(
+        backup_id=uuid4(),
+        source_semester_id=uuid4(),
+        source_boundary_at=NOW,
+        artifact_location="private://artifact",
+        workspace=tmp_path / "export",
+    )
+
+    with pytest.raises(DatabaseBackupValidationError, match="migration head is incompatible"):
+        await adapter.restore_into_transaction(
+            target,
+            manifest_content=package.manifest_path.read_bytes(),
+            artifact_path=package.artifact_path,
+            expected_manifest_checksum=package.manifest_checksum,
+            accepted_manifest_heads=frozenset({"0020_semester_restore_execution"}),
+            required_target_head="0021_restore_runtime_permissions",
+        )
+
+    assert target.copied_to == []
+    assert target.executed == []
 
 
 @pytest.mark.anyio
