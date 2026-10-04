@@ -243,6 +243,16 @@ worker remains available for local development, debugging and fallback, but must
 the hosted Cron schedule. Deployment, secrets and acceptance are documented in
 [docs/operations/supabase-email-worker.md](docs/operations/supabase-email-worker.md).
 
+Initial production has deliberately selected a separate **Render Free** API service with separate
+Supabase, TLS Redis, Storage and secret configuration. Its cold-start/resource limits are accepted
+operational risk, but `ACCEPT-001`, deployed maintenance evidence and minimum DR evidence remain
+release blockers. Capacity gates, temporary-host verification, paid-reevaluation criteria and the
+DNS/rollback order are in
+[docs/operations/render-free-production.md](docs/operations/render-free-production.md). Scheduled
+retention and full off-site recovery are documented separately in
+[docs/operations/supabase-maintenance-worker.md](docs/operations/supabase-maintenance-worker.md) and
+[docs/operations/supabase-free-offsite-dr.md](docs/operations/supabase-free-offsite-dr.md).
+
 The repository is suitable for a staging deployment after those environment resources are supplied,
 but no production deployment is configured or claimed.
 

@@ -9134,3 +9134,38 @@ staging acceptance contract before the future Event flag is enabled.
 - **Scope boundary / next task:** `ACCEPT-001` remains **BLOCKED** and was not resumed. The next
   authorized work is to resume its remaining staging acceptance gates; no production deployment was
   performed.
+
+### 28.8 Initial production backend and readiness decision — 2026-10-04
+
+- **Backend provider:** **Render Free — SELECTED** for the initial launch. This owner-approved cost
+  trade-off supersedes the Cloud Run direction. Do not enable Google Cloud billing, create Cloud Run
+  or Load Balancer resources, or upgrade Render without a separate approval.
+- **Isolation contract:** production uses a separate Render web service, Supabase project, TLS Redis
+  database, private Storage buckets, sender configuration, Cron/Vault entries and newly generated
+  secrets. Staging is preserved and no database, secret set or service is promoted/reused.
+- **Accepted risk, not release blocker:** idle spin-down/cold start, single low-resource instance,
+  restartable/ephemeral compute, shared Free usage limits and reconnectable WebSockets. These must be
+  measured and monitored under the
+  [Render Free production runbook](docs/operations/render-free-production.md); they do not alone
+  prohibit launch.
+- **Capacity gate:** a Render Hobby workspace permits a separate service but shares 750 monthly Free
+  instance-hours across its Free services. The owner must confirm current workspace usage/service
+  count. The owner must also confirm an available second active Supabase Free project and a distinct
+  `$0` production Upstash database before provisioning. A failed capacity gate is reported; it does
+  not authorize resource sharing or billing.
+- **Maintenance scheduler:** implementation and local verification exist in the current candidate,
+  but status remains **NOT DONE** until the API revision is deployed to staging, the dedicated Render
+  secret and Supabase Vault/Cron entries are configured, and provider evidence proves invitation,
+  chat and semester-backup maintenance executions.
+- **`ACCEPT-001`:** remains **OPEN / BLOCKING**. Reuse accepted evidence and run only the missing
+  500/501, 10,000/10,001, stale-tab/type race, multiple-Buddy/chat retention, Admin reconciliation
+  and restore-blocked-after-new-USER scenarios documented in the reconciliation record.
+- **Disaster recovery:** the Free-compatible off-site plan and distinct `vgu_buddy_dr_backup` role
+  contract are prepared, but status remains **NOT DONE** until an encrypted full backup and safe
+  disposable restore rehearsal have evidence. The semester `DATABASE_BACKUP_URL` is not a DR role.
+- **Production readiness:** **NOT READY / BLOCKED** by the three gates above and by isolated
+  production provisioning/bootstrap/provider-host acceptance. Provider selection is closed; no DNS
+  cutover or destructive production Semester acceptance is authorized.
+- **Required order:** close remaining staging acceptance -> accept staging maintenance -> prove DR ->
+  provision isolated production -> migrate zero-to-head -> accept Render provider hostname and
+  Vercel preview -> separately approve DNS cutover -> smoke/rollback verification.

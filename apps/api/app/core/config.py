@@ -36,6 +36,7 @@ EMAIL_VERIFICATION_SEALING_KEY_VARIABLE = "EMAIL_VERIFICATION_SEALING_KEY"
 APP_ENV_VARIABLE = "APP_ENV"
 REDIS_URL_VARIABLE = "REDIS_URL"
 REDIS_KEY_PREFIX_VARIABLE = "REDIS_KEY_PREFIX"
+MAINTENANCE_WORKER_CRON_SECRET_VARIABLE = "MAINTENANCE_WORKER_CRON_SECRET"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -64,6 +65,10 @@ class EmailConfigurationError(RuntimeError):
 
 class RedisConfigurationError(RuntimeError):
     """Raised when shared Redis configuration is missing or unsafe."""
+
+
+class MaintenanceConfigurationError(RuntimeError):
+    """Raised when the private scheduled-maintenance boundary is unavailable."""
 
 
 class RuntimeDatabaseSettings(BaseModel):
@@ -258,6 +263,21 @@ class RedisSettings(BaseModel):
         if f":{self.environment}:" not in self.key_prefix:
             raise ValueError("Redis key prefix must identify its environment.")
         return self
+
+
+class MaintenanceWorkerSettings(BaseModel):
+    """Shared secret accepted only from the trusted Supabase Cron caller."""
+
+    model_config = ConfigDict(frozen=True)
+
+    cron_secret: SecretBytes = Field(repr=False)
+
+    @field_validator("cron_secret")
+    @classmethod
+    def validate_cron_secret(cls, value: SecretBytes) -> SecretBytes:
+        if not 32 <= len(value.get_secret_value()) <= 1024:
+            raise ValueError("Maintenance worker secret must contain 32 to 1024 bytes.")
+        return value
 
 
 def _read_required_secret(variable_name: str) -> SecretStr:
@@ -533,3 +553,19 @@ def get_redis_settings() -> RedisSettings:
         )
     except ValueError as error:
         raise RedisConfigurationError("Server-only Redis configuration is unsafe.") from error
+
+
+@lru_cache(maxsize=1)
+def get_maintenance_worker_settings() -> MaintenanceWorkerSettings:
+    """Load the dedicated Cron secret without exposing it to browser settings."""
+    raw_secret = os.getenv(MAINTENANCE_WORKER_CRON_SECRET_VARIABLE)
+    if raw_secret is None or not raw_secret.strip():
+        raise MaintenanceConfigurationError(
+            "Required server-only maintenance worker configuration is missing."
+        )
+    try:
+        return MaintenanceWorkerSettings(cron_secret=SecretBytes(raw_secret.strip().encode()))
+    except ValueError as error:
+        raise MaintenanceConfigurationError(
+            "Server-only maintenance worker configuration is unsafe."
+        ) from error
