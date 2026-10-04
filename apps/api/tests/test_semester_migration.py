@@ -253,3 +253,49 @@ def test_restore_downgrade_restores_blocking_shared_write_barrier(
     assert "pg_advisory_xact_lock_shared" in sql
     assert "pg_try_advisory_xact_lock_shared" not in sql
     assert "drop table" not in sql
+
+
+def test_restore_permissions_upgrade_grants_only_required_runtime_columns(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.upgrade(
+            _config(),
+            "0020_semester_restore_execution:0021_restore_runtime_permissions",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert "grant select on table public.alembic_version to vgu_buddy_runtime" in sql
+    assert "grant insert (read_at) on table app_private.buddy_messages to vgu_buddy_runtime" in sql
+    assert "grant insert on table app_private.buddy_messages" not in sql
+    assert "grant delete" not in sql
+
+
+def test_restore_permissions_downgrade_revokes_only_required_runtime_columns(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, _url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.downgrade(
+            _config(),
+            "0021_restore_runtime_permissions:0020_semester_restore_execution",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    sql = capsys.readouterr().out.lower()
+    assert (
+        "revoke insert (read_at) on table app_private.buddy_messages from vgu_buddy_runtime" in sql
+    )
+    assert "revoke select on table public.alembic_version from vgu_buddy_runtime" in sql
+    assert "revoke insert on table app_private.buddy_messages" not in sql
+    assert "revoke delete" not in sql

@@ -294,10 +294,14 @@ async def _assert_upgrade_invariants(
                     "'app_private.semester_operations', 'DELETE'), "
                     "has_table_privilege('vgu_buddy_runtime', "
                     "'app_private.semester_backups', 'DELETE')"
+                    ", has_table_privilege('vgu_buddy_runtime', "
+                    "'public.alembic_version', 'SELECT')"
+                    ", has_column_privilege('vgu_buddy_runtime', "
+                    "'app_private.buddy_messages', 'read_at', 'INSERT')"
                 )
             )
         ).one()
-        assert privileges == (True, False, False, False)
+        assert privileges == (True, False, False, False, True, True)
 
     await _expect_integrity_error(
         engine,
