@@ -49,9 +49,17 @@ URLs and provider response bodies must not be copied into the record.
 6. Capture the complete candidate revision's automated suites plus live Redis, Storage, email,
    WSS, accessibility and shared validation/race gates. Existing unit coverage is supporting
    evidence, not a replacement for deployed behavior.
-7. Deploy and accept the free scheduled maintenance path, or record an approved equivalent, so
-   invitation expiry, chat retention and semester-backup expiry have a production scheduler.
-8. Complete one encrypted off-site backup and one disposable restore rehearsal under the DR plan.
+7. Complete one encrypted off-site backup and one disposable restore rehearsal under the DR plan.
+
+## Newly reconciled evidence — maintenance scheduler
+
+The free scheduled maintenance path is now accepted on staging for commit `5b20c00`. The operator
+confirmed successful Cron health after at least two schedule intervals and all three sanitized API
+completion events; independent probes confirmed live/ready 200 and generic unauthenticated 401.
+See [the maintenance staging evidence record](maintenance-staging-evidence-2026-10-04.md). This
+closes the maintenance item formerly listed among the missing `ACCEPT-001` evidence. Isolated
+production Cron/Vault configuration remains a `PROD-001` provisioning step, not a reason to rerun
+staging acceptance.
 
 ## Safe next acceptance sequence
 

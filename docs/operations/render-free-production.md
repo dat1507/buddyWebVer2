@@ -6,9 +6,9 @@ Render Free is the selected BuddyWebv2 API provider for the initial production r
 is dropped, Google Cloud billing is not required, and no paid Render upgrade is authorized. The
 known Free-tier limits are an accepted operational risk, not a provider-selection blocker.
 
-This decision does **not** make the release production-ready. Production remains blocked until the
-remaining `ACCEPT-001` scenarios, staging maintenance evidence, minimum DR evidence and isolated
-production resources all pass. DNS cutover is a later manual gate.
+This decision does **not** make the release production-ready. Staging maintenance evidence passed
+on 2026-10-04, but production remains blocked until the remaining `ACCEPT-001` scenarios, minimum DR
+evidence and isolated production resources all pass. DNS cutover is a later manual gate.
 
 ## Audited production topology
 
@@ -153,7 +153,8 @@ measurements and obtain separate approval before changing the compute plan.
 ## Deployment order and rollback boundary
 
 1. Close `ACCEPT-001` using only its remaining staging scenarios.
-2. Obtain deployed staging evidence for all three maintenance operations.
+2. Preserve the accepted deployed staging evidence for all three maintenance operations; completed
+   on 2026-10-04 for commit `5b20c00`.
 3. Complete an encrypted off-site backup and disposable DR restore rehearsal.
 4. Confirm the no-cost Render, Supabase and Upstash capacity gates.
 5. Provision isolated production resources and credentials.

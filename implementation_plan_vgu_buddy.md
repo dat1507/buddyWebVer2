@@ -9153,19 +9153,21 @@ staging acceptance contract before the future Event flag is enabled.
   count. The owner must also confirm an available second active Supabase Free project and a distinct
   `$0` production Upstash database before provisioning. A failed capacity gate is reported; it does
   not authorize resource sharing or billing.
-- **Maintenance scheduler:** implementation and local verification exist in the current candidate,
-  but status remains **NOT DONE** until the API revision is deployed to staging, the dedicated Render
-  secret and Supabase Vault/Cron entries are configured, and provider evidence proves invitation,
-  chat and semester-backup maintenance executions.
+- **Maintenance scheduler:** **DONE ON STAGING — 2026-10-04**, commit `5b20c00`. The dedicated
+  Render secret and Supabase Vault/Cron path were configured; after at least two intervals the
+  operator confirmed successful Cron health and all three sanitized completion events. Independent
+  probes confirmed live/ready 200 and generic unauthenticated 401. Production repeats this setup
+  with newly generated isolated values during `PROD-001`.
 - **`ACCEPT-001`:** remains **OPEN / BLOCKING**. Reuse accepted evidence and run only the missing
   500/501, 10,000/10,001, stale-tab/type race, multiple-Buddy/chat retention, Admin reconciliation
   and restore-blocked-after-new-USER scenarios documented in the reconciliation record.
 - **Disaster recovery:** the Free-compatible off-site plan and distinct `vgu_buddy_dr_backup` role
   contract are prepared, but status remains **NOT DONE** until an encrypted full backup and safe
   disposable restore rehearsal have evidence. The semester `DATABASE_BACKUP_URL` is not a DR role.
-- **Production readiness:** **NOT READY / BLOCKED** by the three gates above and by isolated
-  production provisioning/bootstrap/provider-host acceptance. Provider selection is closed; no DNS
-  cutover or destructive production Semester acceptance is authorized.
-- **Required order:** close remaining staging acceptance -> accept staging maintenance -> prove DR ->
-  provision isolated production -> migrate zero-to-head -> accept Render provider hostname and
-  Vercel preview -> separately approve DNS cutover -> smoke/rollback verification.
+- **Production readiness:** **NOT READY / BLOCKED** by remaining `ACCEPT-001`, DR evidence and
+  isolated production provisioning/bootstrap/provider-host acceptance. Staging maintenance is no
+  longer a blocker. Provider selection is closed; no DNS cutover or destructive production Semester
+  acceptance is authorized.
+- **Required order:** close remaining staging acceptance -> prove DR -> provision isolated
+  production -> migrate zero-to-head -> accept Render provider hostname and Vercel preview ->
+  separately approve DNS cutover -> smoke/rollback verification.

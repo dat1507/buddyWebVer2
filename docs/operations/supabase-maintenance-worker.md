@@ -1,5 +1,16 @@
 # Supabase scheduled maintenance worker
 
+## Staging status
+
+**ACCEPTED — 2026-10-04.** Commit `5b20c00` was deployed to staging. After at least two schedule
+intervals, the operator confirmed successful Cron health and all three sanitized Render completion
+events. Independent public probes returned liveness/readiness 200 and a generic 401 for an
+unauthenticated maintenance POST. See the sanitized
+[staging evidence record](maintenance-staging-evidence-2026-10-04.md).
+
+This acceptance does not authorize reusing the staging secret or Vault entries in production.
+Production repeats the configuration with newly generated environment-specific values.
+
 Production retention uses one provider-neutral, bounded API call:
 
 ```text

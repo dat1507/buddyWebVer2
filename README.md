@@ -245,13 +245,17 @@ the hosted Cron schedule. Deployment, secrets and acceptance are documented in
 
 Initial production has deliberately selected a separate **Render Free** API service with separate
 Supabase, TLS Redis, Storage and secret configuration. Its cold-start/resource limits are accepted
-operational risk, but `ACCEPT-001`, deployed maintenance evidence and minimum DR evidence remain
-release blockers. Capacity gates, temporary-host verification, paid-reevaluation criteria and the
-DNS/rollback order are in
+operational risk, but `ACCEPT-001` and minimum DR evidence remain release blockers. Capacity gates,
+temporary-host verification, paid-reevaluation criteria and the DNS/rollback order are in
 [docs/operations/render-free-production.md](docs/operations/render-free-production.md). Scheduled
 retention and full off-site recovery are documented separately in
 [docs/operations/supabase-maintenance-worker.md](docs/operations/supabase-maintenance-worker.md) and
 [docs/operations/supabase-free-offsite-dr.md](docs/operations/supabase-free-offsite-dr.md).
+
+The maintenance scheduler passed staging acceptance on 2026-10-04 for commit `5b20c00`: Supabase
+Cron health succeeded across at least two intervals, and Render emitted sanitized completion events
+for invitation expiry, chat cleanup and semester-backup expiry. The redacted evidence is in
+[docs/operations/maintenance-staging-evidence-2026-10-04.md](docs/operations/maintenance-staging-evidence-2026-10-04.md).
 
 The repository is suitable for a staging deployment after those environment resources are supplied,
 but no production deployment is configured or claimed.
