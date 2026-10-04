@@ -254,6 +254,36 @@ test("C. completed work is not claimed twice and Resend receives the stable idem
   assert.equal(capturedHeader, job.idempotency_key);
 });
 
+test("Resend sends HTML with a plain-text fallback when a template provides both", async () => {
+  let capturedBody: unknown;
+  const resend = new ResendEmailProvider(
+    "test-only-provider-key",
+    "VGU Buddy <mail@example.invalid>",
+    async (_input, init) => {
+      capturedBody = JSON.parse(String(init?.body));
+      return Response.json({ id: "provider-html" });
+    },
+  );
+
+  await resend.send(
+    {
+      recipientEmail: "student@example.invalid",
+      subject: "Subject",
+      textBody: "Plain-text fallback",
+      htmlBody: "<strong>HTML body</strong>",
+    },
+    "email-with-html",
+  );
+
+  assert.deepEqual(capturedBody, {
+    from: "VGU Buddy <mail@example.invalid>",
+    to: ["student@example.invalid"],
+    subject: "Subject",
+    text: "Plain-text fallback",
+    html: "<strong>HTML body</strong>",
+  });
+});
+
 test("D. retryable provider failure releases the job and a later execution succeeds", async () => {
   const job = await verificationJob("retry");
   const gateway = new AtomicFakeGateway([job]);
@@ -330,7 +360,7 @@ test("F. one invocation cannot claim more than the default bounded batch", async
   assert.equal(gateway.stored.filter((stored) => !stored.sent).length, 5);
 });
 
-test("INV-008 resolves current address and renders one plain-text Open Invitation email", async () => {
+test("INV-008 resolves current address and renders one branded invitation email", async () => {
   const job = invitationJob("invite-current");
   class InvitationGateway extends AtomicFakeGateway {
     override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
@@ -368,11 +398,41 @@ test("INV-008 resolves current address and renders one plain-text Open Invitatio
   assert.equal(delivery.message.subject, "You received a VGU Buddy invitation");
   assert.match(
     delivery.message.textBody,
-    /^<script>alert\(1\)<\/script> sent you/,
+    /^You've got a new Buddy invitation!/,
+  );
+  assert.match(
+    delivery.message.textBody,
+    /<script>alert\(1\)<\/script> would like to connect with you on VGU Buddy\./,
   );
   assert.match(
     delivery.message.textBody,
     /https:\/\/staging\.vgubuddyprogram\.com\/user\/matching\?invitation=11111111/,
+  );
+  assert.match(
+    delivery.message.textBody,
+    /This invitation will expire after 7 days\./,
+  );
+  assert.ok(delivery.message.htmlBody);
+  assert.match(
+    delivery.message.htmlBody,
+    /src="https:\/\/staging\.vgubuddyprogram\.com\/vguBuddy_logo\.png"/,
+  );
+  assert.match(
+    delivery.message.htmlBody,
+    /href="https:\/\/staging\.vgubuddyprogram\.com\/user\/matching\?invitation=11111111/,
+  );
+  assert.match(delivery.message.htmlBody, />View invitation<\/a>/);
+  assert.match(
+    delivery.message.htmlBody,
+    /&lt;script&gt;alert\(1\)&lt;\/script&gt;/,
+  );
+  assert.equal(
+    delivery.message.htmlBody.includes("<script>alert(1)</script>"),
+    false,
+  );
+  assert.match(
+    delivery.message.htmlBody,
+    /This invitation will expire after 7 days\./,
   );
   assert.equal(
     delivery.message.textBody.includes("private invitation message"),

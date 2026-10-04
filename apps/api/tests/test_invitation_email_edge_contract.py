@@ -21,6 +21,10 @@ def test_edge_worker_allowlists_invitation_and_resolves_current_verified_recipie
     assert "recipient.deleted_at IS NULL" in index
     assert "outbox.aggregate_id = ${invitationId}::uuid" in index
     assert "/user/matching?invitation=" in core
+    assert "/vguBuddy_logo.png" in core
+    assert "htmlBody" in core
+    assert "providerPayload.html = message.htmlBody" in core
+    assert "This invitation will expire after 7 days." in core
 
 
 def test_invitation_request_path_only_enqueues_and_never_calls_email_provider() -> None:

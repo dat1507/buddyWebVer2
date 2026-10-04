@@ -32,6 +32,7 @@ class OutboundEmail:
     recipient_email: str = field(repr=False)
     subject: str = field(repr=False)
     text_body: str = field(repr=False)
+    html_body: str | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         if (
@@ -45,6 +46,8 @@ class OutboundEmail:
             raise ValueError("Email subject is unsafe or invalid.")
         if not self.text_body.strip():
             raise ValueError("Email text body must not be empty.")
+        if self.html_body is not None and not self.html_body.strip():
+            raise ValueError("Email HTML body must not be empty when provided.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,7 +142,7 @@ class UrllibEmailProviderTransport:
 
 
 class ResendEmailProvider:
-    """Send plain-text transactional email with provider-side idempotency."""
+    """Send transactional email with provider-side idempotency."""
 
     def __init__(
         self,
@@ -165,13 +168,16 @@ class ResendEmailProvider:
             or "\n" in normalized_key
         ):
             raise EmailDeliveryError(retryable=False, error_code="invalid_idempotency_key")
+        provider_payload = {
+            "from": self._from_address,
+            "to": [message.recipient_email],
+            "subject": message.subject,
+            "text": message.text_body,
+        }
+        if message.html_body is not None:
+            provider_payload["html"] = message.html_body
         body = json.dumps(
-            {
-                "from": self._from_address,
-                "to": [message.recipient_email],
-                "subject": message.subject,
-                "text": message.text_body,
-            },
+            provider_payload,
             ensure_ascii=False,
             separators=(",", ":"),
         ).encode("utf-8")

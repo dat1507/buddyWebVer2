@@ -52,6 +52,7 @@ class RenderedEmailContent:
 
     subject: str = field(repr=False)
     text_body: str = field(repr=False)
+    html_body: str | None = field(default=None, repr=False)
 
 
 class EmailTemplateRenderer(Protocol):
@@ -147,6 +148,7 @@ class EmailTemplateRegistry:
                 recipient_email="validation@example.invalid",
                 subject=content.subject,
                 text_body=content.text_body,
+                html_body=content.html_body,
             )
             return content
         except EmailTemplateError:
@@ -409,6 +411,7 @@ async def _deliver_one(
                 recipient_email=item.recipient_email,
                 subject=content.subject,
                 text_body=content.text_body,
+                html_body=content.html_body,
             ),
             idempotency_key=item.idempotency_key,
         )

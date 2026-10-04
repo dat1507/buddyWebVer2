@@ -1,8 +1,9 @@
-"""INV-008 current-address resolver and plain-text invitation email template."""
+"""INV-008 current-address resolver and invitation email templates."""
 
 from __future__ import annotations
 
 from collections.abc import Mapping
+from html import escape
 from typing import Final
 from urllib.parse import quote
 from uuid import UUID
@@ -137,7 +138,7 @@ class MatchingInvitationCreatedResolver:
 
 
 class MatchingInvitationCreatedTemplate:
-    """Render the allowlisted Open Invitation notification as plain text only."""
+    """Render the allowlisted branded invitation notification."""
 
     event_type = MATCHING_INVITATION_CREATED
 
@@ -164,14 +165,76 @@ class MatchingInvitationCreatedTemplate:
             f"{self._public_app_base_url}/user/matching"
             f"?invitation={quote(str(invitation_id), safe='')}"
         )
+        logo_url = f"{self._public_app_base_url}/vguBuddy_logo.png"
+        escaped_sender_name = escape(sender_display_name, quote=True)
+        escaped_link = escape(link, quote=True)
+        escaped_logo_url = escape(logo_url, quote=True)
         return RenderedEmailContent(
             subject="You received a VGU Buddy invitation",
             text_body=(
-                f"{sender_display_name} sent you a VGU Buddy invitation.\n\n"
-                "Open invitation:\n"
+                "You've got a new Buddy invitation!\n\n"
+                f"{sender_display_name} would like to connect with you on VGU Buddy.\n\n"
+                "View invitation:\n"
                 f"{link}\n\n"
-                "Sign in to VGU Buddy to review and respond to this invitation."
+                "This invitation will expire after 7 days.\n\n"
+                "VGU Buddy Program\n"
+                "Vietnamese-German University"
             ),
+            html_body=f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>You received a VGU Buddy invitation</title>
+    <style>
+      @media only screen and (max-width: 620px) {{
+        .email-shell {{ width: 100% !important; }}
+        .email-content {{ padding: 32px 24px !important; }}
+        .email-footer {{ padding: 24px !important; }}
+        .email-button {{ display: block !important; text-align: center !important; }}
+      }}
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f4f5;color:#171717;font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      {escaped_sender_name} would like to connect with you on VGU Buddy.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f4f5;">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="email-shell" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td align="center" style="background:#000000;padding:18px 24px;">
+                <img src="{escaped_logo_url}" width="160" alt="VGU Buddy Program" style="display:block;width:160px;max-width:100%;height:auto;border:0;">
+              </td>
+            </tr>
+            <tr>
+              <td class="email-content" style="padding:40px 48px;">
+                <p style="margin:0 0 12px;color:#ff670d;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">VGU Buddy Program</p>
+                <h1 style="margin:0 0 20px;color:#000000;font-size:28px;line-height:1.25;font-weight:700;">You've got a new Buddy invitation!</h1>
+                <p style="margin:0 0 28px;color:#3f3f46;font-size:16px;line-height:1.65;"><strong style="color:#000000;">{escaped_sender_name}</strong> would like to connect with you on VGU Buddy.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
+                  <tr>
+                    <td bgcolor="#ff670d" style="border-radius:10px;">
+                      <a href="{escaped_link}" class="email-button" style="display:inline-block;padding:14px 24px;color:#000000;font-size:16px;font-weight:700;line-height:1;text-decoration:none;border-radius:10px;">View invitation</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0;padding:16px 18px;background:#fff7ed;border-left:4px solid #ff670d;border-radius:8px;color:#52525b;font-size:14px;line-height:1.5;">This invitation will expire after 7 days.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-footer" style="padding:24px 48px;background:#000000;color:#ffffff;">
+                <p style="margin:0;font-size:14px;font-weight:700;line-height:1.5;">VGU Buddy Program</p>
+                <p style="margin:2px 0 0;color:#d4d4d8;font-size:13px;line-height:1.5;">Vietnamese-German University</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>""",
         )
 
 

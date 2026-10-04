@@ -11,13 +11,11 @@ import {
   Users,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router'
+import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import { CurrentBuddiesSection } from '@/features/matching/current-buddies-section'
-import { conversationIdFromBuddyLocation } from '@/features/matching/current-buddy'
 import { InvitationComposer } from '@/features/matching/invitation-composer'
 import { InvitationSections } from '@/features/matching/invitation-sections'
 import { invitationErrorKey } from '@/features/matching/invitation'
@@ -35,7 +33,6 @@ import {
   useSendInvitation,
   useSentInvitations,
 } from '@/features/matching/queries/use-invitations'
-import { useCurrentBuddies } from '@/features/matching/queries/use-current-buddies'
 import { useRecommendations } from '@/features/matching/queries/use-recommendations'
 import type { CatalogLocale } from '@/features/profile/profile-catalog'
 import { useProfileCompletion } from '@/features/profile/queries/use-own-profile'
@@ -174,7 +171,6 @@ function RecommendationError({ retry }: { retry: () => void }) {
 
 function MatchingPage() {
   const { t, i18n } = useTranslation()
-  const location = useLocation()
   const locale = catalogLocale(i18n.resolvedLanguage)
   const [pagination, setPagination] = useState<{ locale: CatalogLocale; page: number }>({
     locale,
@@ -189,15 +185,6 @@ function MatchingPage() {
   const resultsTitleId = useId()
   const completion = useProfileCompletion()
   const eligible = completion.data?.matching_eligible === true
-  const currentBuddiesEnabled =
-    completion.data !== undefined &&
-    !completion.data.reasons.includes('EMAIL_VERIFICATION_REQUIRED')
-  const targetConversationId = conversationIdFromBuddyLocation({
-    pathname: '/user/buddy',
-    search: location.search,
-    hash: '',
-  })
-  const currentBuddies = useCurrentBuddies({ enabled: currentBuddiesEnabled, locale })
   const recommendations = useRecommendations({
     enabled: eligible,
     locale,
@@ -283,22 +270,6 @@ function MatchingPage() {
           {t('invitations.composer.success', { name: successName })}
         </p>
       ) : null}
-
-      <CurrentBuddiesSection
-        enabled={currentBuddiesEnabled}
-        locale={locale}
-        query={currentBuddies}
-        targetConversationId={targetConversationId}
-      />
-
-      <InvitationSections
-        enabled={invitationsEnabled}
-        locale={locale}
-        incoming={incomingInvitations}
-        sent={sentInvitations}
-        incomingItems={incomingItems}
-        sentItems={sentItems}
-      />
 
       <Typography as="h2" variant="h3" id={resultsTitleId}>
         {t('recommendedBuddies.resultsTitle')}
@@ -408,6 +379,16 @@ function MatchingPage() {
           ) : null}
         </>
       )}
+
+      <InvitationSections
+        enabled={invitationsEnabled}
+        locale={locale}
+        incoming={incomingInvitations}
+        sent={sentInvitations}
+        incomingItems={incomingItems}
+        sentItems={sentItems}
+      />
+
       <InvitationComposer
         target={composerTarget?.profile ?? null}
         pending={sendInvitation.isPending}

@@ -26,6 +26,7 @@ export interface OutboundEmail {
   recipientEmail: string;
   subject: string;
   textBody: string;
+  htmlBody?: string;
 }
 
 export type FinalizeOutcome = "sent" | "retry" | "failed" | "skipped";
@@ -151,7 +152,8 @@ export class ResendEmailProvider implements EmailProvider {
     if (
       !message.subject.trim() ||
       /[\r\n]/.test(message.subject) ||
-      !message.textBody.trim()
+      !message.textBody.trim() ||
+      (message.htmlBody !== undefined && !message.htmlBody.trim())
     ) {
       throw new DeliveryFailure(false, "invalid_email_content");
     }
@@ -162,6 +164,22 @@ export class ResendEmailProvider implements EmailProvider {
       /[\r\n]/.test(normalizedKey)
     ) {
       throw new DeliveryFailure(false, "invalid_idempotency_key");
+    }
+
+    const providerPayload: {
+      from: string;
+      to: string[];
+      subject: string;
+      text: string;
+      html?: string;
+    } = {
+      from: this.#fromAddress,
+      to: [message.recipientEmail],
+      subject: message.subject,
+      text: message.textBody,
+    };
+    if (message.htmlBody !== undefined) {
+      providerPayload.html = message.htmlBody;
     }
 
     let response: Response;
@@ -176,12 +194,7 @@ export class ResendEmailProvider implements EmailProvider {
           "Idempotency-Key": normalizedKey,
           "User-Agent": "vgu-buddy-edge-email-worker/0.1",
         },
-        body: JSON.stringify({
-          from: this.#fromAddress,
-          to: [message.recipientEmail],
-          subject: message.subject,
-          text: message.textBody,
-        }),
+        body: JSON.stringify(providerPayload),
       });
     } catch {
       throw new DeliveryFailure(true, "provider_unavailable");
@@ -490,14 +503,76 @@ function renderInvitationEmail(
   }
   const appOrigin = normalizePublicAppOrigin(settings.publicAppBaseUrl);
   const link = `${appOrigin}/user/matching?invitation=${encodeURIComponent(invitationId)}`;
+  const logoUrl = `${appOrigin}/vguBuddy_logo.png`;
+  const escapedSenderDisplayName = escapeHtml(senderDisplayName);
+  const escapedLink = escapeHtml(link);
+  const escapedLogoUrl = escapeHtml(logoUrl);
   return {
     recipientEmail: job.recipient_email,
     subject: "You received a VGU Buddy invitation",
     textBody:
-      `${senderDisplayName} sent you a VGU Buddy invitation.\n\n` +
-      "Open invitation:\n" +
+      "You've got a new Buddy invitation!\n\n" +
+      `${senderDisplayName} would like to connect with you on VGU Buddy.\n\n` +
+      "View invitation:\n" +
       `${link}\n\n` +
-      "Sign in to VGU Buddy to review and respond to this invitation.",
+      "This invitation will expire after 7 days.\n\n" +
+      "VGU Buddy Program\n" +
+      "Vietnamese-German University",
+    htmlBody: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>You received a VGU Buddy invitation</title>
+    <style>
+      @media only screen and (max-width: 620px) {
+        .email-shell { width: 100% !important; }
+        .email-content { padding: 32px 24px !important; }
+        .email-footer { padding: 24px !important; }
+        .email-button { display: block !important; text-align: center !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f4f5;color:#171717;font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      ${escapedSenderDisplayName} would like to connect with you on VGU Buddy.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f4f5;">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="email-shell" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td align="center" style="background:#000000;padding:18px 24px;">
+                <img src="${escapedLogoUrl}" width="160" alt="VGU Buddy Program" style="display:block;width:160px;max-width:100%;height:auto;border:0;">
+              </td>
+            </tr>
+            <tr>
+              <td class="email-content" style="padding:40px 48px;">
+                <p style="margin:0 0 12px;color:#ff670d;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">VGU Buddy Program</p>
+                <h1 style="margin:0 0 20px;color:#000000;font-size:28px;line-height:1.25;font-weight:700;">You've got a new Buddy invitation!</h1>
+                <p style="margin:0 0 28px;color:#3f3f46;font-size:16px;line-height:1.65;"><strong style="color:#000000;">${escapedSenderDisplayName}</strong> would like to connect with you on VGU Buddy.</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
+                  <tr>
+                    <td bgcolor="#ff670d" style="border-radius:10px;">
+                      <a href="${escapedLink}" class="email-button" style="display:inline-block;padding:14px 24px;color:#000000;font-size:16px;font-weight:700;line-height:1;text-decoration:none;border-radius:10px;">View invitation</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0;padding:16px 18px;background:#fff7ed;border-left:4px solid #ff670d;border-radius:8px;color:#52525b;font-size:14px;line-height:1.5;">This invitation will expire after 7 days.</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-footer" style="padding:24px 48px;background:#000000;color:#ffffff;">
+                <p style="margin:0;font-size:14px;font-weight:700;line-height:1.5;">VGU Buddy Program</p>
+                <p style="margin:2px 0 0;color:#d4d4d8;font-size:13px;line-height:1.5;">Vietnamese-German University</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
   };
 }
 
@@ -549,6 +624,15 @@ function requireUuid(value: unknown, errorCode: string): string {
     throw new TemplateFailure(errorCode);
   }
   return value;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#x27;");
 }
 
 function normalizePublicAppOrigin(value: string): string {

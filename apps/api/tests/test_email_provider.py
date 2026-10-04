@@ -70,7 +70,7 @@ def test_email_configuration_rejects_unsafe_sender(from_address: str) -> None:
 
 
 @pytest.mark.anyio
-async def test_resend_adapter_uses_fixed_endpoint_plain_text_and_idempotency() -> None:
+async def test_resend_adapter_uses_fixed_endpoint_text_html_and_idempotency() -> None:
     transport = MagicMock()
     transport.post = AsyncMock(
         return_value=EmailProviderResponse(status_code=200, body=b'{"id":"provider-id"}')
@@ -79,14 +79,16 @@ async def test_resend_adapter_uses_fixed_endpoint_plain_text_and_idempotency() -
     message = OutboundEmail(
         recipient_email="student@example.com",
         subject="Subject",
-        text_body="Plain text only",
+        text_body="Plain text fallback",
+        html_body="<strong>HTML body</strong>",
     )
 
     delivery = await provider.send(message, idempotency_key="EMAIL_VERIFY/aggregate")
 
     assert delivery.provider_message_id == "provider-id"
     assert "student@example.com" not in repr(message)
-    assert "Plain text only" not in repr(message)
+    assert "Plain text fallback" not in repr(message)
+    assert "HTML body" not in repr(message)
     assert "provider-id" not in repr(delivery)
     assert TEST_API_KEY not in repr(provider)
     transport.post.assert_awaited_once()
@@ -98,7 +100,8 @@ async def test_resend_adapter_uses_fixed_endpoint_plain_text_and_idempotency() -
         "from": "VGU Buddy <buddy@example.com>",
         "to": ["student@example.com"],
         "subject": "Subject",
-        "text": "Plain text only",
+        "text": "Plain text fallback",
+        "html": "<strong>HTML body</strong>",
     }
 
 

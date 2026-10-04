@@ -8,7 +8,6 @@ import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { MatchingPage } from '@/pages/user/matching-page'
-import { currentBuddyList } from '@/test/current-buddies'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
@@ -38,12 +37,7 @@ describe('REC-004 Recommended Buddies page', () => {
       total: 0,
       total_pages: 0,
     })
-    vi.spyOn(matchingClient, 'readCurrentBuddies').mockResolvedValue({
-      ...currentBuddyList,
-      items: [],
-      total: 0,
-      total_pages: 0,
-    })
+    vi.spyOn(matchingClient, 'readCurrentBuddies')
   })
 
   afterEach(() => {
@@ -84,8 +78,24 @@ describe('REC-004 Recommended Buddies page', () => {
     expect(within(card).getAllByRole('progressbar')).toHaveLength(6)
     expect(screen.getByText('Availability comparison week: Sep 21, 2026')).toBeVisible()
     expect(within(card).getByRole('button', { name: 'Send invitation' })).toBeEnabled()
+    const resultHeading = screen.getByRole('heading', { name: 'Recommendation results' })
+    const invitationsHeading = screen.getByRole('heading', { name: 'Invitations' })
+    const incomingHeading = screen.getByRole('heading', { name: 'Incoming invitations' })
+    const sentHeading = screen.getByRole('heading', { name: 'Sent invitations' })
+    expect(
+      resultHeading.compareDocumentPosition(invitationsHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0)
+    expect(
+      invitationsHeading.compareDocumentPosition(incomingHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0)
+    expect(
+      incomingHeading.compareDocumentPosition(sentHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0)
     expect(screen.getByRole('heading', { name: 'Incoming invitations' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Sent invitations' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Current Buddies' })).not.toBeInTheDocument()
+    expect(matchingClient.readCurrentBuddies).not.toHaveBeenCalled()
     expect(read).toHaveBeenCalledWith({
       locale: 'en',
       page: 1,
@@ -107,7 +117,7 @@ describe('REC-004 Recommended Buddies page', () => {
     const verificationLinks = screen.getAllByRole('link', {
       name: 'Manage email verification',
     })
-    expect(verificationLinks).toHaveLength(2)
+    expect(verificationLinks).toHaveLength(1)
     verificationLinks.forEach((link) => expect(link).toHaveAttribute('href', '/user/settings'))
     expect(read).not.toHaveBeenCalled()
     expect(matchingClient.readIncomingInvitations).not.toHaveBeenCalled()

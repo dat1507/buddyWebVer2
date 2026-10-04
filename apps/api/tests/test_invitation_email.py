@@ -1,4 +1,4 @@
-"""INV-008/009 current-address resolution and plain-text template tests."""
+"""INV-008/009 current-address resolution and email template tests."""
 
 from __future__ import annotations
 
@@ -107,7 +107,7 @@ async def test_resolver_rejects_malformed_or_expanded_persisted_payload(
     mock.execute.assert_not_awaited()
 
 
-def test_template_renders_focused_plain_text_content_and_same_origin_cta() -> None:
+def test_template_renders_branded_html_plain_text_fallback_and_same_origin_cta() -> None:
     content = MatchingInvitationCreatedTemplate(SETTINGS).render(
         {
             "version": 1,
@@ -117,13 +117,27 @@ def test_template_renders_focused_plain_text_content_and_same_origin_cta() -> No
     )
 
     assert content.subject == "You received a VGU Buddy invitation"
-    assert content.text_body.startswith(
-        "<script>alert(1)</script> sent you a VGU Buddy invitation."
+    assert content.text_body.startswith("You've got a new Buddy invitation!")
+    assert (
+        "<script>alert(1)</script> would like to connect with you on VGU Buddy."
+        in content.text_body
     )
     assert (
         f"https://staging.vgubuddyprogram.com/user/matching?invitation={INVITATION_ID}"
         in content.text_body
     )
+    assert "This invitation will expire after 7 days." in content.text_body
+    assert content.html_body is not None
+    assert "You've got a new Buddy invitation!" in content.html_body
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in content.html_body
+    assert "<script>alert(1)</script>" not in content.html_body
+    assert 'src="https://staging.vgubuddyprogram.com/vguBuddy_logo.png"' in content.html_body
+    assert (
+        f'href="https://staging.vgubuddyprogram.com/user/matching?invitation={INVITATION_ID}"'
+        in content.html_body
+    )
+    assert ">View invitation</a>" in content.html_body
+    assert "This invitation will expire after 7 days." in content.html_body
     assert "Start Chatting" not in content.text_body
     assert "message" not in content.text_body.lower()
     assert "example.com" not in content.text_body
@@ -211,7 +225,7 @@ async def test_default_registries_keep_created_and_accepted_events_separate() ->
     assert raised.value.error_code == "invitation_payload_invalid"
 
 
-def test_template_contract_is_time_independent_and_contains_no_expiry_guess() -> None:
+def test_template_contract_uses_the_business_rule_without_an_absolute_expiry_guess() -> None:
     content = MatchingInvitationCreatedTemplate(SETTINGS).render(
         {
             "version": 1,
@@ -220,11 +234,16 @@ def test_template_contract_is_time_independent_and_contains_no_expiry_guess() ->
         }
     )
     assert str(datetime(2026, 10, 8, tzinfo=UTC).date()) not in content.text_body
-    assert "7 days" not in content.text_body
+    assert "This invitation will expire after 7 days." in content.text_body
+    assert content.html_body is not None
+    assert str(datetime(2026, 10, 8, tzinfo=UTC).date()) not in content.html_body
+    assert "This invitation will expire after 7 days." in content.html_body
 
 
 @pytest.mark.anyio
-async def test_accepted_resolver_uses_current_sender_address_and_authoritative_relationship() -> None:
+async def test_accepted_resolver_uses_current_sender_address_and_authoritative_relationship() -> (
+    None
+):
     mock, session = _session(("current-sender@example.com", "  <b>Buddy</b>\nFriend  "))
 
     delivery = await MatchingInvitationAcceptedResolver().resolve(
