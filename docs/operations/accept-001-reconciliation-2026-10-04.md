@@ -233,7 +233,25 @@ No Restore preparation or execution was attempted in this milestone. The final
 Restore operation to be prepared while the replacement semester is empty, then a genuinely new
 verified USER is created, and only then is execution attempted and expected to fail atomically with
 `RESTORE_BLOCKED_NEW_DATA` while preserving that new USER. That scenario remains pending explicit
-authorization for Restore preparation and the later destructive execution attempt.
+authorization for Restore preparation and the later destructive execution attempt. Authorization
+for preparation was subsequently granted and is recorded below; execution remains a separate gate.
+
+### Final restore-blocked rehearsal — Restore prepared
+
+The operator explicitly authorized **Prepare Restore for the block test** after the second Reset was
+confirmed `SUCCEEDED`. Immediately before preparation, the Admin UI showed the replacement
+`CURRENT` semester with 0 student accounts and the newest protected backup as `READY`.
+
+The Admin preparation action created one Restore operation, shown as `RUNNING` at approximately
+`2026-10-06 13:22` Asia/Saigon. The server-owned preflight showed a zero-row package: 0 student
+accounts, profiles, custom preferences, invitations, Matches, conversations, messages and avatar
+objects. The backup remained `READY`, and **Review and execute restore** became available.
+
+No Restore credential, confirmation phrase or execution was submitted. The next controlled step is
+for the operator to register and verify one genuinely new student account in the replacement
+semester and complete its profile/type selection. Only after that new-cohort marker is verified may
+the separately confirmed execution attempt proceed; it must fail with
+`RESTORE_BLOCKED_NEW_DATA` without deleting, merging or overwriting the new USER.
 
 ## Safe next acceptance sequence
 
