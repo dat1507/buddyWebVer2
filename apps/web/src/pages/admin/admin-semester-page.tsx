@@ -227,8 +227,18 @@ function AdminSemesterPage() {
     dialog === 'reset' ? activeResetPreflight : activeRestorePreflight
   const mutation = dialog === 'reset' ? executeReset : executeRestore
   const phrase = currentPreflight?.confirmation_phrase ?? ''
+  const canOpenRestoreGate = Boolean(
+    activeRestorePreflight &&
+    (activeRestorePreflight.can_execute || activeRestorePreflight.can_finalize_new_cohort_block),
+  )
+  const currentPreflightCanSubmit =
+    dialog === 'restore' ? canOpenRestoreGate : Boolean(activeResetPreflight?.can_execute)
   const canSubmit = Boolean(
-    currentPreflight?.can_execute && password && confirmation === phrase && !mutation.isPending,
+    currentPreflight &&
+    currentPreflightCanSubmit &&
+    password &&
+    confirmation === phrase &&
+    !mutation.isPending,
   )
   const execute = async () => {
     if (!dialog || !currentPreflight || !canSubmit) return
@@ -369,7 +379,7 @@ function AdminSemesterPage() {
                     : t('adminSemester.restore.prepare')}
                 </Button>
               ) : null}
-              {activeRestorePreflight?.can_execute ? (
+              {canOpenRestoreGate ? (
                 <Button type="button" variant="destructive" onClick={() => setDialog('restore')}>
                   {t('adminSemester.restore.open')}
                 </Button>

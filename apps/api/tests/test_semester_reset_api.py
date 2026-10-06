@@ -158,6 +158,7 @@ def _restore_preflight() -> SemesterRestorePreflight:
         current_semester_id=NEW_SEMESTER_ID,
         backup_state=SemesterBackupState.READY,
         can_execute=True,
+        can_finalize_new_cohort_block=False,
         restored_counts={"users": 2},
         avatar_object_count=1,
         confirmation_phrase=f"RESTORE {BACKUP_ID}",
@@ -434,6 +435,7 @@ async def test_restore_preflight_and_execute_are_admin_private_and_csrf_guarded(
     assert preflight_response.status_code == 200
     assert preflight_response.headers["cache-control"] == "private, no-store"
     assert preflight_response.json()["restored_counts"] == {"users": 2}
+    assert preflight_response.json()["can_finalize_new_cohort_block"] is False
     assert denied.status_code == 403
     assert response.status_code == 200
     assert response.headers["cache-control"] == "private, no-store"

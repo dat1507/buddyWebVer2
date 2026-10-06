@@ -98,6 +98,7 @@ class SemesterRestorePreflight:
     current_semester_id: UUID
     backup_state: SemesterBackupState
     can_execute: bool
+    can_finalize_new_cohort_block: bool
     restored_counts: dict[str, int]
     avatar_object_count: int
     confirmation_phrase: str
@@ -224,11 +225,15 @@ async def get_semester_restore_preflight(
     )
     current = await _current_semester(session, lock=False)
     now = await _database_clock(session)
-    state = effective_semester_backup_state(backup, now=now)
-    if backup.restored_at is None and (
+    effective_state = effective_semester_backup_state(backup, now=now)
+    new_cohort_blocked = backup.restored_at is None and (
         current.student_accounts_created > 0 or current.first_student_created_at is not None
-    ):
-        state = SemesterBackupState.RESTORE_BLOCKED_NEW_DATA
+    )
+    state = (
+        SemesterBackupState.RESTORE_BLOCKED_NEW_DATA
+        if new_cohort_blocked
+        else effective_state
+    )
     valid = reset is not None and _is_restore_identity_valid(
         operation,
         backup,
@@ -243,6 +248,9 @@ async def get_semester_restore_preflight(
         current_semester_id=current.id,
         backup_state=state,
         can_execute=valid and state is SemesterBackupState.READY,
+        can_finalize_new_cohort_block=(
+            valid and new_cohort_blocked and effective_state is SemesterBackupState.READY
+        ),
         restored_counts=_integer_counts(backup.database_row_counts),
         avatar_object_count=backup.avatar_object_count,
         confirmation_phrase=semester_restore_confirmation_phrase(backup.id),

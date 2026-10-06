@@ -73,6 +73,7 @@ const restorePreflightSchema = z
     current_semester_id: uuid,
     backup_state: backupState,
     can_execute: z.boolean(),
+    can_finalize_new_cohort_block: z.boolean().default(false),
     restored_counts: countMap,
     avatar_object_count: z.number().int().nonnegative(),
     confirmation_phrase: z.string().min(1).max(64),

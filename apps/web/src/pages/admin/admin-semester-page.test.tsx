@@ -70,9 +70,16 @@ const staleRestorePreflight = {
   current_semester_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
   backup_state: 'READY' as const,
   can_execute: true,
+  can_finalize_new_cohort_block: false,
   restored_counts: { users: 3, buddy_messages: 3 },
   avatar_object_count: 3,
   confirmation_phrase: `RESTORE ${backupId}`,
+}
+const newCohortRestorePreflight = {
+  ...staleRestorePreflight,
+  backup_state: 'RESTORE_BLOCKED_NEW_DATA' as const,
+  can_execute: false,
+  can_finalize_new_cohort_block: true,
 }
 const restoredStatus: SemesterManagementStatus = {
   ...readyStatus,
@@ -120,6 +127,22 @@ const postResetStatus: SemesterManagementStatus = {
   can_prepare_restore: true,
   restore_block_reason: null,
 }
+const blockedRestoreStatus: SemesterManagementStatus = {
+  ...postResetStatus,
+  current_student_accounts_created: 1,
+  restore_operation: {
+    id: restoreOperationId,
+    operation_type: 'RESTORE',
+    state: 'RUNNING',
+    requested_at: now,
+    started_at: now,
+    completed_at: null,
+    failure_code: null,
+  },
+  can_prepare_reset: false,
+  can_prepare_restore: false,
+  restore_block_reason: 'NEW_COHORT',
+}
 
 describe('SEM-007 Admin Semester Management safety UI', () => {
   let client: QueryClient
@@ -127,6 +150,7 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
   const readResetPreflight = vi.spyOn(adminSemestersClient, 'readResetPreflight')
   const readRestorePreflight = vi.spyOn(adminSemestersClient, 'readRestorePreflight')
   const executeReset = vi.spyOn(adminSemestersClient, 'executeReset')
+  const executeRestore = vi.spyOn(adminSemestersClient, 'executeRestore')
   const prepareReset = vi.spyOn(adminSemestersClient, 'prepareReset')
 
   beforeEach(async () => {
@@ -137,6 +161,7 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
     readResetPreflight.mockReset().mockResolvedValue(resetPreflight)
     readRestorePreflight.mockReset().mockResolvedValue(staleRestorePreflight)
     executeReset.mockReset().mockResolvedValue()
+    executeRestore.mockReset().mockResolvedValue()
     prepareReset.mockReset().mockResolvedValue()
   })
 
@@ -246,5 +271,57 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
       screen.queryByRole('button', { name: 'Review and execute restore' }),
     ).not.toBeInTheDocument()
     expect(readRestorePreflight).not.toHaveBeenCalled()
+  })
+
+  it('opens the manual gate only for a server-approved RUNNING new-cohort finalization', async () => {
+    readStatus.mockResolvedValue(blockedRestoreStatus)
+    readRestorePreflight.mockResolvedValue(newCohortRestorePreflight)
+    executeRestore.mockRejectedValue(new Error('RESTORE_BLOCKED_NEW_DATA'))
+
+    renderPage()
+
+    expect(await screen.findByText(/permanently blocked/)).toBeVisible()
+    fireEvent.click(await screen.findByRole('button', { name: 'Review and execute restore' }))
+    const confirm = screen.getByRole('button', { name: 'Execute restore' })
+    expect(confirm).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Current administrator password'), {
+      target: { value: 'top-secret' },
+    })
+    fireEvent.change(screen.getByLabelText('Type the exact confirmation phrase'), {
+      target: { value: newCohortRestorePreflight.confirmation_phrase },
+    })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+
+    await waitFor(() => expect(executeRestore).toHaveBeenCalledTimes(1))
+    expect(executeRestore).toHaveBeenCalledWith({
+      operationId: restoreOperationId,
+      backupId,
+      confirmationPhrase: newCohortRestorePreflight.confirmation_phrase,
+      currentPassword: 'top-secret',
+    })
+    expect(await screen.findByRole('alert')).toBeVisible()
+    expect(screen.queryByDisplayValue('top-secret')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['NEW_COHORT without server approval', 'RESTORE_BLOCKED_NEW_DATA', 'NEW_COHORT'],
+    ['an expired backup', 'EXPIRED', 'EXPIRED'],
+  ] as const)('does not open the restore gate for %s', async (_label, backupState, reason) => {
+    readStatus.mockResolvedValue({ ...blockedRestoreStatus, restore_block_reason: reason })
+    readRestorePreflight.mockResolvedValue({
+      ...newCohortRestorePreflight,
+      backup_state: backupState,
+      can_finalize_new_cohort_block: false,
+    })
+
+    renderPage()
+
+    await screen.findByText(/Restore returns the exact verified pre-reset dataset/)
+    await waitFor(() => expect(readRestorePreflight).toHaveBeenCalledTimes(1))
+    expect(
+      screen.queryByRole('button', { name: 'Review and execute restore' }),
+    ).not.toBeInTheDocument()
+    expect(executeRestore).not.toHaveBeenCalled()
   })
 })

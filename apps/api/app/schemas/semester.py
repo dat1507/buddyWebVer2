@@ -91,6 +91,7 @@ class SemesterRestorePreflightResponse(BaseModel):
     current_semester_id: UUID
     backup_state: SemesterBackupState
     can_execute: bool
+    can_finalize_new_cohort_block: bool
     restored_counts: dict[str, int]
     avatar_object_count: int = Field(ge=0)
     confirmation_phrase: str

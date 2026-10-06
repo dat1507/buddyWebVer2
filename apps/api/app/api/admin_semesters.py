@@ -359,6 +359,7 @@ async def read_semester_restore_preflight(
         current_semester_id=result.current_semester_id,
         backup_state=result.backup_state,
         can_execute=result.can_execute,
+        can_finalize_new_cohort_block=result.can_finalize_new_cohort_block,
         restored_counts=result.restored_counts,
         avatar_object_count=result.avatar_object_count,
         confirmation_phrase=result.confirmation_phrase,
