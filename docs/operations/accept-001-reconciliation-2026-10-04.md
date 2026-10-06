@@ -277,6 +277,48 @@ discovery does not currently restrict recommendations to the requesting USER's s
 invitation was sent and no fix or data mutation was made. The rehearsal remains stopped at the
 manual Execute Restore gate.
 
+### Same-semester Buddy Matching isolation remediation
+
+The live finding above was preserved as the pre-fix record. Source audit attributed it to two
+missing application guards: the authoritative candidate query applied the REC-001 account,
+profile, type and preference predicates but did not compare `User.semester_id`, and the atomic
+invitation-send service locked and revalidated both participants without checking their semester
+boundary. Accept/Match activation already rejected a different-semester pair.
+
+Commit `5100d8b` implements the product invariant that new Buddy Matching interactions are limited
+to one semester. The eligible principal now carries its persisted semester and fails closed when
+that boundary is absent. The candidate query adds `candidate.semester_id == current.semester_id`
+before projection/scoring, preserving its bounded deterministic order, fixed query count, scoring
+weights, pagination and privacy-safe DTO. Invitation send compares the two locked persisted User
+rows before profile lookup, invitation construction or transactional email enqueue; a mismatch
+uses the existing sanitized `RECIPIENT_INELIGIBLE` contract. The independent same-semester checks
+at Accept/Match activation remain unchanged. Historical invitation reads deliberately retain their
+existing pair-scoring behavior, so the change does not hide or mutate old Matches, conversations
+or messages.
+
+Local verification passed the focused eligibility/recommendation, invitation send/API,
+acceptance and BuddyMatch suite (60 tests before the final additional fail-closed query assertion;
+the final modified eligibility/recommendation/invitation subset passed 29 tests). Ruff passed for
+the whole API, and mypy reported no issues in 273 source files. The complete backend suite passed
+when split along the pre-existing realtime-test boundary: 1,312 non-realtime tests plus all 13
+chat-realtime tests, with 37 environment-gated disposable database/Redis live tests skipped. A
+monolithic run exposed a Starlette TestClient WebSocket teardown `CancelledError`; a clean archived
+snapshot of the preceding `HEAD` reproduced the same failure in the adjacent realtime tests, so it
+is recorded as a pre-existing order-sensitive test-harness flake rather than a regression or a
+hidden PASS. `git diff --check` passed.
+
+After `5100d8b` was pushed to `origin/main` and the staging service updated, the same authenticated
+new USER in the `CURRENT` semester was rechecked on Recommendation Results. The page changed from
+the recorded **2 of 2** CLOSED-semester candidates to **No recommendations yet**; neither Jonas nor
+Lukas was present. Incoming and sent invitation sections remained empty. No staging invitation was
+sent because the automated service tests already prove rejection occurs before invitation/outbox
+state, and a live send would create avoidable state.
+
+This remediation required no migration and made no database, account, profile, invitation, Match,
+chat, Reset, Restore or backup mutation. CLOSED-cohort login and existing historical Buddy/chat
+behavior were not changed. The already-prepared Restore operation remains untouched at the manual
+Execute Restore gate.
+
 ## Safe next acceptance sequence
 
 Use dedicated staging data only. Start with the non-destructive boundary/type-lock/chat checks,
