@@ -22,6 +22,7 @@ const admin = {
 const operationId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const backupId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 const semesterId = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+const nextSemesterId = '11111111-1111-4111-8111-111111111111'
 const restoreOperationId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
 const now = '2026-10-02T08:00:00Z'
 const operation = {
@@ -99,6 +100,26 @@ const restoredStatus: SemesterManagementStatus = {
   },
   restore_block_reason: 'ALREADY_RESTORED',
 }
+const postResetStatus: SemesterManagementStatus = {
+  ...readyStatus,
+  current_semester_id: nextSemesterId,
+  current_student_accounts_created: 0,
+  reset_operation: {
+    ...operation,
+    state: 'SUCCEEDED',
+    completed_at: now,
+  },
+  backup: {
+    id: backupId,
+    state: 'READY',
+    created_at: now,
+    verified_at: now,
+    expires_at: '2026-11-01T08:00:00Z',
+  },
+  can_prepare_reset: true,
+  can_prepare_restore: true,
+  restore_block_reason: null,
+}
 
 describe('SEM-007 Admin Semester Management safety UI', () => {
   let client: QueryClient
@@ -172,6 +193,25 @@ describe('SEM-007 Admin Semester Management safety UI', () => {
     expect(Object.values(localStorage)).not.toContain(resetPreflight.confirmation_phrase)
     expect(Object.values(sessionStorage)).not.toContain('top-secret')
     expect(Object.values(sessionStorage)).not.toContain(resetPreflight.confirmation_phrase)
+  })
+
+  it('does not prepare another reset after execute invalidation and authoritative refetch', async () => {
+    readStatus.mockReset().mockResolvedValueOnce(readyStatus).mockResolvedValue(postResetStatus)
+
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: 'Review and execute reset' }))
+    fireEvent.change(screen.getByLabelText('Current administrator password'), {
+      target: { value: 'top-secret' },
+    })
+    fireEvent.change(screen.getByLabelText('Type the exact confirmation phrase'), {
+      target: { value: resetPreflight.confirmation_phrase },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Execute reset' }))
+
+    await waitFor(() => expect(executeReset).toHaveBeenCalledTimes(1))
+    expect(await screen.findByRole('button', { name: 'Prepare reset and backup' })).toBeVisible()
+    expect(readStatus.mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(prepareReset).not.toHaveBeenCalled()
   })
 
   it('denies USER before any private semester request', async () => {
