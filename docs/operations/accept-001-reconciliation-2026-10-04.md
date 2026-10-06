@@ -201,9 +201,39 @@ passes the post-Reset multiple-Buddy/chat-retention and Admin-reconciliation int
 does not close the separate stale-tab/type race or final restore-blocked-after-new-USER rehearsal.
 
 There is no supported cancel/abandon endpoint or UI action for a prepared Semester operation in the
-current repository. The second operation and backup are therefore intentionally left untouched.
-The only existing product-supported transition is the separately gated destructive Execute Reset
-flow; it has not been invoked for this operation.
+current repository. At the close of the anomaly investigation, the second operation and backup
+were therefore intentionally left untouched. The only existing product-supported transition was
+the separately gated destructive Execute Reset flow; it was invoked only after the new explicit
+confirmation documented below.
+
+### Second empty-current Reset completion
+
+After the anomaly was attributed and the zero-row deletion scope was re-reviewed, the operator
+gave a new explicit action-time confirmation, entered the Admin credential and exact phrase, and
+executed the already-prepared second Reset. The Admin UI reported successful server completion and
+refreshed to a new `CURRENT` semester with 0 student accounts, a completed latest Reset and a
+`READY` protected backup.
+
+An aggregate-only read-only database audit confirmed the authoritative result:
+
+- the second Reset remained the same operation requested at `2026-10-04 17:09:10 UTC` and completed
+  `SUCCEEDED` at `2026-10-06 06:06:33 UTC` (`13:06:33` Asia/Saigon);
+- its empty source semester is now `CLOSED` with marker 0; the replacement semester started at the
+  completion instant and is `CURRENT` with marker 0 and 0 persisted USER rows;
+- its backup is `READY`, all database/avatar manifest locations and checksums are present,
+  `verified_at` remains `2026-10-04 17:09:16 UTC`, expiry is exactly 30 days after completion at
+  `2026-11-05 06:06:33 UTC`, and `restored_at` remains null;
+- no Restore was prepared or executed after this Reset; the database still contains exactly one
+  successful historical Restore;
+- the earlier closed cohort remains intact with 1 Admin, 3/3 verified USERs, 3 profiles, 2 custom
+  preferences, 2 accepted invitations, 2 ACTIVE Matches, 2 conversations and 4 messages.
+
+No Restore preparation or execution was attempted in this milestone. The final
+`restore-blocked-after-new-USER` rehearsal has a separate gate: the existing contract requires a
+Restore operation to be prepared while the replacement semester is empty, then a genuinely new
+verified USER is created, and only then is execution attempted and expected to fail atomically with
+`RESTORE_BLOCKED_NEW_DATA` while preserving that new USER. That scenario remains pending explicit
+authorization for Restore preparation and the later destructive execution attempt.
 
 ## Safe next acceptance sequence
 
