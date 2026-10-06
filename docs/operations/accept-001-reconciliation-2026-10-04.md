@@ -319,6 +319,42 @@ chat, Reset, Restore or backup mutation. CLOSED-cohort login and existing histor
 behavior were not changed. The already-prepared Restore operation remains untouched at the manual
 Execute Restore gate.
 
+### Guarded blocked-Restore finalization gate remediation
+
+The final rehearsal exposed a lifecycle/UI mismatch after the new cohort marker advanced. Restore
+preflight correctly returned `can_execute=false` and `RESTORE_BLOCKED_NEW_DATA`, so the frontend hid
+the only manual action that could call the authoritative Execute endpoint. The backend, however,
+intentionally persists the terminal backup and operation states only when that endpoint re-locks
+the exact operation and observes the changed marker. The operation therefore remained `RUNNING`
+even though the permanent block was already visible.
+
+Commit `3f14150` adds a separate server-owned
+`can_finalize_new_cohort_block` preflight capability. It is true only when the exact Restore
+identity remains valid, the operation is still `RUNNING`, the persisted and effective backup state
+is still `READY`, and the monotonic current-semester marker now establishes the new-cohort block.
+The existing `can_execute` field remains false. Expired backups, incomplete checksum/manifest
+metadata, wrong operation state or identity, restored backups and other ineligible states cannot
+open this path. The frontend accepts the new field only for the Restore dialog and defaults it to
+false during a staggered deployment. Authentication, CSRF, current-password and exact-phrase
+requirements are unchanged. The locked Execute marker guard and its
+`RESTORE_BLOCKED_NEW_DATA` failure transition were not modified, and there is no force, override or
+automatic retry path.
+
+Focused verification passed 20 backend preflight/API/gate tests and all 9 Admin Semester UI tests.
+The broader non-live Semester suite passed 78 tests; Ruff, mypy, TypeScript, ESLint, Prettier,
+production web build and `git diff --check` passed. The full web run passed 717 of 721 tests while
+four unrelated UI files timed out or missed asynchronously loaded content under concurrent suite
+load; each affected file passed independently immediately afterward (4, 9, 7 and 8 tests).
+
+After `3f14150` was pushed to `origin/main` and the staging frontend/API deployments converged, the
+Admin Semester page still showed the same Restore operation `RUNNING`, one current-semester student
+account, a `READY` protected backup and the permanent new-cohort warning. It now also displayed
+**Review and execute restore**. Opening it produced the existing **Confirm semester restore** dialog
+with blank password and confirmation inputs and a disabled Execute button. No credential or phrase
+was entered and no Execute request was submitted. The browser is intentionally left at that manual
+gate. The `restore-blocked-after-new-USER` case remains pending the operator's manual submission and
+the required post-failure read-only reconciliation; it is not yet marked PASS.
+
 ## Safe next acceptance sequence
 
 Use dedicated staging data only. Start with the non-destructive boundary/type-lock/chat checks,
