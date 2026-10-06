@@ -31,6 +31,7 @@ from app.services.matching_recommendations import (
 )
 
 REFERENCE_WEEK = date(2026, 9, 21)
+SEMESTER_ID = UUID("10000000-0000-4000-8000-000000000001")
 
 
 def _catalog_preference(identifier: int, code: str) -> SafeMatchingPreference:
@@ -82,6 +83,7 @@ def _principal(profile: SafeMatchingProfile, user_identifier: int) -> EligibleMa
         user_id=UUID(int=user_identifier),
         profile_id=profile.id,
         student_type=profile.student_type,
+        semester_id=SEMESTER_ID,
     )
 
 

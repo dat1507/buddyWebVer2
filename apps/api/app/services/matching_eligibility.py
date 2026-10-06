@@ -50,6 +50,7 @@ class EligibleMatchingPrincipal:
     user_id: UUID
     profile_id: UUID
     student_type: StudentType
+    semester_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,6 +66,8 @@ async def get_eligible_matching_principal(
     principal: VerifiedBuddyPrincipal,
 ) -> EligibleMatchingPrincipal:
     """Require current persisted completion and opt-in after the shared VERIFIED guard."""
+    if principal.user.semester_id is None:
+        raise BuddyCapabilityError()
     completion = await get_profile_completion(session, principal.user, principal.profile)
     if not completion.matching_eligible:
         raise BuddyCapabilityError(completion.reasons[0] if completion.reasons else None)
@@ -74,6 +77,7 @@ async def get_eligible_matching_principal(
         user_id=principal.user.id,
         profile_id=principal.profile.id,
         student_type=principal.profile.student_type,
+        semester_id=principal.user.semester_id,
     )
 
 
@@ -149,6 +153,7 @@ def _eligible_candidate_conditions(
     language_count = _language_count()
     return (
         User.role == UserRole.USER,
+        User.semester_id == current.semester_id,
         User.is_active.is_(True),
         User.deleted_at.is_(None),
         User.email_verified_at.is_not(None),
@@ -424,6 +429,7 @@ async def load_matching_scoring_profiles(
                 user_id=profile.user_id,
                 profile_id=profile.id,
                 student_type=safe_profile.student_type,
+                semester_id=current.semester_id,
             ),
             profile=safe_profile,
         )

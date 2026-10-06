@@ -12,7 +12,14 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import app.services.invitation_sending as sending
-from app.models import InvitationStatus, MatchingInvitation, StudentType, User, UserRole
+from app.models import (
+    InvitationStatus,
+    MatchingInvitation,
+    StudentProfile,
+    StudentType,
+    User,
+    UserRole,
+)
 from app.services.invitation_sending import (
     MATCHING_INVITATION_CREATED,
     InvitationSendError,
@@ -27,6 +34,8 @@ RECIPIENT_ID = UUID("20000000-0000-4000-8000-000000000001")
 SENDER_PROFILE_ID = UUID("10000000-0000-4000-8000-000000000002")
 RECIPIENT_PROFILE_ID = UUID("20000000-0000-4000-8000-000000000002")
 INVITATION_ID = UUID("30000000-0000-4000-8000-000000000001")
+SEMESTER_ID = UUID("40000000-0000-4000-8000-000000000001")
+OTHER_SEMESTER_ID = UUID("50000000-0000-4000-8000-000000000001")
 
 
 @pytest.fixture
@@ -34,15 +43,27 @@ def anyio_backend() -> str:
     return "asyncio"
 
 
-def _principal(user_id: UUID, profile_id: UUID, student_type: StudentType) -> EligibleMatchingPrincipal:
+def _principal(
+    user_id: UUID,
+    profile_id: UUID,
+    student_type: StudentType,
+    *,
+    semester_id: UUID | None = SEMESTER_ID,
+) -> EligibleMatchingPrincipal:
     return EligibleMatchingPrincipal(
         user_id=user_id,
         profile_id=profile_id,
         student_type=student_type,
+        semester_id=semester_id,
     )
 
 
-def _user(user_id: UUID, email: str) -> User:
+def _user(
+    user_id: UUID,
+    email: str,
+    *,
+    semester_id: UUID | None = SEMESTER_ID,
+) -> User:
     return User(
         id=user_id,
         email=email,
@@ -51,7 +72,26 @@ def _user(user_id: UUID, email: str) -> User:
         is_active=True,
         email_verified=True,
         email_verified_at=NOW,
+        semester_id=semester_id,
     )
+
+
+def _profile(profile_id: UUID, user_id: UUID, student_type: StudentType) -> StudentProfile:
+    return StudentProfile(
+        id=profile_id,
+        user_id=user_id,
+        full_name="Test Student",
+        display_name="Test",
+        student_type=student_type,
+        matching_opt_in=True,
+        version=1,
+    )
+
+
+def _scalar_rows(values: list[object]) -> MagicMock:
+    rows = MagicMock()
+    rows.all.return_value = values
+    return rows
 
 
 def _session() -> tuple[MagicMock, AsyncSession]:
@@ -69,6 +109,84 @@ def _session() -> tuple[MagicMock, AsyncSession]:
 
     mock.add.side_effect = assign_id
     return mock, cast(AsyncSession, mock)
+
+
+@pytest.mark.anyio
+async def test_locked_same_semester_pair_remains_eligible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock, session = _session()
+    sender = _principal(SENDER_ID, SENDER_PROFILE_ID, StudentType.VIETNAMESE)
+    recipient = _principal(
+        RECIPIENT_ID,
+        RECIPIENT_PROFILE_ID,
+        StudentType.INTERNATIONAL,
+    )
+    sender_user = _user(SENDER_ID, "sender@example.com")
+    recipient_user = _user(RECIPIENT_ID, "recipient@example.com")
+    sender_profile = _profile(
+        SENDER_PROFILE_ID,
+        SENDER_ID,
+        StudentType.VIETNAMESE,
+    )
+    recipient_profile = _profile(
+        RECIPIENT_PROFILE_ID,
+        RECIPIENT_ID,
+        StudentType.INTERNATIONAL,
+    )
+    mock.scalar.return_value = RECIPIENT_ID
+    mock.scalars = AsyncMock(
+        side_effect=[
+            _scalar_rows([sender_user, recipient_user]),
+            _scalar_rows([sender_profile, recipient_profile]),
+        ]
+    )
+    eligibility = AsyncMock(side_effect=[sender, recipient])
+    monkeypatch.setattr(sending, "get_eligible_matching_principal", eligibility)
+
+    result = await sending._lock_and_revalidate_pair(
+        session,
+        sender_user_id=SENDER_ID,
+        recipient_profile_id=RECIPIENT_PROFILE_ID,
+    )
+
+    assert result == (sender_user, recipient_user, sender, recipient)
+    assert mock.scalars.await_count == 2
+    assert eligibility.await_count == 2
+
+
+@pytest.mark.anyio
+async def test_cross_semester_send_is_rejected_before_invitation_or_outbox_write(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock, session = _session()
+    sender = _principal(SENDER_ID, SENDER_PROFILE_ID, StudentType.VIETNAMESE)
+    sender_user = _user(SENDER_ID, "sender@example.com")
+    recipient_user = _user(
+        RECIPIENT_ID,
+        "recipient@example.com",
+        semester_id=OTHER_SEMESTER_ID,
+    )
+    mock.scalar.return_value = RECIPIENT_ID
+    mock.scalars = AsyncMock(return_value=_scalar_rows([sender_user, recipient_user]))
+    enqueue = AsyncMock()
+    monkeypatch.setattr(sending, "enqueue_transactional_email", enqueue)
+
+    with pytest.raises(InvitationSendError) as raised:
+        await send_matching_invitation(
+            session,
+            sender,
+            recipient_profile_id=RECIPIENT_PROFILE_ID,
+            message="Hello",
+            clock=lambda: NOW,
+        )
+
+    assert raised.value.reason is InvitationSendReason.RECIPIENT_INELIGIBLE
+    assert mock.scalars.await_count == 1
+    mock.add.assert_not_called()
+    mock.flush.assert_not_awaited()
+    mock.begin_nested.assert_not_called()
+    enqueue.assert_not_awaited()
 
 
 @pytest.mark.anyio

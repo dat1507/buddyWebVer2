@@ -46,6 +46,7 @@ from app.services.matching_eligibility import (
 
 CURRENT_USER_ID = UUID("10000000-0000-4000-8000-000000000001")
 CURRENT_PROFILE_ID = UUID("10000000-0000-4000-8000-000000000002")
+SEMESTER_ID = UUID("10000000-0000-4000-8000-000000000003")
 CANDIDATE_PROFILE_ID = UUID("20000000-0000-4000-8000-000000000001")
 CUSTOM_PROFILE_ID = UUID("30000000-0000-4000-8000-000000000001")
 INTEREST_ID = UUID("40000000-0000-4000-8000-000000000001")
@@ -64,6 +65,7 @@ def _user(**overrides: object) -> User:
         "is_active": True,
         "email_verified": True,
         "email_verified_at": NOW,
+        "semester_id": SEMESTER_ID,
     }
     values.update(overrides)
     return User(**values)
@@ -104,11 +106,13 @@ def _principal(
     user_id: UUID = CURRENT_USER_ID,
     profile_id: UUID = CURRENT_PROFILE_ID,
     student_type: StudentType = StudentType.VIETNAMESE,
+    semester_id: UUID | None = SEMESTER_ID,
 ) -> EligibleMatchingPrincipal:
     return EligibleMatchingPrincipal(
         user_id=user_id,
         profile_id=profile_id,
         student_type=student_type,
+        semester_id=semester_id,
     )
 
 
@@ -197,6 +201,22 @@ async def test_incomplete_current_profile_is_denied_with_stable_reason(
     assert denied.value.reason is MatchingIneligibilityReason.PROFILE_INCOMPLETE
 
 
+@pytest.mark.anyio
+async def test_current_user_without_semester_fails_closed_before_completion_lookup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    reader = AsyncMock(return_value=_completion(eligible=True))
+    monkeypatch.setattr(matching_service, "get_profile_completion", reader)
+
+    with pytest.raises(BuddyCapabilityError):
+        await get_eligible_matching_principal(
+            cast(AsyncSession, MagicMock(spec=AsyncSession)),
+            VerifiedBuddyPrincipal(user=_user(semester_id=None), profile=_profile()),
+        )
+
+    reader.assert_not_awaited()
+
+
 def test_pair_policy_excludes_self_and_same_type_but_not_unmodeled_relationship_state() -> None:
     current = _principal()
     opposite = _principal(
@@ -222,6 +242,7 @@ def test_candidate_query_is_bounded_deterministic_and_enforces_all_rec_001_gates
     sql = str(compiled).lower()
 
     assert "users.role =" in sql
+    assert "users.semester_id =" in sql
     assert "users.is_active is true" in sql
     assert "users.deleted_at is null" in sql
     assert "users.email_verified_at is not null" in sql
@@ -238,6 +259,7 @@ def test_candidate_query_is_bounded_deterministic_and_enforces_all_rec_001_gates
     assert "limit" in sql
     assert CURRENT_USER_ID in compiled.params.values()
     assert CURRENT_PROFILE_ID in compiled.params.values()
+    assert SEMESTER_ID in compiled.params.values()
     assert "app_private.users.email," not in sql
     assert "users.password_hash" not in sql
     assert "matches" not in sql
@@ -247,6 +269,15 @@ def test_candidate_query_is_bounded_deterministic_and_enforces_all_rec_001_gates
 def test_candidate_query_rejects_an_unbounded_or_empty_limit() -> None:
     with pytest.raises(ValueError, match="positive"):
         eligible_candidate_statement(_principal(), limit=0)
+
+
+def test_candidate_query_fails_closed_when_current_semester_is_missing() -> None:
+    statement = eligible_candidate_statement(_principal(semester_id=None), limit=25)
+    compiled = statement.compile(dialect=make_url("postgresql+asyncpg://").get_dialect()())
+    sql = str(compiled).lower()
+
+    assert "users.role =" in sql
+    assert "users.semester_id is null" in sql
 
 
 @pytest.mark.anyio
@@ -414,6 +445,7 @@ async def test_scoring_context_projects_current_and_candidates_in_fixed_query_co
     assert candidates[0].profile.id == CANDIDATE_PROFILE_ID
     assert candidates[0].principal.user_id == candidate_profile.user_id
     assert candidates[0].principal.student_type is StudentType.INTERNATIONAL
+    assert candidates[0].principal.semester_id == SEMESTER_ID
     assert str(candidate_profile.user_id) not in repr(candidates[0])
 
 

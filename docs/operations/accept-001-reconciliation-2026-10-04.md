@@ -253,6 +253,30 @@ semester and complete its profile/type selection. Only after that new-cohort mar
 the separately confirmed execution attempt proceed; it must fail with
 `RESTORE_BLOCKED_NEW_DATA` without deleting, merging or overwriting the new USER.
 
+### Final restore-blocked rehearsal — new USER pre-execution reconciliation
+
+At `2026-10-06 10:28:15.598 UTC` (`17:28:15.598` Asia/Saigon), aggregate-only
+read-only database checks confirmed that the newly registered USER belongs to the replacement
+`CURRENT` semester. That semester now has exactly 1 persisted USER, its monotonic
+`student_accounts_created` marker is 1, `first_student_created_at` is set, and the one USER is
+verified with one matching-ready profile. The USER was created at
+`2026-10-06 10:20:03.122443 UTC`, after the Restore operation was prepared at
+`2026-10-06 06:22:00.426653 UTC`.
+
+The earlier cohort remains isolated by boundary identity: exactly 3 USERs, all verified, still
+belong to a `CLOSED` semester. Restore history contains exactly 2 operations: 1 historical
+`SUCCEEDED`, 1 current `RUNNING`, and 0 `FAILED`. The newest operation is still the previously
+prepared Restore; its backup remains `READY` with a zero-USER package, `completed_at` is null, and
+no later Restore operation exists. No credential, confirmation phrase or execution was submitted.
+
+The new USER's deployed Recommendation Results page displayed **2 of 2** candidates: Jonas and
+Lukas. A separate read-only database reconciliation confirmed that both displayed candidates are
+active, verified, matching-opted-in USERs whose semester status is `CLOSED`. This is attributable
+live staging evidence of the previously identified cross-semester recommendation gap: candidate
+discovery does not currently restrict recommendations to the requesting USER's semester. No
+invitation was sent and no fix or data mutation was made. The rehearsal remains stopped at the
+manual Execute Restore gate.
+
 ## Safe next acceptance sequence
 
 Use dedicated staging data only. Start with the non-destructive boundary/type-lock/chat checks,

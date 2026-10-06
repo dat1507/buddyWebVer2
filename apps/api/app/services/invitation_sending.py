@@ -155,6 +155,13 @@ async def _lock_and_revalidate_pair(
         raise InvitationSendError(InvitationSendReason.RECIPIENT_INELIGIBLE)
     assert sender_user is not None
     assert recipient_user is not None
+    if sender_user.semester_id is None:
+        raise InvitationSendError(InvitationSendReason.SENDER_INELIGIBLE)
+    if (
+        recipient_user.semester_id is None
+        or recipient_user.semester_id != sender_user.semester_id
+    ):
+        raise InvitationSendError(InvitationSendReason.RECIPIENT_INELIGIBLE)
 
     profiles = tuple(
         (
