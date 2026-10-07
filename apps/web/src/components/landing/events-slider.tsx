@@ -80,8 +80,8 @@ function EventSlide({
           />
         </div>
 
-        <div className="min-h-32 border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
-          <Typography variant="h3" className="text-xl sm:text-2xl">
+        <div className="flex min-h-32 flex-col justify-center border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
+          <Typography variant="h3" className="text-center text-xl sm:text-2xl">
             {slide.title}
           </Typography>
 

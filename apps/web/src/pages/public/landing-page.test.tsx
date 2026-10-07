@@ -37,7 +37,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
     renderLandingPage()
 
     expect(screen.getByRole('heading', { level: 2, name: 'Upcoming Events' })).toBeVisible()
-    expect(screen.getAllByText('Halloween').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Recruitment').length).toBeGreaterThan(0)
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(screen.queryByText('Upcoming events could not be loaded.')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()

@@ -8,10 +8,10 @@ import i18n from '@/i18n'
 const events: EventSlider[] = [
   {
     id: '11111111-1111-4111-8111-111111111111',
-    title: 'Welcome Day',
+    title: 'Recruitment',
     description: 'Meet the community.',
-    imageUrl: 'https://cdn.example.com/welcome.webp',
-    imageAlt: 'Students at Welcome Day',
+    imageUrl: 'https://cdn.example.com/recruitment.webp',
+    imageAlt: 'Recruitment event poster',
     eventStartAt: null,
     eventEndAt: null,
     location: null,
@@ -20,10 +20,10 @@ const events: EventSlider[] = [
   },
   {
     id: '22222222-2222-4222-8222-222222222222',
-    title: 'International Day',
+    title: 'Club Fair 26',
     description: null,
-    imageUrl: 'https://cdn.example.com/international.webp',
-    imageAlt: 'International Day',
+    imageUrl: 'https://cdn.example.com/clubfair.webp',
+    imageAlt: 'Club Fair 26 event poster',
     eventStartAt: null,
     eventEndAt: null,
     location: null,
@@ -75,8 +75,8 @@ describe('EventsSlider', () => {
   it('renders typed static content and supports manual navigation', () => {
     renderSlider(events)
 
-    expect(screen.getAllByText('Welcome Day').length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('img', { name: 'Students at Welcome Day' }).length).toBeGreaterThan(
+    expect(screen.getAllByText('Recruitment').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('img', { name: 'Recruitment event poster' }).length).toBeGreaterThan(
       0,
     )
     expect(screen.getByText('Event 1 of 2')).toBeVisible()
@@ -87,7 +87,7 @@ describe('EventsSlider', () => {
   it('omits navigation controls and detail links for one promotional card', () => {
     renderSlider(events.slice(0, 1))
 
-    expect(screen.getByText('Welcome Day')).toBeVisible()
+    expect(screen.getByText('Recruitment')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Show next event' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(screen.getByText('Event 1 of 1')).toBeVisible()
@@ -97,7 +97,7 @@ describe('EventsSlider', () => {
     setReducedMotion(true)
     renderSlider(events)
 
-    screen.getAllByText('Welcome Day')
+    screen.getAllByText('Recruitment')
     const nextButton = screen.getByRole('button', { name: 'Show next event' })
     fireEvent.click(nextButton)
     expect(screen.getByText('Event 2 of 2')).toBeVisible()
