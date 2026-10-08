@@ -227,9 +227,9 @@ python -m piptools compile --allow-unsafe --extra dev --strip-extras --output-fi
 security headers. Configure the Vercel project Root Directory as `apps/web`, set `VITE_API_URL` at
 build time, and keep every server secret out of `VITE_*` variables.
 
-The FastAPI deployment must run from `apps/api` with a command equivalent to
-`uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Production still requires operator-provided
-PostgreSQL, migration, TLS Redis, Supabase Storage and exact CORS/CSRF origins. Because authentication
+The FastAPI deployment runs from `apps/api` with a command equivalent to
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Production uses operator-provided PostgreSQL,
+migration, TLS Redis, Supabase Storage and exact CORS/CSRF origins. Because authentication
 uses host-only `SameSite=Lax` cookies, frontend and API must be deployed on the same site (for example,
 first-party subdomains or a reviewed reverse proxy); an unrelated Vercel-to-backend origin is not an
 accepted production topology.
@@ -245,8 +245,12 @@ the hosted Cron schedule. Deployment, secrets and acceptance are documented in
 
 Initial production has deliberately selected a separate **Render Free** API service with separate
 Supabase, TLS Redis, Storage and secret configuration. Its cold-start/resource limits are accepted
-operational risk, but `ACCEPT-001` and minimum DR evidence remain release blockers. Capacity gates,
-temporary-host verification, paid-reevaluation criteria and the DNS/rollback order are in
+operational risk. For the progress-reporting MVP, full `ACCEPT-001` sign-off and the complete DR
+rehearsal remain OPEN post-deploy hardening rather than automatic release blockers; isolated
+resources, safe migration, production secrets, health and core-flow smoke tests remain mandatory.
+The dated reclassification is in
+[docs/operations/production-mvp-readiness-2026-10-07.md](docs/operations/production-mvp-readiness-2026-10-07.md).
+Capacity gates, temporary-host verification, paid-reevaluation criteria and the DNS/rollback order are in
 [docs/operations/render-free-production.md](docs/operations/render-free-production.md). Scheduled
 retention and full off-site recovery are documented separately in
 [docs/operations/supabase-maintenance-worker.md](docs/operations/supabase-maintenance-worker.md) and
@@ -257,74 +261,32 @@ Cron health succeeded across at least two intervals, and Render emitted sanitize
 for invitation expiry, chat cleanup and semester-backup expiry. The redacted evidence is in
 [docs/operations/maintenance-staging-evidence-2026-10-04.md](docs/operations/maintenance-staging-evidence-2026-10-04.md).
 
-The repository is suitable for a staging deployment after those environment resources are supplied,
-but no production deployment is configured or claimed.
+The progress-reporting MVP is now deployed on the first-party topology. A direct read-only check on
+2026-10-08 confirmed `www.vgubuddyprogram.com` on Vercel, `api.vgubuddyprogram.com` on Render,
+dependency-aware readiness, the deployed first-party API target, anonymous auth no-store behavior and
+exact-origin CORS. Authenticated Admin/core Buddy/WSS smoke and the release hold/rollback record are
+still required before `PROD-001` can be closed. Current evidence is summarized in
+[docs/implementation/production-status.md](docs/implementation/production-status.md).
 
 OPS-002 staging topology, backup/rollback rehearsal, WSS and end-to-end smoke requirements are in
 [docs/operations/ops-002-staging-validation.md](docs/operations/ops-002-staging-validation.md).
 
 ## Development Status and Roadmap
 
-Backend foundation tasks BE-001 through BE-007 and authentication tasks AUTH-007 through AUTH-019
-are complete. AUTH-020 rate limiting and AUTH-024 backend logout have passed local/live acceptance.
-AUTH-004's non-persisted frontend session store and AUTH-021 session client/forms/bootstrap are
-complete. Session CSRF recovery after reload, bounded single-flight refresh, registration and
-targeted logout/account-switch cache clearing are verified (frontend 175 PASS; backend 384 PASS,
-10 existing Redis live skips). Real local browser + disposable PostgreSQL registration/login/
-reload/logout PASS; AUTH-024's combined frontend/cache acceptance is satisfied. Production
-Redis/TLS/ingress smoke remains pending for AUTH-020; no deployed production authentication is
-claimed. AUTH-005 ProtectedRoute is complete: unknown/loading sessions show neutral pending;
-confirmed anonymous User/Admin routes redirect to their login pages and authenticated sessions
-render nested routes. Bootstrap defers refreshed identity until `/me` finishes. Current frontend
-**321 tests PASS**, including 31 authentication, 50 role guard, 31 User login and 34 Admin login flow checks. AUTH-006
-RoleGuard is complete: User routes require USER, Admin routes require ADMIN; wrong-role requests
-replace history with public `/` without private rendering or logout. Final `/me` role governs
-bootstrap, and verified refresh role changes remove incompatible content and private cache.
-Real local browser cookies/database acceptance covers both roles, matching deep-link reload,
-cross-role denial retaining sessions, EN/DE and logout/re-entry; browser error console is empty.
-AUTH-022 User login role routing is complete: successful login and recovered sessions at `/login`
-replace history with `/user/profile/edit` for USER or `/admin/dashboard` for ADMIN, using only verified
-sanitized identity. Pending/failed verification stays on login with safe validation/error/retry;
-query/hash/router state/stale storage never choose the destination. Late and superseded responses,
-logout/account-switch/private-public cache and real local browser EN/DE acceptance PASS.
-AUTH-023 Admin login is complete: validated ADMIN routes to `/admin/dashboard`; a newly issued
-USER session at `/adminLogin` is never installed and is logged out with session CSRF before
-public denial at `/`. Failed cleanup exposes safe manual logout retry and keeps local identity
-cleared. Existing verified USER entry is denied publicly while preserving its established session.
-Real local browser/API/database ADMIN and EN/DE USER denial/revocation acceptance PASS.
-FE-021 UserLayout is complete: responsive sidebar/content regions, nested route Outlet, one main
-landmark, keyboard skip link and EN/DE labels reuse the existing design system. Guard/bootstrap/
-logout acceptance and actual desktop/mobile browser checks PASS. FE-022 adds scoped EN/DE student
-navigation with current-route semantics. Edit Profile is the first released destination, followed
-by My Profile; Dashboard is no longer shown and `/user/dashboard` safely redirects to the editor.
-The router and navigation share page-delivery metadata. The editor reuses all three profile/onboarding
-forms without duplicating their state. Backend authorization remains authoritative. ADMIN-001 completes the AdminLayout shell with a
-distinct dark sidebar, Admin badge, responsive content region, nested Outlet and EN/DE landmarks.
-One main and keyboard skip-to-content are verified with guarded reload/logout acceptance. Admin
-module navigation is now complete in ADMIN-002: eleven localized native links share the router's
-canonical module registry, with current-route semantics and responsive keyboard access. The missing
-Event Sliders destination is a guarded scaffold; module business pages remain under development.
-ADMIN-003 delivers the Dashboard overview with six accessible EN/DE stats cards. Values explicitly
-remain unavailable; no operational totals or stats API are supplied by these placeholders.
-ADMIN-004 supplies a reusable client-side DataTable with typed columns/custom cells, localized
-sort/filter/search/pagination and caller loading/error/empty states. Its isolated synthetic browser
-checks verify keyboard access and responsive scrolling; domain list/API integration remains future work.
-Avatar selection now validates extension, MIME and signature before opening an accessible 1:1 crop
-dialog. Browser-side reposition/zoom produces an 800×800 WebP (PNG fallback) before the existing
-server-side decode, dimension, signature and metadata-stripping validation. No image-processing
-service or client-side storage credential was added.
+Buddy Matching V2, email verification/outbox, preferences/recommendations, invitation/Current Buddy,
+chat, Admin monitoring and safeguarded Semester management are implemented. The reporting MVP is
+deployed, but `PROD-001` remains IN PROGRESS until authenticated Production smoke, hold monitoring
+and rollback evidence are complete. Residual `ACCEPT-001` and full encrypted DR evidence remain
+explicit post-deployment hardening.
 
-Frontend verification now totals 498 PASS. Source audit on 2026-09-23 confirms that Buddy Matching
-has only profile eligibility inputs and guarded placeholder routes; it has no runtime model,
-migration, service or API. The next development task is **MATCH-001 — Match model and persistence
-constraints**, followed by eligibility, deterministic scoring/assignment, matching APIs and the
-User/Admin UI vertical slice.
+The current execution order and verified continuation point live in
+[implementation-plan.md](implementation-plan.md) and [SESSION_HANDOFF.md](SESSION_HANDOFF.md).
+Use [docs/implementation/task-index.md](docs/implementation/task-index.md) for one-task extracts;
+the former [complete plan](implementation_plan_vgu_buddy.md) is a legacy archive, not the current
+task router. Dynamic Event/Admin Event work remains deferred and feature-gated.
 
-From FE-022 onward, development, commits and normal pushes use `main` directly unless actual
-repository protection prevents it; see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-See [implementation_plan_vgu_buddy.md](implementation_plan_vgu_buddy.md) for the authoritative task
-order and [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions.
+Development, commits and normal pushes use `main` directly unless repository protection or a user
+request requires another workflow; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Security Note
 

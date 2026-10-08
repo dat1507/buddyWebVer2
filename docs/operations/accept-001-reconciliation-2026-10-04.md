@@ -1,5 +1,10 @@
 # ACCEPT-001 evidence reconciliation — 2026-10-04
 
+> **2026-10-07 release-boundary update:** The full signed `ACCEPT-001` record remains OPEN; it is not
+> falsely marked complete. Under the approved progress-reporting MVP policy, its remaining
+> non-core evidence is classified as post-deploy hardening instead of an automatic deployment
+> blocker. See [the production MVP readiness record](production-mvp-readiness-2026-10-07.md).
+
 ## Decision
 
 `ACCEPT-001` is **not closed**. The operator confirmations accumulated during staging are valuable
@@ -355,6 +360,30 @@ was entered and no Execute request was submitted. The browser is intentionally l
 gate. The `restore-blocked-after-new-USER` case remains pending the operator's manual submission and
 the required post-failure read-only reconciliation; it is not yet marked PASS.
 
+### Final restore-blocked rehearsal — PASS
+
+The operator submitted the guarded Execute Restore action on 2026-10-06. The deployed Admin UI
+returned the expected terminal result: the latest Restore is `FAILED`, the protected backup is
+`RESTORE_BLOCKED_NEW_DATA`, and the replacement `CURRENT` semester still reports one student
+account.
+
+A post-execution read-only database reconciliation recorded completion at
+`2026-10-06 12:08:28.617207 UTC` (`19:08:28.617207` Asia/Saigon) and confirmed all atomicity
+requirements:
+
+- the Restore operation is `FAILED` with failure code `RESTORE_BLOCKED_NEW_DATA`;
+- `student_accounts_created` remains 1 and the current-semester USER count remains 1;
+- the backup is `RESTORE_BLOCKED_NEW_DATA`, while `restored_at` and `restore_operation_id` remain
+  null;
+- Restore `affected_counts` and `result_summary` are both empty objects, so no restore mutation was
+  recorded;
+- the aggregate data baseline is unchanged: 4 USERs and 4 active profiles in total, 2 invitations,
+  2 ACTIVE Matches, 2 conversations and 4 messages. The separate USER/profile reconciliation also
+  retained the new USER, its verified/active state, matching-ready profile, preferences and READY
+  avatar, while the earlier CLOSED cohort retained all 3 USERs and 3 profiles.
+
+Result: `restore-blocked-after-new-USER` is **PASS / CLOSED**. No retry or cleanup is required.
+
 ## Safe next acceptance sequence
 
 Use dedicated staging data only. Start with the non-destructive boundary/type-lock/chat checks,
@@ -362,6 +391,8 @@ then Admin reconciliation and maintenance observation. Run the destructive secon
 rehearsal last, after a new verified backup is READY and all exact user/semester IDs have been
 reviewed. Never retry Restore solely because the old backup UI says it was already restored.
 
-Close `ACCEPT-001` only when one redacted record maps every Definition-of-Done item to a deployed
-commit, database revision, UTC observation, PASS/FAIL result and named owner approval. Until then,
-`PROD-001` remains blocked.
+Close the full `ACCEPT-001` contract only when one redacted record maps every Definition-of-Done
+item to a deployed commit, database revision, UTC observation, PASS/FAIL result and named owner
+approval. Until then it remains OPEN. The smaller production-like MVP may deploy under the dated
+2026-10-07 blocker/defer policy, provided every infrastructure, migration, security, health and core
+smoke gate in that record passes.

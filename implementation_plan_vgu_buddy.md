@@ -1,7 +1,20 @@
 # VGU Student Companion Platform — Complete Implementation Plan v2.8
 
+> **LEGACY ARCHIVE:** Current status, execution order and agent routing moved on 2026-10-08 to
+> `implementation-plan.md`, `SESSION_HANDOFF.md` and `docs/implementation/`. Preserve this file for
+> full historical contracts and decisions; do not read it end to end or use an older `Next task`,
+> deployment, DNS or blocker statement when the lightweight control plane has newer evidence.
+
 > **Transforming VGU Buddy Program Website → VGU Student Companion Platform**
 > A production-quality student companion system with research-depth in matching algorithms, RAG systems, and interactive campus features.
+
+> **v2.9 — 2026-10-07, production-like MVP release boundary:** The final
+> `restore-blocked-after-new-USER` rehearsal passed atomically with
+> `RESTORE_BLOCKED_NEW_DATA`. Full signed `ACCEPT-001` and the complete encrypted off-site DR
+> rehearsal remain OPEN but are reclassified as post-deploy hardening for the progress-reporting MVP.
+> Only data-integrity/security/core-flow, startup/readiness, migration, secret/config and domain
+> failures block this milestone. The authoritative classification and production contract are in
+> `docs/operations/production-mvp-readiness-2026-10-07.md`.
 >
 > **v2 Changes**: RBAC architecture (USER/ADMIN) deeply integrated into all layers. Free hosting strategy. EN/DE only.
 >
