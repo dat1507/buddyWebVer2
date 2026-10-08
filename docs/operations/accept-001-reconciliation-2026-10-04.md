@@ -38,23 +38,31 @@ them:
 Chat messages, account identifiers, addresses, cookies, verification links, object keys, signed
 URLs and provider response bodies must not be copied into the record.
 
+## Reusable Production owner acceptance — 2026-10-08
+
+The owner explicitly confirmed PASS with no functional errors for first-party Production Admin
+login/Dashboard, User login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation, Buddy
+Matching, Chat and related features. Reuse this as dated happy-path functional evidence; do not ask
+the owner to repeat those flows solely for this record.
+
+This evidence does not close the residual staging-specific boundary, concurrency, retention,
+consolidated-signoff or DR items below, and it does not replace `PROD-001` technical release gates.
+
 ## Evidence still required to close
 
-1. Record the exact staging invitation boundaries: 500/501 non-whitespace runs and
-   10,000/10,001 Unicode code points, including trimmed submission and inert plain-text rendering.
-2. Record backend rejection plus stale-tab UI handling for `student_type` change after Accept, and
-   the Accept-versus-update race/load test with the existing Match unchanged.
-3. Tie the operator's second-account/Accept work to the explicit multiple-Buddies assertion, then
-   record Current Buddies, accepted email, two-party chat/read state, F5/logout/login recovery and
-   physical retention cleanup.
-4. Attach redacted Admin reconciliation evidence for the same test users and relationships.
-5. Run the separate post-restore blocking rehearsal: after a completed reset/restore, create the
-   attributable new USER/new cohort, prove restore is rejected before any write, and prove the old
-   deleted account's type lock does not attach to a genuinely new registration.
-6. Capture the complete candidate revision's automated suites plus live Redis, Storage, email,
-   WSS, accessibility and shared validation/race gates. Existing unit coverage is supporting
-   evidence, not a replacement for deployed behavior.
-7. Complete one encrypted off-site backup and one disposable restore rehearsal under the DR plan.
+1. Record deployed inert plain-text rendering at the already-accepted maximum invitation
+   boundaries. The numeric 500/501 and 10,000/10,001 boundary behavior itself is already PASS and
+   must not be rerun without a regression reason.
+2. Record true stale-tab UI handling for `student_type` change after Accept and the isolated
+   Accept-versus-update race with the existing Match unchanged. The ordinary locked-type UI is
+   already evidenced.
+3. Record physical deletion/retention cleanup for expired messages. Multiple-Buddy/Admin
+   reconciliation and ordinary chat F5/logout/login recovery are already evidenced.
+4. Consolidate the complete candidate matrix into one signed, redacted record, including only the
+   still-missing accessibility/live integration assertions and reusing every accepted result.
+5. Complete one encrypted off-site backup and one disposable restore rehearsal under the DR plan.
+
+The restore-blocked-after-new-USER rehearsal is PASS/CLOSED below. It is not remaining work.
 
 ## Newly reconciled evidence — maintenance scheduler
 
@@ -386,10 +394,11 @@ Result: `restore-blocked-after-new-USER` is **PASS / CLOSED**. No retry or clean
 
 ## Safe next acceptance sequence
 
-Use dedicated staging data only. Start with the non-destructive boundary/type-lock/chat checks,
-then Admin reconciliation and maintenance observation. Run the destructive second Semester
-rehearsal last, after a new verified backup is READY and all exact user/semester IDs have been
-reviewed. Never retry Restore solely because the old backup UI says it was already restored.
+Use dedicated staging data only. Collect deployed inert rendering, stale-tab and isolated
+Accept-versus-update evidence without repeating accepted numeric boundaries, multiple-Buddy/Admin,
+chat recovery, maintenance or restore-blocked scenarios. Then capture physical expired-message
+deletion and assemble the signed/redacted matrix. Run the encrypted off-site DR rehearsal only
+through its separate approved runbook; never retry Semester Restore solely for acceptance evidence.
 
 Close the full `ACCEPT-001` contract only when one redacted record maps every Definition-of-Done
 item to a deployed commit, database revision, UTC observation, PASS/FAIL result and named owner

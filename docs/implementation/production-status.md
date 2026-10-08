@@ -1,6 +1,7 @@
 # Production status
 
 **Last direct read-only verification:** 2026-10-08 10:27 Asia/Saigon
+**Owner functional acceptance:** PASS on 2026-10-08
 **Mutation performed:** none
 
 ## Directly observed
@@ -34,15 +35,27 @@ the observation time. It supersedes earlier statements that DNS was still pendin
 See `../operations/production-mvp-readiness-2026-10-07.md` and the dated reconciliation record for
 the redacted detail. These are accepted historical observations, not permission to repeat mutations.
 
+## Owner-confirmed functional evidence
+
+The owner explicitly reported successful first-party Production use with no functional errors for
+Admin login/Dashboard, User login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation,
+Buddy Matching, Chat and related features. Treat these paths as PASS on 2026-10-08 and do not ask
+the owner to rerun them solely for another evidence record.
+
+This confirms functional behavior but does not identify cookie attributes, exercise the CSRF
+negative path, distinguish WSS from fallback transport, prove protocol-level reconnect/Origin
+handling or establish hold/rollback readiness.
+
 ## Not yet evidenced as complete
 
-- Authenticated Admin login/UI and logout/cache smoke on first-party Production.
-- Session refresh/recovery and Secure host-only cookie inspection after cutover.
-- A full real two-USER Recommendation/Invitation/Accept/Match/Chat lifecycle; the last record had
-  only one designated USER in the current semester.
-- Authenticated WebSocket origin/reconnect behavior on the first-party topology.
-- Non-destructive Semester guard UI smoke.
-- Production hold-period telemetry and retained rollback evidence sufficient to close `PROD-001`.
+- Session recovery, Secure HttpOnly host-only cookie inspection, CSRF negative behavior and private
+  cache removal after logout/account change.
+- Protocol-level authenticated WebSocket Origin/auth/reconnect and REST history recovery on the
+  first-party topology.
+- Non-destructive Semester guard/status evidence and the final release secret/history, credential,
+  private-backup-access and destructive-control review.
+- Production hold-period health/error/job/WSS telemetry, retained Render/Vercel rollback points and
+  named rollback/recovery owners sufficient to close `PROD-001`.
 
 Do not upgrade these items to PASS without dated evidence. Do not create test users, send email,
 login, change DNS or modify provider configuration during a documentation-only task.

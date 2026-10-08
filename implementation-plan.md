@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.0
+**Plan version:** 1.1
 **Updated:** 2026-10-08
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -16,21 +16,26 @@ the Vercel frontend points to the first-party Render API and that live/readiness
 anonymous auth caching and exact-origin CORS behave as expected. This supersedes the older plan text
 that described DNS cutover as pending.
 
-`PROD-001` remains **IN PROGRESS**, not DONE. Public infrastructure checks have passed, while the
-authenticated production smoke/hold evidence below is still incomplete. No new application feature
-is needed to continue this release lane.
+On 2026-10-08 the owner confirmed **PASS** with no functional errors for Admin login/Dashboard, User
+login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation, Buddy Matching, Chat and
+related features. Reuse that functional evidence; do not rerun those paths merely for documentation.
+
+`PROD-001` remains **IN PROGRESS / TECHNICAL VERIFY**, not DONE. Public infrastructure and owner
+functional smoke have passed, while the security/protocol/hold/rollback evidence below is still
+incomplete. No new application feature is needed to continue this release lane.
 
 ## Executable status
 
 | Order | Task / gate | Priority | Status | Dependency / reason | Next evidence |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `PROD-001` | Release-blocking | **IN PROGRESS / READY** | Production is deployed; DNS and public readiness pass | Authenticated Admin/session/core Buddy/WSS/Semester-guard smoke, hold and rollback record |
+| 1 | `PROD-001` | Release-blocking | **IN PROGRESS / TECHNICAL VERIFY** | Infrastructure and owner functional smoke pass | Cookie/session/CSRF, protocol-level WSS, release security/Semester safeguards, hold and rollback evidence |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
 | 4 | `EVT-005` dynamic Event lane | P0 product backlog | **DEFERRED / READY AFTER RELEASE HOLD** | Existing Event model/service prerequisites are complete | Start exact Part 27 chain only after release/hardening decision |
 | 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
 
-No task is assigned in `SESSION_HANDOFF.md`; report this table and wait for the user's selection.
+`SESSION_HANDOFF.md` assigns `PROD-001` technical evidence closure. This does not authorize source,
+database, provider or Production mutation.
 
 ## Completed release gates — do not repeat without a regression reason
 
@@ -43,25 +48,23 @@ No task is assigned in `SESSION_HANDOFF.md`; report this table and wait for the 
 - Public `/live` and dependency-aware `/ready` checks.
 - Deployed bundle first-party API target, anonymous `/auth/me` 401/no-store and positive/negative
   CORS preflight.
+- Owner-confirmed Admin/User dashboards and Recommendation -> Invitation -> Accept -> Match -> Chat
+  functional smoke on 2026-10-08.
 
 ## `PROD-001` remaining execution order
 
 These are evidence stages inside the existing Task ID; they are not new feature Task IDs.
 
-1. **Authenticated Admin smoke:** login through the deployed UI, direct-refresh protected Admin
-   routes, safe monitoring/user detail reads, logout and denied re-entry.
-2. **Second designated USER:** provision through the normal registration/email-verification flow;
-   do not create a synthetic relationship or edit verification state.
-3. **Core Buddy lifecycle:** complete two opposite-type profiles, Recommendations, invitation send
-   and email, recipient Accept, active Current Buddy, chat history/send/receive/read/reload and safe
-   participant boundaries.
-4. **First-party session/security smoke:** Secure host-only cookies, refresh/session recovery, CSRF,
-   rejected foreign origin, WSS origin/auth/reconnect and no private-cache leakage after logout.
-5. **Non-destructive Semester guard:** read-only/status UI and guard behavior only; do not perform a
-   destructive Production reset/restore for deployment proof.
-6. **Hold/rollback evidence:** observe health/error/job/WSS signals through the agreed hold period,
-   record retained Render/Vercel rollback points and responsible owner.
-7. Close `PROD-001` only after every applicable production acceptance item is evidenced. A public
+1. **Session/security evidence:** inspect Secure HttpOnly host-only cookies, session recovery, CSRF
+   success/failure and private-cache removal. Reuse the already-PASS exact-origin CORS evidence.
+2. **Protocol-level realtime evidence:** verify authenticated WSS Origin/auth/reconnect and REST
+   history recovery. Do not treat functional Chat PASS alone as proof of the transport details.
+3. **Release safety evidence:** capture non-destructive Semester guard/status behavior, final
+   secret/history scan and credential/private-backup/destructive-control review. Never run a
+   Production reset/restore merely to prove deployment.
+4. **Hold/rollback evidence:** observe health/error/job/WSS signals through the agreed hold period,
+   record retained Render/Vercel rollback points and named rollback/recovery owners.
+5. Close `PROD-001` only after every applicable production acceptance item is evidenced. A public
    200 health response alone cannot close it.
 
 Detailed safe execution and stop conditions are in

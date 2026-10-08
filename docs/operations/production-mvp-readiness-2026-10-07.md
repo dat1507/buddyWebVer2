@@ -65,7 +65,20 @@ production runtime connection without placing the connection string or account c
 chat, command arguments, process listings, or evidence. A post-create read-only query confirmed
 exactly one ADMIN satisfying the account contract: active, not deleted, legacy Admin verification
 set, no USER-semester membership, and a cost-12 bcrypt password hash. The generated login credential
-was handed to the operator through the local clipboard only. Admin login/UI smoke remains pending.
+was handed to the operator through the local clipboard only. The later owner acceptance below
+supersedes the then-pending Admin login/UI statement.
+
+## Owner Manual Acceptance — PASS on 2026-10-08
+
+The owner explicitly confirmed successful first-party Production use with no functional errors for
+Admin login/Dashboard, User login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation,
+Buddy Matching, Chat and related features. This is trusted functional acceptance and must not be
+repeated solely to collect another screenshot or session record.
+
+The confirmation does not establish Secure/HttpOnly/host-only cookie attributes, the CSRF negative
+path, protocol-level authenticated WSS Origin/auth/reconnect and REST recovery, the final
+non-destructive Semester/release-security review, the observation hold or retained rollback points.
+Those items keep `PROD-001` in technical verification rather than DONE.
 
 ## Release-candidate verification
 
@@ -139,17 +152,18 @@ These items are rollout gates, not reasons to add unrelated application features
 5. **Public dependency path — PASS.** Production Storage/email report configured, the email
    Edge/Cron path delivered and consumed one fresh verification message, and `/api/health/ready`
    returned 200 without connection detail.
-6. **Deployment/public startup — PASS; authenticated core smoke — PARTIAL.** The API and frontend are
-   deployed and public live/readiness pass. Registration/email verification reached normal verified
-   state, but authenticated session recovery, a complete two-USER invitation/Match/chat flow, Admin
-   login and the non-destructive Semester UI guard still need dated evidence.
+6. **Deployment/public startup and owner functional smoke — PASS.** The API and frontend are
+   deployed, public live/readiness pass, and the owner confirmed Admin/User dashboards plus the real
+   Recommendation/Invitation/Accept/Match/Chat flow without functional errors. Do not rerun those
+   paths merely for documentation. Session/security, protocol-level WSS and non-destructive
+   Semester/release-safety evidence remain open.
 7. **DNS/API target/basic CORS — PASS; cookie/session evidence — OPEN.** The first-party CNAMEs,
    frontend `VITE_API_URL`, HTTPS and exact-origin preflight are live. Secure host-only cookie,
    refresh/session and authenticated WSS behavior still require first-party smoke.
-8. **Post-cutover public smoke — PASS; full release hold — OPEN.** Any data-integrity,
-   auth/security, core-flow, migration, startup, readiness, cookie, CORS, WSS or TLS failure remains
-   release-blocking. Close `PROD-001` only after authenticated smoke, observation and rollback
-   evidence.
+8. **Post-cutover public and functional smoke — PASS; full release hold — OPEN.** Any
+   data-integrity, auth/security, migration, startup, readiness, cookie, CORS, WSS or TLS failure
+   remains release-blocking. Close `PROD-001` only after the remaining technical verification,
+   observation and rollback evidence.
 
 ## DEFER — post-deploy hardening
 

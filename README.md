@@ -264,7 +264,9 @@ for invitation expiry, chat cleanup and semester-backup expiry. The redacted evi
 The progress-reporting MVP is now deployed on the first-party topology. A direct read-only check on
 2026-10-08 confirmed `www.vgubuddyprogram.com` on Vercel, `api.vgubuddyprogram.com` on Render,
 dependency-aware readiness, the deployed first-party API target, anonymous auth no-store behavior and
-exact-origin CORS. Authenticated Admin/core Buddy/WSS smoke and the release hold/rollback record are
+exact-origin CORS. The owner then confirmed PASS for Admin/User dashboards, Recommendation,
+Invitation/Accept, Matching and Chat without functional errors. Secure cookie/session/CSRF,
+protocol-level authenticated WSS, Semester/release-safety review and the hold/rollback record are
 still required before `PROD-001` can be closed. Current evidence is summarized in
 [docs/implementation/production-status.md](docs/implementation/production-status.md).
 
@@ -275,9 +277,10 @@ OPS-002 staging topology, backup/rollback rehearsal, WSS and end-to-end smoke re
 
 Buddy Matching V2, email verification/outbox, preferences/recommendations, invitation/Current Buddy,
 chat, Admin monitoring and safeguarded Semester management are implemented. The reporting MVP is
-deployed, but `PROD-001` remains IN PROGRESS until authenticated Production smoke, hold monitoring
-and rollback evidence are complete. Residual `ACCEPT-001` and full encrypted DR evidence remain
-explicit post-deployment hardening.
+deployed and owner functional acceptance is PASS, but `PROD-001` remains IN PROGRESS / TECHNICAL
+VERIFY until the remaining security/protocol checks, hold monitoring and rollback evidence are
+complete. Residual `ACCEPT-001` and full encrypted DR evidence remain explicit post-deployment
+hardening.
 
 The current execution order and verified continuation point live in
 [implementation-plan.md](implementation-plan.md) and [SESSION_HANDOFF.md](SESSION_HANDOFF.md).

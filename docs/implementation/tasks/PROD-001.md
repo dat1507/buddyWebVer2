@@ -1,6 +1,6 @@
 # PROD-001
 
-**Control-plane status:** IN PROGRESS / READY
+**Control-plane status:** IN PROGRESS / TECHNICAL VERIFY
 **Track:** release-operations
 **Priority:** release
 **Dependencies (latest extracted):** ACCEPT-001 and explicit release approval; Operations + Engineering.
@@ -8,6 +8,21 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Current acceptance update — 2026-10-08
+
+- First-party DNS, public live/readiness, frontend API target, anonymous auth boundary and
+  exact-origin CORS are PASS.
+- The owner explicitly confirmed PASS with no functional errors for Admin login/Dashboard, User
+  login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation, Buddy Matching, Chat and
+  related features. Do not rerun these paths solely to collect another record.
+- Still open: Secure host-only cookie/session/CSRF evidence; protocol-level authenticated WSS
+  Origin/auth/reconnect and REST recovery; non-destructive Semester and final release-security
+  review; hold-period telemetry, retained rollback points and named recovery owners.
+
+Decision: `PROD-001` cannot be marked DONE yet because the preserved Definition of Done requires
+the remaining security, observation and rollback evidence. Continue the same Task ID; no feature or
+source implementation is required.
 
 ## Preserved contract sections
 

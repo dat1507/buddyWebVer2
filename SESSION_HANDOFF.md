@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-08 (Asia/Saigon)
-**TASK_ID:** `NONE`
-**Current mode:** documentation refactor complete; implementation awaits user selection
+**TASK_ID:** `PROD-001`
+**Current mode:** release evidence closure; technical verification only
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,10 +11,12 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-No application task is authorized by this handoff. The highest-priority unfinished delivery task is
-`PROD-001`, already IN PROGRESS. Its next evidence gaps are authenticated Production smoke, not new
-feature implementation. See `docs/implementation/tasks/PROD-001.md` and
-`docs/implementation/post-deployment-workflow.md` only if the user selects it.
+Continue `PROD-001` from the verified Production baseline and the owner's dated functional
+acceptance below. Do not implement a feature, change application source, mutate Production or rerun
+accepted functional paths. Read only `docs/implementation/tasks/PROD-001.md`,
+`docs/implementation/production-status.md`, `docs/implementation/post-deployment-workflow.md` and
+the source files named under **Focused files for the next session** if code-level verification is
+needed.
 
 ## Latest verified Production snapshot
 
@@ -34,8 +36,24 @@ Read-only checks at 2026-10-08 10:27 Asia/Saigon established:
   `Halloween`).
 
 Therefore DNS cutover and public dependency readiness are PASS. Older records saying DNS is pending
-are superseded. These checks do not prove authenticated Admin, invitation, Match, chat/WebSocket,
-cookie/session recovery or non-destructive Semester UI smoke.
+are superseded. These checks do not by themselves prove cookie/session recovery, CSRF negative
+behavior, protocol-level authenticated WebSocket behavior, Semester safeguards or release hold and
+rollback readiness.
+
+## Owner Manual Acceptance — PASS
+
+On 2026-10-08, the owner explicitly confirmed successful first-party Production use with no
+functional errors for:
+
+- Admin login and Dashboard;
+- User login and Dashboard;
+- Buddy Recommendation;
+- Invitations and Accept Invitation;
+- Buddy Matching;
+- Chat and related features.
+
+This is trusted dated functional evidence. Do not ask the owner to repeat these paths merely to
+produce another record. It does not replace the technical/security and operational gates below.
 
 ## Preserve these verified gates
 
@@ -47,25 +65,43 @@ cookie/session recovery or non-destructive Semester UI smoke.
 - Restore-blocked-after-new-USER acceptance: PASS/CLOSED.
 - Public DNS, live/readiness, frontend API target, anonymous auth boundary and basic CORS: PASS as
   above.
+- Owner-confirmed Admin/User dashboards and Recommendation -> Invitation -> Accept -> Match -> Chat
+  functional smoke: PASS on 2026-10-08.
 - Release-candidate automated baseline: web 721 tests and API 1,330 tests on the documented baseline.
   HEAD later added the committed static-event asset/title update `81979ce`; its expected five titles
   are present in the deployed bundle, but the older full-suite count alone is not new automated-test
   evidence for that delta.
 
-## Still open
+## Still open for `PROD-001`
 
-- Authenticated Production Admin login/UI smoke.
-- A second designated Production USER is required before the real Recommendation -> Invitation ->
-  Accept -> Match -> Chat lifecycle can be exercised.
-- Authenticated session recovery, Secure host-only cookie, CSRF and WSS checks after first-party
-  cutover need dated evidence.
-- Hold-period monitoring and rollback evidence required to close `PROD-001`.
+- Secure host-only cookie inspection, authenticated session recovery and a CSRF negative-path check.
+- Protocol-level authenticated WSS Origin/auth/reconnect and REST history recovery evidence. The
+  owner's Chat PASS is functional evidence, but it does not identify the transport or prove every
+  protocol/security assertion.
+- Non-destructive Semester guard/status evidence plus final release secret/history, credential
+  rotation, private-backup-access and destructive-control review.
+- Hold-period health/error/job/WSS telemetry, retained Render/Vercel rollback points and named
+  rollback/recovery owners.
 - Residual `ACCEPT-001` evidence and full encrypted off-site DR restore remain post-deployment
   hardening, not completed work.
 - Dynamic Event/Admin Event delivery remains deferred and feature-gated.
 
+## Focused files for the next session
+
+- `apps/api/app/core/config.py`
+- `apps/api/app/main.py`
+- `apps/api/app/services/tokens.py`
+- `apps/api/app/services/csrf.py`
+- `apps/api/app/api/dependencies.py`
+- `apps/api/app/api/chat_realtime.py`
+- `apps/api/app/api/health.py`
+- `apps/web/src/features/auth/session-client.ts`
+- `apps/web/src/features/chat/chat-client.ts`
+- `apps/web/src/features/admin-semesters/admin-semesters.ts`
+
 ## Worktree boundary
 
-The documentation optimization intentionally incorporated the pre-existing uncommitted documentation
-changes in `README.md`, the legacy plan and operations records. No application source, database,
-provider resource or Production state was changed by the refactor.
+The documentation optimization commit `c62b055` was pushed to `origin/main`. It intentionally
+incorporated the pre-existing uncommitted documentation changes in `README.md`, the legacy plan and
+operations records. The follow-up acceptance synchronization is documentation-only. No application
+source, database, provider resource or Production state was changed by either documentation pass.

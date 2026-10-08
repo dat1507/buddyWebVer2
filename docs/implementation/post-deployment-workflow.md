@@ -5,43 +5,45 @@ not authorize account creation, login, email sends, DNS/provider changes or dest
 
 ## Stage 1 — Close `PROD-001`
 
+Owner functional acceptance is PASS on 2026-10-08 for Admin login/Dashboard, User login/Dashboard,
+Buddy Recommendation, Invitations, Accept Invitation, Buddy Matching, Chat and related features.
+Do not repeat those paths solely for documentation. Stage 1 now collects only the technical,
+security and operational evidence not established by that acceptance.
+
 ### 1. Preserve the deployed baseline
 
 - Record current Git SHA, Vercel deployment and Render deployment/rollback point.
 - Confirm `/live` and `/ready`; do not rerun migrations when Alembic is already at head.
 - Confirm monitoring owners and a rollback decision channel before authenticated smoke.
 
-### 2. Authenticated Admin smoke
+### 2. First-party session/security evidence
 
-- Use the designated Admin credential through the normal UI; never place it in commands/evidence.
-- Verify login, direct refresh, Overview, Matching monitoring, User list/detail and non-destructive
-  Semester status.
-- Verify logout clears private UI/cache, `/api/auth/me` returns 401/no-store and protected re-entry is
-  denied.
-- Stop on role leakage, raw exception text, stale private data or unexpected mutation controls.
+- Inspect Secure HttpOnly host-only cookie attributes and session refresh/recovery without recording
+  credential or cookie values.
+- Record CSRF success and rejected negative path; reuse the already-PASS exact-origin CORS evidence.
+- Verify private cache removal after logout/account change only if it is not already covered by the
+  owner's accepted functional session. Stop on role leakage, stale private data or unexpected
+  mutation controls.
 
-### 3. Complete the real two-USER core smoke
+### 3. Protocol-level realtime evidence
 
-- Register and verify one second designated USER through the normal email path.
-- Complete opposite-type profiles and matching preferences without operator-editing verification or
-  synthesizing relationships.
-- Verify Recommendations, invitation validation/send/email, recipient Accept, Current Buddies and
-  one conversation with send/receive/read/reload.
-- Verify foreign-user/resource denial and plain-text rendering; avoid maximum-volume or load probes
-  unless separately approved.
+- Prove authenticated WSS Origin/auth handling, reconnect and REST history recovery with sanitized
+  transport evidence.
+- Do not infer these protocol properties from the owner's functional Chat PASS alone and do not
+  recreate chat data merely for screenshots.
 
-### 4. First-party security/recovery smoke
+### 4. Release safety evidence
 
-- Inspect Secure HttpOnly host-only cookies, CSRF success/failure and session refresh/recovery.
-- Prove exact-origin CORS and rejected foreign origin.
-- Prove authenticated WSS Origin handling, reconnect and REST history recovery.
-- Verify private cache removal after logout/account change.
+- Verify non-destructive Semester status/guard behavior; never execute Production Reset/Restore for
+  deployment proof.
+- Record the final secret/history scan, credential-rotation status, private-backup access controls
+  and destructive-control review without exposing a secret or private payload.
 
 ### 5. Hold and rollback gate
 
 - Observe health, error rate, email/Cron/outbox, Redis and WSS signals for the agreed period.
-- Confirm rollback owners and that retained frontend/API deployments remain compatible with database
-  head `0021`.
+- Confirm named rollback/recovery owners and that retained frontend/API deployments remain compatible
+  with database head `0021`.
 - Close `PROD-001` only with dated redacted evidence. Do not run Production Semester Reset/Restore.
 
 ## Stage 2 — Residual hardening

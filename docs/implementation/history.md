@@ -40,9 +40,13 @@ This file preserves the milestones future agents need without replaying complete
 - The missing Production email runtime was diagnosed and configured on 2026-10-08. Expired rows
   failed safely; a fresh verification email was delivered and consumed normally.
 - One Admin account was created via the trusted CLI. The last operator record still lacked Admin UI
-  smoke and a second designated USER for full Buddy lifecycle smoke.
+  smoke and a second designated USER for full Buddy lifecycle smoke; that statement was superseded
+  by the later owner acceptance below.
 - Direct checks on 2026-10-08 confirmed first-party DNS, public live/readiness, frontend API target,
   anonymous auth boundary and CORS behavior.
+- On 2026-10-08, the owner confirmed first-party Production PASS with no functional errors for
+  Admin/User dashboards, Buddy Recommendation, Invitations/Accept, Buddy Matching, Chat and related
+  features. `PROD-001` stayed open only for technical security/protocol, hold and rollback evidence.
 
 ## Event scope
 
