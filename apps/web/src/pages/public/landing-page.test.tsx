@@ -130,4 +130,19 @@ describe('LandingPage (FE-019 Assembly)', () => {
       expect(el).not.toBeNull()
     }
   })
+
+  it('keeps the background slideshow isolated to #home and removes the Facebook Welcome card', () => {
+    const { container } = renderLandingPage()
+    const home = container.querySelector('#home')
+
+    expect(home).not.toBeNull()
+    expect(home?.querySelector('[data-testid="hero-background-slideshow"]')).not.toBeNull()
+    expect(
+      container.querySelectorAll(
+        'main > section:not(#home) [data-testid="hero-background-slideshow"]',
+      ),
+    ).toHaveLength(0)
+    expect(screen.queryByRole('link', { name: /Welcome to VGU Buddy.*Facebook/i })).toBeNull()
+    expect(screen.queryByText('Welcome to VGU Buddy')).toBeNull()
+  })
 })
