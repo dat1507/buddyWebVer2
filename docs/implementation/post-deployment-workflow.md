@@ -3,6 +3,12 @@
 This workflow is evidence-only unless the user separately authorizes Production interaction. It does
 not authorize account creation, login, email sends, DNS/provider changes or destructive operations.
 
+**Current Stage 1 checkpoint — 2026-10-08:** session/cookie/CSRF, authenticated WSS/reconnect/REST,
+Semester guards and focused release-security evidence are PASS. Stage 1 is BLOCKED by the failed
+private Semester backup, absent retained Render rollback point, unnamed rollback/recovery owners and
+unaccepted post-repair hold duration. Preserve the PASS evidence in
+`../operations/prod-001-technical-evidence-2026-10-08.md`; do not repeat it during remediation.
+
 ## Stage 1 — Close `PROD-001`
 
 Owner functional acceptance is PASS on 2026-10-08 for Admin login/Dashboard, User login/Dashboard,
@@ -45,6 +51,16 @@ security and operational evidence not established by that acceptance.
 - Confirm named rollback/recovery owners and that retained frontend/API deployments remain compatible
   with database head `0021`.
 - Close `PROD-001` only with dated redacted evidence. Do not run Production Semester Reset/Restore.
+
+### 6. Current owner-action sequence
+
+1. Open a separately authorized remediation task for the failed private Semester-backup path. Do
+   not invoke Prepare merely as a diagnostic from a documentation/evidence task.
+2. Establish a compatible retained Render deploy or approve an immutable schema-compatible redeploy
+   procedure.
+3. Record the named rollback decision, Vercel, Render and database-recovery owners.
+4. Record the accepted post-repair hold duration, observe only the missing window, then reconcile
+   `PROD-001` again.
 
 ## Stage 2 — Residual hardening
 

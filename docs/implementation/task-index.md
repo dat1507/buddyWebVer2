@@ -206,7 +206,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`PREF-002`](tasks/PREF-002.md) | DONE / PRESERVED | - | buddy-v2 | PREF-001; Backend. |
 | [`PREF-003`](tasks/PREF-003.md) | DONE / PRESERVED | - | buddy-v2 | PREF-001/002, BE-012/015; Backend. |
 | [`PREF-004`](tasks/PREF-004.md) | DONE / PRESERVED | - | buddy-v2 | PREF-003, FE-026/027/029; Frontend. |
-| [`PROD-001`](tasks/PROD-001.md) | IN PROGRESS / TECHNICAL VERIFY | release | release-operations | Functional/infrastructure PASS; cookie/CSRF/WSS, hold and rollback evidence remain. |
+| [`PROD-001`](tasks/PROD-001.md) | BLOCKED / OWNER ACTION REQUIRED | release | release-operations | Private Semester backup failed; no retained Render rollback point, named owners or accepted post-repair hold. |
 | [`PROFILE-V2-001`](tasks/PROFILE-V2-001.md) | DONE / PRESERVED | - | buddy-v2 | BUDDY-001, BE-012; Backend + Database. |
 | [`PROFILE-V2-002`](tasks/PROFILE-V2-002.md) | DONE / PRESERVED | - | buddy-v2 | PROFILE-V2-001, FE-029; Frontend. |
 | [`REC-001`](tasks/REC-001.md) | DONE / PRESERVED | - | buddy-v2 | AUTH-V2-001, PREF-003; Backend. |

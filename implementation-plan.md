@@ -20,15 +20,17 @@ On 2026-10-08 the owner confirmed **PASS** with no functional errors for Admin l
 login/Dashboard, Buddy Recommendation, Invitations, Accept Invitation, Buddy Matching, Chat and
 related features. Reuse that functional evidence; do not rerun those paths merely for documentation.
 
-`PROD-001` remains **IN PROGRESS / TECHNICAL VERIFY**, not DONE. Public infrastructure and owner
-functional smoke have passed, while the security/protocol/hold/rollback evidence below is still
-incomplete. No new application feature is needed to continue this release lane.
+`PROD-001` is **BLOCKED / OWNER ACTION REQUIRED**, not DONE. Session/cookie/CSRF, authenticated WSS,
+REST recovery, Semester guards and focused release-security verification now pass. Direct
+Production evidence found a failed, unverified private Semester backup; Render has no previous
+retained backend deploy; named rollback/recovery owners and the accepted post-repair hold duration
+are also missing. No application feature should be implemented in this release lane.
 
 ## Executable status
 
 | Order | Task / gate | Priority | Status | Dependency / reason | Next evidence |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `PROD-001` | Release-blocking | **IN PROGRESS / TECHNICAL VERIFY** | Infrastructure and owner functional smoke pass | Cookie/session/CSRF, protocol-level WSS, release security/Semester safeguards, hold and rollback evidence |
+| 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; no retained Render rollback point or named owners | Separately authorize backup remediation/verification, establish backend rollback, name owners and accept the post-repair hold |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
 | 4 | `EVT-005` dynamic Event lane | P0 product backlog | **DEFERRED / READY AFTER RELEASE HOLD** | Existing Event model/service prerequisites are complete | Start exact Part 27 chain only after release/hardening decision |
@@ -55,17 +57,17 @@ database, provider or Production mutation.
 
 These are evidence stages inside the existing Task ID; they are not new feature Task IDs.
 
-1. **Session/security evidence:** inspect Secure HttpOnly host-only cookies, session recovery, CSRF
-   success/failure and private-cache removal. Reuse the already-PASS exact-origin CORS evidence.
-2. **Protocol-level realtime evidence:** verify authenticated WSS Origin/auth/reconnect and REST
-   history recovery. Do not treat functional Chat PASS alone as proof of the transport details.
-3. **Release safety evidence:** capture non-destructive Semester guard/status behavior, final
-   secret/history scan and credential/private-backup/destructive-control review. Never run a
-   Production reset/restore merely to prove deployment.
-4. **Hold/rollback evidence:** observe health/error/job/WSS signals through the agreed hold period,
-   record retained Render/Vercel rollback points and named rollback/recovery owners.
-5. Close `PROD-001` only after every applicable production acceptance item is evidenced. A public
-   200 health response alone cannot close it.
+1. Preserve the now-PASS cookie/session/CSRF, WSS/reconnect/REST, Semester-guard, secret-scan and
+   frontend rollback evidence; do not repeat it without a regression reason.
+2. Obtain separate authorization to diagnose and repair the failed private Semester-backup
+   connection/storage path. Its eventual verification is state-changing and is not authorized by
+   this evidence task.
+3. Establish one schema-compatible retained Render deploy or an approved immutable redeploy path
+   for the current backend revision.
+4. Record named rollback decision, Vercel execution, Render execution and database-recovery owners;
+   then observe only the additional owner-approved post-repair hold window.
+5. Close `PROD-001` only when those blockers pass. Detailed evidence is in
+   `docs/operations/prod-001-technical-evidence-2026-10-08.md`.
 
 Detailed safe execution and stop conditions are in
 `docs/implementation/post-deployment-workflow.md`.

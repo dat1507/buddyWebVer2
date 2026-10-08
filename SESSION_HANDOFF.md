@@ -2,7 +2,7 @@
 
 **Updated:** 2026-10-08 (Asia/Saigon)
 **TASK_ID:** `PROD-001`
-**Current mode:** release evidence closure; technical verification only
+**Current mode:** release blocker handoff; owner authorization required
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,14 +11,34 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-Continue `PROD-001` from the verified Production baseline and the owner's dated functional
-acceptance below. Do not implement a feature, change application source, mutate Production or rerun
-accepted functional paths. Read only `docs/implementation/tasks/PROD-001.md`,
-`docs/implementation/production-status.md`, `docs/implementation/post-deployment-workflow.md` and
-the source files named under **Focused files for the next session** if code-level verification is
-needed.
+Continue `PROD-001` from the verified evidence record below. Do not implement a feature, change
+application source, retry Semester Prepare, mutate a provider or rerun accepted functional/technical
+paths. Read only `docs/implementation/tasks/PROD-001.md`,
+`docs/operations/prod-001-technical-evidence-2026-10-08.md`,
+`docs/implementation/production-status.md` and
+`docs/implementation/post-deployment-workflow.md` unless an owner separately authorizes one of the
+blocked remediation steps.
 
 ## Latest verified Production snapshot
+
+Authenticated and provider-dashboard checks at 2026-10-08 14:15–15:01 Asia/Saigon established:
+
+- Secure/HttpOnly/SameSite=Lax/API-host-only `__Host-` access, refresh and CSRF cookies;
+- USER session reload recovery and logout invalidation with all three cookie names removed;
+- authenticated notification/conversation WSS 101 using the exact first-party Origin, plus reload
+  reconnection and REST history recovery without a test message;
+- ADMIN Semester management GET 200 and a working `NEW_COHORT` restore guard;
+- a real failed Semester preparation: operation `RESET_PREPARATION_FAILED`, private backup `FAILED`
+  and unverified, with two retained earlier Prepare responses of 503;
+- Vercel current deployment `dpl_FZAGsVudHtTiWkomWHBbV7J5k6MB` plus prior Ready candidates;
+- Render service `srv-db343ne7bikc73bjv910`, deploy `dep-db343nu7bikc73bjvalg`, application commit
+  `d15cb1d7`, and only one available deploy;
+- no Render events in the preceding 12 hours, no `ERROR` log match in the preceding hour and
+  repeated 200 live probes.
+
+Both USER and ADMIN sessions were logged out. No credential/token/cookie value or private payload
+was recorded. Opening the existing chat may have reconciled its ordinary idempotent read marker; no
+message or Buddy relationship was created, changed or deleted.
 
 Read-only checks at 2026-10-08 10:27 Asia/Saigon established:
 
@@ -71,33 +91,31 @@ produce another record. It does not replace the technical/security and operation
   HEAD later added the committed static-event asset/title update `81979ce`; its expected five titles
   are present in the deployed bundle, but the older full-suite count alone is not new automated-test
   evidence for that delta.
+- Focused technical verification: 60 web tests and 143 API tests PASS.
+- Secure cookies, session reload/logout, CSRF coverage, authenticated WSS Origin/auth/reconnect,
+  REST recovery, Semester authorization/guards and the high-confidence secret/history scan: PASS.
+- Vercel retained frontend rollback candidates: PASS.
 
-## Still open for `PROD-001`
+## Blocking `PROD-001`
 
-- Secure host-only cookie inspection, authenticated session recovery and a CSRF negative-path check.
-- Protocol-level authenticated WSS Origin/auth/reconnect and REST history recovery evidence. The
-  owner's Chat PASS is functional evidence, but it does not identify the transport or prove every
-  protocol/security assertion.
-- Non-destructive Semester guard/status evidence plus final release secret/history, credential
-  rotation, private-backup-access and destructive-control review.
-- Hold-period health/error/job/WSS telemetry, retained Render/Vercel rollback points and named
-  rollback/recovery owners.
+- Private Semester-backup access is **FAIL** in direct Production evidence. A separate owner-approved
+  remediation and safe verification are required; Prepare is state-changing and was not retried.
+- Render has no prior retained backend deployment. Establish a compatible retained point or an
+  approved immutable redeploy procedure without a database downgrade.
+- Supply the named rollback decision owner, Vercel executor, Render executor and database-recovery
+  owner. Do not infer names.
+- Supply the accepted post-repair hold duration, then observe only that missing interval.
 - Residual `ACCEPT-001` evidence and full encrypted off-site DR restore remain post-deployment
   hardening, not completed work.
 - Dynamic Event/Admin Event delivery remains deferred and feature-gated.
 
-## Focused files for the next session
+## Phase 2 readiness
 
-- `apps/api/app/core/config.py`
-- `apps/api/app/main.py`
-- `apps/api/app/services/tokens.py`
-- `apps/api/app/services/csrf.py`
-- `apps/api/app/api/dependencies.py`
-- `apps/api/app/api/chat_realtime.py`
-- `apps/api/app/api/health.py`
-- `apps/web/src/features/auth/session-client.ts`
-- `apps/web/src/features/chat/chat-client.ts`
-- `apps/web/src/features/admin-semesters/admin-semesters.ts`
+- Planning is READY.
+- Implementation is BLOCKED until `PROD-001` closes and the next Task ID is explicitly selected.
+- After closure: residual `ACCEPT-001` evidence -> encrypted off-site DR rehearsal -> retention and
+  capacity hardening -> explicit decision before the deferred `EVT-005` chain.
+- Reuse this record's Production session/WSS/recovery evidence in `ACCEPT-001`; do not repeat it.
 
 ## Worktree boundary
 
@@ -105,3 +123,6 @@ The documentation optimization commit `c62b055` was pushed to `origin/main`. It 
 incorporated the pre-existing uncommitted documentation changes in `README.md`, the legacy plan and
 operations records. The follow-up acceptance synchronization is documentation-only. No application
 source, database, provider resource or Production state was changed by either documentation pass.
+
+The PROD-001 technical-closure documentation is a separate docs-only change. Its resulting commit
+and push status must be recorded after validation; do not alter the legacy archive.

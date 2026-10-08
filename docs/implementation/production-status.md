@@ -1,8 +1,10 @@
 # Production status
 
-**Last direct read-only verification:** 2026-10-08 10:27 Asia/Saigon
+**Last direct verification:** 2026-10-08 15:01 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
-**Mutation performed:** none
+**Mutation boundary:** no source, provider configuration, reset, restore, backup retry or test-message
+mutation. Normal USER/ADMIN login/logout occurred; opening the existing conversation may have
+reconciled its idempotent read marker.
 
 ## Directly observed
 
@@ -46,22 +48,45 @@ This confirms functional behavior but does not identify cookie attributes, exerc
 negative path, distinguish WSS from fallback transport, prove protocol-level reconnect/Origin
 handling or establish hold/rollback readiness.
 
-## Not yet evidenced as complete
+## Technical evidence closure — 2026-10-08
 
-- Session recovery, Secure HttpOnly host-only cookie inspection, CSRF negative behavior and private
-  cache removal after logout/account change.
-- Protocol-level authenticated WebSocket Origin/auth/reconnect and REST history recovery on the
-  first-party topology.
-- Non-destructive Semester guard/status evidence and the final release secret/history, credential,
-  private-backup-access and destructive-control review.
-- Production hold-period health/error/job/WSS telemetry, retained Render/Vercel rollback points and
-  named rollback/recovery owners sufficient to close `PROD-001`.
+The authenticated technical pass established:
+
+- all access, refresh and CSRF cookies were API-host-only `__Host-` cookies with Secure, HttpOnly,
+  SameSite=Lax and Path `/`; their observed lifetime classes matched the configured short access
+  and long refresh/CSRF design;
+- a full page reload restored the USER session and `/api/auth/me` returned 200; logout returned 204
+  and removed all three cookie names;
+- authenticated notification and conversation WSS handshakes used the exact first-party Origin and
+  returned 101; reload re-established both sockets and REST history returned 200;
+- authenticated ADMIN GET `/api/admin/semesters/management` returned 200 and the UI enforced the
+  `NEW_COHORT` restore block without any destructive action;
+- 60 focused web tests and 143 focused API tests passed; the final high-confidence tracked-content
+  and Git-history secret scan found no live-secret pattern.
+
+Full redacted evidence and gate reconciliation are in
+[`prod-001-technical-evidence-2026-10-08.md`](../operations/prod-001-technical-evidence-2026-10-08.md).
+
+## Current release blockers
+
+- Production Semester status reports `RESET_PREPARATION_FAILED`; the associated private backup is
+  `FAILED`, unverified and has no expiry. Render retained two earlier Prepare requests returning
+  503. Diagnosing/repairing and safely re-verifying this path requires separate authorization.
+- Vercel retains prior Ready frontend deployments, but the Production Render service reports only
+  one deploy; no prior backend revision is selectable.
+- Named rollback decision/Vercel/Render/database-recovery owners and an accepted post-repair hold
+  duration are not recorded.
+- The complete encrypted off-site snapshot and disposable DR rehearsal remain post-deploy
+  hardening and are not falsely credited as complete recovery evidence.
 
 Do not upgrade these items to PASS without dated evidence. Do not create test users, send email,
-login, change DNS or modify provider configuration during a documentation-only task.
+retry Semester Prepare, change DNS or modify provider configuration during a documentation-only
+task.
 
 ## Verification method
 
-The direct checks used DNS queries and HTTPS GET/OPTIONS requests only. Response bodies recorded here
-are deliberately sanitized health/auth boundary outputs; no credential, cookie, Redis value, private
-database value or provider secret was read or stored.
+The initial direct checks used DNS and HTTPS GET/OPTIONS. The technical pass used owner-entered
+credentials in the browser, metadata-only cookie inspection, ordinary session reload/logout,
+authenticated WSS handshakes, REST history and the read-only Semester status endpoint. No credential,
+cookie value, token, message body, email, private object identity, Redis value, private database row
+or provider secret was recorded.

@@ -80,6 +80,20 @@ path, protocol-level authenticated WSS Origin/auth/reconnect and REST recovery, 
 non-destructive Semester/release-security review, the observation hold or retained rollback points.
 Those items keep `PROD-001` in technical verification rather than DONE.
 
+## PROD-001 technical closure update — BLOCKED on 2026-10-08
+
+Cookie/session/logout, CSRF test coverage, authenticated WSS Origin/auth/reconnect, REST recovery,
+non-destructive Semester guards and the final focused secret/history scan are now evidenced as PASS.
+The direct ADMIN status read also exposed a mandatory operational failure: the latest reset
+preparation is `FAILED` with `RESET_PREPARATION_FAILED`, and its private Semester backup is `FAILED`
+and unverified. Render logs retain two earlier Prepare responses of 503. This task did not retry
+Prepare or run Reset/Restore.
+
+The frontend has retained Ready Vercel deployments, while the Render API reports only its current
+deploy. Named rollback/recovery owners and an accepted post-repair hold duration are also absent.
+`PROD-001` is therefore **BLOCKED / OWNER ACTION REQUIRED**, not DONE. See the
+[technical evidence record](prod-001-technical-evidence-2026-10-08.md).
+
 ## Release-candidate verification
 
 Run on 2026-10-07 against the reviewed checkout:

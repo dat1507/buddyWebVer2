@@ -65,3 +65,26 @@ handoff response.
 The owner-confirmed functional paths are marked PASS without upgrading cookie/CSRF/WSS,
 Semester/release-safety, hold or rollback gates. `PROD-001` therefore remains IN PROGRESS /
 TECHNICAL VERIFY and is the next release-blocking task.
+
+## PROD-001 technical-closure validation — 2026-10-08
+
+This later validation supersedes only the final status sentence above; it does not rewrite the
+historical migration result.
+
+| Check | Result |
+| --- | --- |
+| Required routed control/evidence files | 8 checked; 0 missing |
+| Task files / unique task-index links | 212 / 212 |
+| Broken local Markdown links in implementation/operations docs | 0 |
+| New technical evidence record | 9,407 bytes; 100 lines |
+| Documentation files changed/added | 10 |
+| Application/source/runtime-config changes | 0 |
+| Legacy archive changes | 0 |
+| Added high-confidence secret-pattern hits | 0 |
+| Focused web/API tests | 60 / 143 PASS |
+| Whitespace validation | `git diff --check` PASS |
+
+Result: documentation reconciliation **PASS**. `PROD-001` itself is **BLOCKED / OWNER ACTION
+REQUIRED**, not DONE, because direct evidence found the private Semester backup failed and unverified,
+Render has no previous retained backend deploy, and named owners/post-repair hold approval are absent.
+The resulting docs-only commit identifier and push status are reported in the session response.

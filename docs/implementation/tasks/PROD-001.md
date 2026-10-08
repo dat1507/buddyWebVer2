@@ -1,6 +1,6 @@
 # PROD-001
 
-**Control-plane status:** IN PROGRESS / TECHNICAL VERIFY
+**Control-plane status:** BLOCKED / OWNER ACTION REQUIRED
 **Track:** release-operations
 **Priority:** release
 **Dependencies (latest extracted):** ACCEPT-001 and explicit release approval; Operations + Engineering.
@@ -9,7 +9,28 @@
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
 
-## Current acceptance update — 2026-10-08
+## Technical evidence closure update — 2026-10-08 15:01 Asia/Saigon
+
+- Secure host-only cookie metadata, session reload/logout, CSRF coverage, authenticated WSS
+  Origin/auth/reconnect, REST history recovery and non-destructive Semester guard/status are PASS.
+- The focused verification passed 60 web tests and 143 API tests. The final high-confidence
+  tracked-content/Git-history secret scan found no live-secret pattern; credential-URL matches were
+  localhost fixtures/examples only.
+- Vercel retains the current and prior Ready frontend deployments. Render reports only one backend
+  deploy, so no previous backend revision is selectable as a rollback point.
+- Production Semester status is a real blocker: the latest reset preparation is `FAILED` with
+  `RESET_PREPARATION_FAILED`; its private backup is `FAILED` and unverified. Provider logs retain two
+  earlier Prepare responses of 503. No Prepare/Execute/Reset/Restore action was run during this
+  verification.
+- No rollback/recovery owner names or accepted post-repair hold duration were supplied.
+
+Decision: `PROD-001` remains open and is now **BLOCKED / OWNER ACTION REQUIRED**. It may become DONE
+only after private-backup access is repaired and safely evidenced under separate authorization, a
+backend rollback/redeploy point exists, named owners are recorded and the agreed post-repair hold
+passes. See
+[`prod-001-technical-evidence-2026-10-08.md`](../../operations/prod-001-technical-evidence-2026-10-08.md).
+
+## Earlier acceptance update — 2026-10-08
 
 - First-party DNS, public live/readiness, frontend API target, anonymous auth boundary and
   exact-origin CORS are PASS.

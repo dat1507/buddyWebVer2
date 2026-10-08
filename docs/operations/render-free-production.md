@@ -10,9 +10,10 @@ This decision does **not** by itself close the production release. The 2026-10-0
 [production MVP readiness record](production-mvp-readiness-2026-10-07.md) supersedes the earlier
 all-or-nothing release classification: full `ACCEPT-001` sign-off and the complete DR rehearsal stay
 OPEN as post-deploy hardening, while isolated resources, secrets, safe migration, provider-host
-acceptance, first-party DNS, health and core-flow smoke tests remain blocking gates. First-party DNS
-and public readiness later passed on 2026-10-08; authenticated core smoke and the hold/rollback gate
-remain open as recorded in `../implementation/production-status.md`.
+acceptance, first-party DNS, health and core-flow smoke tests remain blocking gates. First-party DNS,
+owner functional acceptance and authenticated cookie/WSS recovery later passed on 2026-10-08. The
+private Semester backup, retained backend rollback point, named owners and post-repair hold remain
+open as recorded in `../implementation/production-status.md`.
 
 ## Audited production topology
 
@@ -153,9 +154,15 @@ recording credentials, cookies, user data or provider response bodies.
 8. Confirm rollback can select one of Render Free's retained recent deploys without a database
    downgrade. Do not use keepalive traffic to defeat spin-down.
 
+**Direct dashboard update — 2026-10-08:** the Production Render service reported only one deploy,
+`dep-db343nu7bikc73bjvalg` at application commit `d15cb1d7`. The service is Live and public health is
+healthy, but no previous Render deploy is currently selectable. This checklist item is BLOCKED until
+an owner establishes a compatible retained deploy or approves an immutable redeploy procedure. No
+redeploy or rollback was performed during verification.
+
 The temporary Render hostname remains suitable for health and direct HTTP/WSS diagnostics. Browser
-cookie acceptance must now be proved on the live same-site `api.vgubuddyprogram.com` topology; do
-not weaken the host-only Secure/SameSite cookie contract.
+cookie acceptance was proved on 2026-10-08 on the live same-site `api.vgubuddyprogram.com`
+topology; preserve that evidence and do not weaken the host-only Secure/SameSite cookie contract.
 
 ## Accepted limitations and paid reevaluation
 
