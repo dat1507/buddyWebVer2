@@ -438,6 +438,10 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
                   label={t('profile.nationality')}
                   value={profile.nationality?.trim() || null}
                 />
+                <ProfileDetail
+                  label={t('profile.homeUniversity')}
+                  value={profile.home_university?.trim() || null}
+                />
               </dl>
               <div className="flex items-start gap-2 rounded-xl bg-muted/60 p-4 text-sm leading-6 text-muted-foreground">
                 <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />

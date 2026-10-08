@@ -89,6 +89,7 @@ describe('FE-025 onboarding identity step', () => {
       screen.getByText(/We will look for an international student as your buddy/),
     ).toBeVisible()
     expect(screen.getByText(/We will look for a Vietnamese student as your buddy/)).toBeVisible()
+    expect(screen.queryByLabelText(/Home university/i)).not.toBeInTheDocument()
   })
 
   it('resumes every Step 1 field from the persisted own profile', async () => {

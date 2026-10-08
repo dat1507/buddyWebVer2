@@ -441,6 +441,93 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     )
   })
 
+  it('edits and persists Home University through the existing Profile update field', async () => {
+    let persistedProfile: OwnProfile = {
+      ...completeProfile,
+      home_university: 'Previous University',
+    }
+    mockIdentitySurface(
+      authenticatedJson,
+      () => persistedProfile,
+      (body) => {
+        const update = body as OwnProfileUpdate
+        persistedProfile = {
+          ...persistedProfile,
+          ...update,
+          version: update.version + 1,
+        }
+        return persistedProfile
+      },
+    )
+    renderPage()
+
+    const homeUniversity = await screen.findByLabelText(/Home university/)
+    expect(homeUniversity).toHaveValue('Previous University')
+    fireEvent.change(homeUniversity, { target: { value: '  Example University  ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(homeUniversity).toHaveValue('Example University')
+    expect(authenticatedJson).toHaveBeenCalledWith(
+      '/profile',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.objectContaining({ home_university: 'Example University' }),
+      }),
+    )
+  })
+
+  it('clears Home University to null through the existing Profile update', async () => {
+    let persistedProfile: OwnProfile = {
+      ...completeProfile,
+      home_university: 'Previous University',
+    }
+    mockIdentitySurface(
+      authenticatedJson,
+      () => persistedProfile,
+      (body) => {
+        const update = body as OwnProfileUpdate
+        persistedProfile = {
+          ...persistedProfile,
+          ...update,
+          version: update.version + 1,
+        }
+        return persistedProfile
+      },
+    )
+    renderPage()
+
+    const homeUniversity = await screen.findByLabelText(/Home university/)
+    fireEvent.change(homeUniversity, { target: { value: '   ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(authenticatedJson).toHaveBeenCalledWith(
+      '/profile',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.objectContaining({ home_university: null }),
+      }),
+    )
+  })
+
+  it('rejects a Home University value over 200 characters before calling the API', async () => {
+    mockIdentitySurface(authenticatedJson, () => completeProfile)
+    renderPage()
+
+    const homeUniversity = await screen.findByLabelText(/Home university/)
+    fireEvent.change(homeUniversity, { target: { value: 'U'.repeat(201) } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
+
+    expect(screen.getByText(/no more than 200 characters/i)).toBeVisible()
+    expect(homeUniversity).toHaveFocus()
+    expect(
+      authenticatedJson.mock.calls.some(
+        ([path, options]) => path === '/profile' && options?.method === 'PUT',
+      ),
+    ).toBe(false)
+  })
+
   it('locks only student type while saving unrelated profile fields with the current value', async () => {
     let persistedProfile: OwnProfile = { ...completeProfile, student_type_locked: true }
     mockIdentitySurface(
@@ -552,5 +639,6 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     expect(await screen.findByText(/Studierendentyp kann nicht geändert werden/i)).toBeVisible()
     expect(screen.getByRole('radio', { name: 'Vietnamesische Studierende' })).toBeDisabled()
     expect(screen.getByLabelText(/Anzeigename/)).toBeEnabled()
+    expect(screen.getByLabelText(/Heimatuniversität/)).toBeEnabled()
   })
 })

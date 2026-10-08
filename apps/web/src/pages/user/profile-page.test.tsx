@@ -31,6 +31,7 @@ const profile = {
   major: 'Computer Science',
   study_year: 3,
   bio: 'I enjoy helping new students settle in.',
+  home_university: 'Example University',
   avatar: {
     id: photoId,
     mime_type: 'image/webp',
@@ -146,6 +147,7 @@ describe('FE-028 and PREF-004 own profile view', () => {
     expect(within(card).getByText('Full name: Nguyen Van An')).toBeVisible()
     expect(within(card).getByText('Vietnamese student')).toBeVisible()
     expect(within(card).getByText('I enjoy helping new students settle in.')).toBeVisible()
+    expect(within(card).getByText('Example University')).toBeVisible()
     expect(await within(card).findByText('Music')).toBeVisible()
     expect(within(card).getByText('<img src=x onerror=alert(1)>')).toBeVisible()
     expect(await within(card).findByText('English')).toBeVisible()
@@ -179,6 +181,7 @@ describe('FE-028 and PREF-004 own profile view', () => {
           major: null,
           study_year: null,
           bio: null,
+          home_university: null,
           avatar: null,
           interest_ids: [],
           languages: [],
@@ -205,7 +208,7 @@ describe('FE-028 and PREF-004 own profile view', () => {
     expect(await within(card).findByText('No interests added yet.')).toBeVisible()
     expect(await within(card).findByText('No languages added yet.')).toBeVisible()
     expect(await within(card).findByText('No preferred activities added yet.')).toBeVisible()
-    expect(within(card).getAllByText('Not added')).toHaveLength(3)
+    expect(within(card).getAllByText('Not added')).toHaveLength(4)
     expect(authenticatedJson).not.toHaveBeenCalledWith(
       expect.stringContaining('/profile/photos/'),
       expect.anything(),

@@ -58,6 +58,7 @@ interface OwnProfileUpdate {
   major: string | null
   study_year: number | null
   bio: string | null
+  home_university?: string | null
 }
 
 interface OnboardingPreferencesUpdate {

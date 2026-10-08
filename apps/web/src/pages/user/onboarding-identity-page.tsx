@@ -12,7 +12,7 @@ import { useOwnProfile, useUpdateOwnProfile } from '@/features/profile/queries/u
 import { ApiError } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
-type FormField = 'fullName' | 'displayName' | 'studentType' | 'studyYear' | 'bio'
+type FormField = 'fullName' | 'displayName' | 'studentType' | 'studyYear' | 'homeUniversity' | 'bio'
 type FormErrors = Partial<Record<FormField, string>>
 
 interface IdentityFormState {
@@ -22,6 +22,7 @@ interface IdentityFormState {
   major: string
   studyYear: string
   nationality: string
+  homeUniversity: string
   bio: string
 }
 
@@ -36,6 +37,7 @@ function profileToForm(profile: OwnProfile): IdentityFormState {
     major: profile.major ?? '',
     studyYear: profile.study_year?.toString() ?? '',
     nationality: profile.nationality ?? '',
+    homeUniversity: profile.home_university ?? '',
     bio: profile.bio ?? '',
   }
 }
@@ -65,6 +67,7 @@ function OnboardingIdentityForm({
   const displayNameRef = useRef<HTMLInputElement>(null)
   const vietnameseTypeRef = useRef<HTMLInputElement>(null)
   const studyYearRef = useRef<HTMLInputElement>(null)
+  const homeUniversityRef = useRef<HTMLInputElement>(null)
   const bioRef = useRef<HTMLTextAreaElement>(null)
   const studentTypeLocked =
     mode === 'edit' && (initialProfile.student_type_locked || lockedAfterConflict)
@@ -89,6 +92,7 @@ function OnboardingIdentityForm({
     const fullNameLength = [...form.fullName.trim()].length
     const displayNameLength = [...form.displayName.trim()].length
     const bioLength = [...form.bio.trim()].length
+    const homeUniversityLength = [...form.homeUniversity.trim()].length
 
     if (fullNameLength === 0) next.fullName = t('onboarding.identity.validation.fullNameRequired')
     else if (fullNameLength > 120)
@@ -103,6 +107,8 @@ function OnboardingIdentityForm({
         next.studyYear = t('onboarding.identity.validation.studyYearRange')
     }
     if (bioLength > 500) next.bio = t('onboarding.identity.validation.bioMaximum')
+    if (mode === 'edit' && homeUniversityLength > 200)
+      next.homeUniversity = t('profileEdit.homeUniversityMaximum')
     return next
   }
 
@@ -112,6 +118,7 @@ function OnboardingIdentityForm({
       ['displayName', displayNameRef],
       ['studentType', vietnameseTypeRef],
       ['studyYear', studyYearRef],
+      ['homeUniversity', homeUniversityRef],
       ['bio', bioRef],
     ] as const
     fields.find(([field]) => nextErrors[field])?.[1].current?.focus()
@@ -136,6 +143,7 @@ function OnboardingIdentityForm({
       study_year: form.studyYear ? Number(form.studyYear) : null,
       nationality: optionalText(form.nationality),
       bio: optionalText(form.bio),
+      ...(mode === 'edit' ? { home_university: optionalText(form.homeUniversity) } : {}),
     }
     updateProfile.mutate(update, {
       onSuccess: (savedProfile) => {
@@ -417,6 +425,44 @@ function OnboardingIdentityForm({
                 {t('onboarding.identity.nationalityHelp')}
               </p>
             </div>
+
+            {mode === 'edit' ? (
+              <div className="space-y-2">
+                <label htmlFor="profile-home-university" className="text-sm font-medium">
+                  {t('profileEdit.homeUniversityLabel')}{' '}
+                  <span className="font-normal text-muted-foreground">
+                    {t('onboarding.identity.optional')}
+                  </span>
+                </label>
+                <input
+                  ref={homeUniversityRef}
+                  id="profile-home-university"
+                  name="homeUniversity"
+                  maxLength={200}
+                  value={form.homeUniversity}
+                  disabled={updateProfile.isPending}
+                  aria-invalid={Boolean(errors.homeUniversity)}
+                  aria-describedby={
+                    errors.homeUniversity
+                      ? 'profile-home-university-error'
+                      : 'profile-home-university-help'
+                  }
+                  className={cn(inputClassName, errors.homeUniversity && 'border-destructive')}
+                  onChange={(event) => setField('homeUniversity', event.target.value)}
+                />
+                <div className="flex items-start justify-between gap-4 text-sm text-muted-foreground">
+                  <span id="profile-home-university-help">
+                    {t('profileEdit.homeUniversityHelp')}
+                  </span>
+                  <span aria-hidden="true">{[...form.homeUniversity].length}/200</span>
+                </div>
+                {errors.homeUniversity ? (
+                  <p id="profile-home-university-error" className="text-sm text-destructive">
+                    {errors.homeUniversity}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="space-y-2">
               <label htmlFor="profile-bio" className="text-sm font-medium">
