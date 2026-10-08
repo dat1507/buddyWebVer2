@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-08 (Asia/Saigon)
-**TASK_ID:** `PROD-001`
-**Current mode:** release blocker handoff; owner authorization required
+**TASK_ID:** NONE — OWNER MANUAL VISUAL/RELEASE REVIEW
+**Current mode:** first two Phase 2 UI tasks locally implemented; no push/deploy
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,13 +11,21 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-Continue `PROD-001` from the verified evidence record below. Do not implement a feature, change
-application source, retry Semester Prepare, mutate a provider or rerun accepted functional/technical
-paths. Read only `docs/implementation/tasks/PROD-001.md`,
+The owner separately authorized `FE-LANDING-BG-001`, followed by
+`FE-PROFILE-HOME-UNI-001`, on local `main`; both are now implemented with automated checks passing.
+Read `docs/implementation/phase-2-roadmap.md` and only those two task extracts plus their named
+source/tests. Direct desktop/mobile/transition and authenticated Profile visual inspection remains
+a manual gate because the available computer-use browsers could not reach the terminal-local Vite
+server. Do not mark that gate PASS without direct evidence. Do not retry Semester Prepare, mutate a
+provider or rerun accepted functional/technical paths. The release lane remains documented in
+`docs/implementation/tasks/PROD-001.md`,
 `docs/operations/prod-001-technical-evidence-2026-10-08.md`,
 `docs/implementation/production-status.md` and
 `docs/implementation/post-deployment-workflow.md` unless an owner separately authorizes one of the
 blocked remediation steps.
+
+Local commits are approved. Do not push `origin/main`, trigger Vercel Production, deploy, migrate or
+change Production without a new explicit approval.
 
 ## Latest verified Production snapshot
 
@@ -112,9 +120,14 @@ produce another record. It does not replace the technical/security and operation
 ## Phase 2 readiness
 
 - Planning is READY.
-- Implementation is BLOCKED until `PROD-001` closes and the next Task ID is explicitly selected.
-- After closure: residual `ACCEPT-001` evidence -> encrypted off-site DR rehearsal -> retention and
-  capacity hardening -> explicit decision before the deferred `EVT-005` chain.
+- `FE-LANDING-BG-001` and `FE-PROFILE-HOME-UNI-001` are locally implemented; 33 focused tests,
+  lint, typecheck, formatting and production build pass.
+- Owner visual review remains open for Landing desktop/mobile/transitions and authenticated Profile
+  display/edit/reload. The visual gate is not PASS.
+- Events, Event Calendar, VGU Map, AI Assistant, Merchandise and remaining enhancements follow in
+  that owner-approved order, subject to their own dependencies and a separate instruction.
+- Backup/DR, `PROD-001`, `SEM-008` and residual `ACCEPT-001` remain open; this does not make Phase 1
+  release-ready.
 - Reuse this record's Production session/WSS/recovery evidence in `ACCEPT-001`; do not repeat it.
 
 ## Worktree boundary

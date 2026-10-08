@@ -88,3 +88,27 @@ Result: documentation reconciliation **PASS**. `PROD-001` itself is **BLOCKED / 
 REQUIRED**, not DONE, because direct evidence found the private Semester backup failed and unverified,
 Render has no previous retained backend deploy, and named owners/post-repair hold approval are absent.
 The resulting docs-only commit identifier and push status are reported in the session response.
+
+## Phase 2 Landing/Home University implementation validation — 2026-10-08
+
+| Check | Result |
+| --- | --- |
+| Focused web tests | 5 files; 33 tests PASS |
+| Landing tests | slideshow 2/2; assembled Landing 8/8 PASS |
+| Profile tests | 3 files; 23/23 PASS |
+| TypeScript | `npm run typecheck` PASS |
+| ESLint | `npm run lint` PASS |
+| Formatting | `npm run format:check` PASS |
+| Production build | `npm run build` PASS; existing large-chunk warning only |
+| Supplied/retained Landing images | 5 / 5; all decode successfully; 890,342 optimized bytes |
+| Backend/database/migration/matching/Event-slider changes | 0 |
+| Production/provider mutation | 0 |
+| Task files / unique task-index links | 214 / 214; 0 missing in either direction |
+| Broken local links in routed/current docs | 0 |
+| Added high-confidence secret-pattern hits | 0 |
+| Whitespace validation | `git diff --check` PASS |
+| Direct browser visual QA | NOT RUN / MANUAL GATE — available browser surfaces timed out on the terminal-local Vite server |
+
+Result: local implementation and automated verification **PASS**. Visual acceptance remains **OPEN**
+and is not inferred from tests or build output. `PROD-001`, Backup/DR, `SEM-008` and residual
+`ACCEPT-001` remain open. No push or deployment is authorized by this record.

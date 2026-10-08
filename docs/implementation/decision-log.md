@@ -63,3 +63,15 @@ the per-task extracts and legacy archive.
   cookie/CORS/TLS or core-flow failures still block closure.
 - Dynamic Event/Admin Event surfaces remain feature-gated until the Part 27 chain and
   `ACCEPT-EVENT-001` pass. Static carousel content grants no dynamic-task credit.
+
+## Phase 2 development order — owner decision 2026-10-08
+
+- The first two Phase 2 development tasks are `FE-LANDING-BG-001`, then
+  `FE-PROFILE-HOME-UNI-001`.
+- Later order is Event system, Event Calendar, VGU Map, AI Assistant, Merchandise, then remaining
+  enhancements; task-specific dependencies remain controlling.
+- These isolated frontend tasks may be developed and committed on local `main` before Phase 1
+  closure. Backup/DR, `PROD-001`, `SEM-008` and residual `ACCEPT-001` remain open and unchanged.
+- Push to `origin/main` and Production deployment require a separate explicit owner approval.
+- Home University is optional profile information only and must not affect Buddy Matching or
+  recommendation weights.

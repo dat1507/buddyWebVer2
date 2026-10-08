@@ -1,9 +1,10 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.1
+**Plan version:** 1.2
 **Updated:** 2026-10-08
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
+**Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
 
 This file is the control plane for current status and execution order. It deliberately excludes
 long-form completed-session evidence and repeated architecture prose. Every preserved Task ID has a
@@ -24,7 +25,9 @@ related features. Reuse that functional evidence; do not rerun those paths merel
 REST recovery, Semester guards and focused release-security verification now pass. Direct
 Production evidence found a failed, unverified private Semester backup; Render has no previous
 retained backend deploy; named rollback/recovery owners and the accepted post-repair hold duration
-are also missing. No application feature should be implemented in this release lane.
+are also missing. No application feature should be implemented in this release lane. A newer owner
+decision separately authorizes the two isolated frontend-only Phase 2 tasks below on local `main`;
+it does not authorize a push/deployment or change any Phase 1 blocker.
 
 ## Executable status
 
@@ -35,9 +38,12 @@ are also missing. No application feature should be implemented in this release l
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
 | 4 | `EVT-005` dynamic Event lane | P0 product backlog | **DEFERRED / READY AFTER RELEASE HOLD** | Existing Event model/service prerequisites are complete | Start exact Part 27 chain only after release/hardening decision |
 | 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
+| 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN** | Local source/assets complete; browser surfaces could not reach the local Vite server | Owner desktop/mobile/transition review; stop before push/deploy |
+| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN** | Existing Profile API field reused; no backend/matching change | Owner authenticated Profile display/edit/reload review; stop before push/deploy |
 
-`SESSION_HANDOFF.md` assigns `PROD-001` technical evidence closure. This does not authorize source,
-database, provider or Production mutation.
+`SESSION_HANDOFF.md` records the bounded Phase 2 frontend implementation and remaining manual visual
+gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. Local
+implementation does not authorize database, provider or Production mutation.
 
 ## Completed release gates — do not repeat without a regression reason
 
@@ -106,6 +112,9 @@ The current static carousel does not complete any dynamic Event task.
 
 The following remain non-release-critical and require explicit selection:
 
+- Owner-approved Phase 2 order after the two current UI tasks: Event system -> Event Calendar ->
+  VGU Map -> AI Assistant -> Merchandise -> remaining enhancements.
+
 - `AUTH-025 -> FE-024` — authenticated password change and real Settings actions.
 - `EVT-007 -> ADMIN-011/FE-032` — event registration API, Admin detail and User action.
 - `ADMIN-EVT-002` — recap gallery upload/ordering after its recap/media prerequisites.
@@ -130,6 +139,7 @@ The following remain non-release-critical and require explicit selection:
 - Current handoff: `SESSION_HANDOFF.md`
 - Production truth: `docs/implementation/production-status.md`
 - Post-deployment workflow: `docs/implementation/post-deployment-workflow.md`
+- Phase 2 roadmap: `docs/implementation/phase-2-roadmap.md`
 - Technical decisions: `docs/implementation/decision-log.md`
 - Important completion history: `docs/implementation/history.md`
 - All Task IDs and focused extracts: `docs/implementation/task-index.md`
