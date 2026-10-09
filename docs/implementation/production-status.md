@@ -1,10 +1,11 @@
 # Production status
 
-**Last direct verification:** 2026-10-09 09:57 Asia/Saigon
+**Last direct verification:** 2026-10-09 11:15 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
-the Phase 2 frontend. No backend/database/DNS configuration, reset, restore, backup retry, secret,
-account or test-message mutation occurred during this release verification.
+the Phase 2 frontend and later Landing slideshow corrective release. No backend/database/DNS
+configuration, reset, restore, backup retry, secret, account or test-message mutation occurred
+during this release verification.
 
 ## Directly observed
 
@@ -46,6 +47,28 @@ This direct evidence closes `FE-LANDING-BG-001`. It proves deployment of the Hom
 but does not close `FE-PROFILE-HOME-UNI-001` until authenticated display/edit/save/reload is visually
 accepted. No Vercel runtime-log scan was available through the local environment; the deployed app
 is static, direct browser console inspection was clean, and public API health checks passed.
+
+## Landing slideshow corrective release — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Released source commit | `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` on `origin/main` |
+| GitHub/Vercel deployment | Production deployment `6952736000` completed successfully |
+| Vercel deployment URL | `https://buddy-web-ver2-pbkwfghyt-dat1507s-projects.vercel.app` |
+| Repository checks | Frontend SUCCESS; Backend SUCCESS |
+| Public alias / bundle | `https://www.vgubuddyprogram.com/#home`; `index-CC-xLBAH.js` |
+| Released slideshow | two stable paint-contained layers; opacity-only compositor path present |
+| Desktop three-loop audit | 15 transitions / 2,883 samples; correct order including three 5 -> 1 wraps |
+| Blank / undecoded-visible / visible-source-change samples | 0 / 0 / 0 |
+| Minimum combined opacity / slideshow layout delta | 1.0000 / 0 px |
+| Mobile 390x844 | one live transition PASS; 0 horizontal overflow |
+| Normal / reduced-motion reload | two decoded starting layers / one decoded static first image; PASS |
+| Browser console | 0 errors; 0 warnings |
+
+This direct evidence closes `FE-LANDING-BG-002` as **DONE / PRODUCTION VERIFIED**. It does not alter
+the authenticated Profile acceptance gate or any Phase 1 operational blocker. No Vercel runtime-log
+scan was available locally; the static deployed surface, repository checks and direct browser
+console were clean.
 
 ## Documented operator evidence retained
 

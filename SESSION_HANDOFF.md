@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-09 (Asia/Saigon)
-**TASK_ID:** `FE-LANDING-BG-002`
-**Current mode:** Landing slideshow corrective release pending push and Production verification
+**TASK_ID:** NONE — OWNER AUTHENTICATED PROFILE ACCEPTANCE
+**Current mode:** Landing corrective release complete; Home University visual gate open
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,15 +11,11 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-The owner assigned `FE-LANDING-BG-002` to diagnose and fix the Production slideshow hitch, then
-run focused/visual verification and release directly through `main`. Read only its task extract,
-the slideshow component/test and the explicitly linked current Landing records. Preserve the exact
-five images/order and all unrelated UI/application behavior.
-
-Implementation and local verification now pass: 730 frontend tests, all static/build gates and a
-16-transition desktop/mobile browser audit with no blank sample, visible-layer source swap, layout
-delta, overflow or console warning/error. Continue at the authorized direct-to-`main` push and
-Git-connected Vercel Production verification; do not repeat local gates unless the diff changes.
+`FE-LANDING-BG-002` is DONE / PRODUCTION VERIFIED. Source commit `c2fbaf1` reached `origin/main`;
+GitHub/Vercel deployment `6952736000` and both repository checks succeeded. Public bundle
+`index-CC-xLBAH.js` passed a 15-transition/three-loop desktop audit plus mobile, reload and reduced
+motion checks with no blank sample, undecoded-visible image, visible-layer source swap, layout
+delta, overflow or console warning/error. Do not repeat these gates without a regression reason.
 
 Previously, the owner separately authorized `FE-LANDING-BG-001`, followed by
 `FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with
@@ -41,9 +37,13 @@ future feature push/deployment, migrate or change Production without a new expli
 
 ## Latest Phase 2 frontend release
 
-- `origin/main` reached `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7`.
-- GitHub recorded Vercel Production deployment `6951736865` successful; Frontend and Backend checks
-  both passed.
+- Landing corrective source commit `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` reached
+  `origin/main`; Vercel Production deployment `6952736000`, Frontend and Backend checks succeeded.
+- `www.vgubuddyprogram.com` served `index-CC-xLBAH.js`. Direct Brave verification completed 15
+  desktop transitions/three full loops plus mobile, hard-reload and reduced-motion checks with no
+  blank/undecoded/visible-source-change sample, layout delta, overflow or console issue.
+- The earlier feature release used `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7`; GitHub recorded
+  Vercel Production deployment `6951736865` successful and both repository checks passed.
 - `www.vgubuddyprogram.com` returned 200 and served `index-Deo6vyVU.js` with all five Landing asset
   markers, EN/DE Home University copy and the first-party API target.
 - Brave visual verification passed at desktop 1536x831 and mobile 390x844, including image decode,

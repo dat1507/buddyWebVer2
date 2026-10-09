@@ -1,7 +1,7 @@
 # Phase 2 post-deployment roadmap
 
 **Updated:** 2026-10-09
-**Status:** FIRST TWO FEATURES DEPLOYED; PROFILE AUTHENTICATED VISUAL GATE OPEN
+**Status:** LANDING CORRECTIVE PRODUCTION VERIFIED; PROFILE AUTHENTICATED VISUAL GATE OPEN
 
 ## Controlling owner decision
 
@@ -22,14 +22,16 @@ Technical dependencies inside each later feature remain unchanged. This priority
 local development of the two isolated frontend tasks before Phase 1 closure. It does not close,
 downgrade or hide Backup/DR, `PROD-001`, `SEM-008` or residual `ACCEPT-001` blockers.
 
-The owner explicitly approved the `origin/main` push and Vercel Production deployment on
-2026-10-09. That approval was consumed for commit `2f6f8c8`; it does not authorize unrelated future
-deployments or Production/provider/database changes.
+The owner explicitly approved the original `origin/main` push and Vercel Production deployment on
+2026-10-09, then separately approved the corrective `FE-LANDING-BG-002` release. Those approvals
+were consumed by commits `2f6f8c8` and `c2fbaf1`; they do not authorize unrelated future deployments
+or Production/provider/database changes.
 
 ## Current implementation boundary
 
 ### `FE-LANDING-BG-002`
 
+- Status: DONE / PRODUCTION VERIFIED from `c2fbaf1` and deployment `6952736000`.
 - Correct only the performance/transition lifecycle of the existing `#home` slideshow.
 - Preserve the five assets, their order, Hero content/design and all unrelated surfaces.
 - Require decoded-next-image gating, stable opacity-only double buffering, hidden-tab timer pause,

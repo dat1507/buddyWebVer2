@@ -137,3 +137,24 @@ and is not inferred from tests or build output. `PROD-001`, Backup/DR, `SEM-008`
 Result: `FE-LANDING-BG-001` is **DONE / PRODUCTION VERIFIED**.
 `FE-PROFILE-HOME-UNI-001` is **DEPLOYED / AUTOMATED PASS** with authenticated visual acceptance
 still open. Phase 1 release blockers remain unchanged.
+
+## Landing slideshow corrective release validation — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Released source commit | `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` on `origin/main` |
+| Vercel Production deployment | `6952736000`; SUCCESS |
+| Repository checks | Frontend SUCCESS; Backend SUCCESS |
+| Complete frontend tests | 77 files; 730 tests PASS |
+| TypeScript / ESLint / Prettier / build | PASS / PASS / PASS / PASS |
+| Local browser audit | 16 transitions desktop/mobile; all zero-error invariants PASS |
+| Production browser audit | 15 desktop transitions plus mobile; 0 blank/undecoded/visible-source-change samples |
+| Production layout / console | 0 px layout delta; 0 px mobile overflow; 0 errors; 0 warnings |
+| Production reload / reduced motion | PASS / one static decoded first image PASS |
+| Task files / unique task-index links | 215 / 215; 0 missing in either direction |
+| Landing asset changes | 0; five files/order and 890,342 bytes preserved |
+| Backend/database/provider-config changes | 0 |
+| Whitespace validation | `git diff --check` PASS before release-evidence commit |
+
+Result: `FE-LANDING-BG-002` is **DONE / PRODUCTION VERIFIED**. The Profile authenticated visual
+gate and existing Phase 1 operational blockers remain unchanged.

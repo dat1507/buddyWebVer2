@@ -2,7 +2,7 @@
 
 **Feature group:** Landing page
 **Priority:** Phase 2 corrective follow-up
-**Status:** IMPLEMENTED — LOCAL VERIFIED / RELEASE PENDING
+**Status:** DONE — PRODUCTION VERIFIED
 **Dependencies:** `FE-LANDING-BG-001` Production slideshow.
 
 - **Objective:** remove the visible hitch/flicker at slideshow boundaries while retaining the exact
@@ -74,3 +74,26 @@ The first post-implementation browser trace also exposed why a duration-matched 
 was unsafe: in an occluded/throttled rendering interval, `transitionrun` began about 987 ms after
 the React phase update. Waiting for the outgoing layer's actual `transitionend` removed that race;
 the repeated audit then reported zero visible-layer source changes.
+
+## Production verification — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Released source commit | `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` on `origin/main` |
+| Repository checks | Frontend SUCCESS; Backend SUCCESS |
+| Vercel Production | GitHub deployment `6952736000`; SUCCESS |
+| Deployment URL | `https://buddy-web-ver2-pbkwfghyt-dat1507s-projects.vercel.app` |
+| Public alias / bundle | `https://www.vgubuddyprogram.com/#home`; `index-CC-xLBAH.js` |
+| Released structure | paint containment, two persistent `hero-background-layer-*` images and opacity compositing present |
+| Three-loop desktop audit | 15 completed transitions; correct five-image order and three 5 -> 1 wraps |
+| Production samples | 2,883 desktop samples plus 241 mobile samples |
+| Blank / undecoded-visible / visible-source-change samples | 0 / 0 / 0 |
+| Minimum combined opacity / layout delta | 1.0000 / 0 px |
+| Mobile 390x844 | responsive menu active; 0 horizontal overflow; live transition PASS |
+| Normal hard reload | first/current and next images decoded; first image visible; 0 overflow |
+| Reduced-motion hard reload | one decoded static first image; no animated pair |
+| Production console | 0 errors; 0 warnings |
+
+Result: **PASS / DONE — PRODUCTION VERIFIED**. The corrective release changed only the slideshow
+component, its focused tests and implementation records. The exact five assets, order and bytes are
+unchanged; no backend, database, DNS, provider configuration, account or unrelated UI was mutated.
