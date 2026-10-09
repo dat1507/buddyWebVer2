@@ -309,6 +309,9 @@ async def set_event_status(
         if event.published_at is None:
             event.published_at = published_at
 
+    if update.status is EventStatus.CANCELLED:
+        event.registration_enabled = False
+
     event.status = update.status
     event.updated_by = actor.id
     event.version += 1

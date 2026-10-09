@@ -114,6 +114,24 @@ def require_access_claims(
         raise _authentication_required() from None
 
 
+def optional_access_claims(
+    request: Request,
+    settings: Annotated[AuthTokenSettings, Depends(get_auth_token_settings)],
+) -> AccessTokenClaims | None:
+    """Return verified claims when an access cookie is present.
+
+    Public endpoints may serve an anonymous response when the cookie is absent. A supplied but
+    invalid cookie is never silently downgraded to anonymous access.
+    """
+    token = request.cookies.get(access_cookie_name(settings))
+    if token is None:
+        return None
+    try:
+        return verify_access_token(token, settings)
+    except TokenValidationError:
+        raise _authentication_required() from None
+
+
 async def require_auth(
     claims: Annotated[AccessTokenClaims, Depends(require_access_claims)],
     session: Annotated[AsyncSession, Depends(get_database_session)],
@@ -123,6 +141,19 @@ async def require_auth(
     The signed role claim is intentionally not an authorization source. Callers receive the
     current database User so a later role dependency cannot restore privileges from a stale JWT.
     """
+    user = await _load_active_user(session, claims.user_id)
+    if user is None or not user.is_active or user.deleted_at is not None:
+        raise _authentication_required()
+    return user
+
+
+async def optional_auth(
+    claims: Annotated[AccessTokenClaims | None, Depends(optional_access_claims)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> User | None:
+    """Resolve an optional cookie to current persisted state for audience-aware public reads."""
+    if claims is None:
+        return None
     user = await _load_active_user(session, claims.user_id)
     if user is None or not user.is_active or user.deleted_at is not None:
         raise _authentication_required()

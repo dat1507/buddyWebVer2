@@ -281,6 +281,7 @@ async def test_publish_requires_complete_localized_content_times_location_and_re
 @pytest.mark.anyio
 async def test_unpublish_and_cancel_keep_first_publication_history() -> None:
     event = _event(status=EventStatus.PUBLISHED, version=7)
+    event.registration_enabled = True
     mock, session = _session()
     mock.scalar.return_value = event
 
@@ -292,6 +293,7 @@ async def test_unpublish_and_cancel_keep_first_publication_history() -> None:
     )
 
     assert result.status is EventStatus.CANCELLED
+    assert result.registration_enabled is False
     assert result.published_at is PUBLISHED_AT
     assert result.version == 8
 

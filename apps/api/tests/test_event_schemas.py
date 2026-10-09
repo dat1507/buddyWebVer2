@@ -9,8 +9,10 @@ from pydantic import ValidationError
 from app.models import Event, EventPhase, EventStatus, EventVisibility
 from app.schemas.event import (
     AdminEventResponse,
+    EventCoverUploadFields,
     EventDraftCreate,
     EventDraftUpdate,
+    EventMediaUpdate,
     EventStatusUpdate,
 )
 
@@ -79,6 +81,26 @@ def test_status_update_accepts_only_declared_editorial_values() -> None:
     assert update.status is EventStatus.PUBLISHED
     with pytest.raises(ValidationError):
         EventStatusUpdate.model_validate({"version": 3, "status": "COMPLETED"})
+
+
+def test_event_media_fields_are_trimmed_bounded_and_require_a_change() -> None:
+    upload = EventCoverUploadFields.model_validate(
+        {"version": "2", "alt_en": "  Event poster  ", "alt_de": "  Plakat  "}
+    )
+    update = EventMediaUpdate.model_validate({"version": 2, "alt_en": "  Changed  "})
+
+    assert upload.alt_en == "Event poster"
+    assert upload.alt_de == "Plakat"
+    assert upload.version == 2
+    assert update.alt_en == "Changed"
+    with pytest.raises(ValidationError, match="At least one Event media field"):
+        EventMediaUpdate.model_validate({"version": 2})
+    with pytest.raises(ValidationError):
+        EventCoverUploadFields.model_validate({"version": 2, "alt_en": "", "alt_de": "Plakat"})
+    with pytest.raises(ValidationError):
+        EventCoverUploadFields.model_validate(
+            {"version": 2, "alt_en": "x" * 201, "alt_de": "Plakat"}
+        )
 
 
 def test_admin_projection_omits_actor_and_storage_data_and_derives_phase() -> None:

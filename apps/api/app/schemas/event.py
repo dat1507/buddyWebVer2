@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Self
+from typing import Literal, Self, cast
 from urllib.parse import urlsplit
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -20,8 +20,16 @@ from pydantic import (
     model_validator,
 )
 
-from app.models import EventPhase, EventStatus, EventVisibility
+from app.models import (
+    EventMediaProcessingStatus,
+    EventMediaUsage,
+    EventPhase,
+    EventStatus,
+    EventVisibility,
+)
 from app.models.event import DEFAULT_EVENT_TIMEZONE
+
+EventLocale = Literal["en", "de"]
 
 
 def _trim_optional(value: str | None, *, field_name: str, maximum: int) -> str | None:
@@ -217,3 +225,215 @@ class AdminEventResponse(BaseModel):
     version: int
     created_at: datetime
     updated_at: datetime
+
+
+class AdminEventListResponse(BaseModel):
+    """One stable bounded page of Events across every editorial state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[AdminEventResponse]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=100)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
+
+
+class EventDeleteResponse(BaseModel):
+    """Deletion result without private Storage object identities."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    event_id: UUID
+    cleanup_pending: bool
+    failed_object_count: int = Field(ge=0)
+
+
+class EventCoverUploadFields(BaseModel):
+    """Text fields carried beside one multipart Event cover."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    version: StrictInt = Field(ge=1)
+    alt_en: StrictStr
+    alt_de: StrictStr
+
+    @field_validator("version", mode="before")
+    @classmethod
+    def parse_multipart_version(cls, value: object) -> object:
+        if isinstance(value, str) and value.isascii() and value.isdigit():
+            return int(value)
+        return value
+
+    @field_validator("alt_en", "alt_de")
+    @classmethod
+    def validate_alt_text(cls, value: str, info: ValidationInfo) -> str:
+        return cast(
+            str,
+            _trim_optional(
+                value,
+                field_name=(info.field_name or "alt text").replace("_", " ").title(),
+                maximum=200,
+            ),
+        )
+
+
+class EventMediaUpdate(BaseModel):
+    """Allowlisted cover metadata update with parent Event concurrency."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    version: StrictInt = Field(ge=1)
+    alt_en: StrictStr | None = None
+    alt_de: StrictStr | None = None
+    sort_order: StrictInt | None = Field(default=None, ge=0)
+
+    @field_validator("alt_en", "alt_de")
+    @classmethod
+    def validate_optional_alt_text(cls, value: str | None, info: ValidationInfo) -> str | None:
+        return _trim_optional(
+            value,
+            field_name=(info.field_name or "alt text").replace("_", " ").title(),
+            maximum=200,
+        )
+
+    @model_validator(mode="after")
+    def require_media_change(self) -> Self:
+        if not self.model_fields_set.difference({"version"}):
+            raise ValueError("At least one Event media field must be supplied.")
+        return self
+
+
+class AdminEventMediaResponse(BaseModel):
+    """Admin media metadata without bucket or object-key disclosure."""
+
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    id: UUID
+    event_id: UUID
+    usage: EventMediaUsage
+    alt_en: str
+    alt_de: str
+    mime_type: str
+    byte_size: int = Field(ge=1)
+    width: int = Field(ge=1)
+    height: int = Field(ge=1)
+    sort_order: int = Field(ge=0)
+    processing_status: EventMediaProcessingStatus
+    created_at: datetime
+    updated_at: datetime
+
+
+class EventCoverUploadResponse(BaseModel):
+    """Cover replacement result and any post-commit cleanup state."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    event: AdminEventResponse
+    media: AdminEventMediaResponse
+    cleanup_pending: bool
+
+
+class EventMediaDeleteResponse(BaseModel):
+    """Media deletion result without private object identity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    event_id: UUID
+    media_id: UUID
+    event_version: int = Field(ge=1)
+    cleanup_pending: bool
+
+
+class EventMediaUrlResponse(BaseModel):
+    """Short-lived Event media delivery response."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    event_id: UUID
+    url: str
+    expires_in: int = Field(ge=1, le=300)
+
+
+class EventSliderCta(BaseModel):
+    """Internal detail action consumed by the existing Landing adapter."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    label: str = Field(min_length=1, max_length=40)
+    href: str = Field(pattern=r"^/events/[0-9a-f-]{36}$")
+
+
+class PublicEventSliderResponse(BaseModel):
+    """Exact snake-case projection expected by the current frontend Zod parser."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    title: str = Field(min_length=1, max_length=120)
+    description: str | None = Field(default=None, max_length=500)
+    image_url: str
+    image_alt: str = Field(min_length=1, max_length=200)
+    event_start_at: datetime | None
+    event_end_at: datetime | None
+    location: str | None = Field(default=None, max_length=200)
+    cta: EventSliderCta | None
+    sort_order: int = Field(ge=0)
+
+    @field_validator("image_url")
+    @classmethod
+    def require_https_image_url(cls, value: str) -> str:
+        parsed = urlsplit(value)
+        if parsed.scheme.lower() != "https" or not parsed.hostname:
+            raise ValueError("Slider image URL must be absolute HTTPS.")
+        return value
+
+
+class PublicEventCoverResponse(BaseModel):
+    """Short-lived public Event cover projection without Storage object identity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    url: str
+    alt_text: str
+    mime_type: str
+    width: int = Field(ge=1)
+    height: int = Field(ge=1)
+    expires_in: int = Field(ge=1, le=300)
+
+
+class PublicEventResponse(BaseModel):
+    """Localized audience-safe Event detail used by public and member clients."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    locale: EventLocale
+    title: str
+    description: str
+    start_date: datetime
+    end_date: datetime
+    timezone: str
+    location: str
+    category: str | None
+    organizer: str | None
+    registration_url: str | None
+    registration_enabled: bool
+    registration_deadline: datetime | None
+    status: EventStatus
+    visibility: EventVisibility
+    phase: EventPhase
+    cover: PublicEventCoverResponse | None
+
+
+class PublicEventListResponse(BaseModel):
+    """One deterministic bounded page of audience-safe Events."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[PublicEventResponse]
+    page: int = Field(ge=1)
+    page_size: int = Field(ge=1, le=100)
+    total: int = Field(ge=0)
+    total_pages: int = Field(ge=0)
