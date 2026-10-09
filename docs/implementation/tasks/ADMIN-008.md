@@ -1,6 +1,6 @@
 # ADMIN-008
 
-**Control-plane status:** DEFERRED / POST-DEPLOY
+**Control-plane status:** IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING
 **Track:** admin
 **Priority:** P0
 **Dependencies (latest extracted):** `ADMIN-007`.
@@ -8,6 +8,12 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Implementation evidence — 2026-10-09
+
+- Added Event edit/prefill, optimistic-version conflict handling, signed-cover preview and managed
+  cover replacement with partial-success recovery and cleanup-pending feedback.
+- No bucket/object key is exposed; focused edit, conflict and multipart client tests pass.
 
 ## Preserved contract sections
 

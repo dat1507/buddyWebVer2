@@ -52,5 +52,7 @@ This file preserves the milestones future agents need without replaying complete
 
 - The current launch uses a static project-owned Upcoming Events carousel.
 - A later commit `81979ce` changed the carousel to five current posters and centered titles.
-- The canonical dynamic Event/Admin Event lane remains deferred; it must follow the exact Part 27
-  chain and cannot inherit completion from the static carousel.
+- On 2026-10-09 the owner selected the canonical dynamic Event/Admin Event lane. Local implementation
+  completed the chain through `FE-014B` using one Event source and a derived slider, while the launch
+  flag remained off. Focused Event/frontend gates pass; `EVS-007` retains a full-suite Python 3.14
+  WebSocket teardown exception and deployed Staging acceptance remains pending.

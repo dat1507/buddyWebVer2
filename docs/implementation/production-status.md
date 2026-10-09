@@ -70,6 +70,18 @@ the authenticated Profile acceptance gate or any Phase 1 operational blocker. No
 scan was available locally; the static deployed surface, repository checks and direct browser
 console were clean.
 
+## Owner Phase 2 acceptance update — 2026-10-09
+
+- The owner directly confirmed that the Production slideshow now changes images smoothly and
+  accepted the frontend result. This is consistent with the retained direct Production evidence for
+  `FE-LANDING-BG-001` and `FE-LANDING-BG-002`; both remain DONE / PRODUCTION VERIFIED.
+- The owner directly confirmed that Home University appears correctly in the Production Profile UI.
+  This closes the authenticated display gate only. The original edit/save/reload, empty-clear,
+  200-character rejection and unrelated-field stability acceptance has not been directly observed,
+  so `FE-PROFILE-HOME-UNI-001` remains open.
+- No dynamic Event code from the current local worktree is deployed. The Production Event launch
+  flag remains off, and no database, Storage, provider or account mutation is claimed here.
+
 ## Documented operator evidence retained
 
 - Upstash was reallocated to Production, emptied/checked without destructive flush, credentials

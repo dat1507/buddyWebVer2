@@ -1,7 +1,7 @@
 # Phase 2 post-deployment roadmap
 
 **Updated:** 2026-10-09
-**Status:** LANDING CORRECTIVE PRODUCTION VERIFIED; PROFILE AUTHENTICATED VISUAL GATE OPEN
+**Status:** LANDING ACCEPTED; PROFILE DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN; EVENT LOCAL IMPLEMENTATION COMPLETE
 
 ## Controlling owner decision
 
@@ -56,9 +56,21 @@ or Production/provider/database changes.
 ## Release boundary
 
 Both features are deployed. Landing desktop/mobile/transition inspection passed directly against
-Production. Home University automated and deployed-bundle verification passed, while authenticated
-Profile display/edit/save/reload remains an explicit manual gate and is not recorded as PASS.
+Production and the owner confirmed the corrected transition is smooth. The owner also confirmed
+that Home University displays correctly in the authenticated Production Profile. The separate
+edit/save/reload/clear/max-length acceptance remains open, so the Profile task is not DONE.
 
-The release preserves all open Phase 1 blockers. After authenticated Profile visual acceptance and
-a separate implementation instruction, the next Phase 2 product task in the owner-approved order
-is the Event system.
+The release preserves all open Phase 1 blockers. The owner has now separately selected the Event
+system for local implementation; this does not close the remaining Profile acceptance or authorize
+an Event push, Staging mutation, Production launch flag or deployment.
+
+## Event system continuation — 2026-10-09
+
+- The owner separately selected the Event lane. The local canonical chain through `FE-014B` is
+  implemented; the Landing slider is derived from canonical published Events rather than a separate
+  slider database/admin page.
+- Dynamic public/Admin routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`. Production remains on the
+  static five-poster carousel until `EVS-007`, deployed Staging `ACCEPT-EVENT-001` and explicit
+  release approval pass.
+- Event-focused backend tests pass 96/96 and frontend tests pass 772/772. `EVS-007` remains open for
+  two unrelated Python 3.14 WebSocket `TestClient` teardown failures in the full backend suite.

@@ -1,6 +1,6 @@
 # ADMIN-009
 
-**Control-plane status:** DEFERRED / POST-DEPLOY
+**Control-plane status:** IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING
 **Track:** admin
 **Priority:** P0
 **Dependencies (latest extracted):** `ADMIN-008`, `EVT-009`.
@@ -8,6 +8,12 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Implementation evidence — 2026-10-09
+
+- Added explicit publish/move-to-draft/cancel controls, localized readiness gaps, destructive
+  confirmation, duplicate-submit locking, conflict handling and private/public query invalidation.
+- No manual Complete action exists; 15 focused Admin API/editor tests pass.
 
 ## Preserved contract sections
 

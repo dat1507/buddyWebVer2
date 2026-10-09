@@ -1,6 +1,6 @@
 # ADMIN-007
 
-**Control-plane status:** DEFERRED / POST-DEPLOY
+**Control-plane status:** IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING
 **Track:** admin
 **Priority:** P0
 **Dependencies (latest extracted):** `ADMIN-006`, `EVT-011`.
@@ -8,6 +8,12 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Implementation evidence — 2026-10-09
+
+- Added the localized Event draft form, IANA-timezone conversion and safe create-first workflow.
+- Cover failure preserves the created draft and selected file so retry does not create duplicates;
+  validation, duplicate-submit and recovery tests pass.
 
 ## Preserved contract sections
 

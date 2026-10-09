@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-09 (Asia/Saigon)
-**TASK_ID:** NONE — OWNER AUTHENTICATED PROFILE ACCEPTANCE
-**Current mode:** Landing corrective release complete; Home University visual gate open
+**TASK_ID:** EVS-007
+**Current mode:** Dynamic Event local implementation complete; full regression exception open
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,11 +11,39 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-`FE-LANDING-BG-002` is DONE / PRODUCTION VERIFIED. Source commit `c2fbaf1` reached `origin/main`;
+`FE-LANDING-BG-002` is DONE / PRODUCTION VERIFIED. The owner confirmed the corrected Production
+slideshow is smooth. Source commit `c2fbaf1` reached `origin/main`;
 GitHub/Vercel deployment `6952736000` and both repository checks succeeded. Public bundle
 `index-CC-xLBAH.js` passed a 15-transition/three-loop desktop audit plus mobile, reload and reduced
 motion checks with no blank sample, undecoded-visible image, visible-layer source swap, layout
 delta, overflow or console warning/error. Do not repeat these gates without a regression reason.
+
+The owner also confirmed that Home University displays correctly in the Production Profile UI.
+The original edit/save/reload/clear/max-length gate remains open, so
+`FE-PROFILE-HOME-UNI-001` is not DONE.
+
+The owner selected the dynamic Event lane. The canonical chain from `EVT-005` through `FE-014B` is
+implemented in local commits `4fe5bf1` (backend) and `0334fcc` (frontend), neither pushed. It uses
+one Event source: the Landing slider derives
+PUBLIC/PUBLISHED/upcoming Events with ready covers; there is no standalone Slider admin/table or
+manual ordering. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; do not enable or deploy
+them before `EVS-007`, Staging `ACCEPT-EVENT-001` and explicit release approval.
+
+Verification at this continuation point:
+
+- frontend full suite 84 files / 772 tests PASS; TypeScript, ESLint, Prettier and normal plus
+  launch-mode production builds PASS; launch-mode JS has no hardcoded static Event record titles;
+- backend focused Event suite 96/96 PASS; Ruff and strict mypy PASS; Alembic reports one head at
+  `0021_restore_runtime_permissions`;
+- backend full suite: 1,405 PASS, 37 SKIP, 2 FAIL. Both failures are unrelated Chat WebSocket
+  Starlette `TestClient` teardown `concurrent.futures.CancelledError` on Python 3.14. Do not hide or
+  relabel them; confirm on repository CI/its supported runtime before closing `EVS-007`;
+- no database, Storage, provider, account, Staging or Production mutation occurred. No push or
+  deployment has occurred, and `ACCEPT-EVENT-001` is NOT READY.
+
+Next: confirm the two WebSocket teardown cases on repository CI/a supported Python runtime and leave
+`TASK_ID: EVS-007` until the full regression exception is resolved. A later deployed Staging SHA and
+private bucket readiness are required before real Admin/public acceptance.
 
 Previously, the owner separately authorized `FE-LANDING-BG-001`, followed by
 `FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with
@@ -50,7 +78,8 @@ future feature push/deployment, migrate or change Production without a new expli
   responsive navigation, no overflow, Welcome-card absence and the live opacity crossfade.
 - Public API live/readiness remained 200; anonymous `/auth/me` remained 401/no-store with the exact
   first-party CORS origin.
-- No account was used. Home University authenticated Profile acceptance remains open.
+- The release verification used no account. A later owner observation confirmed Home University
+  display; edit/save/reload/clear/max-length acceptance remains open.
 
 ## Latest verified Production snapshot
 
@@ -140,14 +169,15 @@ produce another record. It does not replace the technical/security and operation
 - Supply the accepted post-repair hold duration, then observe only that missing interval.
 - Residual `ACCEPT-001` evidence and full encrypted off-site DR restore remain post-deployment
   hardening, not completed work.
-- Dynamic Event/Admin Event delivery remains deferred and feature-gated.
+- Dynamic Event/Admin Event code is implemented locally but remains unpushed, undeployed and
+  feature-gated pending `EVS-007` and `ACCEPT-EVENT-001`.
 
 ## Phase 2 readiness
 
 - Planning is READY.
 - `FE-LANDING-BG-001` is DONE / PRODUCTION VERIFIED.
-- `FE-PROFILE-HOME-UNI-001` is DEPLOYED with automated verification passing; authenticated Profile
-  display/edit/save/reload visual acceptance remains open.
+- `FE-PROFILE-HOME-UNI-001` is DEPLOYED; authenticated display is owner-accepted while
+  edit/save/reload/clear/max-length acceptance remains open.
 - Events, Event Calendar, VGU Map, AI Assistant, Merchandise and remaining enhancements follow in
   that owner-approved order, subject to their own dependencies and a separate instruction.
 - Backup/DR, `PROD-001`, `SEM-008` and residual `ACCEPT-001` remain open; this does not make Phase 1

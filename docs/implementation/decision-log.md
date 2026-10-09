@@ -64,6 +64,18 @@ the per-task extracts and legacy archive.
 - Dynamic Event/Admin Event surfaces remain feature-gated until the Part 27 chain and
   `ACCEPT-EVENT-001` pass. Static carousel content grants no dynamic-task credit.
 
+## Canonical Event delivery — recovered 2026-10-09
+
+- Canonical Events are the only persisted content source. The Landing slider is a deterministic
+  PUBLIC/PUBLISHED/upcoming projection with ready managed covers; it has no separate table, manual
+  ordering, standalone promotions or Admin Slider page.
+- Admin Event mutations require persisted ADMIN authority, CSRF and optimistic versions. Cover
+  objects stay in private managed Storage; public/client DTOs never expose bucket or object keys.
+- Publication status and schedule phase are separate. Admins publish, move to draft or cancel; there
+  is no manual Complete action. Cancellation disables registration and is excluded from the slider.
+- Dynamic Event routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; only a complete
+  `ACCEPT-EVENT-001` PASS and explicit release approval may enable Production.
+
 ## Phase 2 development order — owner decision 2026-10-08
 
 - The first two Phase 2 development tasks are `FE-LANDING-BG-001`, then

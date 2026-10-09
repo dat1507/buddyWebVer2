@@ -9,16 +9,16 @@ preserve all matching contract sections and cross-references from the legacy pla
 | Task | Status | Priority | Track | Dependencies / source note |
 | --- | --- | --- | --- | --- |
 | [`ACCEPT-001`](tasks/ACCEPT-001.md) | OPEN / POST-DEPLOY HARDENING | - | release-operations | EMAIL/PREF/PROFILE/REC/INV/BUDDY/CHAT/ADMIN V2 tasks, SEM-007, CHAT-005, OPS-003; QA + Product + Engineering + Operations. |
-| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | DEFERRED / POST-DEPLOY | - | release-operations | `EVS-007`, deployed matching frontend/API SHA, migration/head verification, |
+| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | NOT READY — AWAITS EVS-007 CLOSURE AND DEPLOYED STAGING SHA | - | release-operations | `EVS-007`, deployed matching frontend/API SHA, migration/head verification, |
 | [`ADMIN-001`](tasks/ADMIN-001.md) | DONE / PRESERVED | P0 | admin | FE-005, AUTH-006 — both DONE; shared Card/Typography/buttons and actual ADMIN RoleGuard acceptance verified. |
 | [`ADMIN-002`](tasks/ADMIN-002.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; source shell, tests and accepted Git/CI evidence verified. |
 | [`ADMIN-003`](tasks/ADMIN-003.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; guarded shell, tests and accepted Git/CI evidence verified. ADMIN-002 is also already on main but is not a declared dependency. |
 | [`ADMIN-004`](tasks/ADMIN-004.md) | DONE / PRESERVED | P0 | admin | FE-005 — DONE; design-system Button/Card/Typography/theme source and existing regression evidence verified. FE-004 shadcn configuration/Radix Slot is also present but is not a d... |
 | [`ADMIN-005`](tasks/ADMIN-005.md) | DONE / PRESERVED | P0 | admin | FE-004 — DONE; shadcn configuration, shared Button primitive and modal-isolation convention verified. |
-| [`ADMIN-006`](tasks/ADMIN-006.md) | DEFERRED / POST-DEPLOY | P0 | admin | `ADMIN-004`, `EVT-006`, `EVT-009`. |
-| [`ADMIN-007`](tasks/ADMIN-007.md) | DEFERRED / POST-DEPLOY | P0 | admin | `ADMIN-006`, `EVT-011`. |
-| [`ADMIN-008`](tasks/ADMIN-008.md) | DEFERRED / POST-DEPLOY | P0 | admin | `ADMIN-007`. |
-| [`ADMIN-009`](tasks/ADMIN-009.md) | DEFERRED / POST-DEPLOY | P0 | admin | `ADMIN-008`, `EVT-009`. |
+| [`ADMIN-006`](tasks/ADMIN-006.md) | IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING | P0 | admin | `ADMIN-004`, `EVT-006`, `EVT-009`. |
+| [`ADMIN-007`](tasks/ADMIN-007.md) | IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING | P0 | admin | `ADMIN-006`, `EVT-011`. |
+| [`ADMIN-008`](tasks/ADMIN-008.md) | IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING | P0 | admin | `ADMIN-007`. |
+| [`ADMIN-009`](tasks/ADMIN-009.md) | IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING | P0 | admin | `ADMIN-008`, `EVT-009`. |
 | [`ADMIN-010`](tasks/ADMIN-010.md) | PLANNED / BACKLOG | P0 | admin | ADMIN-005, ADMIN-006, EVT-009 |
 | [`ADMIN-011`](tasks/ADMIN-011.md) | PLANNED / BACKLOG | P1 | admin | ADMIN-006, EVT-007 |
 | [`ADMIN-012`](tasks/ADMIN-012.md) | DONE / PRESERVED | P0 | admin | ADMIN-004, BE-013 |
@@ -99,20 +99,20 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`EVS-002`](tasks/EVS-002.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | events | EVS-001, EVT-003 |
 | [`EVS-003`](tasks/EVS-003.md) | DONE / PRESERVED | P0 | events | BE-004, AUTH-018, AUTH-011A |
 | [`EVS-004`](tasks/EVS-004.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | events | EVS-002, EVS-003, EVT-009 |
-| [`EVS-005`](tasks/EVS-005.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-005`, `EVT-011`. |
+| [`EVS-005`](tasks/EVS-005.md) | IMPLEMENTED / AUTOMATED PASS — STAGING FRESHNESS GATE PENDING | P0 | events | `EVT-005`, `EVT-011`. |
 | [`EVS-006`](tasks/EVS-006.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | events | EVS-004, AUTH-018 |
-| [`EVS-007`](tasks/EVS-007.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031`, `FE-014B`. |
+| [`EVS-007`](tasks/EVS-007.md) | IN PROGRESS — EVENT GATES PASS / FULL REGRESSION EXCEPTION OPEN | P0 | events | `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031`, `FE-014B`. |
 | [`EVT-001`](tasks/EVT-001.md) | DONE / PRESERVED | P0 | events | BE-006, AUTH-008 |
 | [`EVT-002`](tasks/EVT-002.md) | DONE / PRESERVED | P0 | events | EVT-001 |
 | [`EVT-003`](tasks/EVT-003.md) | DONE / PRESERVED | P0 | events | EVT-001, EVT-002, EVT-010, AUTH-009, BE-004 |
 | [`EVT-004`](tasks/EVT-004.md) | DONE / PRESERVED | P0 | events | EVT-003 |
-| [`EVT-005`](tasks/EVT-005.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-004`, `EVT-010`, `EVS-003`, `AUTH-017` and migration `0007` DONE. |
-| [`EVT-006`](tasks/EVT-006.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-004`, `EVT-005`, `AUTH-018`, `AUTH-011A`, `EVT-008`. |
+| [`EVT-005`](tasks/EVT-005.md) | IMPLEMENTED / AUTOMATED PASS — STAGING QUERY GATE PENDING | P0 | events | `EVT-004`, `EVT-010`, `EVS-003`, `AUTH-017` and migration `0007` DONE. |
+| [`EVT-006`](tasks/EVT-006.md) | IMPLEMENTED / AUTOMATED PASS — STAGING RBAC GATE PENDING | P0 | events | `EVT-004`, `EVT-005`, `AUTH-018`, `AUTH-011A`, `EVT-008`. |
 | [`EVT-007`](tasks/EVT-007.md) | PLANNED / BACKLOG | P1 | events | EVT-002, AUTH-017 |
 | [`EVT-008`](tasks/EVT-008.md) | DONE / PRESERVED | P0 | events | AUTH-009 |
-| [`EVT-009`](tasks/EVT-009.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-006`, `EVT-008`. |
+| [`EVT-009`](tasks/EVT-009.md) | IMPLEMENTED / AUTOMATED PASS — STAGING MUTATION GATE PENDING | P0 | events | `EVT-006`, `EVT-008`. |
 | [`EVT-010`](tasks/EVT-010.md) | DONE / PRESERVED | P0 | events | EVT-001 |
-| [`EVT-011`](tasks/EVT-011.md) | DEFERRED / POST-DEPLOY | P0 | events | `EVT-010`, `EVS-003`, `EVT-006`, `EVT-009`. |
+| [`EVT-011`](tasks/EVT-011.md) | IMPLEMENTED / AUTOMATED PASS — STORAGE/STAGING GATE PENDING | P0 | events | `EVT-010`, `EVS-003`, `EVT-006`, `EVT-009`. |
 | [`EVT-012`](tasks/EVT-012.md) | PLANNED / BACKLOG | P0 | events | EVT-003, EVT-010 |
 | [`EVT-013`](tasks/EVT-013.md) | PLANNED / BACKLOG | P0 | events | EVT-012, EVT-011 |
 | [`FE-001`](tasks/FE-001.md) | DONE / PRESERVED | P0 | frontend | — |
@@ -129,7 +129,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`FE-012`](tasks/FE-012.md) | DONE / PRESERVED | P0 | frontend | FE-005 |
 | [`FE-013`](tasks/FE-013.md) | DONE / PRESERVED | P0 | frontend | FE-005 |
 | [`FE-014`](tasks/FE-014.md) | DONE / PRESERVED | P0 | frontend | FE-005, FE-007, FE-009 |
-| [`FE-014B`](tasks/FE-014B.md) | DEFERRED / POST-DEPLOY | P0 | events | `FE-014`, `EVS-005`, `FE-031`, `ADMIN-009`. |
+| [`FE-014B`](tasks/FE-014B.md) | IMPLEMENTED / AUTOMATED PASS — STAGING LIVE GATE PENDING | P0 | events | `FE-014`, `EVS-005`, `FE-031`, `ADMIN-009`. |
 | [`FE-015`](tasks/FE-015.md) | DONE / PRESERVED | P0 | frontend | FE-005 |
 | [`FE-016`](tasks/FE-016.md) | DONE / PRESERVED | P0 | frontend | FE-005 |
 | [`FE-017`](tasks/FE-017.md) | DONE / PRESERVED | P0 | frontend | FE-005 |
@@ -146,7 +146,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`FE-028`](tasks/FE-028.md) | DONE / PRESERVED | P0 | frontend | FE-025, BE-012, BE-014, BE-015 |
 | [`FE-029`](tasks/FE-029.md) | DONE / PRESERVED | P0 | frontend | FE-028, FE-027, BE-016 |
 | [`FE-030`](tasks/FE-030.md) | PLANNED / BACKLOG | P1 | events | FE-021, EVT-005 |
-| [`FE-031`](tasks/FE-031.md) | DEFERRED / POST-DEPLOY | P0 | events | `FE-006`, `EVT-005`, `EVT-011`; `EVT-013` recap dependency removed. |
+| [`FE-031`](tasks/FE-031.md) | IMPLEMENTED / AUTOMATED PASS — STAGING DIRECT-URL GATE PENDING | P0 | events | `FE-006`, `EVT-005`, `EVT-011`; `EVT-013` recap dependency removed. |
 | [`FE-032`](tasks/FE-032.md) | PLANNED / BACKLOG | P1 | events | FE-031, EVT-007 |
 | [`FE-033`](tasks/FE-033.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | frontend | FE-027, BE-012, BE-016 |
 | [`FE-034`](tasks/FE-034.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | frontend | FE-033, MATCH-009 |
@@ -175,7 +175,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`FE-HYGIENE-002`](tasks/FE-HYGIENE-002.md) | DONE / PRESERVED | P0 | frontend | FE-CLOSEOUT-003 |
 | [`FE-LANDING-BG-001`](tasks/FE-LANDING-BG-001.md) | DONE — PRODUCTION VERIFIED | Phase 2 P1 | frontend | Vercel Production and direct desktop/mobile/transition verification pass. |
 | [`FE-LANDING-BG-002`](tasks/FE-LANDING-BG-002.md) | DONE — PRODUCTION VERIFIED | Phase 2 corrective | frontend | `c2fbaf1`; Vercel Production and three-loop browser audit pass. |
-| [`FE-PROFILE-HOME-UNI-001`](tasks/FE-PROFILE-HOME-UNI-001.md) | DEPLOYED — AUTHENTICATED VISUAL GATE OPEN | Phase 2 P2 | profile | Automated/deployed bundle pass; authenticated Profile display/edit/save/reload review remains. |
+| [`FE-PROFILE-HOME-UNI-001`](tasks/FE-PROFILE-HOME-UNI-001.md) | DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN | Phase 2 P2 | profile | Owner confirmed Production display; edit/save/reload/clear/max acceptance remains. |
 | [`FE-TECH-001`](tasks/FE-TECH-001.md) | DONE / PRESERVED | P2 | frontend | Frontend functional fixes |
 | [`FE-VERIFY-001`](tasks/FE-VERIFY-001.md) | DONE / PRESERVED | P0 | frontend | All selected Frontend completion tasks |
 | [`INV-001`](tasks/INV-001.md) | DONE / PRESERVED | - | buddy-v2 | REC-001; Database + Backend. |

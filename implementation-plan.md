@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.5
+**Plan version:** 1.6
 **Updated:** 2026-10-09
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -30,6 +30,11 @@ decision separately authorizes the two isolated frontend-only Phase 2 tasks belo
 the owner subsequently approved and completed their `origin/main` push and Vercel Production
 deployment on 2026-10-09. This does not change any Phase 1 blocker.
 
+The owner later confirmed that the corrected Landing slideshow is smooth in Production and that
+Home University displays correctly in the authenticated Profile UI. This preserves both Landing
+tasks as DONE and closes only the Profile display gate; edit/save/reload/clear/max-length acceptance
+remains open under the original Profile contract.
+
 ## Executable status
 
 | Order | Task / gate | Priority | Status | Dependency / reason | Next evidence |
@@ -37,10 +42,10 @@ deployment on 2026-10-09. This does not change any Phase 1 blocker.
 | 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; no retained Render rollback point or named owners | Separately authorize backup remediation/verification, establish backend rollback, name owners and accept the post-repair hold |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
-| 4 | `EVT-005` dynamic Event lane | P0 product backlog | **DEFERRED / READY AFTER RELEASE HOLD** | Existing Event model/service prerequisites are complete | Start exact Part 27 chain only after release/hardening decision |
+| 4 | `EVS-007` Event regression gate | P0 product | **IN PROGRESS — EVENT GATES PASS / FULL REGRESSION EXCEPTION OPEN** | The owner selected the Event lane; `EVT-005` through `FE-014B` are implemented locally | Confirm the two unrelated Python 3.14 WebSocket teardown failures on repository CI before Staging acceptance |
 | 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
 | 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
-| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — AUTHENTICATED VISUAL GATE OPEN** | Automated/deployed bundle pass; no account used in release verification | Owner authenticated Profile display/edit/save/reload review |
+| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
 | 8 | `FE-LANDING-BG-002` | Phase 2 corrective | **DONE — PRODUCTION VERIFIED** | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass | Preserve evidence; no repeat without regression reason |
 
 `SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
@@ -97,12 +102,22 @@ Detailed safe execution and stop conditions are in
    capacity only from measured failure or sustained operational need.
 5. Finish the broader accessibility/candidate matrix and low-risk tooling/performance items.
 
-## Deferred dynamic Event lane — exact order
+## Dynamic Event lane — exact order and current state
 
 After release hold/hardening selection, preserve this controlling Part 27 sequence:
 
 `EVT-005 -> EVT-006 -> EVT-009 -> EVT-011 -> EVS-005 -> ADMIN-006 -> ADMIN-007 ->`
 `ADMIN-008 -> ADMIN-009 -> FE-031 -> FE-014B -> EVS-007 -> ACCEPT-EVENT-001`
+
+On 2026-10-09 the owner selected this lane. `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`,
+`FE-031` and `FE-014B` are implemented locally with focused automated gates passing. The canonical
+source is one Event model: the Landing slider is a derived PUBLIC/PUBLISHED/upcoming projection;
+there is no standalone slider table, manual ordering page or duplicated promotion CRUD.
+
+`EVS-007` remains IN PROGRESS because the full backend run on the available Python 3.14 host has two
+unrelated Starlette `TestClient` WebSocket teardown `CancelledError` failures (1,405 pass, 37 skip),
+although all 96 focused Event backend tests and all 772 frontend tests pass. `ACCEPT-EVENT-001` is
+not ready until that exception is confirmed on CI and matching frontend/API SHAs reach Staging.
 
 Manual gates:
 

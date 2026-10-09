@@ -158,3 +158,24 @@ still open. Phase 1 release blockers remain unchanged.
 
 Result: `FE-LANDING-BG-002` is **DONE / PRODUCTION VERIFIED**. The Profile authenticated visual
 gate and existing Phase 1 operational blockers remain unchanged.
+
+## Dynamic Event local implementation validation — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Canonical chain implemented | `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031`, `FE-014B` |
+| Focused backend Event tests | 96 / 96 PASS |
+| Backend Ruff / strict mypy | PASS / PASS |
+| Backend full suite | 1,405 PASS; 37 SKIP; 2 unrelated WebSocket teardown FAIL on Python 3.14 |
+| Frontend full suite | 84 files; 772 tests PASS |
+| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
+| Normal / Event-launch production builds | PASS / PASS; existing large-chunk warning only |
+| Launch-mode static Event records | 0 matching five legacy titles in built JavaScript |
+| Alembic graph | one head: `0021_restore_runtime_permissions`; no migration added |
+| Event authorization/security | ADMIN RBAC, USER/anonymous denial, CSRF, IDOR, DTO/key and URL-hardening tests PASS |
+| Production/provider/database mutation | 0; launch flag remains off |
+
+Result: Event implementation and focused automation PASS. `EVS-007` remains **IN PROGRESS** rather
+than DONE because the repository-wide backend gate is not fully green on the available Python 3.14
+host. `ACCEPT-EVENT-001` remains NOT READY until that exception is confirmed and matching SHAs are
+deployed to Staging; no Production flag or deployment is authorized by this record.

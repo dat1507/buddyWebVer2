@@ -1,6 +1,6 @@
 # ACCEPT-EVENT-001
 
-**Control-plane status:** DEFERRED / POST-DEPLOY
+**Control-plane status:** NOT READY — AWAITS EVS-007 CLOSURE AND DEPLOYED STAGING SHA
 **Track:** release-operations
 **Priority:** -
 **Dependencies (latest extracted):** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,

@@ -1,6 +1,6 @@
 # ADMIN-006
 
-**Control-plane status:** DEFERRED / POST-DEPLOY
+**Control-plane status:** IMPLEMENTED / AUTOMATED PASS — STAGING UI GATE PENDING
 **Track:** admin
 **Priority:** P0
 **Dependencies (latest extracted):** `ADMIN-004`, `EVT-006`, `EVT-009`.
@@ -8,6 +8,12 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Implementation evidence — 2026-10-09
+
+- Replaced the Event placeholder with an ADMIN inventory using search, status/audience/phase/date
+  filters, server pagination, explicit states and create/edit destinations.
+- The superseded standalone Event Slider navigation was removed; focused Admin UI tests pass.
 
 ## Preserved contract sections
 

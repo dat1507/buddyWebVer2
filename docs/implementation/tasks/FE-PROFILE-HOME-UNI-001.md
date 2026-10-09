@@ -2,7 +2,7 @@
 
 **Feature group:** Profile
 **Priority:** Phase 2 Priority 2
-**Status:** DEPLOYED — AUTOMATED PASS / AUTHENTICATED VISUAL GATE OPEN
+**Status:** DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN
 **Dependencies:** Existing authenticated Profile read/update contract and Profile UI.
 
 - **Objective:** display and edit the existing optional `home_university` value in User Profile.
@@ -49,3 +49,12 @@
   test evidence.
 
 Result: the feature is deployed, but the task remains open until authenticated visual acceptance.
+
+## Owner acceptance update — 2026-10-09
+
+- The owner directly confirmed that Home University appears correctly in the Production Profile UI.
+  This closes the authenticated display portion and confirms its intended informational role only;
+  it does not add the field to Buddy Matching.
+- The original contract also requires edit, save/reload persistence, clearing to `null`, 200-character
+  rejection and stability of other Profile fields. Those behaviors have automated coverage but no
+  dated owner Production observation, so the task is not marked DONE.
