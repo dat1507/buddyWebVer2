@@ -23,6 +23,18 @@ const event: EventSlider = {
   sortOrder: 0,
 }
 
+function canonicalEvent(index: number): EventSlider {
+  const suffix = String(index).padStart(12, '0')
+  const id = `00000000-0000-4000-8000-${suffix}`
+  return {
+    ...event,
+    id,
+    title: `Canonical Event ${index}`,
+    cta: { label: 'View event', href: `/events/${id}` },
+    sortOrder: index - 1,
+  }
+}
+
 function renderLive(repository: EventSliderRepository) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   return render(
@@ -59,6 +71,19 @@ describe('FE-014B live Landing Event section', () => {
 
     await waitFor(() => expect(container).toBeEmptyDOMElement())
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows only the first five Events in canonical API order', async () => {
+    renderLive({
+      listPublished: vi
+        .fn()
+        .mockResolvedValue(Array.from({ length: 7 }, (_, index) => canonicalEvent(index + 1))),
+    })
+
+    expect(await screen.findByText('Event 1 of 5')).toBeVisible()
+    expect(screen.getAllByText('Canonical Event 5').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Canonical Event 6')).not.toBeInTheDocument()
+    expect(screen.queryByText('Canonical Event 7')).not.toBeInTheDocument()
   })
 
   it('distinguishes a real failure and retries successfully', async () => {

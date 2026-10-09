@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { EventsSlider } from '@/components/landing/events-slider'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
-import type { EventSliderLocale } from '@/features/events/event-slider'
+import { selectLandingEventSliders, type EventSliderLocale } from '@/features/events/event-slider'
 import { useEventSliders } from '@/features/events/queries/use-event-sliders'
 import type { EventSliderRepository } from '@/features/events/repositories/event-slider-repository'
 
@@ -57,7 +57,7 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
     )
   }
 
-  return <EventsSlider events={events.data} />
+  return <EventsSlider events={selectLandingEventSliders(events.data)} />
 }
 
 export { LiveEventsSection }

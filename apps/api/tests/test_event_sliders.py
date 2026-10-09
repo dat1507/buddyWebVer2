@@ -121,6 +121,7 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
     assert slides[0].description == "Beschreibung 1"
     assert slides[0].image_alt == "Plakat 1"
     assert slides[0].location == "VGU-Campus"
+    assert slides[0].cta is not None
     assert slides[0].cta.label == "Event ansehen"
     assert slides[0].cta.href == f"/events/{_id(1)}"
     assert slides[0].sort_order == 0
@@ -138,7 +139,7 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
 
 
 @pytest.mark.anyio
-async def test_slider_caps_at_twelve_and_produces_bounded_english_excerpt() -> None:
+async def test_slider_api_caps_at_twelve_and_produces_bounded_english_excerpt() -> None:
     rows = [(_event(index), _media(index)) for index in range(1, MAX_EVENT_SLIDES + 2)]
     session_mock, session, storage_mock, storage = _dependencies(rows)
 
@@ -148,6 +149,7 @@ async def test_slider_caps_at_twelve_and_produces_bounded_english_excerpt() -> N
     assert [slide.sort_order for slide in slides] == list(range(MAX_EVENT_SLIDES))
     assert len(slides[0].description or "") == 500
     assert slides[0].description is not None and slides[0].description.endswith("...")
+    assert slides[0].cta is not None
     assert slides[0].cta.label == "View event"
     assert storage_mock.create_signed_url.await_count == MAX_EVENT_SLIDES
     session_mock.execute.assert_awaited_once()

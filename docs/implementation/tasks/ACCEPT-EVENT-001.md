@@ -1,6 +1,6 @@
 # ACCEPT-EVENT-001
 
-**Control-plane status:** NOT READY — AWAITS EVS-007 CLOSURE AND DEPLOYED STAGING SHA
+**Control-plane status:** BLOCKED — ISOLATED STAGING STACK AND PROVIDER ACCESS REQUIRED
 **Track:** release-operations
 **Priority:** -
 **Dependencies (latest extracted):** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,
@@ -8,6 +8,26 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Staging readiness evidence — 2026-10-09
+
+- `EVS-007` is DONE locally, but no matching frontend/backend Event SHA is deployed to Staging.
+- `https://staging.vgubuddyprogram.com` returns 200 but serves the older static Event bundle. The
+  bundle does not contain the Admin Event route, so it is not the acceptance candidate.
+- Staging API live, readiness and public Event-slider probes return 503 from the suspended provider
+  service. The formerly shared Upstash allocation was moved to Production; Staging must not reuse
+  Production Redis.
+- This checkout has no Vercel/Render/Supabase project linkage or provider credentials available.
+  Restoring providers, Redis, database/Storage readiness or accounts was not authorized and was not
+  attempted.
+- Scenarios A–E are therefore **NOT RUN**, not application FAIL: Admin create/edit/publish, cover
+  upload, Landing/detail EN/DE, propagation and RBAC/security require the isolated deployed stack,
+  private `event-media` readiness and designated Staging accounts.
+
+Unblock condition: the owner restores an isolated Staging stack (including Staging Redis) and grants
+this session provider access without sharing secrets in chat. Then deploy matching SHAs, verify
+health/head/private Storage and run A–E. Production remains untouched and the launch flag remains
+off until a complete PASS plus separate release approval.
 
 ## Preserved contract sections
 

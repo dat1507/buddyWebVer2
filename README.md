@@ -178,10 +178,10 @@ the local runtime-role password.
 Committed templates:
 
 - [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
-  dormant post-deployment dynamic Event settings. The static Landing carousel ignores both Event
-  variables and is part of the current release. `VITE_EVENTS_LAUNCH_ENABLED` gates only future
-  API-backed User/Admin Event surfaces; keep it `false` until the deferred Part 27 work and
-  `ACCEPT-EVENT-001` are complete.
+  dynamic Event settings. `VITE_EVENTS_LAUNCH_ENABLED=false` preserves the released static
+  five-poster Landing fallback; `true` selects the canonical API-backed Admin/public Event surfaces
+  and live Landing carousel, capped to the first five canonical results. Keep it `false` in
+  Production until `ACCEPT-EVENT-001` and explicit release approval are complete.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
   URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 

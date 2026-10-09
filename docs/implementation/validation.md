@@ -179,3 +179,39 @@ Result: Event implementation and focused automation PASS. `EVS-007` remains **IN
 than DONE because the repository-wide backend gate is not fully green on the available Python 3.14
 host. `ACCEPT-EVENT-001` remains NOT READY until that exception is confirmed and matching SHAs are
 deployed to Staging; no Production flag or deployment is authorized by this record.
+
+## Dynamic Event regression closure and Staging readiness — 2026-10-09
+
+This later record supersedes only the open regression conclusion immediately above; it preserves
+that earlier observation as history.
+
+| Check | Result |
+| --- | --- |
+| Official runtime | CI and Docker target Python 3.12; verification used CPython 3.12.10 |
+| Two prior WebSocket failures | Test-harness cross-loop publish and asynchronous cleanup race; application WebSocket code unchanged |
+| Exact former failing cases | 2 / 2 PASS after portal publish and deterministic fake-subscription cleanup |
+| Full backend | 1,407 PASS; 37 SKIP; one non-failing Starlette deprecation warning |
+| Focused backend Event tests | 111 / 111 PASS |
+| Ruff / strict mypy / `pip check` | PASS / PASS / PASS |
+| Backend package / Compose / Alembic | sdist+wheel PASS / config PASS / one head at `0021_restore_runtime_permissions` |
+| Backend production dependency audit | No known vulnerabilities found |
+| Full frontend | 84 files; 773 tests PASS |
+| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
+| Normal / Event-launch builds | PASS / PASS; existing large-chunk warning only |
+| Frontend production dependency audit | 0 vulnerabilities |
+| Landing Event maximum | First 5 canonical results; API bounded cap remains 12; no storage/Admin cap |
+| Staging frontend | 200, but older static bundle without Admin Event implementation |
+| Staging API | live/readiness/Event-slider probes 503; provider reports suspended |
+| Isolated Staging dependencies/access | Redis absent after Production reallocation; no local provider linkage/credentials |
+| Staging scenarios A–E | NOT RUN — environment prerequisite blocked |
+| Production mutation/deploy/push | 0; launch flag remains off |
+| Task files / unique task-index links | 215 / 215; 0 missing in either direction |
+| Broken local links in routed/current docs | 0 |
+| Added high-confidence secret-pattern hits | 0 |
+| Legacy archive changes | 0 |
+| Whitespace validation | `git diff --check` PASS |
+
+Result: `EVS-007` is **DONE**. `ACCEPT-EVENT-001` is **BLOCKED — ISOLATED STAGING STACK AND
+PROVIDER ACCESS REQUIRED**, not FAIL. A matching Staging deployment and complete scenarios A–E are
+still required before Production approval; pushing `main` is not a safe substitute because the
+documented workflow may deploy Production.

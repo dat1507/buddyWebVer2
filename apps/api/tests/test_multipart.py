@@ -5,11 +5,11 @@ from __future__ import annotations
 import pytest
 
 from app.api.multipart import (
-    MAX_IMAGE_BYTES,
     MultipartUploadError,
     _boundary,
     _parse_upload,
 )
+from app.services.image_storage import MAX_IMAGE_BYTES
 
 BOUNDARY = b"event-cover-boundary"
 

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const MAX_LANDING_EVENT_SLIDES = 5
+
 const httpsUrlSchema = z
   .string()
   .url()
@@ -63,5 +65,15 @@ function parsePublicEventSliders(payload: unknown): EventSlider[] {
   }))
 }
 
-export { eventDetailHrefSchema, parsePublicEventSliders, publicEventSliderApiSchema }
+function selectLandingEventSliders(sliders: readonly EventSlider[]): EventSlider[] {
+  return sliders.slice(0, MAX_LANDING_EVENT_SLIDES)
+}
+
+export {
+  eventDetailHrefSchema,
+  MAX_LANDING_EVENT_SLIDES,
+  parsePublicEventSliders,
+  publicEventSliderApiSchema,
+  selectLandingEventSliders,
+}
 export type { EventSlider, EventSliderLocale }

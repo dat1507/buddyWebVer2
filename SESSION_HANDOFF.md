@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-09 (Asia/Saigon)
-**TASK_ID:** EVS-007
-**Current mode:** Dynamic Event local implementation complete; full regression exception open
+**TASK_ID:** ACCEPT-EVENT-001
+**Current mode:** Event regression closed; Staging acceptance blocked on isolated stack/access
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -23,27 +23,34 @@ The original edit/save/reload/clear/max-length gate remains open, so
 `FE-PROFILE-HOME-UNI-001` is not DONE.
 
 The owner selected the dynamic Event lane. The canonical chain from `EVT-005` through `FE-014B` is
-implemented in local commits `4fe5bf1` (backend) and `0334fcc` (frontend), neither pushed. It uses
-one Event source: the Landing slider derives
-PUBLIC/PUBLISHED/upcoming Events with ready covers; there is no standalone Slider admin/table or
-manual ordering. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; do not enable or deploy
-them before `EVS-007`, Staging `ACCEPT-EVENT-001` and explicit release approval.
+implemented on local `main`, which remains unpushed. It uses one Event source: the Landing slider
+derives PUBLIC/PUBLISHED/upcoming Events with ready covers; there is no standalone Slider
+admin/table or manual ordering. Per the latest owner decision, Landing renders the first five
+canonical API results; the backend 12-row bound remains an API/query cap rather than an Event or
+Admin limit. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; do not enable or deploy them
+to Production before Staging `ACCEPT-EVENT-001` and explicit release approval.
 
 Verification at this continuation point:
 
-- frontend full suite 84 files / 772 tests PASS; TypeScript, ESLint, Prettier and normal plus
+- frontend full suite 84 files / 773 tests PASS; TypeScript, ESLint, Prettier and normal plus
   launch-mode production builds PASS; launch-mode JS has no hardcoded static Event record titles;
-- backend focused Event suite 96/96 PASS; Ruff and strict mypy PASS; Alembic reports one head at
+- backend focused Event suite 111/111 PASS; Ruff and strict mypy PASS; Alembic reports one head at
   `0021_restore_runtime_permissions`;
-- backend full suite: 1,405 PASS, 37 SKIP, 2 FAIL. Both failures are unrelated Chat WebSocket
-  Starlette `TestClient` teardown `concurrent.futures.CancelledError` on Python 3.14. Do not hide or
-  relabel them; confirm on repository CI/its supported runtime before closing `EVS-007`;
+- backend full suite on the repository-supported Python 3.12 runtime: 1,407 PASS, 37 SKIP. The two
+  former Chat WebSocket failures were a cross-loop fake transport and asynchronous teardown race;
+  the test harness now uses the TestClient portal and deterministic cleanup. Application WebSocket
+  code is unchanged, and `EVS-007` is DONE;
 - no database, Storage, provider, account, Staging or Production mutation occurred. No push or
-  deployment has occurred, and `ACCEPT-EVENT-001` is NOT READY.
+  deployment has occurred. Production remains on its static five-event fallback with the dynamic
+  flag off.
 
-Next: confirm the two WebSocket teardown cases on repository CI/a supported Python runtime and leave
-`TASK_ID: EVS-007` until the full regression exception is resolved. A later deployed Staging SHA and
-private bucket readiness are required before real Admin/public acceptance.
+`ACCEPT-EVENT-001` is BLOCKED before execution. On 2026-10-09 the Staging frontend returned 200 but
+served the older static bundle, while API live/readiness/Event-slider probes returned 503 from the
+suspended provider service. Staging has no isolated Redis after the prior allocation moved to
+Production, and this checkout has no provider linkage/access. Scenarios A–E are NOT RUN. Next: the
+owner restores an isolated Staging stack and grants provider access; then deploy matching SHAs,
+verify head/private `event-media`, and run the signed acceptance. Never reuse Production Redis or
+push `main` as a Staging workaround.
 
 Previously, the owner separately authorized `FE-LANDING-BG-001`, followed by
 `FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with

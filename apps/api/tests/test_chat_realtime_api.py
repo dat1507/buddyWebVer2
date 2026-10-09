@@ -6,6 +6,8 @@ import asyncio
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
+from functools import partial
+from threading import Condition
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID, uuid4
@@ -127,7 +129,7 @@ class _FakeSubscription:
         if self.closed:
             return
         self.closed = True
-        self.owner.cleanup_count += 1
+        self.owner.record_cleanup()
         self.owner.subscriptions[self.conversation_id].remove(self)
 
 
@@ -137,6 +139,7 @@ class _FakeTransport:
         self.subscriptions: dict[UUID, list[_FakeSubscription]] = {}
         self.published: set[UUID] = set()
         self.cleanup_count = 0
+        self.cleanup_condition = Condition()
         self.fail_subscribe = False
         self.fail_publish = False
         self.fail_listener = False
@@ -181,6 +184,18 @@ class _FakeTransport:
             else ChatPublishDisposition.UNAVAILABLE,
             len(subscriptions),
         )
+
+    def record_cleanup(self) -> None:
+        with self.cleanup_condition:
+            self.cleanup_count += 1
+            self.cleanup_condition.notify_all()
+
+    def wait_for_cleanup(self, expected_count: int) -> bool:
+        with self.cleanup_condition:
+            return self.cleanup_condition.wait_for(
+                lambda: self.cleanup_count >= expected_count,
+                timeout=1.0,
+            )
 
 
 def _auth_settings() -> AuthTokenSettings:
@@ -343,8 +358,9 @@ def test_workspace_unread_socket_emits_content_free_reconcile_hint(
                     "type": "chat.unread.ready",
                     "recovery": "unread-summary",
                 }
-                asyncio.run(
-                    transport.publish_committed(
+                socket.portal.call(
+                    partial(
+                        transport.publish_committed,
                         conversation_id=CONVERSATION_ID,
                         message_id=uuid4(),
                     )
@@ -353,6 +369,8 @@ def test_workspace_unread_socket_emits_content_free_reconcile_hint(
                     "type": "chat.unread.changed",
                     "recovery": "unread-summary",
                 }
+                socket.close()
+                assert transport.wait_for_cleanup(1)
 
 
 def test_websocket_two_participant_fanout_is_safe_idempotent_and_isolated(
@@ -449,6 +467,10 @@ def test_websocket_two_participant_fanout_is_safe_idempotent_and_isolated(
                     }
                     assert len(messages) == 1
                     assert OTHER_CONVERSATION_ID not in transport.subscriptions
+                    socket_b.close()
+                    assert transport.wait_for_cleanup(1)
+                socket_a.close()
+                assert transport.wait_for_cleanup(2)
     assert transport.cleanup_count == 2
 
 

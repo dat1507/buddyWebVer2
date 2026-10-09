@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.6
+**Plan version:** 1.7
 **Updated:** 2026-10-09
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -42,11 +42,12 @@ remains open under the original Profile contract.
 | 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; no retained Render rollback point or named owners | Separately authorize backup remediation/verification, establish backend rollback, name owners and accept the post-repair hold |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
-| 4 | `EVS-007` Event regression gate | P0 product | **IN PROGRESS — EVENT GATES PASS / FULL REGRESSION EXCEPTION OPEN** | The owner selected the Event lane; `EVT-005` through `FE-014B` are implemented locally | Confirm the two unrelated Python 3.14 WebSocket teardown failures on repository CI before Staging acceptance |
-| 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
-| 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
-| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
-| 8 | `FE-LANDING-BG-002` | Phase 2 corrective | **DONE — PRODUCTION VERIFIED** | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass | Preserve evidence; no repeat without regression reason |
+| 4 | `EVS-007` Event regression gate | P0 product | **DONE — SUPPORTED-RUNTIME REGRESSION PASS** | Python 3.12 full backend 1,407 PASS / 37 SKIP; Event backend 111 PASS; frontend 773 PASS | Preserve evidence; no repeat without regression reason |
+| 5 | `ACCEPT-EVENT-001` | P0 release gate | **BLOCKED — STAGING STACK / ACCESS REQUIRED** | Staging API provider is suspended, isolated Redis is absent and no matching Event SHA is deployed | Restore isolated Staging and provider access, then deploy matching SHAs and run scenarios A–E |
+| 6 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
+| 7 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
+| 8 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
+| 9 | `FE-LANDING-BG-002` | Phase 2 corrective | **DONE — PRODUCTION VERIFIED** | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass | Preserve evidence; no repeat without regression reason |
 
 `SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
 visual gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. The
@@ -114,10 +115,16 @@ On 2026-10-09 the owner selected this lane. `EVT-005/006/009/011`, `EVS-005`, `A
 source is one Event model: the Landing slider is a derived PUBLIC/PUBLISHED/upcoming projection;
 there is no standalone slider table, manual ordering page or duplicated promotion CRUD.
 
-`EVS-007` remains IN PROGRESS because the full backend run on the available Python 3.14 host has two
-unrelated Starlette `TestClient` WebSocket teardown `CancelledError` failures (1,405 pass, 37 skip),
-although all 96 focused Event backend tests and all 772 frontend tests pass. `ACCEPT-EVENT-001` is
-not ready until that exception is confirmed on CI and matching frontend/API SHAs reach Staging.
+`EVS-007` is DONE. The two WebSocket failures were a fake-transport/TestClient teardown race; the
+minimal test-harness fix passes on the project's supported Python 3.12 runtime. Full backend is
+1,407 PASS / 37 SKIP, focused Event backend is 111 PASS and frontend is 773 PASS. Landing renders
+the first five canonical results while the server's 12-row bounded API cap remains unchanged.
+
+`ACCEPT-EVENT-001` is BLOCKED before execution: the Staging frontend serves the older bundle, the
+Staging API provider returns 503/suspended, isolated Staging Redis is absent after the former
+allocation moved to Production, and this checkout has no provider linkage/access. Scenarios A–E
+remain NOT RUN. Do not push `main` as a Staging workaround because the documented flow can trigger
+Production deployment; restore isolated Staging and deploy matching SHAs first.
 
 Manual gates:
 

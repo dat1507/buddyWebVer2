@@ -9,7 +9,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | Task | Status | Priority | Track | Dependencies / source note |
 | --- | --- | --- | --- | --- |
 | [`ACCEPT-001`](tasks/ACCEPT-001.md) | OPEN / POST-DEPLOY HARDENING | - | release-operations | EMAIL/PREF/PROFILE/REC/INV/BUDDY/CHAT/ADMIN V2 tasks, SEM-007, CHAT-005, OPS-003; QA + Product + Engineering + Operations. |
-| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | NOT READY — AWAITS EVS-007 CLOSURE AND DEPLOYED STAGING SHA | - | release-operations | `EVS-007`, deployed matching frontend/API SHA, migration/head verification, |
+| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | BLOCKED — ISOLATED STAGING STACK AND PROVIDER ACCESS REQUIRED | - | release-operations | `EVS-007` DONE; needs matching deployed SHAs, migration/head/private Storage verification and Staging accounts. |
 | [`ADMIN-001`](tasks/ADMIN-001.md) | DONE / PRESERVED | P0 | admin | FE-005, AUTH-006 — both DONE; shared Card/Typography/buttons and actual ADMIN RoleGuard acceptance verified. |
 | [`ADMIN-002`](tasks/ADMIN-002.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; source shell, tests and accepted Git/CI evidence verified. |
 | [`ADMIN-003`](tasks/ADMIN-003.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; guarded shell, tests and accepted Git/CI evidence verified. ADMIN-002 is also already on main but is not a declared dependency. |
@@ -101,7 +101,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`EVS-004`](tasks/EVS-004.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | events | EVS-002, EVS-003, EVT-009 |
 | [`EVS-005`](tasks/EVS-005.md) | IMPLEMENTED / AUTOMATED PASS — STAGING FRESHNESS GATE PENDING | P0 | events | `EVT-005`, `EVT-011`. |
 | [`EVS-006`](tasks/EVS-006.md) | SUPERSEDED / DO NOT IMPLEMENT | P0 | events | EVS-004, AUTH-018 |
-| [`EVS-007`](tasks/EVS-007.md) | IN PROGRESS — EVENT GATES PASS / FULL REGRESSION EXCEPTION OPEN | P0 | events | `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031`, `FE-014B`. |
+| [`EVS-007`](tasks/EVS-007.md) | DONE — SUPPORTED-RUNTIME REGRESSION PASS | P0 | events | Python 3.12 full backend and Event/frontend/security gates PASS. |
 | [`EVT-001`](tasks/EVT-001.md) | DONE / PRESERVED | P0 | events | BE-006, AUTH-008 |
 | [`EVT-002`](tasks/EVT-002.md) | DONE / PRESERVED | P0 | events | EVT-001 |
 | [`EVT-003`](tasks/EVT-003.md) | DONE / PRESERVED | P0 | events | EVT-001, EVT-002, EVT-010, AUTH-009, BE-004 |

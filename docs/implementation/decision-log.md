@@ -69,6 +69,9 @@ the per-task extracts and legacy archive.
 - Canonical Events are the only persisted content source. The Landing slider is a deterministic
   PUBLIC/PUBLISHED/upcoming projection with ready managed covers; it has no separate table, manual
   ordering, standalone promotions or Admin Slider page.
+- The owner decision on 2026-10-09 limits the Landing presentation to the first five canonical
+  projection results. The server may retain its bounded 12-row query/transport cap; this decision
+  does not limit stored Events or Admin management capacity and does not introduce manual ordering.
 - Admin Event mutations require persisted ADMIN authority, CSRF and optimistic versions. Cover
   objects stay in private managed Storage; public/client DTOs never expose bucket or object keys.
 - Publication status and schedule phase are separate. Admins publish, move to draft or cancel; there

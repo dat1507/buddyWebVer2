@@ -82,6 +82,48 @@ console were clean.
 - No dynamic Event code from the current local worktree is deployed. The Production Event launch
   flag remains off, and no database, Storage, provider or account mutation is claimed here.
 
+## Dynamic Event release readiness — 2026-10-09
+
+Read-only Staging probes and local release verification establish the following current boundary:
+
+| Check | Result |
+| --- | --- |
+| Local Event regression | PASS on supported Python 3.12: backend 1,407 PASS / 37 SKIP; Event 111 PASS; frontend 773 PASS |
+| Owner Landing limit | PASS locally: first five canonical API results only; backend 12-row bound remains transport/query-only |
+| Production Event launch flag | OFF; released static five-poster fallback remains active |
+| Staging frontend | 200, but older static bundle; matching Admin/Event SHA not deployed |
+| Staging API | live/readiness/Event-slider probes return 503; provider service is suspended |
+| Staging isolation | No isolated Redis is available after the former allocation moved to Production |
+| Provider access from this checkout | No Vercel/Render/Supabase linkage or credentials available |
+| `ACCEPT-EVENT-001` A–E | NOT RUN; environment prerequisite blocked |
+| Production mutation | None; no push, deployment, data write, flag change or provider change |
+
+The release is therefore **BLOCKED before Staging acceptance**, not approved for Production.
+Restoring Staging must provide a separate API, Redis namespace/database, database/private
+`event-media` Storage and designated accounts. Production Redis or data must not be reused.
+
+### Static-to-canonical Production data preparation
+
+The current fallback owns five reusable project posters and names, in canonical display order:
+Recruitment, Club Fair 26, Experience Day, Christmas and Halloween. No committed source supplies a
+trustworthy future date/time, timezone, location or full EN/DE description. Those values must not be
+inferred from a poster or title.
+
+After Staging acceptance and separate release approval, an Admin should create five DRAFT canonical
+records through the product UI, upload the existing posters, enter owner-approved EN/DE content and
+confirm each future schedule/timezone/location. Publish only records that are genuinely upcoming
+and have ready covers; verify the API order and the first-five Landing result before enabling the
+flag. If no record qualifies, the live section intentionally becomes empty, so the flag must remain
+off until the owner accepts the prepared dataset. No Production seed or data mutation was performed.
+
+### Rollback boundary
+
+Turning the frontend launch flag off and redeploying restores the existing static five-poster
+carousel without deleting canonical Event data. Vercel retains prior Ready frontend deployments,
+and the Event work adds no new migration. The backend rollback remains operationally incomplete:
+Render still has no prior selectable deployment. A schema-compatible immutable backend redeploy or
+retained rollback point plus named release/recovery owners is required before Production approval.
+
 ## Documented operator evidence retained
 
 - Upstash was reallocated to Production, emptied/checked without destructive flush, credentials

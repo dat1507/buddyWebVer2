@@ -70,7 +70,10 @@ an Event push, Staging mutation, Production launch flag or deployment.
   implemented; the Landing slider is derived from canonical published Events rather than a separate
   slider database/admin page.
 - Dynamic public/Admin routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`. Production remains on the
-  static five-poster carousel until `EVS-007`, deployed Staging `ACCEPT-EVENT-001` and explicit
-  release approval pass.
-- Event-focused backend tests pass 96/96 and frontend tests pass 772/772. `EVS-007` remains open for
-  two unrelated Python 3.14 WebSocket `TestClient` teardown failures in the full backend suite.
+  static five-poster carousel until deployed Staging `ACCEPT-EVENT-001` and explicit release
+  approval pass.
+- `EVS-007` is DONE: supported Python 3.12 regression passes 1,407 backend tests with 37 skips,
+  focused Event backend passes 111 tests and frontend passes 773 tests. Landing caps presentation
+  at the owner-selected first five canonical results; the backend bounded query cap remains 12.
+- `ACCEPT-EVENT-001` is BLOCKED before scenarios A–E because the Staging API service is suspended,
+  isolated Staging Redis is absent and no matching Event SHA/provider access is available.
