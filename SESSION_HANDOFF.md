@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-09 (Asia/Saigon)
-**TASK_ID:** NONE — OWNER AUTHENTICATED PROFILE ACCEPTANCE
-**Current mode:** Phase 2 frontend deployed; Landing accepted; Home University visual gate open
+**TASK_ID:** `FE-LANDING-BG-002`
+**Current mode:** Landing slideshow corrective release pending push and Production verification
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -11,7 +11,17 @@
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
-The owner separately authorized `FE-LANDING-BG-001`, followed by
+The owner assigned `FE-LANDING-BG-002` to diagnose and fix the Production slideshow hitch, then
+run focused/visual verification and release directly through `main`. Read only its task extract,
+the slideshow component/test and the explicitly linked current Landing records. Preserve the exact
+five images/order and all unrelated UI/application behavior.
+
+Implementation and local verification now pass: 730 frontend tests, all static/build gates and a
+16-transition desktop/mobile browser audit with no blank sample, visible-layer source swap, layout
+delta, overflow or console warning/error. Continue at the authorized direct-to-`main` push and
+Git-connected Vercel Production verification; do not repeat local gates unless the diff changes.
+
+Previously, the owner separately authorized `FE-LANDING-BG-001`, followed by
 `FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with
 automated checks passing.
 Read `docs/implementation/phase-2-roadmap.md` and only those two task extracts plus their named

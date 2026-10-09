@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.3
+**Plan version:** 1.4
 **Updated:** 2026-10-09
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -41,10 +41,14 @@ deployment on 2026-10-09. This does not change any Phase 1 blocker.
 | 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
 | 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
 | 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — AUTHENTICATED VISUAL GATE OPEN** | Automated/deployed bundle pass; no account used in release verification | Owner authenticated Profile display/edit/save/reload review |
+| 8 | `FE-LANDING-BG-002` | Phase 2 corrective | **IMPLEMENTED — LOCAL VERIFIED / RELEASE PENDING** | 730 tests plus 16-transition desktop/mobile browser audit pass | Push `main`, verify Vercel Production and record dated evidence |
 
 `SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
 visual gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. The
 completed frontend release does not authorize database or other provider mutation.
+
+The owner separately authorized `FE-LANDING-BG-002` as a corrective Landing-only implementation,
+push and Vercel deployment. It does not authorize any other feature or Production mutation.
 
 ## Completed release gates — do not repeat without a regression reason
 

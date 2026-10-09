@@ -28,6 +28,13 @@ deployments or Production/provider/database changes.
 
 ## Current implementation boundary
 
+### `FE-LANDING-BG-002`
+
+- Correct only the performance/transition lifecycle of the existing `#home` slideshow.
+- Preserve the five assets, their order, Hero content/design and all unrelated surfaces.
+- Require decoded-next-image gating, stable opacity-only double buffering, hidden-tab timer pause,
+  focused regression tests and three-loop desktop/mobile browser evidence before release closure.
+
 ### `FE-LANDING-BG-001`
 
 - Only `#home` receives the slideshow; the Event slider and all other pages/sections are unchanged.
