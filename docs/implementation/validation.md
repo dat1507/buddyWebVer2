@@ -112,3 +112,28 @@ The resulting docs-only commit identifier and push status are reported in the se
 Result: local implementation and automated verification **PASS**. Visual acceptance remains **OPEN**
 and is not inferred from tests or build output. `PROD-001`, Backup/DR, `SEM-008` and residual
 `ACCEPT-001` remain open. No push or deployment is authorized by this record.
+
+## Phase 2 frontend Production release validation — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Released commit | `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7` on `origin/main` |
+| Vercel Production deployment | GitHub deployment `6951736865`; SUCCESS |
+| Repository checks | Frontend PASS; Backend PASS |
+| Production alias/bundle | 200; `index-Deo6vyVU.js` |
+| Required bundle markers | 5 Landing assets + EN/DE Home University + first-party API target present |
+| Landing desktop/mobile visual | PASS at 1536x831 and 390x844; no horizontal overflow |
+| Landing live transition | PASS; mid-fade opacity observed after the seven-second display interval |
+| Browser console | 0 errors; 0 warnings |
+| Public API regression check | live 200; ready 200; anonymous auth 401/no-store/exact-origin CORS |
+| Account/provider/database mutation | 0; release push/deploy only |
+| Home University authenticated visual | OPEN; no account used |
+| Task files / unique task-index links | 214 / 214; 0 missing in either direction |
+| Broken local links in routed/current docs | 0 |
+| Added high-confidence secret-pattern hits | 0 |
+| Documentation-only evidence delta | 8 files; 0 application/runtime files |
+| Whitespace validation | `git diff --check` PASS |
+
+Result: `FE-LANDING-BG-001` is **DONE / PRODUCTION VERIFIED**.
+`FE-PROFILE-HOME-UNI-001` is **DEPLOYED / AUTOMATED PASS** with authenticated visual acceptance
+still open. Phase 1 release blockers remain unchanged.

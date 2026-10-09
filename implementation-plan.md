@@ -1,7 +1,7 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.2
-**Updated:** 2026-10-08
+**Plan version:** 1.3
+**Updated:** 2026-10-09
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
@@ -27,7 +27,8 @@ Production evidence found a failed, unverified private Semester backup; Render h
 retained backend deploy; named rollback/recovery owners and the accepted post-repair hold duration
 are also missing. No application feature should be implemented in this release lane. A newer owner
 decision separately authorizes the two isolated frontend-only Phase 2 tasks below on local `main`;
-it does not authorize a push/deployment or change any Phase 1 blocker.
+the owner subsequently approved and completed their `origin/main` push and Vercel Production
+deployment on 2026-10-09. This does not change any Phase 1 blocker.
 
 ## Executable status
 
@@ -38,12 +39,12 @@ it does not authorize a push/deployment or change any Phase 1 blocker.
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
 | 4 | `EVT-005` dynamic Event lane | P0 product backlog | **DEFERRED / READY AFTER RELEASE HOLD** | Existing Event model/service prerequisites are complete | Start exact Part 27 chain only after release/hardening decision |
 | 5 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
-| 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN** | Local source/assets complete; browser surfaces could not reach the local Vite server | Owner desktop/mobile/transition review; stop before push/deploy |
-| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN** | Existing Profile API field reused; no backend/matching change | Owner authenticated Profile display/edit/reload review; stop before push/deploy |
+| 6 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
+| 7 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — AUTHENTICATED VISUAL GATE OPEN** | Automated/deployed bundle pass; no account used in release verification | Owner authenticated Profile display/edit/save/reload review |
 
-`SESSION_HANDOFF.md` records the bounded Phase 2 frontend implementation and remaining manual visual
-gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. Local
-implementation does not authorize database, provider or Production mutation.
+`SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
+visual gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. The
+completed frontend release does not authorize database or other provider mutation.
 
 ## Completed release gates — do not repeat without a regression reason
 

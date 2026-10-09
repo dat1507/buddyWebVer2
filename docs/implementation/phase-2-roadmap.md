@@ -1,7 +1,7 @@
 # Phase 2 post-deployment roadmap
 
-**Updated:** 2026-10-08
-**Status:** OWNER-APPROVED EXECUTION ORDER; PRODUCTION RELEASE NOT APPROVED
+**Updated:** 2026-10-09
+**Status:** FIRST TWO FEATURES DEPLOYED; PROFILE AUTHENTICATED VISUAL GATE OPEN
 
 ## Controlling owner decision
 
@@ -22,8 +22,9 @@ Technical dependencies inside each later feature remain unchanged. This priority
 local development of the two isolated frontend tasks before Phase 1 closure. It does not close,
 downgrade or hide Backup/DR, `PROD-001`, `SEM-008` or residual `ACCEPT-001` blockers.
 
-Local `main` commits are approved. Push to `origin/main`, a Vercel Production build/deployment and
-all other Production/provider/database changes still require a separate explicit owner approval.
+The owner explicitly approved the `origin/main` push and Vercel Production deployment on
+2026-10-09. That approval was consumed for commit `2f6f8c8`; it does not authorize unrelated future
+deployments or Production/provider/database changes.
 
 ## Current implementation boundary
 
@@ -45,11 +46,10 @@ all other Production/provider/database changes still require a separate explicit
 
 ## Release boundary
 
-The first two tasks are locally implemented with automated verification passing. Direct desktop,
-mobile, transition and authenticated Profile visual inspection remains a manual gate because the
-available computer-use browsers could not reach the terminal-local Vite server. This limitation is
-not recorded as a visual PASS.
+Both features are deployed. Landing desktop/mobile/transition inspection passed directly against
+Production. Home University automated and deployed-bundle verification passed, while authenticated
+Profile display/edit/save/reload remains an explicit manual gate and is not recorded as PASS.
 
-Implementation completion is not Production acceptance. Release instructions stop before
-push/deploy and preserve all open Phase 1 blockers. After manual visual acceptance and a separate
-release decision, the next Phase 2 product task in the owner-approved order is the Event system.
+The release preserves all open Phase 1 blockers. After authenticated Profile visual acceptance and
+a separate implementation instruction, the next Phase 2 product task in the owner-approved order
+is the Event system.

@@ -1,10 +1,10 @@
 # Production status
 
-**Last direct verification:** 2026-10-08 15:01 Asia/Saigon
+**Last direct verification:** 2026-10-09 09:57 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
-**Mutation boundary:** no source, provider configuration, reset, restore, backup retry or test-message
-mutation. Normal USER/ADMIN login/logout occurred; opening the existing conversation may have
-reconciled its idempotent read marker.
+**Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
+the Phase 2 frontend. No backend/database/DNS configuration, reset, restore, backup retry, secret,
+account or test-message mutation occurred during this release verification.
 
 ## Directly observed
 
@@ -23,6 +23,29 @@ reconciled its idempotent read marker.
 
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
+
+## Phase 2 frontend release — 2026-10-09
+
+| Check | Result |
+| --- | --- |
+| Released Git commit | `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7` on `origin/main` |
+| GitHub/Vercel deployment | Production deployment `6951736865` completed successfully |
+| Vercel deployment URL | `https://buddy-web-ver2-9fam0ya8l-dat1507s-projects.vercel.app` |
+| Repository checks | Frontend PASS; Backend PASS |
+| `GET https://www.vgubuddyprogram.com/` | 200; bundle `index-Deo6vyVU.js` |
+| Bundle markers | All five Landing backgrounds, EN/DE Home University copy and first-party API target present |
+| Landing desktop visual | PASS at 1536x831; contrast/layout/images/navigation correct; no overflow or Welcome card |
+| Landing mobile visual | PASS at 390x844; mobile navigation active, images decoded and no horizontal overflow |
+| Landing transition | PASS; 7.1-second sample observed current/next opacity ~0.934/0.066 |
+| Browser console | 0 errors; 0 warnings in direct Brave verification |
+| API live/readiness | 200 / 200; database/Redis `ok`, email/Storage `configured` |
+| Anonymous `/api/auth/me` | 401, `Cache-Control: no-store`, exact first-party allow-origin |
+| Authenticated Home University visual | OPEN; no account was used or mutated |
+
+This direct evidence closes `FE-LANDING-BG-001`. It proves deployment of the Home University bundle
+but does not close `FE-PROFILE-HOME-UNI-001` until authenticated display/edit/save/reload is visually
+accepted. No Vercel runtime-log scan was available through the local environment; the deployed app
+is static, direct browser console inspection was clean, and public API health checks passed.
 
 ## Documented operator evidence retained
 

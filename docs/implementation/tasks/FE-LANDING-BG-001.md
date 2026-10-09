@@ -2,7 +2,7 @@
 
 **Feature group:** Landing page
 **Priority:** Phase 2 Priority 1
-**Status:** IMPLEMENTED — AUTOMATED PASS / MANUAL VISUAL GATE OPEN
+**Status:** DONE — PRODUCTION VERIFIED
 **Dependencies:** Existing `FE-019` Landing assembly and owner-supplied local image set.
 
 - **Objective:** add an automatic, continuously looping background slideshow only to Landing
@@ -44,6 +44,21 @@
   failure/paint fallback. The Hero keeps its dimensions and adds dark overlays for text contrast.
 - The Facebook-linked Welcome card was removed. The static Event slider and all non-Hero sections
   were left unchanged.
-- Focused automated tests, lint, typecheck, formatting and production build pass. Direct desktop,
-  mobile and animation visual inspection remains an explicit manual gate because both available
-  computer-use browser surfaces timed out when accessing the terminal-local Vite server.
+- Focused automated tests, lint, typecheck, formatting and production build passed. The initial
+  terminal-local visual gate could not run because browser surfaces could not reach Vite; the dated
+  Production acceptance below supersedes that limitation for Landing.
+
+## Production acceptance — 2026-10-09
+
+- Owner approval pushed commit `2f6f8c8` to `origin/main`; GitHub recorded the linked Vercel
+  Production deployment successful and both repository Frontend/Backend checks passed.
+- `https://www.vgubuddyprogram.com/` returned 200 and served bundle `index-Deo6vyVU.js`; the bundle
+  contains all five ordered background asset markers and the first-party API target.
+- Direct Brave inspection passed at desktop 1536x831 and mobile 390x844: images decoded, the Hero
+  retained readable contrast, desktop/mobile navigation behaved responsively, no horizontal
+  overflow appeared, and the removed Welcome card was absent.
+- A timed Production reload sampled the live crossfade after 7.1 seconds with current/next opacity
+  values approximately 0.934/0.066, confirming the one-second transition had begun. The browser
+  console contained no errors or warnings.
+
+Result: task acceptance is **PASS / DONE**. This does not close any Phase 1 release or DR blocker.

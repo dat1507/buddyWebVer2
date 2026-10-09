@@ -173,8 +173,8 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`FE-FIX-005`](tasks/FE-FIX-005.md) | DONE / PRESERVED | P1 | frontend | FE-FIX-001 |
 | [`FE-HYGIENE-001`](tasks/FE-HYGIENE-001.md) | DONE / PRESERVED | P0 | frontend | FE-020 |
 | [`FE-HYGIENE-002`](tasks/FE-HYGIENE-002.md) | DONE / PRESERVED | P0 | frontend | FE-CLOSEOUT-003 |
-| [`FE-LANDING-BG-001`](tasks/FE-LANDING-BG-001.md) | IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN | Phase 2 P1 | frontend | Local slideshow/assets complete; owner desktop/mobile/transition review remains. |
-| [`FE-PROFILE-HOME-UNI-001`](tasks/FE-PROFILE-HOME-UNI-001.md) | IMPLEMENTED — AUTOMATED PASS / VISUAL GATE OPEN | Phase 2 P2 | profile | Existing Profile field reused; authenticated owner visual/reload review remains. |
+| [`FE-LANDING-BG-001`](tasks/FE-LANDING-BG-001.md) | DONE — PRODUCTION VERIFIED | Phase 2 P1 | frontend | Vercel Production and direct desktop/mobile/transition verification pass. |
+| [`FE-PROFILE-HOME-UNI-001`](tasks/FE-PROFILE-HOME-UNI-001.md) | DEPLOYED — AUTHENTICATED VISUAL GATE OPEN | Phase 2 P2 | profile | Automated/deployed bundle pass; authenticated Profile display/edit/save/reload review remains. |
 | [`FE-TECH-001`](tasks/FE-TECH-001.md) | DONE / PRESERVED | P2 | frontend | Frontend functional fixes |
 | [`FE-VERIFY-001`](tasks/FE-VERIFY-001.md) | DONE / PRESERVED | P0 | frontend | All selected Frontend completion tasks |
 | [`INV-001`](tasks/INV-001.md) | DONE / PRESERVED | - | buddy-v2 | REC-001; Database + Backend. |

@@ -2,7 +2,7 @@
 
 **Feature group:** Profile
 **Priority:** Phase 2 Priority 2
-**Status:** IMPLEMENTED — AUTOMATED PASS / MANUAL VISUAL GATE OPEN
+**Status:** DEPLOYED — AUTOMATED PASS / AUTHENTICATED VISUAL GATE OPEN
 **Dependencies:** Existing authenticated Profile read/update contract and Profile UI.
 
 - **Objective:** display and edit the existing optional `home_university` value in User Profile.
@@ -37,3 +37,15 @@
 - Authenticated desktop/mobile visual inspection remains an explicit manual gate; no safe local
   authenticated browser session was available and the computer-use browsers could not reach the
   terminal-local Vite server. No Production account or endpoint was used for this verification.
+
+## Production release evidence — 2026-10-09
+
+- Commit `2f6f8c8` reached the linked Vercel Production environment successfully; the public bundle
+  `index-Deo6vyVU.js` contains both `Home university` and `Heimatuniversität` copy.
+- Both repository Frontend/Backend checks passed. Public live/readiness checks remained 200, and
+  anonymous `/api/auth/me` remained 401 with `no-store` and the exact first-party CORS origin.
+- No account was used or mutated during deployment verification. Authenticated Profile
+  display/edit/save/reload remains a manual acceptance gate and is not inferred from bundle or unit
+  test evidence.
+
+Result: the feature is deployed, but the task remains open until authenticated visual acceptance.

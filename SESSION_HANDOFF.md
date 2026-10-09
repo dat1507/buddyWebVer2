@@ -1,8 +1,8 @@
 # Session handoff
 
-**Updated:** 2026-10-08 (Asia/Saigon)
-**TASK_ID:** NONE — OWNER MANUAL VISUAL/RELEASE REVIEW
-**Current mode:** first two Phase 2 UI tasks locally implemented; no push/deploy
+**Updated:** 2026-10-09 (Asia/Saigon)
+**TASK_ID:** NONE — OWNER AUTHENTICATED PROFILE ACCEPTANCE
+**Current mode:** Phase 2 frontend deployed; Landing accepted; Home University visual gate open
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -12,11 +12,13 @@ The large legacy plan has been split into a lightweight control plane plus per-t
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
 
 The owner separately authorized `FE-LANDING-BG-001`, followed by
-`FE-PROFILE-HOME-UNI-001`, on local `main`; both are now implemented with automated checks passing.
+`FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with
+automated checks passing.
 Read `docs/implementation/phase-2-roadmap.md` and only those two task extracts plus their named
-source/tests. Direct desktop/mobile/transition and authenticated Profile visual inspection remains
-a manual gate because the available computer-use browsers could not reach the terminal-local Vite
-server. Do not mark that gate PASS without direct evidence. Do not retry Semester Prepare, mutate a
+source/tests. Direct Production desktop/mobile/transition verification closes the Landing task.
+Authenticated Profile display/edit/save/reload remains a manual gate because no account was used
+during release verification. Do not mark that gate PASS without direct evidence. Do not retry
+Semester Prepare, mutate a
 provider or rerun accepted functional/technical paths. The release lane remains documented in
 `docs/implementation/tasks/PROD-001.md`,
 `docs/operations/prod-001-technical-evidence-2026-10-08.md`,
@@ -24,8 +26,21 @@ provider or rerun accepted functional/technical paths. The release lane remains 
 `docs/implementation/post-deployment-workflow.md` unless an owner separately authorizes one of the
 blocked remediation steps.
 
-Local commits are approved. Do not push `origin/main`, trigger Vercel Production, deploy, migrate or
-change Production without a new explicit approval.
+The 2026-10-09 approval was consumed by the push and Vercel Production deployment. Do not perform a
+future feature push/deployment, migrate or change Production without a new explicit approval.
+
+## Latest Phase 2 frontend release
+
+- `origin/main` reached `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7`.
+- GitHub recorded Vercel Production deployment `6951736865` successful; Frontend and Backend checks
+  both passed.
+- `www.vgubuddyprogram.com` returned 200 and served `index-Deo6vyVU.js` with all five Landing asset
+  markers, EN/DE Home University copy and the first-party API target.
+- Brave visual verification passed at desktop 1536x831 and mobile 390x844, including image decode,
+  responsive navigation, no overflow, Welcome-card absence and the live opacity crossfade.
+- Public API live/readiness remained 200; anonymous `/auth/me` remained 401/no-store with the exact
+  first-party CORS origin.
+- No account was used. Home University authenticated Profile acceptance remains open.
 
 ## Latest verified Production snapshot
 
@@ -120,10 +135,9 @@ produce another record. It does not replace the technical/security and operation
 ## Phase 2 readiness
 
 - Planning is READY.
-- `FE-LANDING-BG-001` and `FE-PROFILE-HOME-UNI-001` are locally implemented; 33 focused tests,
-  lint, typecheck, formatting and production build pass.
-- Owner visual review remains open for Landing desktop/mobile/transitions and authenticated Profile
-  display/edit/reload. The visual gate is not PASS.
+- `FE-LANDING-BG-001` is DONE / PRODUCTION VERIFIED.
+- `FE-PROFILE-HOME-UNI-001` is DEPLOYED with automated verification passing; authenticated Profile
+  display/edit/save/reload visual acceptance remains open.
 - Events, Event Calendar, VGU Map, AI Assistant, Merchandise and remaining enhancements follow in
   that owner-approved order, subject to their own dependencies and a separate instruction.
 - Backup/DR, `PROD-001`, `SEM-008` and residual `ACCEPT-001` remain open; this does not make Phase 1
