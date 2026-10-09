@@ -6,15 +6,16 @@ import { BenefitsGrid } from '@/components/landing/benefits-grid'
 import { CtaSection } from '@/components/landing/cta-section'
 import { EventsSlider } from '@/components/landing/events-slider'
 import { HeroSection } from '@/components/landing/hero-section'
+import { LiveEventsSection } from '@/components/landing/live-events-section'
 import { TestimonialsMarquee } from '@/components/landing/testimonials-marquee'
 import type { EventSliderLocale } from '@/features/events/event-slider'
 import { getStaticUpcomingEvents } from '@/features/events/data/static-upcoming-events'
+import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 function LandingPage() {
   const { t, i18n } = useTranslation()
   const { state } = useLocation()
   const eventLocale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
-  const upcomingEvents = getStaticUpcomingEvents(eventLocale)
 
   return (
     <main>
@@ -27,7 +28,11 @@ function LandingPage() {
         </p>
       ) : null}
       <HeroSection />
-      <EventsSlider events={upcomingEvents} />
+      {dynamicEventsLaunchEnabled ? (
+        <LiveEventsSection locale={eventLocale} />
+      ) : (
+        <EventsSlider events={getStaticUpcomingEvents(eventLocale)} />
+      )}
       <AboutSection />
       <BenefitsGrid />
       <TestimonialsMarquee />

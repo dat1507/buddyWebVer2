@@ -5,7 +5,10 @@ import { PublicLayout } from '@/components/layout/public-layout'
 import { UserLayout } from '@/components/layout/user-layout'
 import { AdminLoginPage } from '@/pages/public/admin-login-page'
 import { AdminUserDetailPage } from '@/pages/admin/admin-user-detail-page'
+import { AdminEventCreatePage } from '@/pages/admin/admin-event-create-page'
+import { AdminEventEditPage } from '@/pages/admin/admin-event-edit-page'
 import { LandingPage } from '@/pages/public/landing-page'
+import { EventDetailPage } from '@/pages/public/event-detail-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
 import { UserLoginPage } from '@/pages/public/user-login-page'
@@ -16,6 +19,7 @@ import { RoleGuard } from '@/features/auth/role-guard'
 import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
 import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
+import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 function App() {
   return (
@@ -28,6 +32,9 @@ function App() {
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
           <Route path="verify-email" element={<EmailVerificationPage />} />
+          {dynamicEventsLaunchEnabled ? (
+            <Route path="events/:eventId" element={<EventDetailPage />} />
+          ) : null}
         </Route>
 
         <Route element={<RoleGuard requiredRole="USER" />}>
@@ -56,6 +63,9 @@ function App() {
                 />
               )
             })}
+            {dynamicEventsLaunchEnabled ? (
+              <Route path="events/:eventId" element={<EventDetailPage />} />
+            ) : null}
           </Route>
         </Route>
 
@@ -75,6 +85,8 @@ function App() {
                 }
               />
             ))}
+            <Route path="events/new" element={<AdminEventCreatePage />} />
+            <Route path="events/:eventId/edit" element={<AdminEventEditPage />} />
             <Route path="users/:userId" element={<AdminUserDetailPage />} />
           </Route>
         </Route>

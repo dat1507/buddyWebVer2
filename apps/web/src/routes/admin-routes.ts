@@ -6,7 +6,6 @@ import {
   ClipboardList,
   GraduationCap,
   HeartHandshake,
-  Images,
   LayoutDashboard,
   Megaphone,
   Settings,
@@ -19,6 +18,7 @@ import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
+import { AdminEventsPage } from '@/pages/admin/admin-events-page'
 import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
 
 type AdminRoute = {
@@ -72,14 +72,8 @@ const adminRoutes: readonly AdminRoute[] = [
           title: 'Event management',
           labelKey: 'adminNavigation.events',
           Icon: CalendarDays,
-          kind: 'placeholder',
-        },
-        {
-          path: 'event-sliders',
-          title: 'Event sliders',
-          labelKey: 'adminNavigation.eventSliders',
-          Icon: Images,
-          kind: 'placeholder',
+          kind: 'page',
+          Component: AdminEventsPage,
         },
       ] satisfies readonly AdminRoute[])
     : []),

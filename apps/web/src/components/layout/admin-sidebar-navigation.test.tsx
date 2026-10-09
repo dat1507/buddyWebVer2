@@ -11,7 +11,6 @@ const paths = [
   'matching',
   'semesters',
   'events',
-  'event-sliders',
   'announcements',
   'knowledge-base',
   'campus',
@@ -29,7 +28,6 @@ const locales = [
       'Matching',
       'Semesters',
       'Events',
-      'Event Sliders',
       'Announcements',
       'Knowledge Base',
       'Campus',
@@ -47,7 +45,6 @@ const locales = [
       'Zuordnung',
       'Semester',
       'Veranstaltungen',
-      'Veranstaltungsslider',
       'Mitteilungen',
       'Wissensdatenbank',
       'Campus',
@@ -64,7 +61,7 @@ describe('ADMIN-002 module navigation', () => {
   })
 
   it.each(locales)(
-    'provides twelve named native module links in %s',
+    'provides eleven named native module links in %s',
     async (language, name, labels) => {
       await i18n.changeLanguage(language)
       render(
@@ -73,7 +70,7 @@ describe('ADMIN-002 module navigation', () => {
         </MemoryRouter>,
       )
       const nav = screen.getByRole('navigation', { name })
-      expect(within(nav).getAllByRole('link')).toHaveLength(12)
+      expect(within(nav).getAllByRole('link')).toHaveLength(11)
       labels.forEach((label, index) => {
         const link = within(nav).getByRole('link', { name: label })
         expect(link.tagName).toBe('A')
@@ -88,7 +85,7 @@ describe('ADMIN-002 module navigation', () => {
   it.each([
     ['/admin/dashboard?period=week#summary', 'Overview'],
     ['/admin/users/123/edit?tab=roles#form', 'Users'],
-    ['/admin/event-sliders/123/edit', 'Event Sliders'],
+    ['/admin/events/123/edit', 'Events'],
     ['/admin/events/new', 'Events'],
     ['/admin/users-archive', null],
     ['/admin/dashboard/detail', null],

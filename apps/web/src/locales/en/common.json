@@ -366,6 +366,201 @@
       "unavailable": "Activity information is unavailable without a student profile."
     }
   },
+  "adminEvents": {
+    "title": "Event management",
+    "description": "Find drafts and published Events, review their schedule, and continue editorial work.",
+    "caption": "Event inventory",
+    "unavailable": "Not provided",
+    "create": "Create Event",
+    "edit": "Edit {{title}}",
+    "ends": "Ends {{date}}",
+    "error": "The Event list could not be loaded.",
+    "forbidden": "Your current account is not authorized to view Events.",
+    "empty": "There are no Events to show.",
+    "noResults": "No Events match these filters.",
+    "columns": {
+      "title": "Event",
+      "schedule": "Schedule",
+      "status": "Status",
+      "visibility": "Audience",
+      "phase": "Phase",
+      "updated": "Updated",
+      "actions": "Actions"
+    },
+    "filters": {
+      "search": "Search Events",
+      "searchPlaceholder": "Title, category, or organizer",
+      "clearSearch": "Clear Event search",
+      "status": "Editorial status",
+      "visibility": "Audience",
+      "phase": "Schedule phase",
+      "from": "From date",
+      "to": "Through date",
+      "all": "All",
+      "reset": "Reset filters",
+      "datePair": "Choose both dates to apply the date range."
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "CANCELLED": "Cancelled"
+    },
+    "visibility": {
+      "PUBLIC": "Public",
+      "MEMBERS": "Members"
+    },
+    "phase": {
+      "UPCOMING": "Upcoming",
+      "ONGOING": "Ongoing",
+      "COMPLETED": "Completed"
+    }
+  },
+  "adminEventForm": {
+    "back": "Back to Events",
+    "createTitle": "Create Event draft",
+    "createDescription": "Save the Event as a private draft, then attach its managed cover without entering a storage path.",
+    "editTitle": "Edit Event",
+    "editDescription": "Update canonical Event content with optimistic concurrency and replace its managed cover safely.",
+    "createDraft": "Create draft",
+    "retryDraft": "Save draft and retry cover",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Event changes saved.",
+    "savedCleanupPending": "Event and cover saved. Old cover cleanup will be retried by operations.",
+    "loading": "Loading Event…",
+    "unsaved": "You have unsaved changes.",
+    "locale": {
+      "en": "English content",
+      "de": "German content"
+    },
+    "content": {
+      "title": "Localized content",
+      "eventTitle": "Title",
+      "description": "Description",
+      "location": "Location"
+    },
+    "schedule": {
+      "title": "Schedule",
+      "start": "Starts",
+      "end": "Ends",
+      "timezone": "IANA timezone",
+      "deadline": "Registration deadline"
+    },
+    "details": {
+      "title": "Event details",
+      "category": "Category",
+      "organizer": "Organizer",
+      "visibility": "Audience",
+      "capacity": "Maximum participants",
+      "registrationUrl": "HTTPS registration URL",
+      "registrationEnabled": "Registration is enabled"
+    },
+    "cover": {
+      "title": "Managed Event cover",
+      "choose": "Choose cover image",
+      "replace": "Choose replacement cover",
+      "help": "JPEG, PNG or WebP; maximum 5 MiB and 4096 px per side. The backend owns the storage path.",
+      "altEn": "English alternative text",
+      "altDe": "German alternative text",
+      "preview": "Selected Event cover preview",
+      "empty": "No cover selected"
+    },
+    "validation": {
+      "maximum": "This field is too long.",
+      "required": "This field is required for the selected cover.",
+      "timezone": "Enter a valid IANA timezone, for example Asia/Ho_Chi_Minh.",
+      "datetime": "Enter a valid local date and time for this timezone.",
+      "endAfterStart": "The end must be later than the start.",
+      "deadlineBeforeStart": "The registration deadline cannot be after the start.",
+      "https": "Enter an absolute HTTPS URL.",
+      "positiveInteger": "Enter a whole number greater than zero.",
+      "coverType": "Choose a JPEG, PNG or WebP image.",
+      "coverSize": "Choose an image no larger than 5 MiB."
+    },
+    "errors": {
+      "load": "The Event could not be loaded.",
+      "save": "The Event could not be saved. Your form values are still available.",
+      "validation": "The backend rejected some Event fields. Review the form and try again.",
+      "conflict": "The Event changed in another session.",
+      "conflictReload": "The Event changed in another session. Reload and review before saving again.",
+      "draftSavedCoverFailed": "The draft was saved, but the cover upload failed. Your values and selected file remain available; retry without creating another draft.",
+      "contentSavedCoverFailed": "The Event content was saved, but the replacement cover failed. Retry the cover without losing the saved content."
+    },
+    "notFound": {
+      "title": "Event not found",
+      "description": "This Event is unavailable or no longer exists."
+    }
+  },
+  "adminEventStatus": {
+    "title": "Editorial status",
+    "current": "Current status: {{status}}",
+    "phase": "Schedule phase: {{phase}}",
+    "noManualComplete": "The schedule determines completion automatically; there is no manual Complete action.",
+    "saving": "Updating status…",
+    "success": "Event status changed to {{status}}.",
+    "actions": {
+      "publish": "Publish",
+      "draft": "Move to draft",
+      "cancel": "Cancel Event"
+    },
+    "readiness": {
+      "title": "Complete these fields before publishing:",
+      "titleEn": "English title",
+      "titleDe": "German title",
+      "descriptionEn": "English description",
+      "descriptionDe": "German description",
+      "locationEn": "English location",
+      "locationDe": "German location",
+      "start": "Start date and time",
+      "end": "End date and time",
+      "cover": "Ready managed cover",
+      "endAfterStart": "An end time later than the start time"
+    },
+    "confirm": {
+      "draftTitle": "Move this Event to draft?",
+      "draftDescription": "The Event and its linked public promotion will be hidden. Saved content and publication history remain available.",
+      "cancelTitle": "Cancel this Event?",
+      "cancelDescription": "The cancellation remains visible to its intended audience, is removed from the slider, and disables registration.",
+      "keep": "Keep current status"
+    },
+    "errors": {
+      "validation": "The Event is not publishable yet. Review the required content and managed cover.",
+      "conflict": "The Event changed in another session. Reload and review its current status before trying again.",
+      "save": "The status was not changed. Review the current Event and try again."
+    }
+  },
+  "eventDetail": {
+    "back": "Back to home",
+    "loading": "Loading Event",
+    "noCover": "Event cover unavailable",
+    "starts": "Starts",
+    "ends": "Ends",
+    "location": "Location",
+    "organizer": "Organizer",
+    "category": "Category",
+    "about": "About this Event",
+    "cancelled": "Cancelled",
+    "cancelledNotice": "This Event has been cancelled. Registration is no longer available.",
+    "phase": {
+      "UPCOMING": "Upcoming",
+      "ONGOING": "Ongoing",
+      "COMPLETED": "Completed"
+    },
+    "notFound": {
+      "title": "Event not found",
+      "description": "This Event is unavailable or does not exist."
+    },
+    "signIn": {
+      "title": "Sign in to view this Event",
+      "description": "Your session is required to view member-only Event details.",
+      "action": "Sign in"
+    },
+    "error": {
+      "title": "Event unavailable",
+      "description": "The Event could not be loaded. Please try again.",
+      "retry": "Try again"
+    }
+  },
   "adminMatching": {
     "title": "Matching monitoring",
     "description": "Monitor Buddy Program participation, invitations, and active Buddy relationships.",
@@ -539,7 +734,6 @@
     "matching": "Matching",
     "semesters": "Semesters",
     "events": "Events",
-    "eventSliders": "Event Sliders",
     "announcements": "Announcements",
     "knowledgeBase": "Knowledge Base",
     "campus": "Campus",

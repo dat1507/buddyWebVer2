@@ -7,18 +7,16 @@ const httpsUrlSchema = z
     message: 'Expected an HTTPS URL',
   })
 
+const eventDetailHrefSchema = z
+  .string()
+  .regex(/^\/events\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+
 const ctaSchema = z
   .object({
     label: z.string().min(1).max(40),
-    href: z
-      .string()
-      .refine(
-        (value) =>
-          value.startsWith('/') || value.startsWith('#') || httpsUrlSchema.safeParse(value).success,
-        { message: 'Expected a relative path, hash, or HTTPS URL' },
-      ),
+    href: eventDetailHrefSchema,
   })
-  .nullable()
+  .strict()
 
 const publicEventSliderApiSchema = z.object({
   id: z.string().uuid(),
@@ -65,5 +63,5 @@ function parsePublicEventSliders(payload: unknown): EventSlider[] {
   }))
 }
 
-export { parsePublicEventSliders, publicEventSliderApiSchema }
+export { eventDetailHrefSchema, parsePublicEventSliders, publicEventSliderApiSchema }
 export type { EventSlider, EventSliderLocale }

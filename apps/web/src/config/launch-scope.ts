@@ -12,11 +12,10 @@ function resolveDynamicEventsLaunchEnabled({
   return development
 }
 
-// This gate controls only future API-backed User/Admin Event surfaces. The
-// current-launch static Landing carousel is intentionally independent of it.
-const dynamicEventsLaunchEnabled = resolveDynamicEventsLaunchEnabled({
-  development: import.meta.env.DEV,
-  eventsFlag: import.meta.env.VITE_EVENTS_LAUNCH_ENABLED,
-})
+// This gate keeps the API-backed Event surfaces, including the live Landing
+// carousel, out of Production until the explicit staging/launch acceptance.
+const eventsLaunchFlag = import.meta.env.VITE_EVENTS_LAUNCH_ENABLED
+const dynamicEventsLaunchEnabled =
+  eventsLaunchFlag === 'true' || (eventsLaunchFlag !== 'false' && import.meta.env.DEV)
 
 export { dynamicEventsLaunchEnabled, resolveDynamicEventsLaunchEnabled }

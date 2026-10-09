@@ -22,7 +22,6 @@ const modules = [
   ['Overview', 'dashboard', 'Admin overview'],
   ['Users', 'users', 'User management'],
   ['Events', 'events', 'Event management'],
-  ['Event Sliders', 'event-sliders', 'Event sliders'],
   ['Announcements', 'announcements', 'Announcements'],
   ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
   ['Campus', 'campus', 'Campus management'],
@@ -135,7 +134,7 @@ describe('ADMIN-002 guarded App navigation', () => {
 
   it('translates the menu with the actual language toggle while preserving route and session', async () => {
     useAuthStore.getState().setAuthenticated(admin)
-    renderApp('/admin/event-sliders?view=published#slides')
+    renderApp('/admin/announcements?view=published#items')
     const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
     const user = useAuthStore.getState().user
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
@@ -145,7 +144,6 @@ describe('ADMIN-002 guarded App navigation', () => {
       'Benutzer',
       'Zuordnung',
       'Veranstaltungen',
-      'Veranstaltungsslider',
       'Mitteilungen',
       'Wissensdatenbank',
       'Campus',
@@ -154,12 +152,12 @@ describe('ADMIN-002 guarded App navigation', () => {
       'Einstellungen',
     ]
     labels.forEach((name) => expect(within(nav).getByRole('link', { name })).toBeVisible())
-    expect(within(nav).getByRole('link', { name: 'Veranstaltungsslider' })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Mitteilungen' })).toHaveAttribute(
       'aria-current',
       'page',
     )
     expect(screen.getByTestId('location').textContent).toBe(
-      '/admin/event-sliders?view=published#slides',
+      '/admin/announcements?view=published#items',
     )
     expect(useAuthStore.getState().user).toBe(user)
     expect(fetch).not.toHaveBeenCalled()
@@ -167,14 +165,14 @@ describe('ADMIN-002 guarded App navigation', () => {
 
   it.each(['unknown', 'loading'] as const)('hides the new route menu during %s', (status) => {
     useAuthStore.setState({ status })
-    renderApp('/admin/event-sliders')
+    renderApp('/admin/events')
     expect(screen.getByRole('status')).toHaveTextContent('Checking your session')
     expectNoMenu()
   })
 
-  it('redirects anonymous Event Sliders access to Admin login', async () => {
+  it('redirects anonymous Events access to Admin login', async () => {
     useAuthStore.getState().clearSession()
-    renderApp('/admin/event-sliders')
+    renderApp('/admin/events')
     expect(await screen.findByRole('heading', { name: 'Administration access' })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/adminLogin')
     expectNoMenu()
@@ -182,7 +180,7 @@ describe('ADMIN-002 guarded App navigation', () => {
 
   it('denies a verified USER access to the new Admin route', async () => {
     useAuthStore.getState().setAuthenticated({ ...admin, role: 'USER' })
-    renderApp('/admin/event-sliders')
+    renderApp('/admin/events')
     expect(await screen.findByRole('heading', { name: /Connect with/ })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/')
     expectNoMenu()
@@ -208,20 +206,20 @@ describe('ADMIN-002 guarded App navigation', () => {
       resolveMe = resolve
     })
     fetch.mockResolvedValueOnce(json({ csrf_token: 'session-csrf' })).mockReturnValueOnce(me)
-    renderApp('/admin/event-sliders?view=published#slides', true)
+    renderApp('/admin/announcements?view=published#items', true)
     await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
     expectNoMenu()
     await act(async () => {
       resolveMe(json(admin))
     })
     const nav = await screen.findByRole('navigation', { name: 'Administrator navigation' })
-    expect(within(nav).getByRole('link', { name: 'Event Sliders' })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Announcements' })).toHaveAttribute(
       'aria-current',
       'page',
     )
-    expect(screen.getByRole('heading', { name: 'Event sliders' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Announcements' })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe(
-      '/admin/event-sliders?view=published#slides',
+      '/admin/announcements?view=published#items',
     )
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',

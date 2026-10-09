@@ -31,13 +31,13 @@ describe('LandingPage (FE-019 Assembly)', () => {
     await i18n.changeLanguage('en')
   })
 
-  it('renders static Upcoming Events without calling an Event API', () => {
+  it('renders the development Event fixture without calling an Event API', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
     renderLandingPage()
 
     expect(screen.getByRole('heading', { level: 2, name: 'Upcoming Events' })).toBeVisible()
-    expect(screen.getAllByText('Recruitment').length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Recruitment')).length).toBeGreaterThan(0)
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(screen.queryByText('Upcoming events could not be loaded.')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()

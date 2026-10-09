@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { Typography } from '@/components/ui/typography'
 import type { EventSlider, EventSliderLocale } from '@/features/events/event-slider'
 import { cn } from '@/lib/utils'
@@ -62,7 +63,50 @@ function EventSlide({
   locale: EventSliderLocale
 }) {
   const date = formatEventDate(slide, locale)
-  const isExternalCta = slide.cta?.href.startsWith('https://') ?? false
+  const card = (
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl transition-colors group-hover:border-orange-500/50">
+      <div className="aspect-[5/4] bg-black">
+        <img
+          src={slide.imageUrl}
+          alt={clone ? '' : slide.imageAlt}
+          className="h-full w-full object-contain"
+          loading={active ? 'eager' : 'lazy'}
+        />
+      </div>
+
+      <div className="flex min-h-32 flex-col justify-center border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
+        <Typography variant="h3" className="text-center text-xl sm:text-2xl">
+          {slide.title}
+        </Typography>
+
+        {slide.description ? (
+          <p className="mt-2 text-base leading-7 text-zinc-400">{slide.description}</p>
+        ) : null}
+
+        {date || slide.location || slide.cta ? (
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-zinc-400">
+            {date ? (
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays aria-hidden="true" className="size-4 text-orange-500" />
+                {date}
+              </span>
+            ) : null}
+            {slide.location ? (
+              <span className="inline-flex items-center gap-2">
+                <MapPin aria-hidden="true" className="size-4 text-orange-500" />
+                {slide.location}
+              </span>
+            ) : null}
+            {slide.cta ? (
+              <span className={cn(buttonVariants({ variant: 'link' }), 'ml-auto')}>
+                {slide.cta.label}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
 
   return (
     <article
@@ -70,60 +114,18 @@ function EventSlide({
       aria-hidden={!active || clone}
       aria-roledescription="slide"
     >
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl">
-        <div className="aspect-[5/4] bg-black">
-          <img
-            src={slide.imageUrl}
-            alt={clone ? '' : slide.imageAlt}
-            className="h-full w-full object-contain"
-            loading={active ? 'eager' : 'lazy'}
-          />
-        </div>
-
-        <div className="flex min-h-32 flex-col justify-center border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
-          <Typography variant="h3" className="text-center text-xl sm:text-2xl">
-            {slide.title}
-          </Typography>
-
-          {slide.description ? (
-            <p className="mt-2 text-base leading-7 text-zinc-400">{slide.description}</p>
-          ) : null}
-
-          {date || slide.location || slide.cta ? (
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-zinc-400">
-              {date ? (
-                <span className="inline-flex items-center gap-2">
-                  <CalendarDays aria-hidden="true" className="size-4 text-orange-500" />
-                  {date}
-                </span>
-              ) : null}
-              {slide.location ? (
-                <span className="inline-flex items-center gap-2">
-                  <MapPin aria-hidden="true" className="size-4 text-orange-500" />
-                  {slide.location}
-                </span>
-              ) : null}
-              {slide.cta ? (
-                <Button
-                  asChild
-                  variant="link"
-                  className="ml-auto"
-                  tabIndex={active && !clone ? 0 : -1}
-                >
-                  <a
-                    href={slide.cta.href}
-                    target={isExternalCta ? '_blank' : undefined}
-                    rel={isExternalCta ? 'noreferrer' : undefined}
-                  >
-                    {slide.cta.label}
-                    {isExternalCta ? <ExternalLink aria-hidden="true" /> : null}
-                  </a>
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </div>
+      {slide.cta ? (
+        <a
+          href={slide.cta.href}
+          tabIndex={active && !clone ? 0 : -1}
+          aria-label={`${slide.cta.label}: ${slide.title}`}
+          className="group block rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+        >
+          {card}
+        </a>
+      ) : (
+        card
+      )}
     </article>
   )
 }

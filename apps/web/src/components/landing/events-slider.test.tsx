@@ -15,7 +15,10 @@ const events: EventSlider[] = [
     eventStartAt: null,
     eventEndAt: null,
     location: null,
-    cta: null,
+    cta: {
+      label: 'View event',
+      href: '/events/11111111-1111-4111-8111-111111111111',
+    },
     sortOrder: 0,
   },
   {
@@ -84,8 +87,17 @@ describe('EventsSlider', () => {
     expect(screen.getByText('Event 2 of 2')).toBeVisible()
   })
 
-  it('omits navigation controls and detail links for one promotional card', () => {
+  it('makes the active live-shaped slide one keyboard-accessible detail link', () => {
     renderSlider(events.slice(0, 1))
+
+    const link = screen.getByRole('link', { name: 'View event: Recruitment' })
+    expect(link).toHaveAttribute('href', '/events/11111111-1111-4111-8111-111111111111')
+    expect(link).toHaveAttribute('tabindex', '0')
+    expect(link).toHaveTextContent('Meet the community.')
+  })
+
+  it('omits navigation controls and detail links for a legacy promotional card', () => {
+    renderSlider([{ ...events[0], cta: null }])
 
     expect(screen.getByText('Recruitment')).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Show next event' })).not.toBeInTheDocument()

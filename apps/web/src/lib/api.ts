@@ -84,6 +84,7 @@ interface JsonRequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   binaryBody?: Blob
+  formData?: FormData
   contentType?: string
   csrfToken?: string
   signal?: AbortSignal
@@ -99,8 +100,13 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
     throw new ApiError(0, 'configuration')
   }
   if (!/^\/(?!\/)/.test(path)) throw new ApiError(0, 'configuration')
+  const suppliedBodies = [
+    options.body !== undefined,
+    options.binaryBody !== undefined,
+    options.formData !== undefined,
+  ].filter(Boolean).length
   if (
-    (options.body !== undefined && options.binaryBody !== undefined) ||
+    suppliedBodies > 1 ||
     (options.binaryBody !== undefined && !options.contentType) ||
     (options.binaryBody === undefined && options.contentType !== undefined)
   ) {
@@ -126,6 +132,7 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
       },
       body:
         options.binaryBody ??
+        options.formData ??
         (options.body === undefined ? undefined : JSON.stringify(options.body)),
       signal: controller.signal,
     })

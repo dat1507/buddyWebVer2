@@ -366,6 +366,201 @@
       "unavailable": "Ohne Studierendenprofil sind keine Aktivitätsinformationen verfügbar."
     }
   },
+  "adminEvents": {
+    "title": "Veranstaltungsverwaltung",
+    "description": "Entwürfe und veröffentlichte Veranstaltungen finden, Zeitpläne prüfen und redaktionell weiterarbeiten.",
+    "caption": "Veranstaltungsübersicht",
+    "unavailable": "Nicht angegeben",
+    "create": "Veranstaltung erstellen",
+    "edit": "{{title}} bearbeiten",
+    "ends": "Endet {{date}}",
+    "error": "Die Veranstaltungsliste konnte nicht geladen werden.",
+    "forbidden": "Das aktuelle Konto darf Veranstaltungen nicht anzeigen.",
+    "empty": "Es sind keine Veranstaltungen vorhanden.",
+    "noResults": "Keine Veranstaltungen entsprechen diesen Filtern.",
+    "columns": {
+      "title": "Veranstaltung",
+      "schedule": "Zeitraum",
+      "status": "Status",
+      "visibility": "Zielgruppe",
+      "phase": "Phase",
+      "updated": "Aktualisiert",
+      "actions": "Aktionen"
+    },
+    "filters": {
+      "search": "Veranstaltungen suchen",
+      "searchPlaceholder": "Titel, Kategorie oder Veranstalter",
+      "clearSearch": "Veranstaltungssuche löschen",
+      "status": "Redaktionsstatus",
+      "visibility": "Zielgruppe",
+      "phase": "Zeitphase",
+      "from": "Von Datum",
+      "to": "Bis Datum",
+      "all": "Alle",
+      "reset": "Filter zurücksetzen",
+      "datePair": "Wähle beide Datumsangaben, um den Zeitraum anzuwenden."
+    },
+    "status": {
+      "DRAFT": "Entwurf",
+      "PUBLISHED": "Veröffentlicht",
+      "CANCELLED": "Abgesagt"
+    },
+    "visibility": {
+      "PUBLIC": "Öffentlich",
+      "MEMBERS": "Mitglieder"
+    },
+    "phase": {
+      "UPCOMING": "Bevorstehend",
+      "ONGOING": "Laufend",
+      "COMPLETED": "Abgeschlossen"
+    }
+  },
+  "adminEventForm": {
+    "back": "Zurück zu Veranstaltungen",
+    "createTitle": "Veranstaltungsentwurf erstellen",
+    "createDescription": "Speichere die Veranstaltung als privaten Entwurf und füge anschließend das verwaltete Titelbild ohne Speicherpfad hinzu.",
+    "editTitle": "Veranstaltung bearbeiten",
+    "editDescription": "Kanonische Veranstaltungsinhalte mit Versionsprüfung ändern und das verwaltete Titelbild sicher ersetzen.",
+    "createDraft": "Entwurf erstellen",
+    "retryDraft": "Entwurf speichern und Titelbild erneut versuchen",
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Veranstaltungsänderungen wurden gespeichert.",
+    "savedCleanupPending": "Veranstaltung und Titelbild wurden gespeichert. Die Bereinigung des alten Bildes wird betrieblich erneut versucht.",
+    "loading": "Veranstaltung wird geladen…",
+    "unsaved": "Du hast nicht gespeicherte Änderungen.",
+    "locale": {
+      "en": "Englische Inhalte",
+      "de": "Deutsche Inhalte"
+    },
+    "content": {
+      "title": "Lokalisierte Inhalte",
+      "eventTitle": "Titel",
+      "description": "Beschreibung",
+      "location": "Ort"
+    },
+    "schedule": {
+      "title": "Zeitraum",
+      "start": "Beginn",
+      "end": "Ende",
+      "timezone": "IANA-Zeitzone",
+      "deadline": "Anmeldeschluss"
+    },
+    "details": {
+      "title": "Veranstaltungsdetails",
+      "category": "Kategorie",
+      "organizer": "Veranstalter",
+      "visibility": "Zielgruppe",
+      "capacity": "Maximale Teilnehmendenzahl",
+      "registrationUrl": "HTTPS-Anmelde-URL",
+      "registrationEnabled": "Anmeldung ist aktiviert"
+    },
+    "cover": {
+      "title": "Verwaltetes Veranstaltungstitelbild",
+      "choose": "Titelbild auswählen",
+      "replace": "Ersatztitelbild auswählen",
+      "help": "JPEG, PNG oder WebP; maximal 5 MiB und 4096 px pro Seite. Das Backend verwaltet den Speicherpfad.",
+      "altEn": "Englischer Alternativtext",
+      "altDe": "Deutscher Alternativtext",
+      "preview": "Vorschau des ausgewählten Veranstaltungstitelbildes",
+      "empty": "Kein Titelbild ausgewählt"
+    },
+    "validation": {
+      "maximum": "Dieses Feld ist zu lang.",
+      "required": "Dieses Feld ist für das ausgewählte Titelbild erforderlich.",
+      "timezone": "Gib eine gültige IANA-Zeitzone ein, zum Beispiel Europe/Berlin.",
+      "datetime": "Gib ein gültiges lokales Datum und eine gültige Uhrzeit für diese Zeitzone ein.",
+      "endAfterStart": "Das Ende muss nach dem Beginn liegen.",
+      "deadlineBeforeStart": "Der Anmeldeschluss darf nicht nach dem Beginn liegen.",
+      "https": "Gib eine absolute HTTPS-URL ein.",
+      "positiveInteger": "Gib eine ganze Zahl größer als null ein.",
+      "coverType": "Wähle ein JPEG-, PNG- oder WebP-Bild.",
+      "coverSize": "Wähle ein Bild mit höchstens 5 MiB."
+    },
+    "errors": {
+      "load": "Die Veranstaltung konnte nicht geladen werden.",
+      "save": "Die Veranstaltung konnte nicht gespeichert werden. Deine Formulardaten bleiben erhalten.",
+      "validation": "Das Backend hat einige Veranstaltungsfelder abgelehnt. Prüfe das Formular und versuche es erneut.",
+      "conflict": "Die Veranstaltung wurde in einer anderen Sitzung geändert.",
+      "conflictReload": "Die Veranstaltung wurde in einer anderen Sitzung geändert. Lade sie neu und prüfe sie vor dem nächsten Speichern.",
+      "draftSavedCoverFailed": "Der Entwurf wurde gespeichert, aber das Titelbild konnte nicht hochgeladen werden. Werte und Datei bleiben erhalten; versuche es erneut, ohne einen weiteren Entwurf zu erstellen.",
+      "contentSavedCoverFailed": "Die Veranstaltungsinhalte wurden gespeichert, aber das Ersatztitelbild ist fehlgeschlagen. Versuche das Titelbild erneut, ohne gespeicherte Inhalte zu verlieren."
+    },
+    "notFound": {
+      "title": "Veranstaltung nicht gefunden",
+      "description": "Diese Veranstaltung ist nicht verfügbar oder existiert nicht mehr."
+    }
+  },
+  "adminEventStatus": {
+    "title": "Redaktionsstatus",
+    "current": "Aktueller Status: {{status}}",
+    "phase": "Zeitphase: {{phase}}",
+    "noManualComplete": "Der Zeitplan bestimmt den Abschluss automatisch; es gibt keine manuelle Abschlussaktion.",
+    "saving": "Status wird aktualisiert…",
+    "success": "Veranstaltungsstatus wurde auf {{status}} geändert.",
+    "actions": {
+      "publish": "Veröffentlichen",
+      "draft": "In Entwurf verschieben",
+      "cancel": "Veranstaltung absagen"
+    },
+    "readiness": {
+      "title": "Vervollständige vor der Veröffentlichung diese Felder:",
+      "titleEn": "Englischer Titel",
+      "titleDe": "Deutscher Titel",
+      "descriptionEn": "Englische Beschreibung",
+      "descriptionDe": "Deutsche Beschreibung",
+      "locationEn": "Englischer Ort",
+      "locationDe": "Deutscher Ort",
+      "start": "Beginn mit Datum und Uhrzeit",
+      "end": "Ende mit Datum und Uhrzeit",
+      "cover": "Bereites verwaltetes Titelbild",
+      "endAfterStart": "Eine Endzeit nach der Startzeit"
+    },
+    "confirm": {
+      "draftTitle": "Diese Veranstaltung in den Entwurf verschieben?",
+      "draftDescription": "Die Veranstaltung und die verknüpfte öffentliche Bewerbung werden ausgeblendet. Inhalte und Veröffentlichungshistorie bleiben erhalten.",
+      "cancelTitle": "Diese Veranstaltung absagen?",
+      "cancelDescription": "Die Absage bleibt für die vorgesehene Zielgruppe sichtbar, wird aus dem Slider entfernt und deaktiviert die Anmeldung.",
+      "keep": "Aktuellen Status behalten"
+    },
+    "errors": {
+      "validation": "Die Veranstaltung kann noch nicht veröffentlicht werden. Prüfe die erforderlichen Inhalte und das verwaltete Titelbild.",
+      "conflict": "Die Veranstaltung wurde in einer anderen Sitzung geändert. Lade den aktuellen Status neu und prüfe ihn vor einem weiteren Versuch.",
+      "save": "Der Status wurde nicht geändert. Prüfe die aktuelle Veranstaltung und versuche es erneut."
+    }
+  },
+  "eventDetail": {
+    "back": "Zurück zur Startseite",
+    "loading": "Veranstaltung wird geladen",
+    "noCover": "Veranstaltungstitelbild nicht verfügbar",
+    "starts": "Beginn",
+    "ends": "Ende",
+    "location": "Ort",
+    "organizer": "Veranstalter",
+    "category": "Kategorie",
+    "about": "Über diese Veranstaltung",
+    "cancelled": "Abgesagt",
+    "cancelledNotice": "Diese Veranstaltung wurde abgesagt. Eine Anmeldung ist nicht mehr möglich.",
+    "phase": {
+      "UPCOMING": "Bevorstehend",
+      "ONGOING": "Laufend",
+      "COMPLETED": "Abgeschlossen"
+    },
+    "notFound": {
+      "title": "Veranstaltung nicht gefunden",
+      "description": "Diese Veranstaltung ist nicht verfügbar oder existiert nicht."
+    },
+    "signIn": {
+      "title": "Anmelden, um diese Veranstaltung anzusehen",
+      "description": "Für die Details einer Veranstaltung nur für Mitglieder ist eine Sitzung erforderlich.",
+      "action": "Anmelden"
+    },
+    "error": {
+      "title": "Veranstaltung nicht verfügbar",
+      "description": "Die Veranstaltung konnte nicht geladen werden. Bitte versuche es erneut.",
+      "retry": "Erneut versuchen"
+    }
+  },
   "adminMatching": {
     "title": "Zuordnungsmonitoring",
     "description": "Überwache die Teilnahme am Buddy-Programm, Einladungen und aktive Buddy-Beziehungen.",
@@ -539,7 +734,6 @@
     "matching": "Zuordnung",
     "semesters": "Semester",
     "events": "Veranstaltungen",
-    "eventSliders": "Veranstaltungsslider",
     "announcements": "Mitteilungen",
     "knowledgeBase": "Wissensdatenbank",
     "campus": "Campus",

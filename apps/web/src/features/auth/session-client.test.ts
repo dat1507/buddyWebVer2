@@ -425,6 +425,31 @@ describe('AUTH-021 session coordination', () => {
     })
   })
 
+  it('forwards private multipart data with browser-owned boundary and session CSRF', async () => {
+    await bootstrap()
+    const formData = new FormData()
+    formData.append('version', '3')
+    formData.append('file', new File(['image-bytes'], 'cover.webp', { type: 'image/webp' }))
+    fetch.mockResolvedValueOnce(json({ status: 'stored' }, 201))
+
+    await expect(
+      client.authenticatedJson('/admin/events/event-id/media', {
+        method: 'POST',
+        formData,
+      }),
+    ).resolves.toEqual({ status: 'stored' })
+
+    expect(fetch.mock.calls[2][1]).toMatchObject({
+      method: 'POST',
+      body: formData,
+      headers: {
+        Accept: 'application/json',
+        'X-CSRF-Token': 'session-fixture',
+      },
+    })
+    expect(fetch.mock.calls[2][1]?.headers).not.toHaveProperty('Content-Type')
+  })
+
   it('does not return stale private data when account intent changed mid-request', async () => {
     await bootstrap()
     const late = deferred<Response>()
