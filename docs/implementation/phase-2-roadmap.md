@@ -60,9 +60,10 @@ Production and the owner confirmed the corrected transition is smooth. The owner
 that Home University displays correctly in the authenticated Production Profile. The separate
 edit/save/reload/clear/max-length acceptance remains open, so the Profile task is not DONE.
 
-The release preserves all open Phase 1 blockers. The owner has now separately selected the Event
-system for local implementation; this does not close the remaining Profile acceptance or authorize
-an Event push, Staging mutation, Production launch flag or deployment.
+The release preserves all open Phase 1 blockers. The owner separately selected the Event system and
+later authorized a rollback-gated controlled Production code deployment after isolated local
+acceptance. This does not close the remaining Profile acceptance, authorize Production write tests
+or authorize the Event launch flag.
 
 ## Event system continuation — 2026-10-09
 
@@ -70,10 +71,15 @@ an Event push, Staging mutation, Production launch flag or deployment.
   implemented; the Landing slider is derived from canonical published Events rather than a separate
   slider database/admin page.
 - Dynamic public/Admin routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`. Production remains on the
-  static five-poster carousel until deployed Staging `ACCEPT-EVENT-001` and explicit release
-  approval pass.
-- `EVS-007` is DONE: supported Python 3.12 regression passes 1,407 backend tests with 37 skips,
-  focused Event backend passes 111 tests and frontend passes 773 tests. Landing caps presentation
+  static five-poster carousel during the approved code deployment and smoke test; enabling the
+  canonical Event surfaces still requires explicit launch approval.
+- `EVS-007` is DONE: supported Python 3.12 regression passes 1,408 backend tests with 37 skips,
+  focused Event backend passes 121 tests and frontend passes 774 tests. Landing caps presentation
   at the owner-selected first five canonical results; the backend bounded query cap remains 12.
-- `ACCEPT-EVENT-001` is BLOCKED before scenarios A–E because the Staging API service is suspended,
-  isolated Staging Redis is absent and no matching Event SHA/provider access is available.
+- The owner replaced cloud-Staging acceptance with isolated local A–E, Production rollback
+  preflight, controlled code deployment with the flag OFF and safe Production smoke. The reason is
+  the one-database Upstash Free limit and the decision not to add a paid cloud service. All original
+  security/quality criteria remain; Production writes are not included.
+- Isolated local A–E completed PASS on 2026-10-10: 79 API assertions plus real browser acceptance,
+  followed by backend 1,408 PASS / 37 SKIP and frontend 84 files / 774 PASS. Production preflight is
+  active; no push, deployment, data write or flag change is yet claimed.

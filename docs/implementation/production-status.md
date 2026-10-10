@@ -98,9 +98,33 @@ Read-only Staging probes and local release verification establish the following 
 | `ACCEPT-EVENT-001` A–E | NOT RUN; environment prerequisite blocked |
 | Production mutation | None; no push, deployment, data write, flag change or provider change |
 
-The release is therefore **BLOCKED before Staging acceptance**, not approved for Production.
-Restoring Staging must provide a separate API, Redis namespace/database, database/private
-`event-media` Storage and designated accounts. Production Redis or data must not be reused.
+This Staging-based release conclusion is superseded by the owner execution strategy below. Its
+observations remain historical and are not converted to PASS.
+
+### Event execution strategy override — 2026-10-09
+
+The owner chose not to restore cloud Staging because the single Upstash Free database is reserved
+for Production and no paid service should be added. The replacement gate is isolated local A–E,
+Production baseline plus executable frontend/backend rollback, controlled deployment with the Event
+flag OFF, and safe read-only/non-destructive Production smoke. Security and quality criteria remain
+unchanged. Production Event writes, canonical data publication and enabling the flag require
+separate approval.
+
+### Isolated local Event acceptance — PASS 2026-10-10
+
+The replacement local gate and complete Quality Gate E now pass. A dedicated PostgreSQL acceptance
+database, isolated local Redis namespace, local Supabase Storage and trusted loopback HTTPS were
+used; no Production dependency, account or Event row participated. The API harness passed 79
+assertions and browser acceptance passed Admin edit, signed cover, retry, Event detail/deep-link
+EN/DE, desktop/mobile and empty-state behavior with zero runtime/console errors. Current regression
+evidence is 121 focused Event PASS, backend 1,408 PASS / 37 explicit live SKIP and frontend 84 files
+/ 774 PASS, with lint/type/build/schema/package/dependency gates passing.
+
+This newer evidence supersedes only the historical `NOT RUN` local-acceptance conclusion above; it
+does not change that cloud Staging remains unused. Production is still unchanged, the Event flag is
+still OFF, and no deployment/write/data preparation is claimed. The active gate is direct baseline,
+compatibility and executable Vercel/Render rollback preflight. Full evidence is in
+[`accept-event-001-local-acceptance-2026-10-10.md`](../operations/accept-event-001-local-acceptance-2026-10-10.md).
 
 ### Static-to-canonical Production data preparation
 
@@ -109,12 +133,13 @@ Recruitment, Club Fair 26, Experience Day, Christmas and Halloween. No committed
 trustworthy future date/time, timezone, location or full EN/DE description. Those values must not be
 inferred from a poster or title.
 
-After Staging acceptance and separate release approval, an Admin should create five DRAFT canonical
-records through the product UI, upload the existing posters, enter owner-approved EN/DE content and
-confirm each future schedule/timezone/location. Publish only records that are genuinely upcoming
-and have ready covers; verify the API order and the first-five Landing result before enabling the
-flag. If no record qualifies, the live section intentionally becomes empty, so the flag must remain
-off until the owner accepts the prepared dataset. No Production seed or data mutation was performed.
+After local acceptance, a safe flag-OFF code rollout/smoke, and separate launch approval, an Admin
+should create five DRAFT canonical records through the product UI, upload the existing posters,
+enter owner-approved EN/DE content and confirm each future schedule/timezone/location. Publish only
+records that are genuinely upcoming and have ready covers; verify the API order and the first-five
+Landing result before enabling the flag. If no record qualifies, the live section intentionally
+becomes empty, so the flag must remain off until the owner accepts the prepared dataset. No
+Production seed or data mutation was performed.
 
 ### Rollback boundary
 

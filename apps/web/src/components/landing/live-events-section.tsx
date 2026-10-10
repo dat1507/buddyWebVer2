@@ -57,7 +57,26 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
     )
   }
 
-  return <EventsSlider events={selectLandingEventSliders(events.data)} />
+  const visibleEvents = selectLandingEventSliders(events.data)
+  if (visibleEvents.length === 0) {
+    return (
+      <section
+        className="bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
+        aria-labelledby="events-title"
+      >
+        <div className="mx-auto max-w-3xl space-y-5">
+          <Typography id="events-title" variant="h2">
+            {t('stats.title')}
+          </Typography>
+          <p role="status" className="text-zinc-300">
+            {t('stats.empty')}
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  return <EventsSlider events={visibleEvents} />
 }
 
 export { LiveEventsSection }

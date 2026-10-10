@@ -215,3 +215,27 @@ Result: `EVS-007` is **DONE**. `ACCEPT-EVENT-001` is **BLOCKED — ISOLATED STAG
 PROVIDER ACCESS REQUIRED**, not FAIL. A matching Staging deployment and complete scenarios A–E are
 still required before Production approval; pushing `main` is not a safe substitute because the
 documented workflow may deploy Production.
+
+## ACCEPT-EVENT-001 isolated local acceptance — 2026-10-10
+
+This newer record supersedes only the obsolete cloud-Staging prerequisite and the historical
+`NOT RUN` acceptance conclusion above.
+
+| Check | Result |
+| --- | --- |
+| Local dependency boundary | Dedicated PostgreSQL DB, Redis namespace, Supabase Storage and trusted loopback HTTPS; no Production dependency |
+| API acceptance A–D | 79 assertions PASS; synthetic Events left non-public |
+| Real browser acceptance | Admin edit, retry, signed cover, detail/deep-link EN/DE, desktop/mobile and empty state PASS; 0 runtime/console errors |
+| Acceptance regression fixes | Async update-default projection, detail/session bootstrap, live empty state and phase-boundary projection covered |
+| Focused final Event suite | 121 PASS |
+| Full backend, CPython 3.12.10 | 1,408 PASS; 37 explicit opt-in live SKIP; exit 0 |
+| Backend static/package/security gates | Ruff, strict mypy, `pip check`, sdist/wheel, Compose config and exact-pin vulnerability audit PASS |
+| Schema compatibility | One Alembic head at `0021_restore_runtime_permissions`; no migration added |
+| Full frontend | 84 files / 774 tests PASS |
+| Frontend static/build/security gates | TypeScript, ESLint, Prettier, normal/launch builds and production dependency audit PASS |
+| Launch boundary | Production unchanged; Event flag OFF; no Event write/seed/publish/flag/provider mutation |
+
+Result: isolated local acceptance A–E and Quality Gate E **PASS**. Continue with direct Production
+baseline/compatibility and executable Vercel/Render rollback preflight. Deployment is blocked unless
+both rollback paths are operationally proven. Detailed evidence is in
+`../operations/accept-event-001-local-acceptance-2026-10-10.md`.

@@ -1,8 +1,8 @@
 # Session handoff
 
-**Updated:** 2026-10-09 (Asia/Saigon)
+**Updated:** 2026-10-10 (Asia/Saigon)
 **TASK_ID:** ACCEPT-EVENT-001
-**Current mode:** Event regression closed; Staging acceptance blocked on isolated stack/access
+**Current mode:** Local Event acceptance A–E PASS; Production rollback preflight in progress
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -27,30 +27,39 @@ implemented on local `main`, which remains unpushed. It uses one Event source: t
 derives PUBLIC/PUBLISHED/upcoming Events with ready covers; there is no standalone Slider
 admin/table or manual ordering. Per the latest owner decision, Landing renders the first five
 canonical API results; the backend 12-row bound remains an API/query cap rather than an Event or
-Admin limit. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; do not enable or deploy them
-to Production before Staging `ACCEPT-EVENT-001` and explicit release approval.
+Admin limit. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`. The owner authorized a
+controlled code deployment only if Production preflight proves executable Vercel and Render
+rollback; the flag must remain OFF and Event launch still requires separate approval.
 
 Verification at this continuation point:
 
-- frontend full suite 84 files / 773 tests PASS; TypeScript, ESLint, Prettier and normal plus
+- isolated local API acceptance completed 79 assertions and real browser acceptance passed Admin
+  edit, signed cover, slider retry, detail/deep-link EN/DE, desktop/mobile and empty-state paths;
+- frontend full suite 84 files / 774 tests PASS; TypeScript, ESLint, Prettier and normal plus
   launch-mode production builds PASS; launch-mode JS has no hardcoded static Event record titles;
-- backend focused Event suite 111/111 PASS; Ruff and strict mypy PASS; Alembic reports one head at
+- backend focused Event suite 121/121 PASS; Ruff and strict mypy PASS; Alembic reports one head at
   `0021_restore_runtime_permissions`;
-- backend full suite on the repository-supported Python 3.12 runtime: 1,407 PASS, 37 SKIP. The two
+- backend full suite on the repository-supported Python 3.12 runtime: 1,408 PASS, 37 SKIP. The two
   former Chat WebSocket failures were a cross-loop fake transport and asynchronous teardown race;
   the test harness now uses the TestClient portal and deterministic cleanup. Application WebSocket
   code is unchanged, and `EVS-007` is DONE;
+- local acceptance discovered and covered async `updated_at` projection, Event-detail session
+  bootstrap, live empty-state and phase-boundary consistency regressions; Quality Gate E is PASS;
 - no database, Storage, provider, account, Staging or Production mutation occurred. No push or
   deployment has occurred. Production remains on its static five-event fallback with the dynamic
   flag off.
 
-`ACCEPT-EVENT-001` is BLOCKED before execution. On 2026-10-09 the Staging frontend returned 200 but
-served the older static bundle, while API live/readiness/Event-slider probes returned 503 from the
-suspended provider service. Staging has no isolated Redis after the prior allocation moved to
-Production, and this checkout has no provider linkage/access. Scenarios A–E are NOT RUN. Next: the
-owner restores an isolated Staging stack and grants provider access; then deploy matching SHAs,
-verify head/private `event-media`, and run the signed acceptance. Never reuse Production Redis or
-push `main` as a Staging workaround.
+The signed local evidence is in
+`docs/operations/accept-event-001-local-acceptance-2026-10-10.md`. Do not rerun A–E without a new
+regression reason. Continue with current Production baseline, compatibility and executable rollback
+verification. Stop before push if either frontend or backend rollback is not operationally proven.
+
+The owner superseded the cloud-Staging prerequisite on 2026-10-09. Because Upstash Free provides one
+database and it is Production-only, the approved Event path is isolated local A–E, Production
+preflight with executable Vercel/Render rollback, controlled `main` deployment while the Event flag
+remains OFF, and safe Production smoke. Do not use Production dependencies for local acceptance.
+Production write tests, canonical Event data mutation/publish and enabling the Event flag remain
+unauthorized. Distinguish Local PASS, Production Smoke PASS and NOT RUN evidence.
 
 Previously, the owner separately authorized `FE-LANDING-BG-001`, followed by
 `FE-PROFILE-HOME-UNI-001`, on local `main`; both are now deployed from commit `2f6f8c8` with
@@ -67,8 +76,10 @@ provider or rerun accepted functional/technical paths. The release lane remains 
 `docs/implementation/post-deployment-workflow.md` unless an owner separately authorizes one of the
 blocked remediation steps.
 
-The 2026-10-09 approval was consumed by the push and Vercel Production deployment. Do not perform a
-future feature push/deployment, migrate or change Production without a new explicit approval.
+The earlier 2026-10-09 frontend approval was consumed. A newer 2026-10-10 owner instruction
+authorizes committing and pushing this Event candidate and deploying compatible frontend/backend
+code only after every Production safety gate passes. It does not authorize Production writes,
+migration changes, provider/secret changes, Event publication or enabling the Event flag.
 
 ## Latest Phase 2 frontend release
 

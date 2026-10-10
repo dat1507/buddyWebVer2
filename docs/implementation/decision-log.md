@@ -63,6 +63,12 @@ the per-task extracts and legacy archive.
   cookie/CORS/TLS or core-flow failures still block closure.
 - Dynamic Event/Admin Event surfaces remain feature-gated until the Part 27 chain and
   `ACCEPT-EVENT-001` pass. Static carousel content grants no dynamic-task credit.
+- Owner decision on 2026-10-09 replaces cloud-Staging Event acceptance with isolated local
+  acceptance followed by rollback-gated controlled Production deployment and safe Production
+  smoke. The single Upstash Free database remains Production-only; local acceptance must not use
+  Production PostgreSQL, Redis, Storage, email or accounts. This is a cost/environment decision,
+  not a reduction of security or quality gates. Production write tests and the Event launch flag
+  still require separate approval.
 
 ## Canonical Event delivery — recovered 2026-10-09
 

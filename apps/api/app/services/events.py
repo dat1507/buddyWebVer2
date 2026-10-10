@@ -380,6 +380,9 @@ async def cleanup_deleted_event_media(
     return tuple(failed)
 
 
-def project_admin_event(event: Event) -> AdminEventResponse:
+def project_admin_event(event: Event, *, at: datetime | None = None) -> AdminEventResponse:
     """Serialize only the allowlisted Admin API projection."""
-    return AdminEventResponse.model_validate(event)
+    response = AdminEventResponse.model_validate(event)
+    if at is None:
+        return response
+    return response.model_copy(update={"phase": event.phase_at(at)})

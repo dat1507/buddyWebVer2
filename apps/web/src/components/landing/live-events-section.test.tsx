@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LiveEventsSection } from '@/components/landing/live-events-section'
@@ -66,10 +66,13 @@ describe('FE-014B live Landing Event section', () => {
     expect(listPublished).toHaveBeenCalledWith('en', expect.any(AbortSignal))
   })
 
-  it('hides the complete section for a successful empty response', async () => {
-    const { container } = renderLive({ listPublished: vi.fn().mockResolvedValue([]) })
+  it('shows an explicit non-error state for a successful empty response', async () => {
+    renderLive({ listPublished: vi.fn().mockResolvedValue([]) })
 
-    await waitFor(() => expect(container).toBeEmptyDOMElement())
+    expect(
+      await screen.findByText('There are no upcoming events to show right now.'),
+    ).toHaveAttribute('role', 'status')
+    expect(screen.getByRole('heading', { name: 'Upcoming Events' })).toBeVisible()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 

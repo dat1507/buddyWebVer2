@@ -1,7 +1,7 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.7
-**Updated:** 2026-10-09
+**Plan version:** 1.9
+**Updated:** 2026-10-10
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
@@ -42,8 +42,8 @@ remains open under the original Profile contract.
 | 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; no retained Render rollback point or named owners | Separately authorize backup remediation/verification, establish backend rollback, name owners and accept the post-repair hold |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
-| 4 | `EVS-007` Event regression gate | P0 product | **DONE — SUPPORTED-RUNTIME REGRESSION PASS** | Python 3.12 full backend 1,407 PASS / 37 SKIP; Event backend 111 PASS; frontend 773 PASS | Preserve evidence; no repeat without regression reason |
-| 5 | `ACCEPT-EVENT-001` | P0 release gate | **BLOCKED — STAGING STACK / ACCESS REQUIRED** | Staging API provider is suspended, isolated Redis is absent and no matching Event SHA is deployed | Restore isolated Staging and provider access, then deploy matching SHAs and run scenarios A–E |
+| 4 | `EVS-007` Event regression gate | P0 product | **DONE — SUPPORTED-RUNTIME REGRESSION PASS** | Current regression: Python 3.12 backend 1,408 PASS / 37 SKIP; Event backend 121 PASS; frontend 774 PASS | Preserve evidence; no repeat without regression reason |
+| 5 | `ACCEPT-EVENT-001` | P0 release gate | **IN PROGRESS — LOCAL A–E PASS / PRODUCTION PREFLIGHT** | Isolated local API/browser acceptance and Quality Gate E passed; Production remains unchanged with flag OFF | Prove executable Vercel/Render rollback; only then deploy code with flag OFF and run safe Production smoke |
 | 6 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
 | 7 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
 | 8 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
@@ -115,16 +115,24 @@ On 2026-10-09 the owner selected this lane. `EVT-005/006/009/011`, `EVS-005`, `A
 source is one Event model: the Landing slider is a derived PUBLIC/PUBLISHED/upcoming projection;
 there is no standalone slider table, manual ordering page or duplicated promotion CRUD.
 
-`EVS-007` is DONE. The two WebSocket failures were a fake-transport/TestClient teardown race; the
-minimal test-harness fix passes on the project's supported Python 3.12 runtime. Full backend is
-1,407 PASS / 37 SKIP, focused Event backend is 111 PASS and frontend is 773 PASS. Landing renders
+`EVS-007` is DONE. The current post-acceptance regression is 1,408 backend PASS / 37 SKIP on the
+project's Python 3.12 runtime, 121 focused Event PASS and 84 files / 774 frontend PASS. Ruff, strict
+mypy, TypeScript, ESLint, Prettier, normal/launch builds and dependency audits pass. Landing renders
 the first five canonical results while the server's 12-row bounded API cap remains unchanged.
 
-`ACCEPT-EVENT-001` is BLOCKED before execution: the Staging frontend serves the older bundle, the
-Staging API provider returns 503/suspended, isolated Staging Redis is absent after the former
-allocation moved to Production, and this checkout has no provider linkage/access. Scenarios A–E
-remain NOT RUN. Do not push `main` as a Staging workaround because the documented flow can trigger
-Production deployment; restore isolated Staging and deploy matching SHAs first.
+The owner superseded the cloud-Staging prerequisite on 2026-10-09 because Upstash Free provides one
+database and it is reserved for Production. `ACCEPT-EVENT-001` now executes as isolated local A–E,
+then Production preflight with executable Vercel and Render rollback, controlled `main` deployment
+with `VITE_EVENTS_LAUNCH_ENABLED` still OFF, and safe read-only/non-destructive Production smoke.
+This changes the environment, not the security or quality criteria. Production write tests remain
+separately unauthorized, and enabling the Event flag still requires explicit launch approval.
+
+On 2026-10-10 isolated local A–E and Quality Gate E completed **PASS**. The API harness recorded 79
+assertions; real browser acceptance covered Admin edit, signed cover, retry, detail/deep-link EN/DE,
+responsive layout and empty state with zero runtime or console errors. Four acceptance regressions
+have focused coverage: async `updated_at` projection, detail query/session bootstrap, live empty
+state and a phase-boundary projection race. The active step is Production baseline/compatibility and
+rollback preflight; no push, deployment, Production write or flag change is yet claimed.
 
 Manual gates:
 
@@ -132,7 +140,8 @@ Manual gates:
 - Storage ownership/readiness and replacement cleanup after `EVT-011`.
 - Admin create/publish/public-visibility acceptance after `ADMIN-009`.
 - Landing/detail freshness and cache acceptance after `FE-014B`.
-- Full real Admin/public staging acceptance at `ACCEPT-EVENT-001` before enabling the dynamic flag.
+- Full isolated local Admin/public acceptance, controlled deployment and Production smoke at
+  `ACCEPT-EVENT-001` before requesting approval to enable the dynamic flag.
 
 The current static carousel does not complete any dynamic Event task.
 

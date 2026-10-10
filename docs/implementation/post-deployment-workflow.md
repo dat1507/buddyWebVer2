@@ -87,10 +87,19 @@ Run only after an explicit post-deployment product decision:
 10. `FE-031` — generic public Event Detail.
 11. `FE-014B` — live Landing slider integration.
 12. `EVS-007` — integration/security/regression gates.
-13. `ACCEPT-EVENT-001` — real Admin/public staging acceptance.
+13. `ACCEPT-EVENT-001` — isolated local Admin/public acceptance, rollback-gated controlled
+    Production code deployment with the Event flag OFF, and safe Production smoke.
 
-Do not enable dynamic navigation/feature flags until step 13 passes. Each Task ID's preserved
-dependencies, acceptance criteria and security requirements are in `tasks/<TASK_ID>.md`.
+The owner replaced cloud Staging for this Event release because the single Upstash Free database is
+Production-only. Do not use Production dependencies for local acceptance, perform Production write
+tests, or enable dynamic navigation/feature flags during step 13. A separate owner launch approval
+is still required. Each Task ID's preserved dependencies, acceptance criteria and security
+requirements are in `tasks/<TASK_ID>.md`.
+
+**Current Event checkpoint — 2026-10-10:** isolated local A–E and Quality Gate E are PASS. Continue
+at Production baseline/compatibility and executable Vercel/Render rollback preflight. If backend or
+frontend rollback cannot be demonstrated, stop before pushing `main`; Git history alone is not an
+operational rollback.
 
 ## Stage 4 — Remaining P1/research backlog
 

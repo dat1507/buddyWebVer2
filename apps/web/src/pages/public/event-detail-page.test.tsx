@@ -8,6 +8,7 @@ import { publicEventsClient, type PublicEvent } from '@/features/events/public-e
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { EventDetailPage } from '@/pages/public/event-detail-page'
+import { useAuthStore } from '@/stores/auth-store'
 
 const FIRST_ID = '11111111-1111-4111-8111-111111111111'
 const SECOND_ID = '22222222-2222-4222-8222-222222222222'
@@ -78,11 +79,26 @@ describe('FE-031 Event detail page', () => {
 
   beforeEach(async () => {
     await i18n.changeLanguage('en')
+    useAuthStore.getState().clearSession()
     readEvent.mockReset().mockResolvedValue(event)
   })
 
   afterEach(() => {
+    useAuthStore.getState().resetSession()
     vi.clearAllMocks()
+  })
+
+  it('waits for session bootstrap before loading a viewer-scoped direct URL', async () => {
+    useAuthStore.getState().startLoading()
+    renderEvent()
+
+    expect(screen.getByRole('status', { name: 'Loading Event' })).toBeVisible()
+    expect(readEvent).not.toHaveBeenCalled()
+
+    act(() => useAuthStore.getState().clearSession())
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Buddy Day' })).toBeVisible()
+    expect(readEvent).toHaveBeenCalledTimes(1)
   })
 
   it('loads a direct URL and renders authoritative fields, poster, and escaped text', async () => {

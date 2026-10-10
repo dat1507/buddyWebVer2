@@ -1,6 +1,6 @@
 # ACCEPT-EVENT-001
 
-**Control-plane status:** BLOCKED — ISOLATED STAGING STACK AND PROVIDER ACCESS REQUIRED
+**Control-plane status:** IN PROGRESS — LOCAL A–E PASS / PRODUCTION PREFLIGHT
 **Track:** release-operations
 **Priority:** -
 **Dependencies (latest extracted):** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,
@@ -8,6 +8,46 @@
 > Focused extract generated from the legacy plan on 2026-10-08. Apply the current status and
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
+
+## Owner execution override — 2026-10-09
+
+Cloud Staging is no longer a prerequisite for the current Event release. Upstash Free provides one
+database and the owner reserves it for Production, so restoring a second cloud stack would add cost
+or risk Production isolation. The approved sequence is now:
+
+`isolated local acceptance -> Production preflight/rollback -> controlled deployment with flag OFF
+-> safe Production smoke -> separate Event launch approval`
+
+The environment changes; the acceptance standard does not. Local PostgreSQL, Redis and object
+Storage must be proven separate from Production before any write. Scenarios A–E retain their RBAC,
+CSRF, IDOR, versioning, validation, file-security, freshness, responsive and EN/DE requirements.
+Production write tests, canonical Event seeding/publishing and changing
+`VITE_EVENTS_LAUNCH_ENABLED` remain unauthorized without separate owner approval.
+
+The earlier Staging readiness evidence below remains historical and must not be upgraded to PASS.
+Local PASS, Production Smoke PASS and NOT RUN scenarios must be reported separately.
+
+## Isolated local acceptance — PASS 2026-10-10
+
+The owner-approved local replacement gate completed without using Production dependencies:
+
+- dedicated PostgreSQL acceptance database, separate local Redis namespace, local Supabase Storage
+  and trusted loopback HTTPS were verified; the email worker stayed off;
+- the API harness completed 79 assertions across Admin create/edit/lifecycle, cover replacement,
+  public EN/DE projections, signed covers, ordering, RBAC, CSRF, IDOR, optimistic versions,
+  allowlists and file validation;
+- browser acceptance passed Admin edit, signed cover, slider error/retry, click and deep-link detail,
+  EN/DE, desktop/mobile and the post-unpublish empty state with zero runtime/console errors;
+- synthetic Events finished non-public, and no Production Event, account, Storage or provider state
+  was read for local acceptance or changed;
+- Quality Gate E passed 121 focused Event tests, 1,408 backend tests with 37 explicit live skips,
+  and 84 files / 774 frontend tests, plus lint/type/build/package/schema/dependency gates.
+
+Detailed sanitized evidence is in
+[`accept-event-001-local-acceptance-2026-10-10.md`](../../operations/accept-event-001-local-acceptance-2026-10-10.md).
+The active gate is read-only Production baseline/compatibility and executable Vercel/Render
+rollback. No push or deployment may occur if rollback remains incomplete. Production Event writes,
+data preparation and flag activation remain unauthorized.
 
 ## Staging readiness evidence — 2026-10-09
 
@@ -24,10 +64,8 @@
   upload, Landing/detail EN/DE, propagation and RBAC/security require the isolated deployed stack,
   private `event-media` readiness and designated Staging accounts.
 
-Unblock condition: the owner restores an isolated Staging stack (including Staging Redis) and grants
-this session provider access without sharing secrets in chat. Then deploy matching SHAs, verify
-health/head/private Storage and run A–E. Production remains untouched and the launch flag remains
-off until a complete PASS plus separate release approval.
+This former unblock condition is superseded by the owner execution override above. It records why
+cloud Staging was not used; it is not a current request to restore Staging.
 
 ## Preserved contract sections
 

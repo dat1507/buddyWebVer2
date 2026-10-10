@@ -15,6 +15,7 @@ from sqlalchemy import (
     Table,
     Text,
     Uuid,
+    inspect,
     select,
 )
 from sqlalchemy.engine import make_url
@@ -23,6 +24,7 @@ from sqlalchemy.schema import ColumnDefault, CreateTable, DefaultClause
 from app.core.database import APPLICATION_SCHEMA
 from app.models import (
     Event,
+    EventMedia,
     EventPhase,
     EventStatus,
     EventVisibility,
@@ -62,6 +64,13 @@ def test_event_enums_separate_editorial_state_visibility_and_derived_phase() -> 
         EventPhase.ONGOING,
         EventPhase.COMPLETED,
     )
+
+
+def test_event_write_models_eagerly_fetch_server_generated_update_defaults() -> None:
+    """Async API responses must not lazy-load ``updated_at`` after their commit."""
+
+    assert inspect(Event).eager_defaults is True
+    assert inspect(EventMedia).eager_defaults is True
 
 
 def test_event_table_covers_part_7_without_persisting_phase() -> None:

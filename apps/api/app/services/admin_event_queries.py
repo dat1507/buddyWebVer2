@@ -126,7 +126,9 @@ async def list_admin_events(
         .limit(checked.page_size)
     )
     return AdminEventListResponse(
-        items=[project_admin_event(event) for event in result.all()],
+        # Keep the returned phase consistent with the instant used by the phase filter. Otherwise
+        # a request crossing a schedule boundary can return an item outside its requested phase.
+        items=[project_admin_event(event, at=reference_time) for event in result.all()],
         page=checked.page,
         page_size=checked.page_size,
         total=total,

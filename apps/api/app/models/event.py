@@ -118,6 +118,9 @@ class Event(Base):
     """Scheduling source kept separate from promotion, media and registration rows."""
 
     __tablename__ = "events"
+    # Async response projection cannot lazy-load an expired server-generated timestamp after
+    # commit. Fetch UPDATE defaults in the write statement so ``updated_at`` remains available.
+    __mapper_args__ = {"eager_defaults": True}
     __table_args__ = (
         CheckConstraint(
             "title_en IS NULL OR char_length(btrim(title_en)) BETWEEN 1 AND 120",
@@ -380,6 +383,8 @@ class EventMedia(Base):
     """Private image metadata owned by one Event, without a durable delivery URL."""
 
     __tablename__ = "event_media"
+    # Media metadata mutations are returned immediately after commit, just like their parent Event.
+    __mapper_args__ = {"eager_defaults": True}
     __table_args__ = (
         CheckConstraint(
             f"bucket = '{EVENT_MEDIA_BUCKET}'",
