@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
+import { adminEventsEnabled } from '@/config/launch-scope'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
 import i18n from '@/i18n'
@@ -18,6 +19,7 @@ const admin = {
   email_verified: false,
 }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
+const metricCount = adminEventsEnabled ? 6 : 4
 
 function LocationProbe() {
   const { pathname, search, hash } = useLocation()
@@ -72,8 +74,8 @@ describe('ADMIN-003 actual guarded overview and session flow', () => {
     renderApp(path)
     const main = screen.getByRole('main', { name: 'Administrator content' })
     const overview = within(main).getByRole('region', { name: 'Admin overview' })
-    expect(within(overview).getAllByRole('term')).toHaveLength(6)
-    expect(within(overview).getAllByText('Not available')).toHaveLength(6)
+    expect(within(overview).getAllByRole('term')).toHaveLength(metricCount)
+    expect(within(overview).getAllByText('Not available')).toHaveLength(metricCount)
     expect(screen.getAllByRole('main')).toHaveLength(1)
     expect(main.querySelector('main')).toBeNull()
     expect(screen.getByTestId('location').textContent).toBe(destination)
@@ -118,7 +120,7 @@ describe('ADMIN-003 actual guarded overview and session flow', () => {
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     expect(await screen.findByRole('region', { name: 'Administrationsübersicht' })).toBe(region)
     expect(within(region).getByText('KI-Anfragen heute')).toBeVisible()
-    expect(within(region).getAllByText('Nicht verfügbar')).toHaveLength(6)
+    expect(within(region).getAllByText('Nicht verfügbar')).toHaveLength(metricCount)
     expect(screen.getByRole('main', { name: 'Inhalte der Administration' })).toBe(main)
     expect(screen.getByRole('link', { name: 'Übersicht' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard?period=week#summary')
@@ -137,7 +139,7 @@ describe('ADMIN-003 actual guarded overview and session flow', () => {
     expect(within(main).getByRole('heading', { name: 'Knowledge base' })).toBeVisible()
     expectNoOverview()
     fireEvent.click(within(nav).getByRole('link', { name: 'Overview' }))
-    expect(within(main).getAllByRole('definition')).toHaveLength(6)
+    expect(within(main).getAllByRole('definition')).toHaveLength(metricCount)
     expect(screen.getByRole('main', { name: 'Administrator content' })).toBe(main)
     expect(screen.getByRole('navigation', { name: 'Administrator navigation' })).toBe(nav)
     expect(fetch).not.toHaveBeenCalled()

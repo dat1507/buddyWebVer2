@@ -85,3 +85,15 @@ or authorize the Event launch flag.
   complete with executable rollback. Application SHA `e2ef4c0` is deployed to Vercel/Render;
   GitHub CI and read-only Production smoke passed while the Event flag remained OFF. No Production
   Event data write or launch action occurred.
+
+## Event activation split — 2026-10-11
+
+- `EVENT-FLAG-SPLIT` supersedes the shared frontend launch switch with independent strict Admin and
+  public switches. Missing/invalid values are OFF, and the legacy switch is ignored.
+- Admin OFF consistently hides list/create/edit navigation and overview metrics. Public OFF retains
+  the unchanged five-poster static Landing with no live slider request and hides public/User Event
+  surfaces. Existing role guards and backend authorization remain unchanged.
+- Resolver, route/navigation/dashboard/Landing tests, all four flag combinations, missing/invalid/
+  legacy cases, the 85-file/788-test frontend suite and all four production builds pass locally.
+- The controlled release keeps both Production switches OFF and stops before Admin activation,
+  Production Event writes or public-live activation.

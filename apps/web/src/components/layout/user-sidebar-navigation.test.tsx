@@ -1,8 +1,10 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { CalendarDays } from 'lucide-react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { UserSidebarNavigation } from '@/components/layout/user-sidebar-navigation'
+import { publicEventsEnabled } from '@/config/launch-scope'
 import i18n from '@/i18n'
 import { userNavigationItems, type UserNavigationItem } from '@/routes/user-navigation'
 
@@ -10,7 +12,15 @@ const locales = [
   [
     'en',
     'Student navigation',
-    ['Dashboard', 'Edit Profile', 'My Profile', 'Buddy Matching', 'My Buddy', 'Events', 'Settings'],
+    [
+      'Dashboard',
+      'Edit Profile',
+      'My Profile',
+      'Buddy Matching',
+      'My Buddy',
+      ...(publicEventsEnabled ? ['Events'] : []),
+      'Settings',
+    ],
   ],
   [
     'de',
@@ -21,14 +31,27 @@ const locales = [
       'Mein Profil',
       'Buddy-Matching',
       'Mein Buddy',
-      'Veranstaltungen',
+      ...(publicEventsEnabled ? ['Veranstaltungen'] : []),
       'Einstellungen',
     ],
   ],
 ] as const
 
+const eventFixture: UserNavigationItem = {
+  id: 'events',
+  labelKey: 'userNavigation.events',
+  Icon: CalendarDays,
+  available: false,
+  to: '/user/events',
+}
+const unavailableEventItems: readonly UserNavigationItem[] = userNavigationItems.some(
+  ({ id }) => id === 'events',
+)
+  ? userNavigationItems
+  : [...userNavigationItems.slice(0, -1), eventFixture, userNavigationItems.at(-1)!]
+
 // Component inputs for released-page behavior beyond the production profile pages.
-const releasedItems: readonly UserNavigationItem[] = userNavigationItems.map((item) =>
+const releasedItems: readonly UserNavigationItem[] = unavailableEventItems.map((item) =>
   item.to && ['editProfile', 'myProfile', 'events'].includes(item.id)
     ? { ...item, available: true, to: item.to }
     : item,
@@ -67,7 +90,7 @@ describe('FE-022 student sidebar navigation', () => {
       renderNavigation()
       const nav = screen.getByRole('navigation', { name: navLabel })
       const links = within(nav).getAllByRole('link')
-      expect(links).toHaveLength(7)
+      expect(links).toHaveLength(userNavigationItems.length)
       labels.forEach((label) => expect(within(nav).getByText(label)).toBeVisible())
       const profile = within(nav).getByRole('link', { name: i18n.t('userNavigation.myProfile') })
       expect(profile).toHaveAttribute('href', '/user/profile')
@@ -129,7 +152,7 @@ describe('FE-022 student sidebar navigation', () => {
   })
 
   it('marks an unfinished nested Events route without enabling its destination', () => {
-    renderNavigation('/user/events/example')
+    renderNavigation('/user/events/example', unavailableEventItems)
     const current = screen.getByRole('navigation').querySelector('[aria-current="page"]')
     expect(current).toHaveTextContent('Events')
     expect(current).toHaveAttribute('aria-disabled', 'true')
@@ -213,7 +236,7 @@ describe('FE-022 student sidebar navigation', () => {
   })
 
   it('does not let an unavailable item receive focus or change the route', () => {
-    renderNavigation('/user/profile/edit')
+    renderNavigation('/user/profile/edit', unavailableEventItems)
     const editProfile = screen.getByRole('link', { name: 'Edit Profile' })
     editProfile.focus()
     const events = screen.getByRole('link', { name: /Events/ })

@@ -89,6 +89,20 @@ the per-task extracts and legacy archive.
 - Dynamic Event routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`; only a complete
   `ACCEPT-EVENT-001` PASS and explicit release approval may enable Production.
 
+## Independent Event activation controls — 2026-10-11
+
+- The shared `VITE_EVENTS_LAUNCH_ENABLED` design above is historical and superseded for current
+  frontend builds. Its value is intentionally ignored so a stale legacy setting cannot expose a
+  new surface.
+- `VITE_ADMIN_EVENTS_ENABLED` controls all Admin Event routes, navigation and overview metrics.
+  `VITE_PUBLIC_EVENTS_ENABLED` independently controls the API-backed Landing slider, public detail
+  route and User Event routes/navigation/dashboard action.
+- Only exact `true` enables either switch. Missing, empty, invalid, differently cased or padded
+  values fail closed to OFF. Frontend gating remains a release/presentation boundary; backend
+  ADMIN/RBAC and other security controls remain authoritative.
+- The initial rollout keeps both Production keys absent/OFF. Admin-only activation, Production
+  Event writes and public-live activation each require later explicit owner approval.
+
 ## Phase 2 development order — owner decision 2026-10-08
 
 - The first two Phase 2 development tasks are `FE-LANDING-BG-001`, then

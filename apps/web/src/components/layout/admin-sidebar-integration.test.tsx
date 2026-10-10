@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
+import { adminEventsEnabled } from '@/config/launch-scope'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
 import i18n from '@/i18n'
@@ -21,7 +22,7 @@ const json = (value: unknown, status = 200) => new Response(JSON.stringify(value
 const modules = [
   ['Overview', 'dashboard', 'Admin overview'],
   ['Users', 'users', 'User management'],
-  ['Events', 'events', 'Event management'],
+  ...(adminEventsEnabled ? ([['Events', 'events', 'Event management']] as const) : []),
   ['Announcements', 'announcements', 'Announcements'],
   ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
   ['Campus', 'campus', 'Campus management'],
@@ -143,7 +144,8 @@ describe('ADMIN-002 guarded App navigation', () => {
       'Übersicht',
       'Benutzer',
       'Zuordnung',
-      'Veranstaltungen',
+      'Semester',
+      ...(adminEventsEnabled ? ['Veranstaltungen'] : []),
       'Mitteilungen',
       'Wissensdatenbank',
       'Campus',

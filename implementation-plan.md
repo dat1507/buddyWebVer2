@@ -1,7 +1,7 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.9
-**Updated:** 2026-10-10
+**Plan version:** 1.11
+**Updated:** 2026-10-11
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
@@ -38,17 +38,18 @@ remains open under the original Profile contract.
 
 ## Executable status
 
-| Order | Task / gate | Priority | Status | Dependency / reason | Next evidence |
-| --- | --- | --- | --- | --- | --- |
-| 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; named owners and accepted post-repair hold remain missing; Render rollback is now retained | Separately authorize backup remediation/verification, name owners and accept the post-repair hold |
-| 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
-| 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
-| 4 | `EVS-007` Event regression gate | P0 product | **DONE — SUPPORTED-RUNTIME REGRESSION PASS** | Current regression: Python 3.12 backend 1,408 PASS / 37 SKIP; Event backend 121 PASS; frontend 774 PASS | Preserve evidence; no repeat without regression reason |
-| 5 | `ACCEPT-EVENT-001` | P0 release gate | **DONE — FLAG-OFF PRODUCTION SMOKE PASS** | Local A–E, Quality Gate E, rollback preflight, controlled deploy and read-only smoke passed at `e2ef4c0` | Preserve evidence; await separate canonical data and Event launch approval |
-| 6 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
-| 7 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
-| 8 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
-| 9 | `FE-LANDING-BG-002` | Phase 2 corrective | **DONE — PRODUCTION VERIFIED** | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass | Preserve evidence; no repeat without regression reason |
+| Order | Task / gate                     | Priority           | Status                                                           | Dependency / reason                                                                                                                                               | Next evidence                                                                                     |
+| ----- | ------------------------------- | ------------------ | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1     | `PROD-001`                      | Release-blocking   | **BLOCKED / OWNER ACTION REQUIRED**                              | Private Semester backup failed; named owners and accepted post-repair hold remain missing; Render rollback is now retained                                        | Separately authorize backup remediation/verification, name owners and accept the post-repair hold |
+| 2     | `ACCEPT-001` residual evidence  | High hardening     | **OPEN / POST-DEPLOY**                                           | Smaller MVP release boundary approved; integrity guards already exist                                                                                             | Close only missing signed/redacted evidence; do not rerun accepted scenarios                      |
+| 3     | Encrypted off-site DR rehearsal | High hardening     | **OPEN / POST-DEPLOY**                                           | Production exists; DR roles/runbook prepared                                                                                                                      | Full encrypted snapshot plus disposable restore evidence                                          |
+| 4     | `EVS-007` Event regression gate | P0 product         | **DONE — SUPPORTED-RUNTIME REGRESSION PASS**                     | Current regression: Python 3.12 backend 1,408 PASS / 37 SKIP; Event backend 121 PASS; frontend 774 PASS                                                           | Preserve evidence; no repeat without regression reason                                            |
+| 5     | `ACCEPT-EVENT-001`              | P0 release gate    | **DONE — FLAG-OFF RELEASE VERIFIED / PRODUCTION WRITES NOT RUN** | Local A–E, Quality Gate E, rollback preflight, controlled deploy and read-only smoke passed at `e2ef4c0`; Production create/edit/upload intentionally remain open | Preserve evidence; decide Admin/public flag split before canonical data and launch approval       |
+| 6     | `EVENT-FLAG-SPLIT`              | P0 product-release | **RELEASE CANDIDATE — LOCAL GATES PASS / BOTH PROD FLAGS OFF**   | Independent strict flags, route consistency and six matrix configurations pass; Production keys are absent                                                        | Controlled `main` rollout and read-only OFF/OFF smoke; stop before Admin activation               |
+| 7     | P1 product backlog              | P1                 | **PLANNED**                                                      | Depends on task-specific contracts                                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
+| 8     | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                   | Vercel Production and desktop/mobile/transition evidence pass                                                                                                     | Preserve evidence; no repeat without regression reason                                            |
+| 9     | `FE-PROFILE-HOME-UNI-001`       | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN**    | Owner confirmed correct Production display; automated behavior tests pass                                                                                         | Owner edit/save/reload/clear/max-length review                                                    |
+| 10    | `FE-LANDING-BG-002`             | Phase 2 corrective | **DONE — PRODUCTION VERIFIED**                                   | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass                                                                                    | Preserve evidence; no repeat without regression reason                                            |
 
 `SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
 visual gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. The
@@ -57,6 +58,13 @@ completed frontend release does not authorize database or other provider mutatio
 The owner separately authorized `FE-LANDING-BG-002` as a corrective Landing-only implementation,
 push and Vercel deployment. That release is complete and its authorization is consumed; it does
 not authorize any other feature or Production mutation.
+
+The owner authorized `EVENT-FLAG-SPLIT` on 2026-10-11. Local implementation and all frontend gates
+pass. The release changes only build-time frontend controls: exact `true` on
+`VITE_ADMIN_EVENTS_ENABLED` or `VITE_PUBLIC_EVENTS_ENABLED` enables its own surface; missing or
+invalid values remain OFF, and the legacy shared key is ignored. Both Production keys are absent.
+The authorized rollout must therefore preserve the static five-poster Landing and hidden Admin/
+public Event surfaces, then stop at the separate Admin-only activation approval gate.
 
 ## Completed release gates — do not repeat without a regression reason
 
@@ -138,18 +146,29 @@ Production preflight then proved Alembic `0021`, private Event Storage, current 
 baselines, skew compatibility and executable rollback. `e2ef4c0` reached Vercel and Render; GitHub
 Backend/Frontend CI succeeded. Flag-OFF read-only smoke passed health/readiness, empty canonical
 Event reads, the static desktop/mobile carousel, existing USER Profile/Matching reads and browser
-console sanity. `ACCEPT-EVENT-001` is DONE. Production Event writes, Admin Event rendering, Event
-Detail rendering and launch remain NOT RUN by design; canonical Event total is zero and the flag is
-still OFF. The next gate is separate owner-approved data preparation and launch.
+console sanity. The docs-only `e0ef343` follow-up also passed both CI jobs; Vercel remained READY
+with the same accepted bundle, and Render correctly stayed on backend SHA `e2ef4c0`.
 
-Manual gates:
+Current Event evidence classification:
 
-- API/RBAC/query acceptance after `EVT-006`.
-- Storage ownership/readiness and replacement cleanup after `EVT-011`.
-- Admin create/publish/public-visibility acceptance after `ADMIN-009`.
-- Landing/detail freshness and cache acceptance after `FE-014B`.
-- Full isolated local Admin/public acceptance, controlled deployment and Production smoke at
-  `ACCEPT-EVENT-001` before requesting approval to enable the dynamic flag.
+- `EVS-007`: **DONE — VERIFIED** on the supported runtime.
+- `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`, `FE-031` and `FE-014B`: implementation is
+  deployed and **DONE — LOCAL VERIFIED** under the owner-approved isolated replacement gate; this
+  does not assert Production create/edit/upload or flag-ON rendering.
+- `ACCEPT-EVENT-001`: **DONE — FLAG-OFF RELEASE VERIFIED**. Its local mutation acceptance and
+  Production read-only smoke are complete; the Production write portion is explicitly **OPEN —
+  NEEDS PRODUCTION WRITE ACCEPTANCE**.
+- Admin activation architecture and canonical data preparation are **OPEN — AWAITING ADMIN EVENT
+  APPROVAL**. Public Live Slider activation is separately **OPEN — AWAITING EVENT LAUNCH APPROVAL**.
+- `FE-PROFILE-HOME-UNI-001` remains deployed with display accepted; edit/save/reload,
+  clear-to-null and max-length acceptance remain open.
+
+The current single `VITE_EVENTS_LAUNCH_ENABLED` build flag cannot support the preferred Admin-ON /
+Public-OFF sequence: it controls the Landing live slider plus most public/User/Admin Event surfaces.
+Admin create/edit child routes are registered outside that condition but remain ADMIN-protected and
+are not a supported management path while list/navigation are hidden. A separately approved small
+frontend task must split Admin management from public-live activation and gate all Admin Event
+routes consistently before Phase A. No refactor or activation is authorized by this plan update.
 
 The current static carousel does not complete any dynamic Event task.
 

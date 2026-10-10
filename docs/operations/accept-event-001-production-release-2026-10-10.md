@@ -76,3 +76,76 @@ so an authenticated Admin Event render is correctly reported as NOT RUN rather t
 healthy and rollback-ready. Live Event launch remains blocked until owner-approved canonical data
 exists and the owner separately authorizes changing the Production flag. No launch action is part
 of this record.
+
+## Final verification and launch-preparation addendum
+
+The docs-only follow-up commit `e0ef3439fa9c7b1dec091cd030326fbf4ac308aa` reached
+`origin/main`. GitHub Actions run `38038014039` completed with Backend SUCCESS and Frontend
+SUCCESS. Vercel deployment `dpl_3ndKHjjd57dNtye1X1k3Sw2Pd5HY` is READY at that docs SHA, while
+Production still serves the accepted application bundle `index-phrHnhsS.js`: all five static
+titles are present and canonical slider/Admin Event API markers are absent. The public site,
+API live and API readiness endpoints return 200.
+
+Render did not deploy the docs-only commit. Service `srv-db343ne7bikc73bjv910` still shows
+`dep-db4v9lqvcj2c73e5jvlg` LIVE at application SHA `e2ef4c0`, retains prior deploy
+`dep-db343nu7bikc73bjvalg`, and exposes Rollback. A direct read-only Production query confirmed
+`app_private.events` contains zero rows: zero DRAFT, PUBLISHED and CANCELLED records and zero
+records with a cover. The public slider also remains 200 `[]`.
+
+### Current feature-flag topology
+
+- `VITE_EVENTS_LAUNCH_ENABLED` is the only launch switch. It is absent from the Vercel Production
+  environment, so the production build default is OFF.
+- The switch is compiled by Vite and controls the Landing live slider, public Event Detail route,
+  User Event route/navigation/dashboard action, Admin Event list/navigation, and Event metrics on
+  the Admin overview.
+- The Admin create and edit child routes are currently registered behind the ADMIN role guard but
+  outside the launch-flag condition. They are not exposed through the flag-OFF Admin list/navigation,
+  but an ADMIN with a direct URL could reach them. This is an architecture inconsistency, not
+  authorization to use those routes in Production.
+- Admin management and public launch therefore cannot be enabled independently as a supported
+  flag-only operation. Turning the current switch ON would also replace the static Landing carousel
+  and expose public/User Event surfaces.
+- Because the flag is a `VITE_` build-time value, a Vercel rebuild/deployment is required for a
+  change. Render does not need a restart: the deployed backend APIs are already active and retain
+  their ADMIN/RBAC, CSRF, versioning and validation boundaries.
+
+The minimum safe Phase A design is a separately approved code task that introduces an Admin-only
+switch and a public-live switch, applies the Admin switch consistently to list/create/edit routes,
+navigation and metrics, and leaves the public switch OFF. No such refactor or deployment was made
+in this session.
+
+### Canonical data checklist
+
+The five committed JPEG posters, titles and localized poster-alt text are reusable. Production has
+no canonical Event rows. The owner must supply or explicitly approve, without inference from the
+posters:
+
+- EN and DE title, description and location;
+- start and end local date/time plus the intended IANA timezone;
+- visibility and whether the record should remain DRAFT or be PUBLISHED;
+- organizer/category when desired;
+- registration URL, registration enabled state, capacity and deadline when applicable;
+- final cover selection and EN/DE cover-alt text.
+
+A DRAFT may be incomplete and defaults to MEMBERS visibility. Publication requires non-empty EN/DE
+title, description and location, a valid start/end order, and a READY cover owned by the Event.
+JPEG/PNG/WebP covers up to 5 MiB are supported. The current project-owned JPEG files are all below
+200 KiB, but their content, dates and ownership approval still require human review.
+
+### Activation order
+
+1. Approve and implement the independent Admin/public flag design; keep both Production flags OFF.
+2. Deploy the flag split with the existing static carousel unchanged and verify rollback.
+3. Separately authorize Admin-only activation, then create owner-approved DRAFT records through the
+   product UI; do not publish test content.
+4. Run controlled Production write acceptance for create/edit/cover replacement and verify that the
+   public slider remains static.
+5. Owner reviews the canonical records and explicitly approves any publication.
+6. Obtain a separate Live Slider approval, enable only the public switch, rebuild Vercel, and smoke
+   the first five qualifying PUBLIC/PUBLISHED/upcoming Events.
+7. On frontend regression, restore the OFF/static build or promote the accepted deployment. On
+   backend regression, use Render native rollback to `d15cb1d`; no database downgrade is required.
+
+No Production write, publication, flag, secret, provider setting, database, Redis or Storage
+mutation occurred during this addendum.

@@ -1,12 +1,33 @@
 # Session handoff
 
-**Updated:** 2026-10-10 (Asia/Saigon)
-**TASK_ID:** ACCEPT-EVENT-001 (DONE — FLAG-OFF PRODUCTION SMOKE PASS)
-**Current mode:** Event code deployed; awaiting separate Event launch approval
+**Updated:** 2026-10-11 (Asia/Saigon)
+**TASK_ID:** EVENT-FLAG-SPLIT (RELEASE CANDIDATE — LOCAL GATES PASS / BOTH PRODUCTION FLAGS OFF)
+**Current mode:** Controlled frontend release; stop before Admin-only activation or any Event write
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`EVENT-FLAG-SPLIT` is the active approved task. The frontend now uses independent strict
+`VITE_ADMIN_EVENTS_ENABLED` and `VITE_PUBLIC_EVENTS_ENABLED` build-time switches. Exact `true` is
+the only enabling value; missing/invalid values are OFF, and `VITE_EVENTS_LAUNCH_ENABLED` is ignored.
+Admin list/create/edit/navigation/metrics share the Admin switch, while Landing live data, public
+detail and User Event surfaces share the public switch. Disabled direct routes render a consistent
+404 without bypassing the existing USER/ADMIN role guards.
+
+Final local verification on 2026-10-11 is PASS: resolver 11/11; focused affected tests 67/67; each
+of four Admin/Public combinations plus missing/legacy and invalid/legacy matrices passes 8/8;
+full frontend 85 files / 788 tests; TypeScript, ESLint and Prettier PASS; all four production-build
+combinations PASS. The final OFF/OFF bundle retains all five static titles and contains neither the
+live slider endpoint marker nor `/admin/events`. No backend code/dependency changed, so prior backend
+CI evidence is reused.
+
+Production preflight confirmed the `buddy-web-ver2` Vercel project in the expected team, current
+READY deployments and absent Admin, public and legacy Event keys. Both features will therefore stay
+OFF after the authorized `main` rollout. Render requires no new backend deploy; preserve its accepted
+`e2ef4c0` live and `d15cb1d` rollback evidence. Run only read-only OFF/OFF Production smoke, then
+stop at **AWAITING ADMIN ACTIVATION**. Do not add either flag, create/upload/publish an Event, or
+change database, Storage, Redis, DNS, secrets or provider configuration.
 
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.
@@ -86,11 +107,29 @@ The 2026-10-10 Event code-deployment approval was consumed by the `e2ef4c0` push
 Vercel/Render rollout. It did not and does not authorize Production Event writes, migration changes,
 provider/secret changes, Event publication or enabling the Event flag.
 
+Final continuation verification is complete. Repository HEAD and `origin/main` are the docs-only
+commit `e0ef343`; GitHub Actions run `38038014039` completed Backend/Frontend SUCCESS. Vercel
+deployment `dpl_3ndKHjjd57dNtye1X1k3Sw2Pd5HY` is READY and still serves accepted application bundle
+`index-phrHnhsS.js`. Render did not deploy the docs-only commit and remains LIVE at application SHA
+`e2ef4c0` with prior `d15cb1d` retained for Rollback. Public site/live/readiness are 200, the five
+static posters remain in the bundle, the launch flag remains OFF, and a direct read-only database
+count confirms zero canonical Event rows.
+
+One architecture decision is now required before Production data preparation. The only current
+launch flag, `VITE_EVENTS_LAUNCH_ENABLED`, couples the Landing live slider and most public/User/Admin
+Event surfaces. Admin create/edit child routes are registered behind ADMIN RBAC outside that flag,
+but list/navigation are hidden, so this is not a supported Admin-only rollout. Preferred Phase A
+requires a separately approved frontend change that splits Admin management from public-live
+activation and consistently gates list/create/edit/navigation/metrics. Do not use direct URLs as a
+workaround, do not change the existing flag, and do not create Event data without fresh approval.
+
 ## Latest Event code release
 
-- Production preflight and rollback: PASS. Vercel retains a READY `c2fbaf1` candidate; Render now
-  exposes a native rollback action from the live `e2ef4c0` deploy to prior `d15cb1d`. No migration
-  was added, so code rollback requires no database downgrade.
+- Production preflight and rollback: PASS. After the docs-only deployment, Vercel marks the
+  accepted `e2ef4c0` deployment as the native rollback candidate; pre-Event `253849d`/`c2fbaf1`
+  deployments remain READY and can be explicitly promoted. Render exposes native rollback from the
+  live `e2ef4c0` deploy to prior `d15cb1d`. No migration was added, so code rollback requires no
+  database downgrade.
 - GitHub Actions run `38037425291`: Backend SUCCESS; Frontend SUCCESS.
 - Vercel: `dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` READY at `e2ef4c0`.
 - Render: `dep-db4v9lqvcj2c73e5jvlg` LIVE at `e2ef4c0`.

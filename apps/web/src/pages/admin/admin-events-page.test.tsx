@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
+import { AdminLayout } from '@/components/layout/admin-layout'
 import { adminEventsClient, type AdminEventList } from '@/features/admin-events/admin-events'
 import { clearPrivateQueries } from '@/features/auth/private-cache'
 import i18n from '@/i18n'
+import { AdminEventsPage } from '@/pages/admin/admin-events-page'
 import { useAuthStore } from '@/stores/auth-store'
 
 const admin = {
@@ -77,7 +79,22 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
     vi.clearAllMocks()
   })
 
-  const renderApp = (role: 'ADMIN' | 'USER' | null = 'ADMIN') => {
+  const renderPage = () => {
+    useAuthStore.getState().setAuthenticated(admin)
+    return render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/admin/events']}>
+          <Routes>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="events" element={<AdminEventsPage />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+  }
+
+  const renderGuardedApp = (role: 'USER' | null) => {
     if (role) useAuthStore.getState().setAuthenticated({ ...admin, role })
     else useAuthStore.getState().clearSession()
     return render(
@@ -90,7 +107,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
   }
 
   it('renders every editorial state with derived phase and authorized create/edit links', async () => {
-    renderApp()
+    renderPage()
     expect(await screen.findByRole('heading', { name: 'Event management' })).toBeVisible()
     const table = await screen.findByRole('table', { name: 'Event inventory' })
     expect(within(table).getByText('Buddy Day')).toBeVisible()
@@ -110,7 +127,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
   })
 
   it('debounces search and sends server-owned editorial, audience, phase, and date filters', async () => {
-    renderApp()
+    renderPage()
     await screen.findByText('Buddy Day')
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search Events' }), {
       target: { value: '  Buddy  ' },
@@ -146,7 +163,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
   it('distinguishes loading, true empty, filtered empty, and safe failure states', async () => {
     let resolve!: (value: AdminEventList) => void
     readEvents.mockReset().mockReturnValueOnce(new Promise((done) => (resolve = done)))
-    renderApp()
+    renderPage()
     expect(screen.getByText('Loading data…')).toHaveAttribute('role', 'status')
     await act(async () => resolve(eventPage(0)))
     expect(await screen.findByText('There are no Events to show.')).toBeVisible()
@@ -168,7 +185,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
   it.each([['USER', /Connect with/] as const, [null, 'Administration access'] as const])(
     'denies %s before requesting private Event data',
     async (role, publicHeading) => {
-      renderApp(role)
+      renderGuardedApp(role)
       expect(await screen.findByRole('heading', { name: publicHeading })).toBeVisible()
       expect(screen.queryByText('Event management')).not.toBeInTheDocument()
       expect(readEvents).not.toHaveBeenCalled()
@@ -176,7 +193,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
   )
 
   it('uses removable private cache and switches the page to German', async () => {
-    renderApp()
+    renderPage()
     await screen.findByText('Buddy Day')
     expect(
       client.getQueryCache().findAll({ queryKey: ['private', 'admin-events'] }),

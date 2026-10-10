@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, useLocation } from 'react-router'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import App from '@/App'
+import { AdminLayout } from '@/components/layout/admin-layout'
 import { adminEventsClient, type AdminEvent } from '@/features/admin-events/admin-events'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
+import { AdminEventCreatePage } from '@/pages/admin/admin-event-create-page'
+import { AdminEventEditPage } from '@/pages/admin/admin-event-edit-page'
 import { useAuthStore } from '@/stores/auth-store'
 
 const EVENT_ID = '11111111-1111-4111-8111-111111111111'
@@ -90,7 +92,12 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[path]}>
           <LocationProbe />
-          <App />
+          <Routes>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="events/new" element={<AdminEventCreatePage />} />
+              <Route path="events/:eventId/edit" element={<AdminEventEditPage />} />
+            </Route>
+          </Routes>
         </MemoryRouter>
       </QueryClientProvider>,
     )

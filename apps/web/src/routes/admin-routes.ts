@@ -19,7 +19,7 @@ import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
 import { AdminEventsPage } from '@/pages/admin/admin-events-page'
-import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { adminEventsEnabled } from '@/config/launch-scope'
 
 type AdminRoute = {
   path: string
@@ -65,7 +65,7 @@ const adminRoutes: readonly AdminRoute[] = [
     kind: 'page',
     Component: AdminSemesterPage,
   },
-  ...(dynamicEventsLaunchEnabled
+  ...(adminEventsEnabled
     ? ([
         {
           path: 'events',

@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { AdminSidebarNavigation } from '@/components/layout/admin-sidebar-navigation'
+import { adminEventsEnabled } from '@/config/launch-scope'
 import i18n from '@/i18n'
 
 const paths = [
@@ -10,7 +11,7 @@ const paths = [
   'users',
   'matching',
   'semesters',
-  'events',
+  ...(adminEventsEnabled ? ['events'] : []),
   'announcements',
   'knowledge-base',
   'campus',
@@ -27,7 +28,7 @@ const locales = [
       'Users',
       'Matching',
       'Semesters',
-      'Events',
+      ...(adminEventsEnabled ? ['Events'] : []),
       'Announcements',
       'Knowledge Base',
       'Campus',
@@ -44,7 +45,7 @@ const locales = [
       'Benutzer',
       'Zuordnung',
       'Semester',
-      'Veranstaltungen',
+      ...(adminEventsEnabled ? ['Veranstaltungen'] : []),
       'Mitteilungen',
       'Wissensdatenbank',
       'Campus',
@@ -61,7 +62,7 @@ describe('ADMIN-002 module navigation', () => {
   })
 
   it.each(locales)(
-    'provides eleven named native module links in %s',
+    'provides the configured named native module links in %s',
     async (language, name, labels) => {
       await i18n.changeLanguage(language)
       render(
@@ -70,7 +71,7 @@ describe('ADMIN-002 module navigation', () => {
         </MemoryRouter>,
       )
       const nav = screen.getByRole('navigation', { name })
-      expect(within(nav).getAllByRole('link')).toHaveLength(11)
+      expect(within(nav).getAllByRole('link')).toHaveLength(paths.length)
       labels.forEach((label, index) => {
         const link = within(nav).getByRole('link', { name: label })
         expect(link.tagName).toBe('A')
@@ -85,8 +86,8 @@ describe('ADMIN-002 module navigation', () => {
   it.each([
     ['/admin/dashboard?period=week#summary', 'Overview'],
     ['/admin/users/123/edit?tab=roles#form', 'Users'],
-    ['/admin/events/123/edit', 'Events'],
-    ['/admin/events/new', 'Events'],
+    ['/admin/events/123/edit', adminEventsEnabled ? 'Events' : null],
+    ['/admin/events/new', adminEventsEnabled ? 'Events' : null],
     ['/admin/users-archive', null],
     ['/admin/dashboard/detail', null],
   ])('marks only the current module for %s', (path, label) => {

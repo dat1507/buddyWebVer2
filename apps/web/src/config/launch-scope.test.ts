@@ -1,26 +1,37 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveDynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { resolveEventFeatureFlags } from '@/config/launch-scope'
 
-describe('dynamic Event release launch scope', () => {
-  it('keeps future dynamic Event placeholders available in development by default', () => {
-    expect(resolveDynamicEventsLaunchEnabled({ development: true })).toBe(true)
+describe('Event feature flags', () => {
+  it.each([
+    [undefined, undefined, false, false],
+    ['false', 'false', false, false],
+    ['true', 'false', true, false],
+    ['false', 'true', false, true],
+    ['true', 'true', true, true],
+  ])(
+    'resolves admin=%s and public=%s independently',
+    (adminEventsFlag, publicEventsFlag, adminEventsEnabled, publicEventsEnabled) => {
+      expect(resolveEventFeatureFlags({ adminEventsFlag, publicEventsFlag })).toEqual({
+        adminEventsEnabled,
+        publicEventsEnabled,
+      })
+    },
+  )
+
+  it.each(['TRUE', '1', ' true ', '', 'yes'])('keeps invalid value %j off', (invalidFlag) => {
+    expect(
+      resolveEventFeatureFlags({
+        adminEventsFlag: invalidFlag,
+        publicEventsFlag: invalidFlag,
+      }),
+    ).toEqual({ adminEventsEnabled: false, publicEventsEnabled: false })
   })
 
-  it('excludes future API-backed Event surfaces from production by default', () => {
-    expect(resolveDynamicEventsLaunchEnabled({ development: false })).toBe(false)
-  })
-
-  it('requires an exact explicit opt-in to expose dynamic Events in production', () => {
-    expect(resolveDynamicEventsLaunchEnabled({ development: false, eventsFlag: 'true' })).toBe(true)
-    expect(resolveDynamicEventsLaunchEnabled({ development: false, eventsFlag: 'TRUE' })).toBe(
-      false,
-    )
-  })
-
-  it('supports an explicit local exclusion of dynamic surfaces for release-like checks', () => {
-    expect(resolveDynamicEventsLaunchEnabled({ development: true, eventsFlag: 'false' })).toBe(
-      false,
-    )
+  it('ignores the retired shared flag even when it is true', () => {
+    expect(resolveEventFeatureFlags({ legacyEventsFlag: 'true' })).toEqual({
+      adminEventsEnabled: false,
+      publicEventsEnabled: false,
+    })
   })
 })

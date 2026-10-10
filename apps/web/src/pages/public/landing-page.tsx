@@ -10,7 +10,7 @@ import { LiveEventsSection } from '@/components/landing/live-events-section'
 import { TestimonialsMarquee } from '@/components/landing/testimonials-marquee'
 import type { EventSliderLocale } from '@/features/events/event-slider'
 import { getStaticUpcomingEvents } from '@/features/events/data/static-upcoming-events'
-import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { publicEventsEnabled } from '@/config/launch-scope'
 
 function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -28,7 +28,7 @@ function LandingPage() {
         </p>
       ) : null}
       <HeroSection />
-      {dynamicEventsLaunchEnabled ? (
+      {publicEventsEnabled ? (
         <LiveEventsSection locale={eventLocale} />
       ) : (
         <EventsSlider events={getStaticUpcomingEvents(eventLocale)} />

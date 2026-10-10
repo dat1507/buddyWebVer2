@@ -19,7 +19,7 @@ import { RoleGuard } from '@/features/auth/role-guard'
 import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
 import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
-import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { adminEventsEnabled, publicEventsEnabled } from '@/config/launch-scope'
 
 function App() {
   return (
@@ -32,9 +32,11 @@ function App() {
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
           <Route path="verify-email" element={<EmailVerificationPage />} />
-          {dynamicEventsLaunchEnabled ? (
+          {publicEventsEnabled ? (
             <Route path="events/:eventId" element={<EventDetailPage />} />
-          ) : null}
+          ) : (
+            <Route path="events/*" element={<NotFoundPage />} />
+          )}
         </Route>
 
         <Route element={<RoleGuard requiredRole="USER" />}>
@@ -63,9 +65,11 @@ function App() {
                 />
               )
             })}
-            {dynamicEventsLaunchEnabled ? (
+            {publicEventsEnabled ? (
               <Route path="events/:eventId" element={<EventDetailPage />} />
-            ) : null}
+            ) : (
+              <Route path="events/*" element={<NotFoundPage embedded />} />
+            )}
           </Route>
         </Route>
 
@@ -85,8 +89,14 @@ function App() {
                 }
               />
             ))}
-            <Route path="events/new" element={<AdminEventCreatePage />} />
-            <Route path="events/:eventId/edit" element={<AdminEventEditPage />} />
+            {adminEventsEnabled ? (
+              <>
+                <Route path="events/new" element={<AdminEventCreatePage />} />
+                <Route path="events/:eventId/edit" element={<AdminEventEditPage />} />
+              </>
+            ) : (
+              <Route path="events/*" element={<NotFoundPage embedded />} />
+            )}
             <Route path="users/:userId" element={<AdminUserDetailPage />} />
           </Route>
         </Route>

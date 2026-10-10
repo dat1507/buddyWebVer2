@@ -41,13 +41,17 @@ environment; never expose backend secrets through a `VITE_*` variable. The API m
 through the same-site cookie topology documented in the root README before authentication can be
 accepted in staging.
 
-`VITE_EVENTS_LAUNCH_ENABLED` selects the canonical API-backed Admin/public Event surfaces and live
-Landing carousel. Keep it unset or `false` in Production until `ACCEPT-EVENT-001` and explicit
-release approval pass; that state preserves the released static five-poster carousel as rollback.
-When enabled, the live carousel renders at most the first five canonical API results, refetches at
-the existing interval, hides on an empty successful response and exposes its retry state on a real
-failure. `VITE_EVENT_SLIDER_USE_MOCKS` remains development-only and is excluded from production
-builds. Authentication continues to use the configured `VITE_API_URL` and existing safe failures.
+`VITE_ADMIN_EVENTS_ENABLED` selects the Admin Event navigation, overview metrics, list, create and
+edit surfaces. `VITE_PUBLIC_EVENTS_ENABLED` independently selects the public/User Event navigation,
+detail routes and API-backed Landing carousel. Each flag is fail-safe: only the exact value `true`
+enables its surface, while missing, `false` or invalid values keep it off. The retired shared flag
+`VITE_EVENTS_LAUNCH_ENABLED` is ignored. Keep both current flags unset or `false` in Production until
+their separate activation approvals pass; that state preserves the released static five-poster
+carousel as rollback. When the public flag is enabled, the live carousel renders at most the first
+five canonical API results, refetches at the existing interval, shows its empty state on an empty
+successful response and exposes retry on a real failure. `VITE_EVENT_SLIDER_USE_MOCKS` remains
+development-only and is excluded from production builds. Authentication continues to use the
+configured `VITE_API_URL` and existing safe failures.
 
 ## In-memory session store (AUTH-004)
 

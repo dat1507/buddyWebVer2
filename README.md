@@ -102,9 +102,10 @@ npm ci
 npm run dev
 ```
 
-The current-launch Upcoming Events carousel uses typed, bundled frontend content in every
-environment and makes no Event API request. Copy `apps/web/.env.example` to an ignored
-`apps/web/.env.local` only when local overrides are needed.
+The default Upcoming Events carousel uses the same five typed, bundled posters and makes no Event
+API request. The canonical live experience is selected only by the strict public Event build flag.
+Copy `apps/web/.env.example` to an ignored `apps/web/.env.local` only when local overrides are
+needed.
 
 ### Backend
 
@@ -177,11 +178,13 @@ the local runtime-role password.
 
 Committed templates:
 
-- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and
-  dynamic Event settings. `VITE_EVENTS_LAUNCH_ENABLED=false` preserves the released static
-  five-poster Landing fallback; `true` selects the canonical API-backed Admin/public Event surfaces
-  and live Landing carousel, capped to the first five canonical results. Keep it `false` in
-  Production until `ACCEPT-EVENT-001` and explicit release approval are complete.
+- [apps/web/.env.example](apps/web/.env.example): frontend API URL, analytics placeholder, and two
+  independent Event controls. Exact `VITE_ADMIN_EVENTS_ENABLED=true` exposes the existing
+  ADMIN/RBAC-protected management UI; exact `VITE_PUBLIC_EVENTS_ENABLED=true` selects the canonical
+  API-backed public/User Event surfaces and first-five live Landing carousel. Missing, invalid or
+  differently cased values are OFF. The retired `VITE_EVENTS_LAUNCH_ENABLED` key is ignored and
+  cannot enable either surface. Keep both new keys absent/OFF in Production until each activation
+  receives separate approval.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
   URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 
@@ -286,7 +289,8 @@ The current execution order and verified continuation point live in
 [implementation-plan.md](implementation-plan.md) and [SESSION_HANDOFF.md](SESSION_HANDOFF.md).
 Use [docs/implementation/task-index.md](docs/implementation/task-index.md) for one-task extracts;
 the former [complete plan](implementation_plan_vgu_buddy.md) is a legacy archive, not the current
-task router. Dynamic Event/Admin Event work remains deferred and feature-gated.
+task router. Canonical Event code is deployed, while Admin management and the public live Event
+experience remain independently feature-gated and OFF pending separate activation approvals.
 
 Development, commits and normal pushes use `main` directly unless repository protection or a user
 request requires another workflow; see [CONTRIBUTING.md](CONTRIBUTING.md).

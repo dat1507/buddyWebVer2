@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { ProfileReadinessRequirement } from '@/features/profile/profile-readiness-gate'
-import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { publicEventsEnabled } from '@/config/launch-scope'
 import { OnboardingIdentityPage } from '@/pages/user/onboarding-identity-page'
 import { OnboardingInterestsPage } from '@/pages/user/onboarding-interests-page'
 import { OnboardingPreferencesPage } from '@/pages/user/onboarding-preferences-page'
@@ -68,7 +68,7 @@ const userRoutes: readonly UserRoute[] = [
   { path: 'buddy', title: 'My Buddy', kind: 'page', Component: CurrentBuddyRoutePage },
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },
   { path: 'campus', title: 'Campus', kind: 'placeholder' },
-  ...(dynamicEventsLaunchEnabled
+  ...(publicEventsEnabled
     ? ([{ path: 'events', title: 'Events', kind: 'placeholder' }] satisfies readonly UserRoute[])
     : []),
   { path: 'settings', title: 'Settings', kind: 'page', Component: SettingsPage },

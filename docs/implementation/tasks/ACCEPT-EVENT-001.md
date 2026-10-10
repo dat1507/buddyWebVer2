@@ -69,6 +69,23 @@ Detailed evidence is in
 This task is complete at the approved flag-OFF boundary. Canonical Production data preparation and
 enabling `VITE_EVENTS_LAUNCH_ENABLED` require a separate explicit owner approval.
 
+## Final verification and launch-preparation boundary — 2026-10-10
+
+The docs-only `e0ef343` follow-up passed GitHub Backend/Frontend CI. Vercel is READY and serves the
+same accepted `index-phrHnhsS.js` application bundle; Render correctly remains LIVE at application
+SHA `e2ef4c0` with native rollback to `d15cb1d`. Public site/live/readiness remain healthy, the flag
+is OFF and a direct read-only Production count confirms `app_private.events` has zero rows.
+
+Status is therefore **DONE — FLAG-OFF RELEASE VERIFIED / PRODUCTION WRITES NOT RUN**. This does not
+upgrade Production create/edit/upload/publish to PASS. Those actions remain **OPEN — NEEDS
+PRODUCTION WRITE ACCEPTANCE**, and public launch remains **OPEN — AWAITING EVENT LAUNCH APPROVAL**.
+
+The single current `VITE_EVENTS_LAUNCH_ENABLED` flag couples the live Landing slider with most
+public/User/Admin Event surfaces. Admin create/edit child routes are registered outside the flag but
+remain ADMIN-protected and lack the flag-OFF list/navigation path. Admin-ON/Public-OFF therefore
+requires a separately approved source change to split the flags and gate Admin routes consistently;
+no refactor, Production write or activation occurred in this task.
+
 ## Staging readiness evidence — 2026-10-09
 
 - `EVS-007` is DONE locally, but no matching frontend/backend Event SHA is deployed to Staging.

@@ -9,39 +9,39 @@ during this release verification.
 
 ## Directly observed
 
-| Check | Result |
-| --- | --- |
-| `api.vgubuddyprogram.com` DNS | CNAME `vgu-buddy-api-production.onrender.com` |
-| `www.vgubuddyprogram.com` DNS | CNAME `3d95265b44dec908.vercel-dns-017.com` |
-| `GET https://api.vgubuddyprogram.com/api/health/live` | 200, `{"status":"alive"}` |
-| `GET https://api.vgubuddyprogram.com/api/health/ready` | 200; database/Redis `ok`, email/Storage `configured` |
-| `GET https://www.vgubuddyprogram.com/` | 200 from Vercel |
-| Deployed JS API target | Contains `https://api.vgubuddyprogram.com/api` |
-| Static Event deployment | Bundle `index-DIl7WhwA.js` contains the five titles from commit `81979ce` |
-| Anonymous `GET /api/auth/me` | 401, `Cache-Control: no-store` |
-| Login preflight from `https://www.vgubuddyprogram.com` | 200, exact allow-origin and credentials enabled |
-| Login preflight from `https://example.invalid` | 400, no allow-origin |
+| Check                                                  | Result                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `api.vgubuddyprogram.com` DNS                          | CNAME `vgu-buddy-api-production.onrender.com`                             |
+| `www.vgubuddyprogram.com` DNS                          | CNAME `3d95265b44dec908.vercel-dns-017.com`                               |
+| `GET https://api.vgubuddyprogram.com/api/health/live`  | 200, `{"status":"alive"}`                                                 |
+| `GET https://api.vgubuddyprogram.com/api/health/ready` | 200; database/Redis `ok`, email/Storage `configured`                      |
+| `GET https://www.vgubuddyprogram.com/`                 | 200 from Vercel                                                           |
+| Deployed JS API target                                 | Contains `https://api.vgubuddyprogram.com/api`                            |
+| Static Event deployment                                | Bundle `index-DIl7WhwA.js` contains the five titles from commit `81979ce` |
+| Anonymous `GET /api/auth/me`                           | 401, `Cache-Control: no-store`                                            |
+| Login preflight from `https://www.vgubuddyprogram.com` | 200, exact allow-origin and credentials enabled                           |
+| Login preflight from `https://example.invalid`         | 400, no allow-origin                                                      |
 
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
 
 ## Phase 2 frontend release — 2026-10-09
 
-| Check | Result |
-| --- | --- |
-| Released Git commit | `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7` on `origin/main` |
-| GitHub/Vercel deployment | Production deployment `6951736865` completed successfully |
-| Vercel deployment URL | `https://buddy-web-ver2-9fam0ya8l-dat1507s-projects.vercel.app` |
-| Repository checks | Frontend PASS; Backend PASS |
-| `GET https://www.vgubuddyprogram.com/` | 200; bundle `index-Deo6vyVU.js` |
-| Bundle markers | All five Landing backgrounds, EN/DE Home University copy and first-party API target present |
-| Landing desktop visual | PASS at 1536x831; contrast/layout/images/navigation correct; no overflow or Welcome card |
-| Landing mobile visual | PASS at 390x844; mobile navigation active, images decoded and no horizontal overflow |
-| Landing transition | PASS; 7.1-second sample observed current/next opacity ~0.934/0.066 |
-| Browser console | 0 errors; 0 warnings in direct Brave verification |
-| API live/readiness | 200 / 200; database/Redis `ok`, email/Storage `configured` |
-| Anonymous `/api/auth/me` | 401, `Cache-Control: no-store`, exact first-party allow-origin |
-| Authenticated Home University visual | OPEN; no account was used or mutated |
+| Check                                  | Result                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Released Git commit                    | `2f6f8c8cb4bd15fb4ece1821e8cfc1b4ac3ea8f7` on `origin/main`                                 |
+| GitHub/Vercel deployment               | Production deployment `6951736865` completed successfully                                   |
+| Vercel deployment URL                  | `https://buddy-web-ver2-9fam0ya8l-dat1507s-projects.vercel.app`                             |
+| Repository checks                      | Frontend PASS; Backend PASS                                                                 |
+| `GET https://www.vgubuddyprogram.com/` | 200; bundle `index-Deo6vyVU.js`                                                             |
+| Bundle markers                         | All five Landing backgrounds, EN/DE Home University copy and first-party API target present |
+| Landing desktop visual                 | PASS at 1536x831; contrast/layout/images/navigation correct; no overflow or Welcome card    |
+| Landing mobile visual                  | PASS at 390x844; mobile navigation active, images decoded and no horizontal overflow        |
+| Landing transition                     | PASS; 7.1-second sample observed current/next opacity ~0.934/0.066                          |
+| Browser console                        | 0 errors; 0 warnings in direct Brave verification                                           |
+| API live/readiness                     | 200 / 200; database/Redis `ok`, email/Storage `configured`                                  |
+| Anonymous `/api/auth/me`               | 401, `Cache-Control: no-store`, exact first-party allow-origin                              |
+| Authenticated Home University visual   | OPEN; no account was used or mutated                                                        |
 
 This direct evidence closes `FE-LANDING-BG-001`. It proves deployment of the Home University bundle
 but does not close `FE-PROFILE-HOME-UNI-001` until authenticated display/edit/save/reload is visually
@@ -50,20 +50,20 @@ is static, direct browser console inspection was clean, and public API health ch
 
 ## Landing slideshow corrective release — 2026-10-09
 
-| Check | Result |
-| --- | --- |
-| Released source commit | `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` on `origin/main` |
-| GitHub/Vercel deployment | Production deployment `6952736000` completed successfully |
-| Vercel deployment URL | `https://buddy-web-ver2-pbkwfghyt-dat1507s-projects.vercel.app` |
-| Repository checks | Frontend SUCCESS; Backend SUCCESS |
-| Public alias / bundle | `https://www.vgubuddyprogram.com/#home`; `index-CC-xLBAH.js` |
-| Released slideshow | two stable paint-contained layers; opacity-only compositor path present |
-| Desktop three-loop audit | 15 transitions / 2,883 samples; correct order including three 5 -> 1 wraps |
-| Blank / undecoded-visible / visible-source-change samples | 0 / 0 / 0 |
-| Minimum combined opacity / slideshow layout delta | 1.0000 / 0 px |
-| Mobile 390x844 | one live transition PASS; 0 horizontal overflow |
-| Normal / reduced-motion reload | two decoded starting layers / one decoded static first image; PASS |
-| Browser console | 0 errors; 0 warnings |
+| Check                                                     | Result                                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Released source commit                                    | `c2fbaf1f1082c6bb5d790d32add3b603f3b251fe` on `origin/main`                |
+| GitHub/Vercel deployment                                  | Production deployment `6952736000` completed successfully                  |
+| Vercel deployment URL                                     | `https://buddy-web-ver2-pbkwfghyt-dat1507s-projects.vercel.app`            |
+| Repository checks                                         | Frontend SUCCESS; Backend SUCCESS                                          |
+| Public alias / bundle                                     | `https://www.vgubuddyprogram.com/#home`; `index-CC-xLBAH.js`               |
+| Released slideshow                                        | two stable paint-contained layers; opacity-only compositor path present    |
+| Desktop three-loop audit                                  | 15 transitions / 2,883 samples; correct order including three 5 -> 1 wraps |
+| Blank / undecoded-visible / visible-source-change samples | 0 / 0 / 0                                                                  |
+| Minimum combined opacity / slideshow layout delta         | 1.0000 / 0 px                                                              |
+| Mobile 390x844                                            | one live transition PASS; 0 horizontal overflow                            |
+| Normal / reduced-motion reload                            | two decoded starting layers / one decoded static first image; PASS         |
+| Browser console                                           | 0 errors; 0 warnings                                                       |
 
 This direct evidence closes `FE-LANDING-BG-002` as **DONE / PRODUCTION VERIFIED**. It does not alter
 the authenticated Profile acceptance gate or any Phase 1 operational blocker. No Vercel runtime-log
@@ -86,17 +86,17 @@ console were clean.
 
 Read-only Staging probes and local release verification establish the following current boundary:
 
-| Check | Result |
-| --- | --- |
-| Local Event regression | PASS on supported Python 3.12: backend 1,407 PASS / 37 SKIP; Event 111 PASS; frontend 773 PASS |
-| Owner Landing limit | PASS locally: first five canonical API results only; backend 12-row bound remains transport/query-only |
-| Production Event launch flag | OFF; released static five-poster fallback remains active |
-| Staging frontend | 200, but older static bundle; matching Admin/Event SHA not deployed |
-| Staging API | live/readiness/Event-slider probes return 503; provider service is suspended |
-| Staging isolation | No isolated Redis is available after the former allocation moved to Production |
-| Provider access from this checkout | No Vercel/Render/Supabase linkage or credentials available |
-| `ACCEPT-EVENT-001` A–E | NOT RUN; environment prerequisite blocked |
-| Production mutation | None; no push, deployment, data write, flag change or provider change |
+| Check                              | Result                                                                                                 |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Local Event regression             | PASS on supported Python 3.12: backend 1,407 PASS / 37 SKIP; Event 111 PASS; frontend 773 PASS         |
+| Owner Landing limit                | PASS locally: first five canonical API results only; backend 12-row bound remains transport/query-only |
+| Production Event launch flag       | OFF; released static five-poster fallback remains active                                               |
+| Staging frontend                   | 200, but older static bundle; matching Admin/Event SHA not deployed                                    |
+| Staging API                        | live/readiness/Event-slider probes return 503; provider service is suspended                           |
+| Staging isolation                  | No isolated Redis is available after the former allocation moved to Production                         |
+| Provider access from this checkout | No Vercel/Render/Supabase linkage or credentials available                                             |
+| `ACCEPT-EVENT-001` A–E             | NOT RUN; environment prerequisite blocked                                                              |
+| Production mutation                | None; no push, deployment, data write, flag change or provider change                                  |
 
 This Staging-based release conclusion is superseded by the owner execution strategy below. Its
 observations remain historical and are not converted to PASS.
@@ -148,6 +148,28 @@ Full evidence is in
 `ACCEPT-EVENT-001` is complete at the approved flag-OFF boundary. Event launch remains a separate
 owner decision.
 
+### Final deployment verification and launch preparation — 2026-10-10
+
+- Repository HEAD and `origin/main` are `e0ef343`; GitHub Actions run `38038014039` completed
+  Backend SUCCESS and Frontend SUCCESS with no failing job.
+- Vercel docs-only deployment `dpl_3ndKHjjd57dNtye1X1k3Sw2Pd5HY` is READY. Production still serves
+  accepted application bundle `index-phrHnhsS.js`, with all five static titles and no canonical
+  Event API markers.
+- Render did not deploy the docs-only commit. `dep-db4v9lqvcj2c73e5jvlg` remains LIVE at
+  application SHA `e2ef4c0`; prior `d15cb1d` is retained with native Rollback.
+- Public site, API live and readiness are 200; database/Redis are `ok`, email/Storage are
+  `configured`; the slider remains 200 `[]`.
+- A direct read-only database count found zero rows in `app_private.events`, including zero DRAFT,
+  PUBLISHED, CANCELLED and cover-linked rows.
+- Vercel has no `VITE_EVENTS_LAUNCH_ENABLED` entry. The Production default remains OFF.
+
+The current frontend does not support the preferred Admin-ON/Public-OFF rollout with flags alone.
+`VITE_EVENTS_LAUNCH_ENABLED` controls the live Landing slider and most public/User/Admin Event
+surfaces together; Admin create/edit child routes are separately registered behind ADMIN RBAC even
+when the flag is OFF. A small, separately approved source change must split Admin management from
+public-live activation and gate all Admin Event routes consistently. No source, flag or provider
+change was made during this verification.
+
 ### Static-to-canonical Production data preparation
 
 The current fallback owns five reusable project posters and names, in canonical display order:
@@ -166,11 +188,15 @@ Production seed or data mutation was performed.
 ### Rollback boundary
 
 Turning the frontend launch flag off and redeploying restores the existing static five-poster
-carousel without deleting canonical Event data. Vercel retains READY frontend rollback candidates,
-including `c2fbaf1`. The live Render `e2ef4c0` deploy exposes a native rollback action to retained
-`d15cb1d`; the specific-commit redeploy flow was also verified without executing it. The Event work
-adds no migration, so code rollback requires no database downgrade. Named release/recovery owners
-remain a separate `PROD-001` requirement, not an Event-release rollback gap.
+carousel without deleting canonical Event data. Vercel currently marks the accepted `e2ef4c0`
+application deployment as a rollback candidate behind the docs-only `e0ef343` deployment. The
+pre-Event `253849d` and `c2fbaf1` deployments remain READY immutable deployments but are no longer
+reported as native rollback candidates; an operator can explicitly promote the selected READY
+Production deployment if an Event-code rollback is required. The live Render `e2ef4c0` deploy
+exposes a native rollback action to retained `d15cb1d`; the specific-commit redeploy flow was also
+verified without executing it. The Event work adds no migration, so code rollback requires no
+database downgrade. Named release/recovery owners remain a separate `PROD-001` requirement, not an
+Event-release rollback gap.
 
 ## Documented operator evidence retained
 
@@ -218,8 +244,7 @@ Full redacted evidence and gate reconciliation are in
 ## Current release blockers
 
 - Production Semester status reports `RESET_PREPARATION_FAILED`; the associated private backup is
-  `FAILED`, unverified and has no expiry. Render retained two earlier Prepare requests returning
-  503. Diagnosing/repairing and safely re-verifying this path requires separate authorization.
+  `FAILED`, unverified and has no expiry. Render retained two earlier Prepare requests returning 503. Diagnosing/repairing and safely re-verifying this path requires separate authorization.
 - Vercel and Render now retain executable frontend/backend code rollback points from the
   2026-10-10 Event rollout. This closes the former missing-Render-deploy blocker only.
 - Named rollback decision/Vercel/Render/database-recovery owners and an accepted post-repair hold
@@ -230,6 +255,21 @@ Full redacted evidence and gate reconciliation are in
 Do not upgrade these items to PASS without dated evidence. Do not create test users, send email,
 retry Semester Prepare, change DNS or modify provider configuration during a documentation-only
 task.
+
+## EVENT-FLAG-SPLIT Production preflight — 2026-10-11
+
+- The authenticated Vercel dashboard confirms project `buddy-web-ver2` in the expected team and the
+  current `e0ef343` Production deployment READY. Earlier accepted application deployments remain
+  READY rollback candidates.
+- Production environment-variable metadata contains neither `VITE_ADMIN_EVENTS_ENABLED` nor
+  `VITE_PUBLIC_EVENTS_ENABLED`; `VITE_EVENTS_LAUNCH_ENABLED` is also absent. No value was revealed or
+  changed. The strict frontend resolver therefore compiles both Event surfaces OFF.
+- The release is frontend-only. No backend, migration, database, Storage, Redis, DNS, secret or
+  account change is required. Render's accepted live `e2ef4c0` deployment and retained `d15cb1d`
+  rollback evidence remain the controlling baseline.
+- The authorized rollout must preserve the static five-poster Landing, hidden Admin/public Event UI
+  and no Landing slider API request. It must stop before Admin-only activation or any Production
+  Event write.
 
 ## Verification method
 

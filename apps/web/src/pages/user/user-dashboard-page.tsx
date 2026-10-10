@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 import { UnreadBadge } from '@/components/ui/unread-badge'
-import { dynamicEventsLaunchEnabled } from '@/config/launch-scope'
+import { publicEventsEnabled } from '@/config/launch-scope'
 import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import type { ProfileCompletion } from '@/features/profile/profile-completion'
 import type { OwnProfile } from '@/features/profile/profile'
@@ -307,7 +307,7 @@ function UserDashboardPage() {
             )}
             to={matchingAvailable ? '/user/matching' : '/user/profile/edit'}
           />
-          {dynamicEventsLaunchEnabled ? (
+          {publicEventsEnabled ? (
             <DashboardAction
               Icon={CalendarDays}
               title={t('userDashboard.events.title')}

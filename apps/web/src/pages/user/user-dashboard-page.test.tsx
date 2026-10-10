@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { profileClient } from '@/features/profile/profile-client'
+import { publicEventsEnabled } from '@/config/launch-scope'
 import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
@@ -73,10 +74,14 @@ describe('FE-023 profile-aware User Dashboard', () => {
       'href',
       '/user/buddy',
     )
-    expect(screen.getByRole('link', { name: 'Explore events' })).toHaveAttribute(
-      'href',
-      '/user/events',
-    )
+    if (publicEventsEnabled) {
+      expect(screen.getByRole('link', { name: 'Explore events' })).toHaveAttribute(
+        'href',
+        '/user/events',
+      )
+    } else {
+      expect(screen.queryByRole('link', { name: 'Explore events' })).not.toBeInTheDocument()
+    }
     expect(
       screen.queryByText(/active matches|upcoming events|notifications/i),
     ).not.toBeInTheDocument()

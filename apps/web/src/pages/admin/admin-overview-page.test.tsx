@@ -2,6 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import i18n from '@/i18n'
+import { adminEventsEnabled } from '@/config/launch-scope'
 import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 
 const locales = [
@@ -13,10 +14,10 @@ const locales = [
     [
       'Total Users',
       'Active Matches',
-      'Published Events',
+      ...(adminEventsEnabled ? ['Published Events'] : []),
       'AI Queries Today',
       'Unmatched Students',
-      'Upcoming Events',
+      ...(adminEventsEnabled ? ['Upcoming Events'] : []),
     ],
   ],
   [
@@ -27,10 +28,10 @@ const locales = [
     [
       'Benutzer insgesamt',
       'Aktive Zuordnungen',
-      'Veröffentlichte Veranstaltungen',
+      ...(adminEventsEnabled ? ['Veröffentlichte Veranstaltungen'] : []),
       'KI-Anfragen heute',
       'Studierende ohne Zuordnung',
-      'Bevorstehende Veranstaltungen',
+      ...(adminEventsEnabled ? ['Bevorstehende Veranstaltungen'] : []),
     ],
   ],
 ] as const
@@ -41,7 +42,7 @@ describe('ADMIN-003 overview placeholders', () => {
   })
 
   it.each(locales)(
-    'presents six named statistics as unavailable in %s',
+    'presents the configured named statistics as unavailable in %s',
     async (language, title, description, unavailable, labels) => {
       await i18n.changeLanguage(language)
       render(<AdminOverviewPage />)
@@ -54,13 +55,13 @@ describe('ADMIN-003 overview placeholders', () => {
           .map((term) => term.textContent),
       ).toEqual(labels)
       const values = within(region).getAllByRole('definition')
-      expect(values).toHaveLength(6)
+      expect(values).toHaveLength(labels.length)
       values.forEach((value) => {
         expect(within(value).getByText(unavailable)).toBeVisible()
         expect(within(value).getByText('—')).toHaveAttribute('aria-hidden', 'true')
         expect(value.textContent).not.toMatch(/\d/)
       })
-      expect(region.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(6)
+      expect(region.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(labels.length)
       expect(within(region).queryByRole('progressbar')).not.toBeInTheDocument()
       expect(region.querySelector('[aria-busy="true"]')).toBeNull()
       expect(screen.queryByRole('main')).not.toBeInTheDocument()
@@ -76,6 +77,6 @@ describe('ADMIN-003 overview placeholders', () => {
     })
     expect(screen.getByRole('region', { name: 'Administrationsübersicht' })).toBe(region)
     expect(within(region).getAllByRole('definition')).toEqual(definitions)
-    expect(within(region).getAllByText('Nicht verfügbar')).toHaveLength(6)
+    expect(within(region).getAllByText('Nicht verfügbar')).toHaveLength(adminEventsEnabled ? 6 : 4)
   })
 })
