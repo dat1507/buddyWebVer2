@@ -239,3 +239,26 @@ Result: isolated local acceptance A–E and Quality Gate E **PASS**. Continue wi
 baseline/compatibility and executable Vercel/Render rollback preflight. Deployment is blocked unless
 both rollback paths are operationally proven. Detailed evidence is in
 `../operations/accept-event-001-local-acceptance-2026-10-10.md`.
+
+## ACCEPT-EVENT-001 controlled Production release — 2026-10-10
+
+| Check | Result |
+| --- | --- |
+| Preflight baseline | Vercel `253849d`; Render `d15cb1d`; public static bundle/health/auth boundaries verified |
+| Production schema/Storage | Supabase ACTIVE_HEALTHY; Alembic `0021`; Event tables present; private 5 MiB JPEG/PNG/WebP bucket |
+| Compatibility | No migration; additive backend APIs; flag-OFF frontend is skew-safe and retains five static posters |
+| Pre-push rollback | Vercel READY candidate at `c2fbaf1`; Render specific-commit `d15cb1d` selection enabled deploy without execution |
+| Released source | `e2ef4c0cca7137ff319faa95d8e82672b0cc3bfc` on `origin/main` |
+| GitHub Actions | Run `38037425291`; Backend SUCCESS; Frontend SUCCESS |
+| Vercel / Render | `dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` READY / `dep-db4v9lqvcj2c73e5jvlg` LIVE |
+| Post-deploy rollback | Vercel candidate retained; Render native rollback to prior `d15cb1d` retained |
+| Public API smoke | live/ready 200; auth 401/no-store; Event slider/list 200 empty; detail 404; Admin list 401 |
+| Frontend flag boundary | `index-phrHnhsS.js`; five static titles present; canonical/Admin API markers absent |
+| Browser smoke | Landing desktop/mobile, Profile read and Buddy Matching read PASS; 0 warnings/errors |
+| Production UI NOT RUN | Admin Event and Event Detail intentionally hidden because flag OFF and Event total zero |
+| Production mutation | 0 Event/account/Storage/database writes; no seed/publish/flag/secret/provider change |
+| Legacy archive | Unchanged |
+
+Result: **DEPLOYED — FLAG-OFF PRODUCTION SMOKE PASS / AWAITING EVENT LAUNCH APPROVAL**.
+`ACCEPT-EVENT-001` is DONE at the approved code-release boundary. Detailed evidence is in
+`../operations/accept-event-001-production-release-2026-10-10.md`.

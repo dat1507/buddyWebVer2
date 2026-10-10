@@ -1,8 +1,8 @@
 # Session handoff
 
 **Updated:** 2026-10-10 (Asia/Saigon)
-**TASK_ID:** ACCEPT-EVENT-001
-**Current mode:** Local Event acceptance A–E PASS; Production rollback preflight in progress
+**TASK_ID:** ACCEPT-EVENT-001 (DONE — FLAG-OFF PRODUCTION SMOKE PASS)
+**Current mode:** Event code deployed; awaiting separate Event launch approval
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
@@ -23,13 +23,13 @@ The original edit/save/reload/clear/max-length gate remains open, so
 `FE-PROFILE-HOME-UNI-001` is not DONE.
 
 The owner selected the dynamic Event lane. The canonical chain from `EVT-005` through `FE-014B` is
-implemented on local `main`, which remains unpushed. It uses one Event source: the Landing slider
+implemented and deployed from `e2ef4c0`. It uses one Event source: the Landing slider
 derives PUBLIC/PUBLISHED/upcoming Events with ready covers; there is no standalone Slider
 admin/table or manual ordering. Per the latest owner decision, Landing renders the first five
 canonical API results; the backend 12-row bound remains an API/query cap rather than an Event or
-Admin limit. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`. The owner authorized a
-controlled code deployment only if Production preflight proves executable Vercel and Render
-rollback; the flag must remain OFF and Event launch still requires separate approval.
+Admin limit. Dynamic routes remain behind `VITE_EVENTS_LAUNCH_ENABLED`, which is OFF in Production.
+The five-poster static carousel therefore remains the live UI, and Event launch still requires
+separate approval.
 
 Verification at this continuation point:
 
@@ -45,14 +45,20 @@ Verification at this continuation point:
   code is unchanged, and `EVS-007` is DONE;
 - local acceptance discovered and covered async `updated_at` projection, Event-detail session
   bootstrap, live empty-state and phase-boundary consistency regressions; Quality Gate E is PASS;
-- no database, Storage, provider, account, Staging or Production mutation occurred. No push or
-  deployment has occurred. Production remains on its static five-event fallback with the dynamic
-  flag off.
+- Production preflight proved the live baseline, Alembic head `0021`, private `event-media` bucket,
+  skew compatibility and executable Vercel/Render rollback;
+- `origin/main` reached `e2ef4c0`; GitHub CI Backend/Frontend succeeded, Vercel deployment
+  `dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` is READY and Render deploy
+  `dep-db4v9lqvcj2c73e5jvlg` is LIVE at the same application SHA;
+- safe Production smoke passed live/readiness, canonical empty Event reads, static desktop/mobile
+  carousel, existing USER Profile/Matching reads and zero browser warning/error. No Event/account/
+  Storage/database write, seed, publish, flag, secret or provider-setting change occurred.
 
-The signed local evidence is in
-`docs/operations/accept-event-001-local-acceptance-2026-10-10.md`. Do not rerun A–E without a new
-regression reason. Continue with current Production baseline, compatibility and executable rollback
-verification. Stop before push if either frontend or backend rollback is not operationally proven.
+The signed evidence is in
+`docs/operations/accept-event-001-local-acceptance-2026-10-10.md` and
+`docs/operations/accept-event-001-production-release-2026-10-10.md`. Do not rerun Local A–E,
+Quality Gate E or the flag-OFF smoke without a regression reason. The next Event action is owner
+content/launch approval, not another code deployment.
 
 The owner superseded the cloud-Staging prerequisite on 2026-10-09. Because Upstash Free provides one
 database and it is Production-only, the approved Event path is isolated local A–E, Production
@@ -76,10 +82,24 @@ provider or rerun accepted functional/technical paths. The release lane remains 
 `docs/implementation/post-deployment-workflow.md` unless an owner separately authorizes one of the
 blocked remediation steps.
 
-The earlier 2026-10-09 frontend approval was consumed. A newer 2026-10-10 owner instruction
-authorizes committing and pushing this Event candidate and deploying compatible frontend/backend
-code only after every Production safety gate passes. It does not authorize Production writes,
-migration changes, provider/secret changes, Event publication or enabling the Event flag.
+The 2026-10-10 Event code-deployment approval was consumed by the `e2ef4c0` push and controlled
+Vercel/Render rollout. It did not and does not authorize Production Event writes, migration changes,
+provider/secret changes, Event publication or enabling the Event flag.
+
+## Latest Event code release
+
+- Production preflight and rollback: PASS. Vercel retains a READY `c2fbaf1` candidate; Render now
+  exposes a native rollback action from the live `e2ef4c0` deploy to prior `d15cb1d`. No migration
+  was added, so code rollback requires no database downgrade.
+- GitHub Actions run `38037425291`: Backend SUCCESS; Frontend SUCCESS.
+- Vercel: `dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` READY at `e2ef4c0`.
+- Render: `dep-db4v9lqvcj2c73e5jvlg` LIVE at `e2ef4c0`.
+- Public API: live/ready 200; anonymous auth 401/no-store; slider 200 `[]`; Event list 200 with total
+  zero; nonexistent detail 404; anonymous Admin Event list 401/no-store.
+- Production bundle `index-phrHnhsS.js` contains all five static titles and no canonical slider or
+  Admin Event API marker. Desktop/mobile Landing, protected Profile and Buddy Matching reads passed
+  with zero browser warning/error. Admin Event UI and Event Detail UI are intentionally NOT RUN in
+  Production because the flag is OFF and canonical Event total is zero.
 
 ## Latest Phase 2 frontend release
 
@@ -115,6 +135,9 @@ Authenticated and provider-dashboard checks at 2026-10-08 14:15–15:01 Asia/Sai
   `d15cb1d7`, and only one available deploy;
 - no Render events in the preceding 12 hours, no `ERROR` log match in the preceding hour and
   repeated 200 live probes.
+
+That one-deploy Render observation is historical. The 2026-10-10 Event release now retains live
+`e2ef4c0` plus prior `d15cb1d` with a native rollback action, as recorded above.
 
 Both USER and ADMIN sessions were logged out. No credential/token/cookie value or private payload
 was recorded. Opening the existing chat may have reconciled its ordinary idempotent read marker; no
@@ -175,20 +198,19 @@ produce another record. It does not replace the technical/security and operation
 - Secure cookies, session reload/logout, CSRF coverage, authenticated WSS Origin/auth/reconnect,
   REST recovery, Semester authorization/guards and the high-confidence secret/history scan: PASS.
 - Vercel retained frontend rollback candidates: PASS.
+- Render retained backend rollback candidate: PASS from the 2026-10-10 Event code rollout.
 
 ## Blocking `PROD-001`
 
 - Private Semester-backup access is **FAIL** in direct Production evidence. A separate owner-approved
   remediation and safe verification are required; Prepare is state-changing and was not retried.
-- Render has no prior retained backend deployment. Establish a compatible retained point or an
-  approved immutable redeploy procedure without a database downgrade.
 - Supply the named rollback decision owner, Vercel executor, Render executor and database-recovery
   owner. Do not infer names.
 - Supply the accepted post-repair hold duration, then observe only that missing interval.
 - Residual `ACCEPT-001` evidence and full encrypted off-site DR restore remain post-deployment
   hardening, not completed work.
-- Dynamic Event/Admin Event code is implemented locally but remains unpushed, undeployed and
-  feature-gated pending `EVS-007` and `ACCEPT-EVENT-001`.
+- Dynamic Event/Admin Event code is deployed and remains feature-gated OFF pending separate
+  canonical data preparation and Event launch approval.
 
 ## Phase 2 readiness
 

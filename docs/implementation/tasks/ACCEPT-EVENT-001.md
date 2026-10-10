@@ -1,6 +1,6 @@
 # ACCEPT-EVENT-001
 
-**Control-plane status:** IN PROGRESS — LOCAL A–E PASS / PRODUCTION PREFLIGHT
+**Control-plane status:** DONE — FLAG-OFF PRODUCTION SMOKE PASS
 **Track:** release-operations
 **Priority:** -
 **Dependencies (latest extracted):** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,
@@ -48,6 +48,26 @@ Detailed sanitized evidence is in
 The active gate is read-only Production baseline/compatibility and executable Vercel/Render
 rollback. No push or deployment may occur if rollback remains incomplete. Production Event writes,
 data preparation and flag activation remain unauthorized.
+
+## Production code rollout — PASS 2026-10-10
+
+Production preflight directly verified the current Vercel/Render baselines, Alembic head `0021`,
+private `event-media` bucket, Event tables, flag-OFF bundle, skew compatibility and executable
+rollback. `origin/main` reached `e2ef4c0`; GitHub CI Backend/Frontend succeeded, Vercel deployment
+`dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` became READY and Render deployment
+`dep-db4v9lqvcj2c73e5jvlg` became LIVE at that application SHA.
+
+Read-only Production smoke passed live/readiness, anonymous auth boundary, canonical empty Event
+list/slider, nonexistent detail, anonymous Admin denial, the unchanged static five-poster carousel,
+desktop/mobile layout, and existing USER Profile/Matching reads with zero browser warning/error.
+Admin Event UI and Event Detail UI are intentionally **NOT RUN** because the Production flag remains
+OFF and canonical Event total is zero. No Production Event/account/Storage/database write, seed,
+publish, flag, secret or provider-setting change occurred.
+
+Detailed evidence is in
+[`accept-event-001-production-release-2026-10-10.md`](../../operations/accept-event-001-production-release-2026-10-10.md).
+This task is complete at the approved flag-OFF boundary. Canonical Production data preparation and
+enabling `VITE_EVENTS_LAUNCH_ENABLED` require a separate explicit owner approval.
 
 ## Staging readiness evidence — 2026-10-09
 

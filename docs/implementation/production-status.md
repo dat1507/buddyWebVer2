@@ -79,8 +79,8 @@ console were clean.
   This closes the authenticated display gate only. The original edit/save/reload, empty-clear,
   200-character rejection and unrelated-field stability acceptance has not been directly observed,
   so `FE-PROFILE-HOME-UNI-001` remains open.
-- No dynamic Event code from the current local worktree is deployed. The Production Event launch
-  flag remains off, and no database, Storage, provider or account mutation is claimed here.
+- At this dated frontend-only checkpoint, no dynamic Event code was deployed. The newer flag-OFF
+  Event code release below supersedes that deployment statement without enabling Event launch.
 
 ## Dynamic Event release readiness — 2026-10-09
 
@@ -121,10 +121,32 @@ evidence is 121 focused Event PASS, backend 1,408 PASS / 37 explicit live SKIP a
 / 774 PASS, with lint/type/build/schema/package/dependency gates passing.
 
 This newer evidence supersedes only the historical `NOT RUN` local-acceptance conclusion above; it
-does not change that cloud Staging remains unused. Production is still unchanged, the Event flag is
-still OFF, and no deployment/write/data preparation is claimed. The active gate is direct baseline,
-compatibility and executable Vercel/Render rollback preflight. Full evidence is in
+does not change that cloud Staging remains unused. At this local-acceptance checkpoint Production
+was still unchanged and the Event flag was OFF. Full evidence is in
 [`accept-event-001-local-acceptance-2026-10-10.md`](../operations/accept-event-001-local-acceptance-2026-10-10.md).
+
+### Flag-OFF Production code release — PASS 2026-10-10
+
+- `origin/main` reached application SHA `e2ef4c0`; GitHub Actions run `38037425291` completed
+  Backend SUCCESS and Frontend SUCCESS.
+- Vercel deployment `dpl_Evhx9hudQSBf99P9fxznxtGNg2GS` is READY and Render deployment
+  `dep-db4v9lqvcj2c73e5jvlg` is LIVE at the application SHA.
+- Direct Supabase read-only evidence confirmed Alembic `0021_restore_runtime_permissions`, the
+  `app_private.events`/`event_media` tables and private 5 MiB JPEG/PNG/WebP `event-media` bucket.
+- Public smoke returned live/readiness 200, anonymous auth 401/no-store, canonical slider 200 `[]`,
+  Event list 200 with total zero, nonexistent Event detail 404/no-store and anonymous Admin Event
+  list 401/no-store.
+- Production bundle `index-phrHnhsS.js` retains all five static Event titles and contains neither
+  canonical slider nor Admin Event API markers. Desktop/mobile Landing and an existing USER
+  Profile/Matching read passed with zero browser warning/error.
+- Admin Event UI and Event Detail UI remain intentionally NOT RUN: the flag is OFF and canonical
+  Event total is zero. No Production Event/account/Storage/database write, seed, publish, flag,
+  secret or provider-setting change occurred.
+
+Full evidence is in
+[`accept-event-001-production-release-2026-10-10.md`](../operations/accept-event-001-production-release-2026-10-10.md).
+`ACCEPT-EVENT-001` is complete at the approved flag-OFF boundary. Event launch remains a separate
+owner decision.
 
 ### Static-to-canonical Production data preparation
 
@@ -144,10 +166,11 @@ Production seed or data mutation was performed.
 ### Rollback boundary
 
 Turning the frontend launch flag off and redeploying restores the existing static five-poster
-carousel without deleting canonical Event data. Vercel retains prior Ready frontend deployments,
-and the Event work adds no new migration. The backend rollback remains operationally incomplete:
-Render still has no prior selectable deployment. A schema-compatible immutable backend redeploy or
-retained rollback point plus named release/recovery owners is required before Production approval.
+carousel without deleting canonical Event data. Vercel retains READY frontend rollback candidates,
+including `c2fbaf1`. The live Render `e2ef4c0` deploy exposes a native rollback action to retained
+`d15cb1d`; the specific-commit redeploy flow was also verified without executing it. The Event work
+adds no migration, so code rollback requires no database downgrade. Named release/recovery owners
+remain a separate `PROD-001` requirement, not an Event-release rollback gap.
 
 ## Documented operator evidence retained
 
@@ -197,8 +220,8 @@ Full redacted evidence and gate reconciliation are in
 - Production Semester status reports `RESET_PREPARATION_FAILED`; the associated private backup is
   `FAILED`, unverified and has no expiry. Render retained two earlier Prepare requests returning
   503. Diagnosing/repairing and safely re-verifying this path requires separate authorization.
-- Vercel retains prior Ready frontend deployments, but the Production Render service reports only
-  one deploy; no prior backend revision is selectable.
+- Vercel and Render now retain executable frontend/backend code rollback points from the
+  2026-10-10 Event rollout. This closes the former missing-Render-deploy blocker only.
 - Named rollback decision/Vercel/Render/database-recovery owners and an accepted post-repair hold
   duration are not recorded.
 - The complete encrypted off-site snapshot and disposable DR rehearsal remain post-deploy

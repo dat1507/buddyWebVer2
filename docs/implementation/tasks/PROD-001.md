@@ -9,6 +9,15 @@
 > precedence in `../../../implementation-plan.md`; older excerpts are preserved history, not
 > automatic authorization. Source: `../../../implementation_plan_vgu_buddy.md`.
 
+## Later rollback update — 2026-10-10
+
+The controlled Event code rollout created a second successful Render deploy. Live application SHA
+`e2ef4c0` now has a native provider rollback action to retained `d15cb1d`; Vercel also retains READY
+frontend candidates. This closes the missing-backend-code-rollback blocker recorded below. It does
+not close `PROD-001`: the failed/unverified private Semester backup, named rollback/recovery owners
+and accepted post-repair hold duration remain unresolved. See
+[`accept-event-001-production-release-2026-10-10.md`](../../operations/accept-event-001-production-release-2026-10-10.md).
+
 ## Technical evidence closure update — 2026-10-08 15:01 Asia/Saigon
 
 - Secure host-only cookie metadata, session reload/logout, CSRF coverage, authenticated WSS

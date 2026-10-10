@@ -23,9 +23,10 @@ related features. Reuse that functional evidence; do not rerun those paths merel
 
 `PROD-001` is **BLOCKED / OWNER ACTION REQUIRED**, not DONE. Session/cookie/CSRF, authenticated WSS,
 REST recovery, Semester guards and focused release-security verification now pass. Direct
-Production evidence found a failed, unverified private Semester backup; Render has no previous
-retained backend deploy; named rollback/recovery owners and the accepted post-repair hold duration
-are also missing. No application feature should be implemented in this release lane. A newer owner
+Production evidence found a failed, unverified private Semester backup; named rollback/recovery
+owners and the accepted post-repair hold duration are also missing. The Event code release on
+2026-10-10 created a retained Render rollback point, closing that one earlier blocker without
+closing `PROD-001`. No application feature should be implemented in this release lane. A newer owner
 decision separately authorizes the two isolated frontend-only Phase 2 tasks below on local `main`;
 the owner subsequently approved and completed their `origin/main` push and Vercel Production
 deployment on 2026-10-09. This does not change any Phase 1 blocker.
@@ -39,11 +40,11 @@ remains open under the original Profile contract.
 
 | Order | Task / gate | Priority | Status | Dependency / reason | Next evidence |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; no retained Render rollback point or named owners | Separately authorize backup remediation/verification, establish backend rollback, name owners and accept the post-repair hold |
+| 1 | `PROD-001` | Release-blocking | **BLOCKED / OWNER ACTION REQUIRED** | Private Semester backup failed; named owners and accepted post-repair hold remain missing; Render rollback is now retained | Separately authorize backup remediation/verification, name owners and accept the post-repair hold |
 | 2 | `ACCEPT-001` residual evidence | High hardening | **OPEN / POST-DEPLOY** | Smaller MVP release boundary approved; integrity guards already exist | Close only missing signed/redacted evidence; do not rerun accepted scenarios |
 | 3 | Encrypted off-site DR rehearsal | High hardening | **OPEN / POST-DEPLOY** | Production exists; DR roles/runbook prepared | Full encrypted snapshot plus disposable restore evidence |
 | 4 | `EVS-007` Event regression gate | P0 product | **DONE — SUPPORTED-RUNTIME REGRESSION PASS** | Current regression: Python 3.12 backend 1,408 PASS / 37 SKIP; Event backend 121 PASS; frontend 774 PASS | Preserve evidence; no repeat without regression reason |
-| 5 | `ACCEPT-EVENT-001` | P0 release gate | **IN PROGRESS — LOCAL A–E PASS / PRODUCTION PREFLIGHT** | Isolated local API/browser acceptance and Quality Gate E passed; Production remains unchanged with flag OFF | Prove executable Vercel/Render rollback; only then deploy code with flag OFF and run safe Production smoke |
+| 5 | `ACCEPT-EVENT-001` | P0 release gate | **DONE — FLAG-OFF PRODUCTION SMOKE PASS** | Local A–E, Quality Gate E, rollback preflight, controlled deploy and read-only smoke passed at `e2ef4c0` | Preserve evidence; await separate canonical data and Event launch approval |
 | 6 | P1 product backlog | P1 | **PLANNED** | Depends on task-specific contracts | Select explicitly after P0 post-deployment sequence |
 | 7 | `FE-LANDING-BG-001` | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED** | Vercel Production and desktop/mobile/transition evidence pass | Preserve evidence; no repeat without regression reason |
 | 8 | `FE-PROFILE-HOME-UNI-001` | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass | Owner edit/save/reload/clear/max-length review |
@@ -80,8 +81,7 @@ These are evidence stages inside the existing Task ID; they are not new feature 
 2. Obtain separate authorization to diagnose and repair the failed private Semester-backup
    connection/storage path. Its eventual verification is state-changing and is not authorized by
    this evidence task.
-3. Establish one schema-compatible retained Render deploy or an approved immutable redeploy path
-   for the current backend revision.
+3. Preserve the schema-compatible Render rollback now retained from `e2ef4c0` to `d15cb1d`.
 4. Record named rollback decision, Vercel execution, Render execution and database-recovery owners;
    then observe only the additional owner-approved post-repair hold window.
 5. Close `PROD-001` only when those blockers pass. Detailed evidence is in
@@ -111,7 +111,8 @@ After release hold/hardening selection, preserve this controlling Part 27 sequen
 `ADMIN-008 -> ADMIN-009 -> FE-031 -> FE-014B -> EVS-007 -> ACCEPT-EVENT-001`
 
 On 2026-10-09 the owner selected this lane. `EVT-005/006/009/011`, `EVS-005`, `ADMIN-006..009`,
-`FE-031` and `FE-014B` are implemented locally with focused automated gates passing. The canonical
+`FE-031` and `FE-014B` are implemented and deployed behind the OFF launch flag with focused
+automated gates passing. The canonical
 source is one Event model: the Landing slider is a derived PUBLIC/PUBLISHED/upcoming projection;
 there is no standalone slider table, manual ordering page or duplicated promotion CRUD.
 
@@ -131,8 +132,15 @@ On 2026-10-10 isolated local A–E and Quality Gate E completed **PASS**. The AP
 assertions; real browser acceptance covered Admin edit, signed cover, retry, detail/deep-link EN/DE,
 responsive layout and empty state with zero runtime or console errors. Four acceptance regressions
 have focused coverage: async `updated_at` projection, detail query/session bootstrap, live empty
-state and a phase-boundary projection race. The active step is Production baseline/compatibility and
-rollback preflight; no push, deployment, Production write or flag change is yet claimed.
+state and a phase-boundary projection race.
+
+Production preflight then proved Alembic `0021`, private Event Storage, current frontend/backend
+baselines, skew compatibility and executable rollback. `e2ef4c0` reached Vercel and Render; GitHub
+Backend/Frontend CI succeeded. Flag-OFF read-only smoke passed health/readiness, empty canonical
+Event reads, the static desktop/mobile carousel, existing USER Profile/Matching reads and browser
+console sanity. `ACCEPT-EVENT-001` is DONE. Production Event writes, Admin Event rendering, Event
+Detail rendering and launch remain NOT RUN by design; canonical Event total is zero and the flag is
+still OFF. The next gate is separate owner-approved data preparation and launch.
 
 Manual gates:
 

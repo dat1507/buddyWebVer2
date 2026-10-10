@@ -82,4 +82,6 @@ or authorize the Event launch flag.
   security/quality criteria remain; Production writes are not included.
 - Isolated local A–E completed PASS on 2026-10-10: 79 API assertions plus real browser acceptance,
   followed by backend 1,408 PASS / 37 SKIP and frontend 84 files / 774 PASS. Production preflight is
-  active; no push, deployment, data write or flag change is yet claimed.
+  complete with executable rollback. Application SHA `e2ef4c0` is deployed to Vercel/Render;
+  GitHub CI and read-only Production smoke passed while the Event flag remained OFF. No Production
+  Event data write or launch action occurred.

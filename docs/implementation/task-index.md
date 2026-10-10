@@ -9,7 +9,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | Task | Status | Priority | Track | Dependencies / source note |
 | --- | --- | --- | --- | --- |
 | [`ACCEPT-001`](tasks/ACCEPT-001.md) | OPEN / POST-DEPLOY HARDENING | - | release-operations | EMAIL/PREF/PROFILE/REC/INV/BUDDY/CHAT/ADMIN V2 tasks, SEM-007, CHAT-005, OPS-003; QA + Product + Engineering + Operations. |
-| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | IN PROGRESS — LOCAL A–E PASS / PRODUCTION PREFLIGHT | P0 | release-operations | Isolated local API/browser acceptance and Quality Gate E passed; executable Vercel/Render rollback is required before any flag-OFF deploy. |
+| [`ACCEPT-EVENT-001`](tasks/ACCEPT-EVENT-001.md) | DONE — FLAG-OFF PRODUCTION SMOKE PASS | P0 | release-operations | Local A–E, Quality Gate E, rollback preflight, `e2ef4c0` rollout and read-only Production smoke passed; separate data/launch approval remains. |
 | [`ADMIN-001`](tasks/ADMIN-001.md) | DONE / PRESERVED | P0 | admin | FE-005, AUTH-006 — both DONE; shared Card/Typography/buttons and actual ADMIN RoleGuard acceptance verified. |
 | [`ADMIN-002`](tasks/ADMIN-002.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; source shell, tests and accepted Git/CI evidence verified. |
 | [`ADMIN-003`](tasks/ADMIN-003.md) | DONE / PRESERVED | P0 | admin | ADMIN-001 — DONE; guarded shell, tests and accepted Git/CI evidence verified. ADMIN-002 is also already on main but is not a declared dependency. |

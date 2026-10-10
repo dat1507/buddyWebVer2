@@ -3,10 +3,10 @@
 This workflow is evidence-only unless the user separately authorizes Production interaction. It does
 not authorize account creation, login, email sends, DNS/provider changes or destructive operations.
 
-**Current Stage 1 checkpoint — 2026-10-08:** session/cookie/CSRF, authenticated WSS/reconnect/REST,
-Semester guards and focused release-security evidence are PASS. Stage 1 is BLOCKED by the failed
-private Semester backup, absent retained Render rollback point, unnamed rollback/recovery owners and
-unaccepted post-repair hold duration. Preserve the PASS evidence in
+**Current Stage 1 checkpoint — 2026-10-10:** session/cookie/CSRF, authenticated WSS/reconnect/REST,
+Semester guards, focused release-security evidence and retained Vercel/Render code rollback are
+PASS. Stage 1 remains BLOCKED by the failed private Semester backup, unnamed rollback/recovery
+owners and unaccepted post-repair hold duration. Preserve the earlier PASS evidence in
 `../operations/prod-001-technical-evidence-2026-10-08.md`; do not repeat it during remediation.
 
 ## Stage 1 — Close `PROD-001`
@@ -56,8 +56,7 @@ security and operational evidence not established by that acceptance.
 
 1. Open a separately authorized remediation task for the failed private Semester-backup path. Do
    not invoke Prepare merely as a diagnostic from a documentation/evidence task.
-2. Establish a compatible retained Render deploy or approve an immutable schema-compatible redeploy
-   procedure.
+2. Preserve the retained Render `e2ef4c0` -> `d15cb1d` code rollback established on 2026-10-10.
 3. Record the named rollback decision, Vercel, Render and database-recovery owners.
 4. Record the accepted post-repair hold duration, observe only the missing window, then reconcile
    `PROD-001` again.
@@ -96,10 +95,10 @@ tests, or enable dynamic navigation/feature flags during step 13. A separate own
 is still required. Each Task ID's preserved dependencies, acceptance criteria and security
 requirements are in `tasks/<TASK_ID>.md`.
 
-**Current Event checkpoint — 2026-10-10:** isolated local A–E and Quality Gate E are PASS. Continue
-at Production baseline/compatibility and executable Vercel/Render rollback preflight. If backend or
-frontend rollback cannot be demonstrated, stop before pushing `main`; Git history alone is not an
-operational rollback.
+**Current Event checkpoint — 2026-10-10:** isolated local A–E, Quality Gate E, executable rollback,
+controlled `e2ef4c0` Vercel/Render deployment and flag-OFF Production smoke are PASS.
+`ACCEPT-EVENT-001` is complete. Stop before canonical Production data writes or enabling the flag;
+both require a separate explicit owner launch decision.
 
 ## Stage 4 — Remaining P1/research backlog
 

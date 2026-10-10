@@ -69,6 +69,10 @@ the per-task extracts and legacy archive.
   Production PostgreSQL, Redis, Storage, email or accounts. This is a cost/environment decision,
   not a reduction of security or quality gates. Production write tests and the Event launch flag
   still require separate approval.
+- Execution on 2026-10-10 completed Local A–E, Quality Gate E, rollback preflight, controlled
+  `e2ef4c0` Vercel/Render deployment and read-only Production smoke with the Event flag OFF. This
+  closes `ACCEPT-EVENT-001` at the code-release boundary; it does not authorize canonical data
+  preparation, publication or flag activation.
 
 ## Canonical Event delivery — recovered 2026-10-09
 
