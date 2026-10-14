@@ -183,17 +183,12 @@ async def _validate_publishable(
         "title_de",
         "description_en",
         "description_de",
-        "location_en",
-        "location_de",
     ):
         value = _effective(event, changes, field)
         if not isinstance(value, str) or not value.strip():
             raise EventValidationError("Event publication fields are incomplete.")
 
-    start_date = cast(datetime | None, _effective(event, changes, "start_date"))
-    end_date = cast(datetime | None, _effective(event, changes, "end_date"))
-    if start_date is None or end_date is None or end_date <= start_date:
-        raise EventValidationError("Event publication times are invalid.")
+    _validate_schedule(event, changes)
 
     cover_media_id = cast(UUID | None, _effective(event, changes, "cover_media_id"))
     if cover_media_id is None:

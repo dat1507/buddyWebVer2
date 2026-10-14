@@ -39,7 +39,7 @@ describe('ADMIN-007/008 Event form boundaries', () => {
     })
   })
 
-  it('rejects invalid schedule, URL, capacity, cover type/size, and missing alt text', () => {
+  it('rejects invalid schedule, URL, cover type/size, and missing alt text', () => {
     const message = (key: string) => key
     const invalidFile = new File(['svg'], 'poster.svg', { type: 'image/svg+xml' })
     const errors = validateEventForm(
@@ -49,6 +49,8 @@ describe('ADMIN-007/008 Event form boundaries', () => {
         endDate: '2026-10-10T15:00',
         registrationDeadline: '2026-10-10T18:00',
         registrationUrl: 'http://unsafe.example',
+        category: 'x'.repeat(500),
+        organizer: 'x'.repeat(500),
         maxParticipants: '0',
       },
       invalidFile,
@@ -59,11 +61,13 @@ describe('ADMIN-007/008 Event form boundaries', () => {
       endDate: 'endAfterStart',
       registrationDeadline: 'deadlineBeforeStart',
       registrationUrl: 'https',
-      maxParticipants: 'positiveInteger',
       cover: 'coverType',
       altEn: 'required',
       altDe: 'required',
     })
+    expect(errors.category).toBeUndefined()
+    expect(errors.organizer).toBeUndefined()
+    expect(errors.maxParticipants).toBeUndefined()
     expect(validateEventCover(new File([], 'empty.png', { type: 'image/png' }))).toBe('size')
   })
 })

@@ -155,8 +155,6 @@ function validateEventForm(
     ['descriptionDe', 10_000],
     ['locationEn', 200],
     ['locationDe', 200],
-    ['category', 80],
-    ['organizer', 200],
   ]
   for (const [field, maximum] of limits) {
     if (String(values[field]).trim().length > maximum) errors[field] = message('maximum')
@@ -184,12 +182,6 @@ function validateEventForm(
     } catch {
       errors.registrationUrl = message('https')
     }
-  }
-  if (
-    values.maxParticipants &&
-    (!/^\d+$/.test(values.maxParticipants) || Number(values.maxParticipants) < 1)
-  ) {
-    errors.maxParticipants = message('positiveInteger')
   }
   const fileError = validateEventCover(file)
   if (fileError) errors.cover = message(fileError === 'type' ? 'coverType' : 'coverSize')

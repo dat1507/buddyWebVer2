@@ -1,4 +1,4 @@
-import { ArrowLeft, Building2, CalendarDays, Clock3, MapPin, Tag } from 'lucide-react'
+import { ArrowLeft, Building2, CalendarDays, Clock3, ExternalLink, MapPin, Tag } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 
@@ -94,8 +94,11 @@ function EventDetailPage() {
     timeStyle: 'short',
     timeZone: event.timezone,
   })
-  const start = dateFormatter.format(new Date(event.start_date))
-  const end = dateFormatter.format(new Date(event.end_date))
+  const start = event.start_date ? dateFormatter.format(new Date(event.start_date)) : null
+  const end = event.end_date ? dateFormatter.format(new Date(event.end_date)) : null
+  const hasDetails = Boolean(
+    event.start_date || event.end_date || event.location || event.organizer || event.category,
+  )
 
   return (
     <main className="relative isolate overflow-hidden px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -131,9 +134,11 @@ function EventDetailPage() {
           <div className="flex flex-col gap-8 p-6 sm:p-10 lg:p-12">
             <header className="space-y-5">
               <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em]">
-                <span className="rounded-full border border-vgu-orange/35 bg-vgu-orange/10 px-3 py-1 text-vgu-orange-dark dark:text-vgu-orange">
-                  {t(`eventDetail.phase.${event.phase}`)}
-                </span>
+                {event.phase ? (
+                  <span className="rounded-full border border-vgu-orange/35 bg-vgu-orange/10 px-3 py-1 text-vgu-orange-dark dark:text-vgu-orange">
+                    {t(`eventDetail.phase.${event.phase}`)}
+                  </span>
+                ) : null}
                 {event.status === 'CANCELLED' ? (
                   <span className="rounded-full bg-destructive/15 px-3 py-1 text-destructive">
                     {t('eventDetail.cancelled')}
@@ -174,58 +179,84 @@ function EventDetailPage() {
               </p>
             ) : null}
 
-            <dl className="grid gap-5 rounded-2xl border border-border/70 bg-background/45 p-5 sm:grid-cols-2">
-              <div className="flex gap-3">
-                <CalendarDays
-                  aria-hidden="true"
-                  className="mt-0.5 size-5 shrink-0 text-vgu-orange"
-                />
-                <div>
-                  <dt className="font-semibold">{t('eventDetail.starts')}</dt>
-                  <dd className="text-sm leading-6 text-muted-foreground">
-                    <time dateTime={event.start_date}>{start}</time>
-                  </dd>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                <div>
-                  <dt className="font-semibold">{t('eventDetail.ends')}</dt>
-                  <dd className="text-sm leading-6 text-muted-foreground">
-                    <time dateTime={event.end_date}>{end}</time>
-                  </dd>
-                  <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
-                </div>
-              </div>
-              <div className="flex gap-3 sm:col-span-2">
-                <MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                <div>
-                  <dt className="font-semibold">{t('eventDetail.location')}</dt>
-                  <dd className="text-sm leading-6 text-muted-foreground">{event.location}</dd>
-                </div>
-              </div>
-              {event.organizer ? (
-                <div className="flex gap-3">
-                  <Building2
-                    aria-hidden="true"
-                    className="mt-0.5 size-5 shrink-0 text-vgu-orange"
-                  />
-                  <div>
-                    <dt className="font-semibold">{t('eventDetail.organizer')}</dt>
-                    <dd className="text-sm leading-6 text-muted-foreground">{event.organizer}</dd>
+            {event.registration_enabled && event.registration_url ? (
+              <section className="space-y-3 rounded-2xl border border-vgu-orange/35 bg-vgu-orange/10 p-5">
+                <Typography as="h2" variant="h3">
+                  {t('eventDetail.registration.title')}
+                </Typography>
+                <Typography variant="muted">{t('eventDetail.registration.description')}</Typography>
+                <Button asChild className="w-full sm:w-auto">
+                  <a href={event.registration_url} target="_blank" rel="noreferrer">
+                    <ExternalLink aria-hidden="true" />
+                    {t('eventDetail.registration.action')}
+                  </a>
+                </Button>
+              </section>
+            ) : null}
+
+            {hasDetails ? (
+              <dl className="grid gap-5 rounded-2xl border border-border/70 bg-background/45 p-5 sm:grid-cols-2">
+                {event.start_date && start ? (
+                  <div className="flex gap-3">
+                    <CalendarDays
+                      aria-hidden="true"
+                      className="mt-0.5 size-5 shrink-0 text-vgu-orange"
+                    />
+                    <div>
+                      <dt className="font-semibold">{t('eventDetail.starts')}</dt>
+                      <dd className="text-sm leading-6 text-muted-foreground">
+                        <time dateTime={event.start_date}>{start}</time>
+                      </dd>
+                      {!event.end_date ? (
+                        <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ) : null}
-              {event.category ? (
-                <div className="flex gap-3">
-                  <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                  <div>
-                    <dt className="font-semibold">{t('eventDetail.category')}</dt>
-                    <dd className="text-sm leading-6 text-muted-foreground">{event.category}</dd>
+                ) : null}
+                {event.end_date && end ? (
+                  <div className="flex gap-3">
+                    <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                    <div>
+                      <dt className="font-semibold">{t('eventDetail.ends')}</dt>
+                      <dd className="text-sm leading-6 text-muted-foreground">
+                        <time dateTime={event.end_date}>{end}</time>
+                      </dd>
+                      <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
+                    </div>
                   </div>
-                </div>
-              ) : null}
-            </dl>
+                ) : null}
+                {event.location ? (
+                  <div className="flex gap-3 sm:col-span-2">
+                    <MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                    <div>
+                      <dt className="font-semibold">{t('eventDetail.location')}</dt>
+                      <dd className="text-sm leading-6 text-muted-foreground">{event.location}</dd>
+                    </div>
+                  </div>
+                ) : null}
+                {event.organizer ? (
+                  <div className="flex gap-3">
+                    <Building2
+                      aria-hidden="true"
+                      className="mt-0.5 size-5 shrink-0 text-vgu-orange"
+                    />
+                    <div>
+                      <dt className="font-semibold">{t('eventDetail.organizer')}</dt>
+                      <dd className="text-sm leading-6 text-muted-foreground">{event.organizer}</dd>
+                    </div>
+                  </div>
+                ) : null}
+                {event.category ? (
+                  <div className="flex gap-3">
+                    <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                    <div>
+                      <dt className="font-semibold">{t('eventDetail.category')}</dt>
+                      <dd className="text-sm leading-6 text-muted-foreground">{event.category}</dd>
+                    </div>
+                  </div>
+                ) : null}
+              </dl>
+            ) : null}
           </div>
         </article>
       </div>

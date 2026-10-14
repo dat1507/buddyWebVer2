@@ -14,6 +14,7 @@ from app.schemas.event import (
     EventDraftUpdate,
     EventMediaUpdate,
     EventStatusUpdate,
+    PublicEventResponse,
 )
 
 EVENT_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -136,3 +137,31 @@ def test_admin_projection_omits_actor_and_storage_data_and_derives_phase() -> No
     assert "updated_by" not in payload
     assert "object_key" not in payload
     assert "signed_url" not in payload
+
+
+def test_public_projection_accepts_an_unscheduled_location_free_announcement() -> None:
+    response = PublicEventResponse.model_validate(
+        {
+            "id": str(EVENT_ID),
+            "locale": "en",
+            "title": "Announcement",
+            "description": "Details follow.",
+            "start_date": None,
+            "end_date": None,
+            "timezone": "Asia/Ho_Chi_Minh",
+            "location": None,
+            "category": None,
+            "organizer": None,
+            "registration_url": "https://events.example/register",
+            "registration_enabled": True,
+            "registration_deadline": None,
+            "status": "PUBLISHED",
+            "visibility": "PUBLIC",
+            "phase": None,
+            "cover": None,
+        }
+    )
+
+    assert response.start_date is None
+    assert response.location is None
+    assert response.phase is None

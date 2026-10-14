@@ -247,58 +247,6 @@ function EventEditorForm({
           <CardTitle>{t('adminEventForm.details.title')}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-1 text-sm font-medium">
-            {t('adminEventForm.details.category')}
-            <input
-              value={values.category}
-              maxLength={80}
-              disabled={isPending}
-              className={inputClassName}
-              aria-describedby={describedBy('category')}
-              onChange={(event) => set('category', event.target.value)}
-            />
-            {error('category')}
-          </label>
-          <label className="space-y-1 text-sm font-medium">
-            {t('adminEventForm.details.organizer')}
-            <input
-              value={values.organizer}
-              maxLength={200}
-              disabled={isPending}
-              className={inputClassName}
-              aria-describedby={describedBy('organizer')}
-              onChange={(event) => set('organizer', event.target.value)}
-            />
-            {error('organizer')}
-          </label>
-          <label className="space-y-1 text-sm font-medium">
-            {t('adminEventForm.details.visibility')}
-            <select
-              value={values.visibility}
-              disabled={isPending}
-              className={inputClassName}
-              onChange={(event) =>
-                set('visibility', event.target.value as EventFormValues['visibility'])
-              }
-            >
-              <option value="MEMBERS">{t('adminEvents.visibility.MEMBERS')}</option>
-              <option value="PUBLIC">{t('adminEvents.visibility.PUBLIC')}</option>
-            </select>
-          </label>
-          <label className="space-y-1 text-sm font-medium">
-            {t('adminEventForm.details.capacity')}
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={values.maxParticipants}
-              disabled={isPending}
-              className={inputClassName}
-              aria-describedby={describedBy('maxParticipants')}
-              onChange={(event) => set('maxParticipants', event.target.value)}
-            />
-            {error('maxParticipants')}
-          </label>
           <label className="space-y-1 text-sm font-medium sm:col-span-2">
             {t('adminEventForm.details.registrationUrl')}
             <input

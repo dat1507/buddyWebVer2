@@ -249,7 +249,7 @@ async def test_cover_update_requires_ready_event_cover_owned_by_event() -> None:
 
 
 @pytest.mark.anyio
-async def test_publish_requires_complete_localized_content_times_location_and_ready_cover() -> None:
+async def test_publish_requires_localized_content_and_ready_cover_but_not_schedule_or_location() -> None:
     incomplete = _event(complete=False, version=2)
     mock, session = _session()
     mock.scalar.return_value = incomplete
@@ -262,8 +262,12 @@ async def test_publish_requires_complete_localized_content_times_location_and_re
             EventStatusUpdate(version=2, status=EventStatus.PUBLISHED),
         )
 
-    complete = _event(complete=True, version=2)
-    mock.scalar.side_effect = [complete, COVER_ID]
+    announcement = _event(complete=True, version=2)
+    announcement.start_date = None
+    announcement.end_date = None
+    announcement.location_en = None
+    announcement.location_de = None
+    mock.scalar.side_effect = [announcement, COVER_ID]
     published = await set_event_status(
         session,
         _admin(),
@@ -276,6 +280,33 @@ async def test_publish_requires_complete_localized_content_times_location_and_re
     assert published.published_at == datetime(2026, 9, 22, tzinfo=UTC)
     assert published.version == 3
     mock.commit.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_published_event_accepts_partial_optional_schedule_and_location() -> None:
+    event = _event(status=EventStatus.PUBLISHED, version=2)
+    mock, session = _session()
+    mock.scalar.side_effect = [event, COVER_ID]
+
+    result = await update_event_draft(
+        session,
+        _admin(),
+        EVENT_ID,
+        EventDraftUpdate.model_validate(
+            {
+                "version": 2,
+                "start_date": None,
+                "location_en": None,
+                "location_de": "Nur deutscher Ort",
+            }
+        ),
+    )
+
+    assert result.start_date is None
+    assert result.end_date == END
+    assert result.location_en is None
+    assert result.location_de == "Nur deutscher Ort"
+    assert result.status is EventStatus.PUBLISHED
 
 
 @pytest.mark.anyio

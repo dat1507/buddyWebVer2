@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -170,6 +170,47 @@ describe('FE-031 Event detail page', () => {
     await waitFor(() =>
       expect(screen.getByTestId('event-description').textContent).toBe(updatedDescription),
     )
+  })
+
+  it('renders the exact HTTPS registration action only when registration is enabled', async () => {
+    const registrationUrl = 'https://events.example/register?source=buddy'
+    readEvent.mockResolvedValueOnce({
+      ...event,
+      registration_enabled: true,
+      registration_url: registrationUrl,
+    })
+    renderEvent()
+
+    const registration = await screen.findByRole('link', { name: 'Register for this Event' })
+    expect(registration).toHaveAttribute('href', registrationUrl)
+    expect(registration).toHaveAttribute('target', '_blank')
+    expect(registration).toHaveAttribute('rel', 'noreferrer')
+
+    cleanup()
+    readEvent.mockResolvedValueOnce({ ...event, registration_url: registrationUrl })
+    renderEvent()
+    await screen.findByRole('heading', { name: 'Buddy Day' })
+    expect(screen.queryByRole('link', { name: 'Register for this Event' })).not.toBeInTheDocument()
+  })
+
+  it('omits missing announcement facts without formatting invalid dates', async () => {
+    readEvent.mockResolvedValueOnce({
+      ...event,
+      start_date: null,
+      end_date: null,
+      location: null,
+      organizer: null,
+      category: null,
+      phase: null,
+    })
+    renderEvent()
+
+    expect(await screen.findByRole('heading', { name: 'Buddy Day' })).toBeVisible()
+    expect(screen.queryByText('Starts')).not.toBeInTheDocument()
+    expect(screen.queryByText('Ends')).not.toBeInTheDocument()
+    expect(screen.queryByText('Location')).not.toBeInTheDocument()
+    expect(screen.queryByText('Invalid Date')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
   })
 
   it('uses the same safe not-found state for invalid and API-hidden IDs', async () => {

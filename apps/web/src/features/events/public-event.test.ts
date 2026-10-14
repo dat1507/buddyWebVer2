@@ -76,4 +76,37 @@ describe('FE-031 public Event API contract', () => {
       false,
     )
   })
+
+  it('accepts missing or partial optional schedule and location facts', () => {
+    expect(
+      publicEventSchema.safeParse({
+        ...payload,
+        start_date: null,
+        end_date: null,
+        location: null,
+        phase: null,
+      }).success,
+    ).toBe(true)
+    expect(publicEventSchema.safeParse({ ...payload, end_date: null, phase: null }).success).toBe(
+      true,
+    )
+  })
+
+  it('reads a viewer-aware Event page and rejects unsafe registration URLs', async () => {
+    const page = { items: [payload], page: 1, page_size: 100, total: 1, total_pages: 1 }
+    const fetch = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(Response.json(page))
+      .mockResolvedValueOnce(Response.json({ ...payload, registration_url: 'javascript:alert(1)' }))
+
+    await expect(publicEventsClient.readEvents('en')).resolves.toEqual(page)
+    expect(fetch).toHaveBeenNthCalledWith(
+      1,
+      'https://api.example.test/api/events?locale=en&page=1&page_size=100',
+      expect.objectContaining({ credentials: 'include' }),
+    )
+    await expect(publicEventsClient.readEvent(EVENT_ID, 'en')).rejects.toMatchObject({
+      code: 'invalidResponse',
+    })
+  })
 })

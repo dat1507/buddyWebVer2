@@ -133,8 +133,9 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
     assert "events.status = 'published'" in sql
     assert "events.visibility = 'public'" in sql
     assert "event_media.processing_status = 'ready'" in sql
+    assert "events.start_date is null" in sql
     assert "events.start_date >=" in sql
-    assert "order by app_private.events.start_date asc, app_private.events.id asc" in sql
+    assert "order by app_private.events.start_date asc nulls last, app_private.events.id asc" in sql
     assert f"limit {MAX_EVENT_SLIDES}" in sql
 
 
@@ -164,3 +165,22 @@ async def test_slider_empty_result_is_empty_without_storage_calls() -> None:
     assert slides == []
     session_mock.execute.assert_awaited_once()
     storage_mock.create_signed_url.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_unscheduled_location_free_announcement_is_slider_eligible() -> None:
+    event = _event()
+    event.start_date = None
+    event.end_date = None
+    event.location_en = None
+    event.location_de = None
+    session_mock, session, storage_mock, storage = _dependencies([(event, _media())])
+
+    slides = await list_public_event_sliders(session, storage, locale="en", now=NOW)
+
+    assert len(slides) == 1
+    assert slides[0].event_start_at is None
+    assert slides[0].event_end_at is None
+    assert slides[0].location is None
+    session_mock.execute.assert_awaited_once()
+    storage_mock.create_signed_url.assert_awaited_once()

@@ -158,7 +158,7 @@ async def test_public_list_localizes_cover_and_uses_constant_query_count() -> No
     assert "event_visibility.public" not in sql
     assert "'public'" in sql
     assert "'members'" not in sql
-    assert "order by app_private.events.start_date asc, app_private.events.id asc" in sql
+    assert "order by app_private.events.start_date asc nulls last, app_private.events.id asc" in sql
     assert "event_media.object_key" in sql
 
 
@@ -176,6 +176,56 @@ async def test_verified_member_query_includes_members_but_unverified_user_does_n
         )
         sql = _compiled(session_mock.execute.await_args.args[0])
         assert ("'members'" in sql) is includes_members
+
+
+@pytest.mark.anyio
+async def test_unscheduled_event_projects_nullable_phase_dates_and_localized_location_fallback() -> None:
+    event = _event()
+    event.start_date = None
+    event.end_date = None
+    event.location_de = None
+    media = _media()
+    _, session = _list_session([(event, media)])
+    _, storage = _storage()
+
+    result = await list_public_events(
+        session,
+        storage,
+        viewer=None,
+        filters=PublicEventFilters(locale="de"),
+        now=NOW,
+    )
+
+    projected = result.items[0]
+    assert projected.start_date is None
+    assert projected.end_date is None
+    assert projected.phase is None
+    assert projected.location == "VGU Campus"
+
+
+@pytest.mark.anyio
+async def test_location_free_partial_schedule_projects_without_failure() -> None:
+    event = _event()
+    event.end_date = None
+    event.location_en = None
+    event.location_de = None
+    media = _media()
+    _, session = _list_session([(event, media)])
+    _, storage = _storage()
+
+    result = await list_public_events(
+        session,
+        storage,
+        viewer=None,
+        filters=PublicEventFilters(locale="en"),
+        now=NOW,
+    )
+
+    projected = result.items[0]
+    assert projected.start_date == event.start_date
+    assert projected.end_date is None
+    assert projected.phase is None
+    assert projected.location is None
 
 
 @pytest.mark.anyio

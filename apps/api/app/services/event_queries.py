@@ -157,7 +157,7 @@ def _event_page_statement(
         select(Event, EventMedia)
         .outerjoin(EventMedia, _cover_join())
         .where(*clauses)
-        .order_by(Event.start_date.asc(), Event.id.asc())
+        .order_by(Event.start_date.asc().nulls_last(), Event.id.asc())
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
@@ -170,6 +170,10 @@ def _localized(primary: str | None, fallback: str | None) -> str:
     return value
 
 
+def _localized_optional(primary: str | None, fallback: str | None) -> str | None:
+    return primary or fallback
+
+
 async def _project_event(
     storage: ImageStorageService,
     event: Event,
@@ -178,21 +182,17 @@ async def _project_event(
     locale: EventLocale,
     now: datetime,
 ) -> PublicEventResponse:
-    if event.start_date is None or event.end_date is None:
-        raise RuntimeError("Published Event schedule is incomplete.")
     phase = event.phase_at(now)
-    if phase is None:
-        raise RuntimeError("Published Event phase is unavailable.")
 
     if locale == "de":
         title = _localized(event.title_de, event.title_en)
         description = _localized(event.description_de, event.description_en)
-        location = _localized(event.location_de, event.location_en)
+        location = _localized_optional(event.location_de, event.location_en)
         alt_text = _localized(media.alt_de, media.alt_en) if media is not None else None
     else:
         title = _localized(event.title_en, event.title_de)
         description = _localized(event.description_en, event.description_de)
-        location = _localized(event.location_en, event.location_de)
+        location = _localized_optional(event.location_en, event.location_de)
         alt_text = _localized(media.alt_en, media.alt_de) if media is not None else None
 
     cover: PublicEventCoverResponse | None = None

@@ -12,10 +12,6 @@ const readinessFields = [
   ['title_de', 'adminEventStatus.readiness.titleDe'],
   ['description_en', 'adminEventStatus.readiness.descriptionEn'],
   ['description_de', 'adminEventStatus.readiness.descriptionDe'],
-  ['location_en', 'adminEventStatus.readiness.locationEn'],
-  ['location_de', 'adminEventStatus.readiness.locationDe'],
-  ['start_date', 'adminEventStatus.readiness.start'],
-  ['end_date', 'adminEventStatus.readiness.end'],
   ['cover_media_id', 'adminEventStatus.readiness.cover'],
 ] as const satisfies ReadonlyArray<readonly [keyof AdminEvent, string]>
 

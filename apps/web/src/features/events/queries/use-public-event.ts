@@ -5,8 +5,22 @@ import { useAuthStore } from '@/stores/auth-store'
 
 const publicEventKeys = {
   root: ['events'] as const,
+  list: (locale: EventLocale, viewer: string) =>
+    [...publicEventKeys.root, 'list', locale, viewer] as const,
   detail: (eventId: string, locale: EventLocale, viewer: string) =>
     [...publicEventKeys.root, 'detail', eventId, locale, viewer] as const,
+}
+
+function usePublicEvents(locale: EventLocale, enabled = true) {
+  const status = useAuthStore((state) => state.status)
+  const viewer = useAuthStore((state) => state.user?.id ?? 'anonymous')
+
+  return useQuery({
+    queryKey: publicEventKeys.list(locale, viewer),
+    queryFn: ({ signal }) => publicEventsClient.readEvents(locale, signal),
+    enabled: enabled && status !== 'unknown' && status !== 'loading',
+    meta: { private: true },
+  })
 }
 
 function usePublicEvent(eventId: string | null, locale: EventLocale) {
@@ -28,4 +42,4 @@ function usePublicEvent(eventId: string | null, locale: EventLocale) {
   })
 }
 
-export { publicEventKeys, usePublicEvent }
+export { publicEventKeys, usePublicEvent, usePublicEvents }

@@ -541,6 +541,11 @@
     "about": "About this Event",
     "cancelled": "Cancelled",
     "cancelledNotice": "This Event has been cancelled. Registration is no longer available.",
+    "registration": {
+      "title": "Registration",
+      "description": "Continue to the organizer's secure registration page.",
+      "action": "Register for this Event"
+    },
     "phase": {
       "UPCOMING": "Upcoming",
       "ONGOING": "Ongoing",
@@ -1139,7 +1144,13 @@
     "events": {
       "title": "Events",
       "description": "Open the student events area to continue exploring VGU activities.",
-      "open": "Explore events"
+      "open": "Explore events",
+      "registrationTitle": "Event registration",
+      "registrationDescription": "Registration links available for Events you can access.",
+      "loading": "Loading Event registration…",
+      "loadError": "Event registration could not be loaded.",
+      "register": "Register for {{title}}",
+      "viewDetails": "View {{title}} details"
     }
   },
   "recommendedBuddies": {

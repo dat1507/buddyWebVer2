@@ -205,6 +205,37 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
     )
   })
 
+  it('hides retired Event Details fields while preserving their stored values on save', async () => {
+    updateEvent.mockResolvedValue({ ...event, version: 2 })
+    renderApp(`/admin/events/${EVENT_ID}/edit`)
+
+    expect(await screen.findByLabelText('HTTPS registration URL')).toBeVisible()
+    expect(screen.queryByLabelText('Category')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Organizer')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Maximum participants')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('HTTPS registration URL'), {
+      target: { value: 'https://events.example/register' },
+    })
+    fireEvent.click(screen.getByLabelText('Registration is enabled'))
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() =>
+      expect(updateEvent).toHaveBeenCalledWith(
+        EVENT_ID,
+        expect.objectContaining({
+          category: 'community',
+          organizer: 'VGU Buddy',
+          visibility: 'MEMBERS',
+          max_participants: null,
+          registration_url: 'https://events.example/register',
+          registration_enabled: true,
+        }),
+      ),
+    )
+  })
+
   it('shows actionable publication gaps without calling the status API', async () => {
     renderApp(`/admin/events/${EVENT_ID}/edit`)
     await screen.findByRole('heading', { name: 'Edit Event' })
@@ -217,7 +248,16 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
   })
 
   it('publishes once, waits for the server, and refreshes the authoritative status', async () => {
-    const eligible = { ...event, visibility: 'PUBLIC' as const, cover_media_id: MEDIA_ID }
+    const eligible = {
+      ...event,
+      start_date: null,
+      end_date: null,
+      location_en: null,
+      location_de: null,
+      phase: null,
+      visibility: 'PUBLIC' as const,
+      cover_media_id: MEDIA_ID,
+    }
     const published = {
       ...eligible,
       status: 'PUBLISHED' as const,

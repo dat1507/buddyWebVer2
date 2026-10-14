@@ -3,6 +3,7 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleAlert,
+  ExternalLink,
   HeartHandshake,
   LoaderCircle,
   Pencil,
@@ -18,6 +19,8 @@ import { Typography } from '@/components/ui/typography'
 import { UnreadBadge } from '@/components/ui/unread-badge'
 import { publicEventsEnabled } from '@/config/launch-scope'
 import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
+import type { EventLocale, PublicEvent } from '@/features/events/public-event'
+import { usePublicEvents } from '@/features/events/queries/use-public-event'
 import type { ProfileCompletion } from '@/features/profile/profile-completion'
 import type { OwnProfile } from '@/features/profile/profile'
 import { useOwnProfile, useProfileCompletion } from '@/features/profile/queries/use-own-profile'
@@ -202,12 +205,54 @@ function DashboardAction({
   )
 }
 
-function UserDashboardPage() {
+function RegistrationEventCard({ event, locale }: { event: PublicEvent; locale: EventLocale }) {
   const { t } = useTranslation()
+  const registrationUrl = event.registration_url
+  if (!event.registration_enabled || !registrationUrl) return null
+  const start = event.start_date
+    ? new Intl.DateTimeFormat(locale, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: event.timezone,
+      }).format(new Date(event.start_date))
+    : null
+
+  return (
+    <Card className="flex min-w-0 flex-col">
+      <CardHeader>
+        <CardTitle className="break-words">{event.title}</CardTitle>
+        {start || event.location ? (
+          <CardDescription className="space-y-1">
+            {start ? <span className="block">{start}</span> : null}
+            {event.location ? <span className="block">{event.location}</span> : null}
+          </CardDescription>
+        ) : null}
+      </CardHeader>
+      <CardContent className="mt-auto flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Button asChild className="w-full sm:w-auto">
+          <a href={registrationUrl} target="_blank" rel="noreferrer">
+            <ExternalLink aria-hidden="true" />
+            {t('userDashboard.events.register', { title: event.title })}
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="w-full sm:w-auto">
+          <Link to={`/user/events/${event.id}`}>
+            {t('userDashboard.events.viewDetails', { title: event.title })}
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function UserDashboardPage() {
+  const { t, i18n } = useTranslation()
   const titleId = useId()
   const profile = useOwnProfile()
   const completion = useProfileCompletion()
   const { summary: unreadSummary } = useBuddyUnread()
+  const locale: EventLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
+  const events = usePublicEvents(locale, publicEventsEnabled)
 
   if (profile.isPending || completion.isPending) {
     return (
@@ -249,6 +294,10 @@ function UserDashboardPage() {
 
   const name = profileName(profile.data, t('profile.unnamed'))
   const matchingAvailable = completion.data.matching_eligible
+  const registrationEvents =
+    events.data?.items.filter(
+      (event) => event.registration_enabled && event.registration_url !== null,
+    ) ?? []
 
   return (
     <section
@@ -318,6 +367,41 @@ function UserDashboardPage() {
           ) : null}
         </div>
       </section>
+
+      {publicEventsEnabled && (events.isPending || events.isError || registrationEvents.length) ? (
+        <section className="space-y-4" aria-labelledby="user-dashboard-registration-title">
+          <div className="space-y-1">
+            <Typography as="h2" variant="h3" id="user-dashboard-registration-title">
+              {t('userDashboard.events.registrationTitle')}
+            </Typography>
+            <Typography variant="muted">
+              {t('userDashboard.events.registrationDescription')}
+            </Typography>
+          </div>
+          {events.isPending ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t('userDashboard.events.loading')}
+            </p>
+          ) : events.isError ? (
+            <Card className="border-destructive/40">
+              <CardContent className="flex flex-col items-start gap-3 pt-6">
+                <p role="alert" className="text-sm text-destructive">
+                  {t('userDashboard.events.loadError')}
+                </p>
+                <Button type="button" variant="outline" onClick={() => void events.refetch()}>
+                  {t('userDashboard.retry')}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid min-w-0 gap-4 md:grid-cols-2">
+              {registrationEvents.map((event) => (
+                <RegistrationEventCard key={event.id} event={event} locale={locale} />
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
     </section>
   )
 }

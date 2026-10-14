@@ -412,10 +412,10 @@ class PublicEventResponse(BaseModel):
     locale: EventLocale
     title: str
     description: str
-    start_date: datetime
-    end_date: datetime
+    start_date: datetime | None
+    end_date: datetime | None
     timezone: str
-    location: str
+    location: str | None
     category: str | None
     organizer: str | None
     registration_url: str | None
@@ -423,7 +423,7 @@ class PublicEventResponse(BaseModel):
     registration_deadline: datetime | None
     status: EventStatus
     visibility: EventVisibility
-    phase: EventPhase
+    phase: EventPhase | None
     cover: PublicEventCoverResponse | None
 
 
