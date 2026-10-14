@@ -1,14 +1,16 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { MemoryRouter, Route, Routes } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import { sessionClient } from '@/features/auth/session-client'
 import { SessionBootstrap } from '@/features/auth/session-controls'
+import { publicEventsClient } from '@/features/events/public-event'
 import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
+import { EventDetailPage } from '@/pages/public/event-detail-page'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { completeOwnProfile } from '@/test/profile'
@@ -18,6 +20,26 @@ const user = {
   email: 'student@example.com',
   role: 'USER',
   email_verified: false,
+}
+const eventId = '11111111-1111-4111-8111-111111111111'
+const publicEvent = {
+  id: eventId,
+  locale: 'en' as const,
+  title: 'Anonymous direct Event',
+  description: 'The direct route starts after anonymous bootstrap finishes.',
+  start_date: '2026-11-10T00:20:00Z',
+  end_date: '2026-11-10T12:00:00Z',
+  timezone: 'Asia/Ho_Chi_Minh',
+  location: 'Kawazo Traditional Craft Village',
+  category: 'Field Trip',
+  organizer: 'VGU Buddy Program',
+  registration_url: null,
+  registration_enabled: false,
+  registration_deadline: null,
+  status: 'PUBLISHED' as const,
+  visibility: 'PUBLIC' as const,
+  phase: 'UPCOMING' as const,
+  cover: null,
 }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 const mainButton = (name: string) => within(screen.getByRole('main')).getByRole('button', { name })
@@ -228,6 +250,26 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     expect(useAuthStore.getState().status).toBe('unauthenticated')
     expect(queryClient.getQueryData(['profile', user.id])).toBeUndefined()
     expect(queryClient.getQueryData(['event-sliders', 'en'])).toEqual(['public'])
+  })
+
+  it('starts a direct public Event query after anonymous bootstrap finishes', async () => {
+    fetch.mockResolvedValueOnce(json({}, 401))
+    const readEvent = vi.spyOn(publicEventsClient, 'readEvent').mockResolvedValue(publicEvent)
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[`/events/${eventId}`]}>
+          <SessionBootstrap />
+          <Routes>
+            <Route path="/events/:eventId" element={<EventDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByRole('heading', { level: 1, name: publicEvent.title })).toBeVisible()
+    expect(readEvent).toHaveBeenCalledWith(eventId, 'en', expect.any(AbortSignal))
+    expect(useAuthStore.getState().status).toBe('unauthenticated')
   })
 
   it('renders session feedback in German', async () => {

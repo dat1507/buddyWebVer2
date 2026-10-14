@@ -112,6 +112,11 @@ describe('FE-031 Event detail page', () => {
     expect(screen.getByText('VGU Campus')).toBeVisible()
     expect(screen.getAllByText('VGU Buddy')).toHaveLength(3)
     expect(screen.getByText(/Meet <script>unsafe\(\)<\/script> friends/)).toBeVisible()
+    expect(screen.getByTestId('event-description')).toHaveTextContent(event.description, {
+      normalizeWhitespace: false,
+    })
+    expect(screen.getByTestId('event-description').textContent).toBe(event.description)
+    expect(screen.getByTestId('event-description')).toHaveClass('whitespace-pre-wrap')
     expect(container.querySelector('script')).toBeNull()
     expect(readEvent).toHaveBeenCalledWith(FIRST_ID, 'en', expect.any(AbortSignal))
   })
@@ -145,6 +150,26 @@ describe('FE-031 Event detail page', () => {
 
     expect(await screen.findByRole('heading', { name: 'Second Event' })).toBeVisible()
     expect(readEvent).toHaveBeenCalledWith(SECOND_ID, 'en', expect.any(AbortSignal))
+  })
+
+  it('reflects an updated canonical Description after the detail query refreshes', async () => {
+    const updatedDescription = 'Updated in Admin.\n\nSecond paragraph stays intact.'
+    readEvent
+      .mockResolvedValueOnce(event)
+      .mockResolvedValueOnce({ ...event, description: updatedDescription })
+    const { client } = renderEvent()
+
+    expect(await screen.findByTestId('event-description')).toHaveTextContent(event.description, {
+      normalizeWhitespace: false,
+    })
+
+    await act(async () => {
+      await client.invalidateQueries({ queryKey: ['events'] })
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('event-description').textContent).toBe(updatedDescription),
+    )
   })
 
   it('uses the same safe not-found state for invalid and API-hidden IDs', async () => {

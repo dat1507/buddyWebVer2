@@ -12,9 +12,9 @@ const events: EventSlider[] = [
     description: 'Meet the community.',
     imageUrl: 'https://cdn.example.com/recruitment.webp',
     imageAlt: 'Recruitment event poster',
-    eventStartAt: null,
-    eventEndAt: null,
-    location: null,
+    eventStartAt: '2026-10-10T08:00:00Z',
+    eventEndAt: '2026-10-10T10:00:00Z',
+    location: 'VGU Campus',
     cta: {
       label: 'View event',
       href: '/events/11111111-1111-4111-8111-111111111111',
@@ -93,7 +93,29 @@ describe('EventsSlider', () => {
     const link = screen.getByRole('link', { name: 'View event: Recruitment' })
     expect(link).toHaveAttribute('href', '/events/11111111-1111-4111-8111-111111111111')
     expect(link).toHaveAttribute('tabindex', '0')
-    expect(link).toHaveTextContent('Meet the community.')
+    expect(link).toHaveTextContent('Recruitment')
+    expect(screen.queryByText('Meet the community.')).not.toBeInTheDocument()
+    expect(screen.queryByText('VGU Campus')).not.toBeInTheDocument()
+    expect(screen.queryByText('View event')).not.toBeInTheDocument()
+  })
+
+  it('replaces a failed cover without showing a broken image', () => {
+    const view = renderSlider(events.slice(0, 1))
+
+    fireEvent.error(screen.getByRole('img', { name: 'Recruitment event poster' }))
+
+    expect(screen.queryByRole('img', { name: 'Recruitment event poster' })).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Event cover unavailable' })).toBeVisible()
+
+    view.rerender(
+      <EventsSlider
+        events={[{ ...events[0]!, imageUrl: 'https://cdn.example.com/recruitment-refreshed.webp' }]}
+      />,
+    )
+    expect(screen.getByRole('img', { name: 'Recruitment event poster' })).toHaveAttribute(
+      'src',
+      'https://cdn.example.com/recruitment-refreshed.webp',
+    )
   })
 
   it('omits navigation controls and detail links for a legacy promotional card', () => {

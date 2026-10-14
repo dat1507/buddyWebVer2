@@ -179,7 +179,10 @@ function createSessionClient(cache: QueryClient) {
       } catch (error) {
         checkEpoch(generation)
         if (!(error instanceof ApiError) || error.status !== 401) throw error
-        await clearIdentity()
+        // Bootstrap already awaited the private-cache cleanup before recovering CSRF. Clearing
+        // the cache again after exposing the anonymous state can cancel a newly enabled,
+        // viewer-scoped query (for example a direct Event-detail reload) and leave it pending.
+        useAuthStore.getState().clearSession()
       }
     }).finally(() => {
       bootstrapFlight = undefined

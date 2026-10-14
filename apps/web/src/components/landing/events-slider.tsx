@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button-variants'
 import { Typography } from '@/components/ui/typography'
-import type { EventSlider, EventSliderLocale } from '@/features/events/event-slider'
+import type { EventSlider } from '@/features/events/event-slider'
 import { cn } from '@/lib/utils'
 
 const autoplayDelay = 3_000
@@ -38,72 +37,44 @@ function usePrefersReducedMotion() {
   return prefersReducedMotion
 }
 
-function formatEventDate(slide: EventSlider, locale: EventSliderLocale) {
-  if (!slide.eventStartAt) return null
-
-  const formatter = new Intl.DateTimeFormat(locale === 'de' ? 'de-DE' : 'en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-  const start = formatter.format(new Date(slide.eventStartAt))
-
-  if (!slide.eventEndAt) return start
-  return `${start} – ${formatter.format(new Date(slide.eventEndAt))}`
-}
-
 function EventSlide({
   slide,
   active,
   clone,
-  locale,
 }: {
   slide: EventSlider
   active: boolean
   clone: boolean
-  locale: EventSliderLocale
 }) {
-  const date = formatEventDate(slide, locale)
+  const { t } = useTranslation()
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null)
+  const imageFailed = failedImageUrl === slide.imageUrl
   const card = (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl transition-colors group-hover:border-orange-500/50">
-      <div className="aspect-[5/4] bg-black">
-        <img
-          src={slide.imageUrl}
-          alt={clone ? '' : slide.imageAlt}
-          className="h-full w-full object-contain"
-          loading={active ? 'eager' : 'lazy'}
-        />
+      <div className="flex aspect-[5/4] items-center justify-center bg-black">
+        {imageFailed ? (
+          <div
+            role={clone ? undefined : 'img'}
+            aria-label={clone ? undefined : t('eventDetail.noCover')}
+            className="flex size-full items-center justify-center bg-zinc-950 text-zinc-600"
+          >
+            <ImageOff aria-hidden="true" className="size-12" />
+          </div>
+        ) : (
+          <img
+            src={slide.imageUrl}
+            alt={clone ? '' : slide.imageAlt}
+            className="h-full w-full object-contain"
+            loading={active ? 'eager' : 'lazy'}
+            onError={() => setFailedImageUrl(slide.imageUrl)}
+          />
+        )}
       </div>
 
-      <div className="flex min-h-32 flex-col justify-center border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
+      <div className="flex min-h-24 items-center justify-center border-t border-white/10 bg-zinc-950 px-5 py-4 sm:px-6">
         <Typography variant="h3" className="text-center text-xl sm:text-2xl">
           {slide.title}
         </Typography>
-
-        {slide.description ? (
-          <p className="mt-2 text-base leading-7 text-zinc-400">{slide.description}</p>
-        ) : null}
-
-        {date || slide.location || slide.cta ? (
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-zinc-400">
-            {date ? (
-              <span className="inline-flex items-center gap-2">
-                <CalendarDays aria-hidden="true" className="size-4 text-orange-500" />
-                {date}
-              </span>
-            ) : null}
-            {slide.location ? (
-              <span className="inline-flex items-center gap-2">
-                <MapPin aria-hidden="true" className="size-4 text-orange-500" />
-                {slide.location}
-              </span>
-            ) : null}
-            {slide.cta ? (
-              <span className={cn(buttonVariants({ variant: 'link' }), 'ml-auto')}>
-                {slide.cta.label}
-              </span>
-            ) : null}
-          </div>
-        ) : null}
       </div>
     </div>
   )
@@ -130,13 +101,7 @@ function EventSlide({
   )
 }
 
-function EventCarousel({
-  events,
-  locale,
-}: {
-  events: readonly EventSlider[]
-  locale: EventSliderLocale
-}) {
+function EventCarousel({ events }: { events: readonly EventSlider[] }) {
   const { t } = useTranslation()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [slideIndex, setSlideIndex] = useState(events.length > 1 ? 1 : 0)
@@ -234,13 +199,7 @@ function EventCarousel({
           onTransitionEnd={handleTransitionEnd}
         >
           {slides.map(({ event, clone, key }, index) => (
-            <EventSlide
-              key={key}
-              slide={event}
-              active={index === slideIndex}
-              clone={clone}
-              locale={locale}
-            />
+            <EventSlide key={key} slide={event} active={index === slideIndex} clone={clone} />
           ))}
         </div>
       </div>
@@ -280,8 +239,7 @@ function EventCarousel({
 }
 
 function EventsSlider({ events }: EventsSliderProps) {
-  const { t, i18n } = useTranslation()
-  const locale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
+  const { t } = useTranslation()
 
   if (events.length === 0) return null
 
@@ -300,11 +258,7 @@ function EventsSlider({ events }: EventsSliderProps) {
           </Typography>
         </div>
 
-        <EventCarousel
-          key={events.map((event) => event.id).join(':')}
-          events={events}
-          locale={locale}
-        />
+        <EventCarousel key={events.map((event) => event.id).join(':')} events={events} />
       </div>
     </section>
   )

@@ -1,4 +1,4 @@
-import { Building2, CalendarDays, Clock3, MapPin, Tag } from 'lucide-react'
+import { ArrowLeft, Building2, CalendarDays, Clock3, MapPin, Tag } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 
@@ -46,11 +46,19 @@ function EventDetailPage() {
 
   if (eventQuery.isPending) {
     return (
-      <main className="mx-auto min-h-[60vh] max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div role="status" className="space-y-5" aria-label={t('eventDetail.loading')}>
-          <div className="aspect-[3/2] animate-pulse rounded-3xl bg-muted motion-reduce:animate-none" />
-          <div className="h-10 w-3/4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-          <div className="h-24 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+      <main className="mx-auto min-h-[60vh] max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div
+          role="status"
+          className="grid overflow-hidden rounded-[2rem] border border-border bg-card lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]"
+          aria-label={t('eventDetail.loading')}
+        >
+          <div className="aspect-[4/5] animate-pulse bg-muted motion-reduce:animate-none lg:aspect-auto lg:min-h-[42rem]" />
+          <div className="space-y-6 p-6 sm:p-10">
+            <div className="h-7 w-28 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
+            <div className="h-12 w-3/4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+            <div className="h-48 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+            <div className="h-40 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />
+          </div>
         </div>
       </main>
     )
@@ -90,111 +98,137 @@ function EventDetailPage() {
   const end = dateFormatter.format(new Date(event.end_date))
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
-      <Button asChild variant="link" className="mb-6">
-        <Link to="/">{t('eventDetail.back')}</Link>
-      </Button>
+    <main className="relative isolate overflow-hidden px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_top_right,rgba(255,103,13,0.16),transparent_58%)]"
+      />
+      <div className="mx-auto w-full max-w-7xl">
+        <Button asChild variant="link" className="-ml-4 mb-6 gap-2">
+          <Link to="/">
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            {t('eventDetail.back')}
+          </Link>
+        </Button>
 
-      <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl">
-        <div className="aspect-[3/2] w-full bg-muted lg:aspect-[21/9]">
-          {event.cover ? (
-            <img
-              src={event.cover.url}
-              alt={event.cover.alt_text}
-              width={event.cover.width}
-              height={event.cover.height}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="flex size-full items-center justify-center text-muted-foreground">
-              {t('eventDetail.noCover')}
-            </div>
-          )}
-        </div>
+        <article className="grid overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
+          <figure className="flex min-h-72 items-center justify-center bg-zinc-950 lg:min-h-[42rem]">
+            {event.cover ? (
+              <img
+                src={event.cover.url}
+                alt={event.cover.alt_text}
+                width={event.cover.width}
+                height={event.cover.height}
+                className="max-h-[52rem] w-full object-contain"
+              />
+            ) : (
+              <div className="flex min-h-72 size-full items-center justify-center text-zinc-400 lg:min-h-[42rem]">
+                {t('eventDetail.noCover')}
+              </div>
+            )}
+          </figure>
 
-        <div className="space-y-8 p-6 sm:p-10">
-          <header className="space-y-4">
-            <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wider">
-              <span className="rounded-full bg-vgu-orange/15 px-3 py-1 text-vgu-orange-dark dark:text-vgu-orange">
-                {t(`eventDetail.phase.${event.phase}`)}
-              </span>
-              {event.status === 'CANCELLED' ? (
-                <span className="rounded-full bg-destructive/15 px-3 py-1 text-destructive">
-                  {t('eventDetail.cancelled')}
+          <div className="flex flex-col gap-8 p-6 sm:p-10 lg:p-12">
+            <header className="space-y-5">
+              <div className="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.16em]">
+                <span className="rounded-full border border-vgu-orange/35 bg-vgu-orange/10 px-3 py-1 text-vgu-orange-dark dark:text-vgu-orange">
+                  {t(`eventDetail.phase.${event.phase}`)}
                 </span>
-              ) : null}
-            </div>
-            <Typography as="h1" variant="h1" className="break-words text-4xl sm:text-5xl">
-              {event.title}
-            </Typography>
-          </header>
+                {event.status === 'CANCELLED' ? (
+                  <span className="rounded-full bg-destructive/15 px-3 py-1 text-destructive">
+                    {t('eventDetail.cancelled')}
+                  </span>
+                ) : null}
+              </div>
+              <Typography
+                as="h1"
+                variant="h1"
+                className="break-words text-4xl font-black uppercase leading-tight tracking-tight sm:text-5xl"
+              >
+                {event.title}
+              </Typography>
+            </header>
 
-          <dl className="grid gap-5 rounded-2xl bg-muted/45 p-5 sm:grid-cols-2">
-            <div className="flex gap-3">
-              <CalendarDays aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-              <div>
-                <dt className="font-semibold">{t('eventDetail.starts')}</dt>
-                <dd>
-                  <time dateTime={event.start_date}>{start}</time>
-                </dd>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-              <div>
-                <dt className="font-semibold">{t('eventDetail.ends')}</dt>
-                <dd>
-                  <time dateTime={event.end_date}>{end}</time>
-                </dd>
-                <dd className="text-sm text-muted-foreground">{event.timezone}</dd>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-              <div>
-                <dt className="font-semibold">{t('eventDetail.location')}</dt>
-                <dd>{event.location}</dd>
-              </div>
-            </div>
-            {event.organizer ? (
-              <div className="flex gap-3">
-                <Building2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                <div>
-                  <dt className="font-semibold">{t('eventDetail.organizer')}</dt>
-                  <dd>{event.organizer}</dd>
-                </div>
-              </div>
-            ) : null}
-            {event.category ? (
-              <div className="flex gap-3 sm:col-span-2">
-                <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                <div>
-                  <dt className="font-semibold">{t('eventDetail.category')}</dt>
-                  <dd>{event.category}</dd>
-                </div>
-              </div>
-            ) : null}
-          </dl>
-
-          {event.status === 'CANCELLED' ? (
-            <p
-              role="status"
-              className="rounded-xl border border-destructive/30 bg-destructive/10 p-4"
+            <section
+              aria-labelledby="event-description-heading"
+              className="relative space-y-4 overflow-hidden rounded-2xl border border-border bg-muted/35 p-5 sm:p-6"
             >
-              {t('eventDetail.cancelledNotice')}
-            </p>
-          ) : null}
+              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-vgu-orange" />
+              <Typography as="h2" id="event-description-heading" variant="h3">
+                {t('eventDetail.about')}
+              </Typography>
+              <p
+                data-testid="event-description"
+                className="whitespace-pre-wrap break-words text-base leading-8 text-foreground/85"
+              >
+                {event.description}
+              </p>
+            </section>
 
-          <section aria-labelledby="event-description-heading" className="space-y-3">
-            <Typography as="h2" id="event-description-heading" variant="h3">
-              {t('eventDetail.about')}
-            </Typography>
-            <p className="whitespace-pre-wrap break-words text-base leading-7 text-muted-foreground">
-              {event.description}
-            </p>
-          </section>
-        </div>
-      </article>
+            {event.status === 'CANCELLED' ? (
+              <p
+                role="status"
+                className="rounded-xl border border-destructive/30 bg-destructive/10 p-4"
+              >
+                {t('eventDetail.cancelledNotice')}
+              </p>
+            ) : null}
+
+            <dl className="grid gap-5 rounded-2xl border border-border/70 bg-background/45 p-5 sm:grid-cols-2">
+              <div className="flex gap-3">
+                <CalendarDays
+                  aria-hidden="true"
+                  className="mt-0.5 size-5 shrink-0 text-vgu-orange"
+                />
+                <div>
+                  <dt className="font-semibold">{t('eventDetail.starts')}</dt>
+                  <dd className="text-sm leading-6 text-muted-foreground">
+                    <time dateTime={event.start_date}>{start}</time>
+                  </dd>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                <div>
+                  <dt className="font-semibold">{t('eventDetail.ends')}</dt>
+                  <dd className="text-sm leading-6 text-muted-foreground">
+                    <time dateTime={event.end_date}>{end}</time>
+                  </dd>
+                  <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
+                </div>
+              </div>
+              <div className="flex gap-3 sm:col-span-2">
+                <MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                <div>
+                  <dt className="font-semibold">{t('eventDetail.location')}</dt>
+                  <dd className="text-sm leading-6 text-muted-foreground">{event.location}</dd>
+                </div>
+              </div>
+              {event.organizer ? (
+                <div className="flex gap-3">
+                  <Building2
+                    aria-hidden="true"
+                    className="mt-0.5 size-5 shrink-0 text-vgu-orange"
+                  />
+                  <div>
+                    <dt className="font-semibold">{t('eventDetail.organizer')}</dt>
+                    <dd className="text-sm leading-6 text-muted-foreground">{event.organizer}</dd>
+                  </div>
+                </div>
+              ) : null}
+              {event.category ? (
+                <div className="flex gap-3">
+                  <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
+                  <div>
+                    <dt className="font-semibold">{t('eventDetail.category')}</dt>
+                    <dd className="text-sm leading-6 text-muted-foreground">{event.category}</dd>
+                  </div>
+                </div>
+              ) : null}
+            </dl>
+          </div>
+        </article>
+      </div>
     </main>
   )
 }
