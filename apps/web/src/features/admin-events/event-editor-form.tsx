@@ -248,6 +248,20 @@ function EventEditorForm({
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1 text-sm font-medium sm:col-span-2">
+            {t('adminEventForm.details.visibility')}
+            <select
+              value={values.visibility}
+              disabled={isPending}
+              className={inputClassName}
+              onChange={(event) =>
+                set('visibility', event.target.value === 'MEMBERS' ? 'MEMBERS' : 'PUBLIC')
+              }
+            >
+              <option value="PUBLIC">{t('adminEvents.visibility.PUBLIC')}</option>
+              <option value="MEMBERS">{t('adminEvents.visibility.MEMBERS')}</option>
+            </select>
+          </label>
+          <label className="space-y-1 text-sm font-medium sm:col-span-2">
             {t('adminEventForm.details.registrationUrl')}
             <input
               type="url"

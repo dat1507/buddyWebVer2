@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
-import { Plus, Search, X } from 'lucide-react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Plus, Search, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table'
 import { Typography } from '@/components/ui/typography'
 import {
@@ -13,7 +14,10 @@ import {
   type EventStatus,
   type EventVisibility,
 } from '@/features/admin-events/admin-events'
-import { useAdminEvents } from '@/features/admin-events/queries/use-admin-events'
+import {
+  useAdminEvents,
+  useDeleteAdminEvent,
+} from '@/features/admin-events/queries/use-admin-events'
 import { ApiError } from '@/lib/api'
 
 const PAGE_SIZES = [10, 20, 50, 100] as const
@@ -56,6 +60,11 @@ function AdminEventsPage() {
   const [phase, setPhase] = useState<EventPhase | null>(null)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
+  const [deletion, setDeletion] = useState<AdminEvent | null>(null)
+  const [deletionError, setDeletionError] = useState<string | null>(null)
+  const [deletionSuccess, setDeletionSuccess] = useState<string | null>(null)
+  const deletionLock = useRef(false)
+  const deleteEvent = useDeleteAdminEvent()
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -97,6 +106,15 @@ function AdminEventsPage() {
         : unavailable,
     [language, unavailable],
   )
+  const eventTitle = useCallback(
+    (event: AdminEvent) => event.title_en ?? event.title_de ?? unavailable,
+    [unavailable],
+  )
+  const requestDeletion = useCallback((event: AdminEvent) => {
+    setDeletionError(null)
+    setDeletionSuccess(null)
+    setDeletion(event)
+  }, [])
   const columns = useMemo<readonly DataTableColumn<AdminEvent>[]>(
     () => [
       {
@@ -153,16 +171,62 @@ function AdminEventsPage() {
         id: 'actions',
         header: t('adminEvents.columns.actions'),
         cell: (event) => (
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/admin/events/${event.id}/edit`}>
-              {t('adminEvents.edit', { title: event.title_en ?? event.title_de ?? unavailable })}
-            </Link>
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/admin/events/${event.id}/edit`}>
+                {t('adminEvents.edit', { title: eventTitle(event) })}
+              </Link>
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={deleteEvent.isPending}
+              onClick={() => requestDeletion(event)}
+            >
+              <Trash2 aria-hidden="true" />
+              {t('adminEvents.delete.action', { title: eventTitle(event) })}
+            </Button>
+          </div>
         ),
       },
     ],
-    [formatDate, t, unavailable],
+    [deleteEvent.isPending, eventTitle, formatDate, requestDeletion, t, unavailable],
   )
+
+  const confirmDeletion = async () => {
+    if (!deletion || deletionLock.current || deleteEvent.isPending) return
+    deletionLock.current = true
+    setDeletionError(null)
+    setDeletionSuccess(null)
+    try {
+      const result = await deleteEvent.mutateAsync({
+        eventId: deletion.id,
+        version: deletion.version,
+      })
+      setDeletionSuccess(
+        t(
+          result.cleanup_pending
+            ? 'adminEvents.delete.successCleanupPending'
+            : 'adminEvents.delete.success',
+          { title: eventTitle(deletion) },
+        ),
+      )
+      setDeletion(null)
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.code === 'conflict') {
+        setDeletionError(t('adminEvents.delete.errors.conflict'))
+      } else if (caught instanceof ApiError && caught.code === 'notFound') {
+        setDeletionError(t('adminEvents.delete.errors.notFound'))
+      } else if (caught instanceof ApiError && caught.code === 'forbidden') {
+        setDeletionError(t('adminEvents.delete.errors.forbidden'))
+      } else {
+        setDeletionError(t('adminEvents.delete.errors.generic'))
+      }
+    } finally {
+      deletionLock.current = false
+    }
+  }
 
   const pendingSearch = searchInput.trim() !== search
   const loading = events.isPending || pendingSearch || isRecoveringPage
@@ -347,6 +411,36 @@ function AdminEventsPage() {
             setPage(1)
           },
         }}
+      />
+
+      {deletionSuccess ? (
+        <p
+          role="status"
+          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200"
+        >
+          {deletionSuccess}
+        </p>
+      ) : null}
+
+      <ConfirmDialog
+        open={deletion !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleteEvent.isPending) {
+            setDeletion(null)
+            setDeletionError(null)
+          }
+        }}
+        onConfirm={() => void confirmDeletion()}
+        title={t('adminEvents.delete.title')}
+        description={t('adminEvents.delete.description', {
+          title: deletion ? eventTitle(deletion) : '',
+        })}
+        confirmLabel={t('adminEvents.delete.confirm')}
+        cancelLabel={t('adminEvents.delete.cancel')}
+        destructive
+        isPending={deleteEvent.isPending}
+        pendingLabel={t('adminEvents.delete.pending')}
+        error={deletionError}
       />
     </section>
   )

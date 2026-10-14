@@ -378,6 +378,22 @@
     "forbidden": "Das aktuelle Konto darf Veranstaltungen nicht anzeigen.",
     "empty": "Es sind keine Veranstaltungen vorhanden.",
     "noResults": "Keine Veranstaltungen entsprechen diesen Filtern.",
+    "delete": {
+      "action": "{{title}} löschen",
+      "title": "Veranstaltung löschen?",
+      "description": "{{title}} dauerhaft löschen? Dies kann nicht rückgängig gemacht werden. Veranstaltungen mit aktiven Anmeldungen oder einer veröffentlichten Nachbereitung können nicht gelöscht werden.",
+      "confirm": "Löschen bestätigen",
+      "cancel": "Abbrechen",
+      "pending": "Wird gelöscht…",
+      "success": "{{title}} wurde gelöscht.",
+      "successCleanupPending": "{{title}} wurde gelöscht. Die Medienbereinigung wird betrieblich erneut versucht.",
+      "errors": {
+        "conflict": "Die Veranstaltung wurde geändert oder hat geschützte Abhängigkeiten. Aktualisiere die Übersicht und löse sie vor dem Löschen.",
+        "notFound": "Die Veranstaltung existiert nicht mehr. Aktualisiere die Übersicht.",
+        "forbidden": "Das aktuelle Konto darf Veranstaltungen nicht löschen.",
+        "generic": "Die Veranstaltung konnte nicht gelöscht werden. Die Übersicht wurde nicht geändert."
+      }
+    },
     "columns": {
       "title": "Veranstaltung",
       "schedule": "Zeitraum",

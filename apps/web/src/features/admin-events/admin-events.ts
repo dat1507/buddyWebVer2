@@ -94,6 +94,19 @@ const eventCoverUploadResponseSchema = z
   })
   .strict()
 
+const eventDeleteResponseSchema = z
+  .object({
+    event_id: z.string().uuid(),
+    cleanup_pending: z.boolean(),
+    failed_object_count: z.number().int().nonnegative(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (value.cleanup_pending !== value.failed_object_count > 0) {
+      context.addIssue({ code: 'custom', message: 'Inconsistent Event deletion cleanup state.' })
+    }
+  })
+
 const eventMediaUrlSchema = z
   .object({
     id: z.string().uuid(),
@@ -110,6 +123,7 @@ type AdminEvent = Readonly<z.infer<typeof adminEventSchema>>
 type AdminEventList = Readonly<z.infer<typeof adminEventListSchema>>
 type AdminEventMedia = Readonly<z.infer<typeof adminEventMediaSchema>>
 type EventCoverUploadResponse = Readonly<z.infer<typeof eventCoverUploadResponseSchema>>
+type EventDeleteResponse = Readonly<z.infer<typeof eventDeleteResponseSchema>>
 type EventMediaUrl = Readonly<z.infer<typeof eventMediaUrlSchema>>
 
 interface EventDraftPayload {
@@ -143,6 +157,11 @@ interface EventStatusUpdateInput {
   eventId: string
   version: number
   status: EventStatus
+}
+
+interface EventDeleteInput {
+  eventId: string
+  version: number
 }
 
 interface AdminEventListRequest {
@@ -254,6 +273,18 @@ const adminEventsClient = {
     return event
   },
 
+  async deleteEvent(input: EventDeleteInput): Promise<EventDeleteResponse> {
+    const result = parseContract(
+      eventDeleteResponseSchema,
+      await sessionClient.authenticatedJson(
+        `/admin/events/${encodeURIComponent(input.eventId)}?version=${encodeURIComponent(String(input.version))}`,
+        { method: 'DELETE' },
+      ),
+    )
+    if (result.event_id !== input.eventId) throw new ApiError(200, 'invalidResponse')
+    return result
+  },
+
   async readCoverUrl(
     eventId: string,
     mediaId: string,
@@ -281,6 +312,7 @@ export {
   adminEventSchema,
   adminEventsClient,
   eventCoverUploadResponseSchema,
+  eventDeleteResponseSchema,
   eventMediaUrlSchema,
   eventPhaseSchema,
   eventStatusSchema,
@@ -293,6 +325,8 @@ export type {
   AdminEventMedia,
   EventCoverUploadInput,
   EventCoverUploadResponse,
+  EventDeleteInput,
+  EventDeleteResponse,
   EventDraftPayload,
   EventMediaUrl,
   EventPhase,

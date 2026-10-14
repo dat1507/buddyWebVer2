@@ -205,19 +205,20 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
     )
   })
 
-  it('hides retired Event Details fields while preserving their stored values on save', async () => {
+  it('exposes audience while preserving other retired Event Details fields on save', async () => {
     updateEvent.mockResolvedValue({ ...event, version: 2 })
     renderApp(`/admin/events/${EVENT_ID}/edit`)
 
     expect(await screen.findByLabelText('HTTPS registration URL')).toBeVisible()
     expect(screen.queryByLabelText('Category')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Organizer')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Audience')).toHaveValue('MEMBERS')
     expect(screen.queryByLabelText('Maximum participants')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('HTTPS registration URL'), {
       target: { value: 'https://events.example/register' },
     })
+    fireEvent.change(screen.getByLabelText('Audience'), { target: { value: 'PUBLIC' } })
     fireEvent.click(screen.getByLabelText('Registration is enabled'))
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
@@ -227,7 +228,7 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
         expect.objectContaining({
           category: 'community',
           organizer: 'VGU Buddy',
-          visibility: 'MEMBERS',
+          visibility: 'PUBLIC',
           max_participants: null,
           registration_url: 'https://events.example/register',
           registration_enabled: true,

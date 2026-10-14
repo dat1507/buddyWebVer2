@@ -378,6 +378,22 @@
     "forbidden": "Your current account is not authorized to view Events.",
     "empty": "There are no Events to show.",
     "noResults": "No Events match these filters.",
+    "delete": {
+      "action": "Delete {{title}}",
+      "title": "Delete Event?",
+      "description": "Permanently delete {{title}}? This cannot be undone. Events with active registrations or a published recap cannot be deleted.",
+      "confirm": "Confirm Delete",
+      "cancel": "Cancel",
+      "pending": "Deleting…",
+      "success": "{{title}} was deleted.",
+      "successCleanupPending": "{{title}} was deleted. Media cleanup will be retried by operations.",
+      "errors": {
+        "conflict": "The Event changed or has protected dependencies. Refresh the inventory and resolve them before deleting.",
+        "notFound": "The Event no longer exists. Refresh the inventory.",
+        "forbidden": "Your current account is not authorized to delete Events.",
+        "generic": "The Event could not be deleted. No inventory change was applied."
+      }
+    },
     "columns": {
       "title": "Event",
       "schedule": "Schedule",

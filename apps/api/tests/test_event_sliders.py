@@ -184,3 +184,42 @@ async def test_unscheduled_location_free_announcement_is_slider_eligible() -> No
     assert slides[0].location is None
     session_mock.execute.assert_awaited_once()
     storage_mock.create_signed_url.assert_awaited_once()
+
+
+@pytest.mark.anyio
+async def test_slider_returns_scheduled_field_trip_and_unscheduled_buddy_recruitment() -> None:
+    field_trip = _event(1)
+    field_trip.title_en = "Field trip"
+    field_trip.title_de = "Ausflug"
+    recruitment = _event(2)
+    recruitment.title_en = "Buddy Recruitment"
+    recruitment.title_de = "Buddy-Rekrutierung"
+    recruitment.start_date = None
+    recruitment.end_date = None
+    recruitment.location_en = None
+    recruitment.location_de = None
+    session_mock, session, storage_mock, storage = _dependencies(
+        [(field_trip, _media(1)), (recruitment, _media(2))]
+    )
+
+    slides = await list_public_event_sliders(session, storage, locale="en", now=NOW)
+
+    assert [slide.title for slide in slides] == ["Field trip", "Buddy Recruitment"]
+    assert [slide.sort_order for slide in slides] == [0, 1]
+    assert slides[1].event_start_at is None
+    assert slides[1].location is None
+    session_mock.execute.assert_awaited_once()
+    assert storage_mock.create_signed_url.await_count == 2
+
+    de_session_mock, de_session, de_storage_mock, de_storage = _dependencies(
+        [(field_trip, _media(1)), (recruitment, _media(2))]
+    )
+    german_slides = await list_public_event_sliders(
+        de_session, de_storage, locale="de", now=NOW
+    )
+
+    assert [slide.title for slide in german_slides] == ["Ausflug", "Buddy-Rekrutierung"]
+    assert german_slides[1].event_start_at is None
+    assert german_slides[1].location is None
+    de_session_mock.execute.assert_awaited_once()
+    assert de_storage_mock.create_signed_url.await_count == 2

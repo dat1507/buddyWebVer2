@@ -43,7 +43,7 @@ const emptyEventFormValues: EventFormValues = {
   category: '',
   organizer: '',
   registrationUrl: '',
-  visibility: 'MEMBERS',
+  visibility: 'PUBLIC',
   registrationEnabled: false,
   maxParticipants: '',
   registrationDeadline: '',

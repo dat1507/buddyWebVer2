@@ -10,6 +10,13 @@ import {
 } from '@/features/admin-events/event-form'
 
 describe('ADMIN-007/008 Event form boundaries', () => {
+  it('defaults new drafts to the public audience while preserving explicit member-only edits', () => {
+    expect(emptyEventFormValues.visibility).toBe('PUBLIC')
+    expect(eventFormPayload({ ...emptyEventFormValues, visibility: 'MEMBERS' }).visibility).toBe(
+      'MEMBERS',
+    )
+  })
+
   it('converts local Event wall time through the selected IANA timezone', () => {
     expect(zonedLocalToIso('2026-10-10T15:00', 'Asia/Ho_Chi_Minh')).toBe('2026-10-10T08:00:00.000Z')
     expect(isoToZonedLocal('2026-10-10T08:00:00Z', 'Asia/Ho_Chi_Minh')).toBe('2026-10-10T15:00')

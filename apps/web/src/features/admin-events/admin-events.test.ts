@@ -209,4 +209,36 @@ describe('ADMIN-006 Admin Event API contract', () => {
       body: { version: event.version, status: 'PUBLISHED' },
     })
   })
+
+  it('deletes one versioned Event and rejects inconsistent cleanup responses', async () => {
+    const authenticatedJson = vi.spyOn(sessionClient, 'authenticatedJson')
+    authenticatedJson
+      .mockResolvedValueOnce({
+        event_id: event.id,
+        cleanup_pending: false,
+        failed_object_count: 0,
+      })
+      .mockResolvedValueOnce({
+        event_id: event.id,
+        cleanup_pending: false,
+        failed_object_count: 1,
+      })
+
+    await expect(
+      adminEventsClient.deleteEvent({ eventId: event.id, version: event.version }),
+    ).resolves.toEqual({
+      event_id: event.id,
+      cleanup_pending: false,
+      failed_object_count: 0,
+    })
+    expect(authenticatedJson).toHaveBeenNthCalledWith(
+      1,
+      `/admin/events/${event.id}?version=${event.version}`,
+      { method: 'DELETE' },
+    )
+
+    await expect(
+      adminEventsClient.deleteEvent({ eventId: event.id, version: event.version }),
+    ).rejects.toMatchObject({ code: 'invalidResponse' })
+  })
 })

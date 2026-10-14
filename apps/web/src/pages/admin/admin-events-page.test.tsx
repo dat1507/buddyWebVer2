@@ -8,6 +8,7 @@ import { AdminLayout } from '@/components/layout/admin-layout'
 import { adminEventsClient, type AdminEventList } from '@/features/admin-events/admin-events'
 import { clearPrivateQueries } from '@/features/auth/private-cache'
 import i18n from '@/i18n'
+import { ApiError } from '@/lib/api'
 import { AdminEventsPage } from '@/pages/admin/admin-events-page'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -65,12 +66,14 @@ function eventPage(total = 2): AdminEventList {
 describe('ADMIN-006 guarded Admin Event inventory', () => {
   let client: QueryClient
   const readEvents = vi.spyOn(adminEventsClient, 'readEvents')
+  const deleteEvent = vi.spyOn(adminEventsClient, 'deleteEvent')
 
   beforeEach(async () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     readEvents.mockReset().mockResolvedValue(eventPage())
+    deleteEvent.mockReset()
   })
 
   afterEach(() => {
@@ -123,7 +126,76 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
       'href',
       `/admin/events/${publishedEvent.id}/edit`,
     )
+    expect(screen.getByRole('button', { name: 'Delete Buddy Day' })).toBeVisible()
     expect(screen.queryByText(/object.key|created.by/i)).not.toBeInTheDocument()
+  })
+
+  it('requires confirmation, deletes once, and refreshes the inventory after success', async () => {
+    readEvents
+      .mockReset()
+      .mockResolvedValueOnce(eventPage())
+      .mockResolvedValueOnce({
+        items: [cancelledEvent],
+        page: 1,
+        page_size: 20,
+        total: 1,
+        total_pages: 1,
+      })
+    deleteEvent.mockResolvedValue({
+      event_id: publishedEvent.id,
+      cleanup_pending: false,
+      failed_object_count: 0,
+    })
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete Buddy Day' }))
+    const dialog = await screen.findByRole('alertdialog', { name: 'Delete Event?' })
+    expect(dialog).toHaveTextContent('Permanently delete Buddy Day?')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+    expect(deleteEvent).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Buddy Day' }))
+    fireEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: 'Confirm Delete',
+      }),
+    )
+
+    await waitFor(() =>
+      expect(deleteEvent).toHaveBeenCalledWith({
+        eventId: publishedEvent.id,
+        version: publishedEvent.version,
+      }),
+    )
+    expect(await screen.findByText('Buddy Day was deleted.')).toHaveAttribute('role', 'status')
+    await waitFor(() => expect(screen.queryByText('Buddy Day')).not.toBeInTheDocument())
+    expect(screen.getByText('Cancelled Meetup')).toBeVisible()
+    expect(readEvents).toHaveBeenCalledTimes(2)
+  })
+
+  it('locks repeated deletion and keeps a clear error in the confirmation dialog', async () => {
+    let rejectDelete!: (reason: unknown) => void
+    deleteEvent.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        rejectDelete = reject
+      }),
+    )
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete Buddy Day' }))
+    const confirm = within(await screen.findByRole('alertdialog')).getByRole('button', {
+      name: 'Confirm Delete',
+    })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+    await waitFor(() => expect(deleteEvent).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(confirm).toBeDisabled())
+
+    await act(async () => rejectDelete(new ApiError(409, 'conflict')))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'The Event changed or has protected dependencies.',
+    )
+    expect(screen.getByText('Buddy Day')).toBeVisible()
   })
 
   it('debounces search and sends server-owned editorial, audience, phase, and date filters', async () => {

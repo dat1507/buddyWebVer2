@@ -4,6 +4,7 @@ import {
   adminEventsClient,
   type AdminEventListRequest,
   type EventCoverUploadInput,
+  type EventDeleteInput,
   type EventDraftPayload,
   type EventStatusUpdateInput,
 } from '@/features/admin-events/admin-events'
@@ -102,12 +103,24 @@ function useSetAdminEventStatus() {
   })
 }
 
+function useDeleteAdminEvent() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: (input: EventDeleteInput) => adminEventsClient.deleteEvent(input),
+    onSuccess: async (result) => {
+      client.removeQueries({ queryKey: adminEventKeys.detail(result.event_id) })
+      await invalidateEventQueries(client)
+    },
+  })
+}
+
 export {
   adminEventKeys,
   useAdminEventCover,
   useAdminEventDetail,
   useAdminEvents,
   useCreateAdminEvent,
+  useDeleteAdminEvent,
   useSetAdminEventStatus,
   useUpdateAdminEvent,
   useUploadAdminEventCover,
