@@ -4,6 +4,7 @@ import { parseContract } from '@/features/matching/invitation'
 import { ApiError, getJson } from '@/lib/api'
 
 const eventLocaleSchema = z.enum(['en', 'de'])
+const legacyEventVisibilitySchema = z.enum(['PUBLIC', 'MEMBERS'])
 const awareDateTimeSchema = z.string().refine((value) => {
   if (!/(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return false
   return !Number.isNaN(new Date(value).getTime())
@@ -37,7 +38,9 @@ const publicEventSchema = z
     registration_enabled: z.boolean(),
     registration_deadline: awareDateTimeSchema.nullable(),
     status: z.enum(['PUBLISHED', 'CANCELLED']),
-    visibility: z.enum(['PUBLIC', 'MEMBERS']),
+    // Old API revisions can still emit this field during a rolling deploy. It
+    // is accepted at the wire boundary but removed from the public Event model.
+    visibility: legacyEventVisibilitySchema.optional(),
     phase: z.enum(['UPCOMING', 'ONGOING', 'COMPLETED']).nullable(),
     cover: publicEventCoverSchema.nullable(),
   })
@@ -50,6 +53,10 @@ const publicEventSchema = z
     ) {
       context.addIssue({ code: 'custom', message: 'Event end must follow its start.' })
     }
+  })
+  .transform(({ visibility, ...event }) => {
+    void visibility
+    return event
   })
 
 const publicEventListSchema = z

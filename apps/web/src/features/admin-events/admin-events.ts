@@ -6,8 +6,8 @@ import { ApiError } from '@/lib/api'
 
 const ADMIN_EVENTS_DEFAULT_PAGE_SIZE = 20
 const eventStatusSchema = z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED'])
-const eventVisibilitySchema = z.enum(['PUBLIC', 'MEMBERS'])
 const eventPhaseSchema = z.enum(['UPCOMING', 'ONGOING', 'COMPLETED'])
+const legacyEventVisibilitySchema = z.enum(['PUBLIC', 'MEMBERS'])
 const awareDateTimeSchema = z.string().refine((value) => {
   if (!/(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return false
   return !Number.isNaN(new Date(value).getTime())
@@ -30,7 +30,9 @@ const adminEventSchema = z
     registration_url: z.url().startsWith('https://').nullable(),
     cover_media_id: z.string().uuid().nullable(),
     status: eventStatusSchema,
-    visibility: eventVisibilitySchema,
+    // Transitional wire compatibility only. Audience is intentionally removed
+    // from the parsed Event model and every admin write contract.
+    visibility: legacyEventVisibilitySchema.optional(),
     phase: eventPhaseSchema.nullable(),
     registration_enabled: z.boolean(),
     max_participants: z.number().int().positive().nullable(),
@@ -41,6 +43,10 @@ const adminEventSchema = z
     updated_at: awareDateTimeSchema,
   })
   .strict()
+  .transform(({ visibility, ...event }) => {
+    void visibility
+    return event
+  })
 
 const adminEventListSchema = z
   .object({
@@ -117,7 +123,6 @@ const eventMediaUrlSchema = z
   .strict()
 
 type EventStatus = z.infer<typeof eventStatusSchema>
-type EventVisibility = z.infer<typeof eventVisibilitySchema>
 type EventPhase = z.infer<typeof eventPhaseSchema>
 type AdminEvent = Readonly<z.infer<typeof adminEventSchema>>
 type AdminEventList = Readonly<z.infer<typeof adminEventListSchema>>
@@ -139,7 +144,6 @@ interface EventDraftPayload {
   category: string | null
   organizer: string | null
   registration_url: string | null
-  visibility: EventVisibility
   registration_enabled: boolean
   max_participants: number | null
   registration_deadline: string | null
@@ -169,7 +173,6 @@ interface AdminEventListRequest {
   pageSize: number
   search: string
   status: EventStatus | null
-  visibility: EventVisibility | null
   phase: EventPhase | null
   from: string | null
   to: string | null
@@ -184,7 +187,6 @@ function adminEventListPath(request: AdminEventListRequest): string {
   const search = request.search.trim()
   if (search) params.set('search', search)
   if (request.status) params.set('status', request.status)
-  if (request.visibility) params.set('visibility', request.visibility)
   if (request.phase) params.set('phase', request.phase)
   if (request.from && request.to) {
     params.set('from', request.from)
@@ -316,7 +318,6 @@ export {
   eventMediaUrlSchema,
   eventPhaseSchema,
   eventStatusSchema,
-  eventVisibilitySchema,
 }
 export type {
   AdminEvent,
@@ -332,5 +333,4 @@ export type {
   EventPhase,
   EventStatus,
   EventStatusUpdateInput,
-  EventVisibility,
 }

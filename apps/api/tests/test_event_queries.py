@@ -1,4 +1,4 @@
-"""Audience, filtering, projection, and query-count tests for EVT-005."""
+"""Public filtering, projection, compatibility, and query-count tests for EVT-005."""
 
 from __future__ import annotations
 
@@ -19,8 +19,6 @@ from app.models import (
     EventPhase,
     EventStatus,
     EventVisibility,
-    User,
-    UserRole,
 )
 from app.services.event_queries import (
     EventQueryValidationError,
@@ -33,7 +31,6 @@ from app.services.image_storage import ImageStorageService
 EVENT_ID = UUID("11111111-1111-4111-8111-111111111111")
 MEDIA_ID = UUID("22222222-2222-4222-8222-222222222222")
 ADMIN_ID = UUID("33333333-3333-4333-8333-333333333333")
-USER_ID = UUID("44444444-4444-4444-8444-444444444444")
 OBJECT_KEY = "55555555-5555-4555-8555-555555555555.webp"
 NOW = datetime(2026, 10, 9, 8, 0, tzinfo=UTC)
 
@@ -83,19 +80,6 @@ def _media() -> EventMedia:
         sort_order=0,
         processing_status=EventMediaProcessingStatus.READY,
         created_by=ADMIN_ID,
-        deleted_at=None,
-    )
-
-
-def _viewer(*, verified: bool = True) -> User:
-    return User(
-        id=USER_ID,
-        email="member@example.com",
-        password_hash="test-hash",
-        role=UserRole.USER,
-        is_active=True,
-        email_verified=verified,
-        email_verified_at=NOW if verified else None,
         deleted_at=None,
     )
 
@@ -155,27 +139,31 @@ async def test_public_list_localizes_cover_and_uses_constant_query_count() -> No
     assert storage_mock.create_signed_url.await_count == 2
 
     sql = _compiled(session_mock.execute.await_args.args[0])
-    assert "event_visibility.public" not in sql
-    assert "'public'" in sql
-    assert "'members'" not in sql
+    assert "events.visibility =" not in sql
+    assert "events.visibility in" not in sql
     assert "order by app_private.events.start_date asc nulls last, app_private.events.id asc" in sql
     assert "event_media.object_key" in sql
 
 
 @pytest.mark.anyio
-async def test_verified_member_query_includes_members_but_unverified_user_does_not() -> None:
-    for viewer, includes_members in ((_viewer(), True), (_viewer(verified=False), False)):
-        session_mock, session = _list_session([])
-        _, storage = _storage()
-        await list_public_events(
-            session,
-            storage,
-            viewer=viewer,
-            filters=PublicEventFilters(),
-            now=NOW,
-        )
-        sql = _compiled(session_mock.execute.await_args.args[0])
-        assert ("'members'" in sql) is includes_members
+async def test_legacy_members_value_does_not_hide_a_published_event() -> None:
+    event = _event(visibility=EventVisibility.MEMBERS)
+    media = _media()
+    session_mock, session = _list_session([(event, media)])
+    _, storage = _storage()
+
+    result = await list_public_events(
+        session,
+        storage,
+        viewer=None,
+        filters=PublicEventFilters(),
+        now=NOW,
+    )
+
+    assert [item.id for item in result.items] == [EVENT_ID]
+    sql = _compiled(session_mock.execute.await_args.args[0])
+    assert "events.visibility =" not in sql
+    assert "events.visibility in" not in sql
 
 
 @pytest.mark.anyio
@@ -304,5 +292,6 @@ async def test_detail_returns_none_for_hidden_or_unknown_row_without_storage_acc
     storage_mock.create_signed_url.assert_not_awaited()
     sql = _compiled(session_mock.execute.await_args.args[0])
     assert "events.id =" in sql
-    assert "'public'" in sql
+    assert "events.visibility =" not in sql
+    assert "events.visibility in" not in sql
     assert "events.deleted_at is null" in sql

@@ -151,7 +151,7 @@ async def optional_auth(
     claims: Annotated[AccessTokenClaims | None, Depends(optional_access_claims)],
     session: Annotated[AsyncSession, Depends(get_database_session)],
 ) -> User | None:
-    """Resolve an optional cookie to current persisted state for audience-aware public reads."""
+    """Resolve an optional cookie to current persisted state for public read endpoints."""
     if claims is None:
         return None
     user = await _load_active_user(session, claims.user_id)

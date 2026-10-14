@@ -398,7 +398,6 @@
       "title": "Veranstaltung",
       "schedule": "Zeitraum",
       "status": "Status",
-      "visibility": "Zielgruppe",
       "phase": "Phase",
       "updated": "Aktualisiert",
       "actions": "Aktionen"
@@ -408,7 +407,6 @@
       "searchPlaceholder": "Titel, Kategorie oder Veranstalter",
       "clearSearch": "Veranstaltungssuche löschen",
       "status": "Redaktionsstatus",
-      "visibility": "Zielgruppe",
       "phase": "Zeitphase",
       "from": "Von Datum",
       "to": "Bis Datum",
@@ -420,10 +418,6 @@
       "DRAFT": "Entwurf",
       "PUBLISHED": "Veröffentlicht",
       "CANCELLED": "Abgesagt"
-    },
-    "visibility": {
-      "PUBLIC": "Öffentlich",
-      "MEMBERS": "Mitglieder"
     },
     "phase": {
       "UPCOMING": "Bevorstehend",
@@ -466,7 +460,6 @@
       "title": "Veranstaltungsdetails",
       "category": "Kategorie",
       "organizer": "Veranstalter",
-      "visibility": "Zielgruppe",
       "capacity": "Maximale Teilnehmendenzahl",
       "registrationUrl": "HTTPS-Anmelde-URL",
       "registrationEnabled": "Anmeldung ist aktiviert"
@@ -536,7 +529,7 @@
       "draftTitle": "Diese Veranstaltung in den Entwurf verschieben?",
       "draftDescription": "Die Veranstaltung und die verknüpfte öffentliche Bewerbung werden ausgeblendet. Inhalte und Veröffentlichungshistorie bleiben erhalten.",
       "cancelTitle": "Diese Veranstaltung absagen?",
-      "cancelDescription": "Die Absage bleibt für die vorgesehene Zielgruppe sichtbar, wird aus dem Slider entfernt und deaktiviert die Anmeldung.",
+      "cancelDescription": "Die Absage bleibt öffentlich sichtbar, wird aus dem Slider entfernt und deaktiviert die Anmeldung.",
       "keep": "Aktuellen Status behalten"
     },
     "errors": {

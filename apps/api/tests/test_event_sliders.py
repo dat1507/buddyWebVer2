@@ -131,7 +131,8 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
     sql = _compiled(session_mock.execute.await_args.args[0])
     assert "join app_private.event_media" in sql
     assert "events.status = 'published'" in sql
-    assert "events.visibility = 'public'" in sql
+    assert "events.visibility =" not in sql
+    assert "events.visibility in" not in sql
     assert "event_media.processing_status = 'ready'" in sql
     assert "events.start_date is null" in sql
     assert "events.start_date >=" in sql
@@ -198,6 +199,7 @@ async def test_slider_returns_scheduled_field_trip_and_unscheduled_buddy_recruit
     recruitment.end_date = None
     recruitment.location_en = None
     recruitment.location_de = None
+    recruitment.visibility = EventVisibility.MEMBERS
     session_mock, session, storage_mock, storage = _dependencies(
         [(field_trip, _media(1)), (recruitment, _media(2))]
     )

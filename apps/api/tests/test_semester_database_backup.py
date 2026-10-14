@@ -292,7 +292,7 @@ async def test_production_restore_rejects_an_outdated_target_before_copy(tmp_pat
             artifact_path=package.artifact_path,
             expected_manifest_checksum=package.manifest_checksum,
             accepted_manifest_heads=frozenset({"0020_semester_restore_execution"}),
-            required_target_head="0021_restore_runtime_permissions",
+            required_target_head="0022_public_event_visibility_default",
         )
 
     assert target.copied_to == []

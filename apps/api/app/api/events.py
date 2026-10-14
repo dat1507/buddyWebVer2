@@ -1,4 +1,4 @@
-"""Audience-aware public and member Event list/detail endpoints."""
+"""Public published Event list/detail endpoints."""
 
 from datetime import datetime
 from typing import Annotated, Final
@@ -67,7 +67,7 @@ async def read_events(
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> PublicEventListResponse:
-    """List authoritative Events visible to the anonymous or verified-member audience."""
+    """List authoritative published Events for public clients."""
     try:
         result = await list_public_events(
             session,

@@ -1,8 +1,4 @@
-import type {
-  AdminEvent,
-  EventDraftPayload,
-  EventVisibility,
-} from '@/features/admin-events/admin-events'
+import type { AdminEvent, EventDraftPayload } from '@/features/admin-events/admin-events'
 
 const MAX_EVENT_COVER_BYTES = 5 * 1024 * 1024
 const EVENT_COVER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -20,7 +16,6 @@ interface EventFormValues {
   category: string
   organizer: string
   registrationUrl: string
-  visibility: EventVisibility
   registrationEnabled: boolean
   maxParticipants: string
   registrationDeadline: string
@@ -43,7 +38,6 @@ const emptyEventFormValues: EventFormValues = {
   category: '',
   organizer: '',
   registrationUrl: '',
-  visibility: 'PUBLIC',
   registrationEnabled: false,
   maxParticipants: '',
   registrationDeadline: '',
@@ -128,7 +122,6 @@ function eventToFormValues(event: AdminEvent): EventFormValues {
     category: event.category ?? '',
     organizer: event.organizer ?? '',
     registrationUrl: event.registration_url ?? '',
-    visibility: event.visibility,
     registrationEnabled: event.registration_enabled,
     maxParticipants: event.max_participants ? String(event.max_participants) : '',
     registrationDeadline: isoToZonedLocal(event.registration_deadline, event.timezone),
@@ -206,7 +199,6 @@ function eventFormPayload(values: EventFormValues): EventDraftPayload {
     category: textOrNull(values.category),
     organizer: textOrNull(values.organizer),
     registration_url: textOrNull(values.registrationUrl),
-    visibility: values.visibility,
     registration_enabled: values.registrationEnabled,
     max_participants: values.maxParticipants ? Number(values.maxParticipants) : null,
     registration_deadline: values.registrationDeadline

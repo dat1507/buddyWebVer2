@@ -12,7 +12,6 @@ import {
   type AdminEvent,
   type EventPhase,
   type EventStatus,
-  type EventVisibility,
 } from '@/features/admin-events/admin-events'
 import {
   useAdminEvents,
@@ -56,7 +55,6 @@ function AdminEventsPage() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<EventStatus | null>(null)
-  const [visibility, setVisibility] = useState<EventVisibility | null>(null)
   const [phase, setPhase] = useState<EventPhase | null>(null)
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -80,7 +78,6 @@ function AdminEventsPage() {
     pageSize,
     search,
     status,
-    visibility,
     phase,
     from: dateRangeComplete ? utcBoundary(fromDate, { end: false }) : null,
     to: dateRangeComplete ? utcBoundary(toDate, { end: true }) : null,
@@ -150,11 +147,6 @@ function AdminEventsPage() {
         header: t('adminEvents.columns.status'),
         accessor: (event) => event.status,
         cell: (event) => <EditorialBadge status={event.status} />,
-      },
-      {
-        id: 'visibility',
-        header: t('adminEvents.columns.visibility'),
-        accessor: (event) => t(`adminEvents.visibility.${event.visibility}`),
       },
       {
         id: 'phase',
@@ -230,7 +222,7 @@ function AdminEventsPage() {
 
   const pendingSearch = searchInput.trim() !== search
   const loading = events.isPending || pendingSearch || isRecoveringPage
-  const filtered = Boolean(search || status || visibility || phase || fromDate || toDate)
+  const filtered = Boolean(search || status || phase || fromDate || toDate)
   const safeError =
     events.error instanceof ApiError && events.error.code === 'forbidden'
       ? t('adminEvents.forbidden')
@@ -239,7 +231,6 @@ function AdminEventsPage() {
     setSearchInput('')
     setSearch('')
     setStatus(null)
-    setVisibility(null)
     setPhase(null)
     setFromDate('')
     setToDate('')
@@ -316,21 +307,6 @@ function AdminEventsPage() {
             <option value="DRAFT">{t('adminEvents.status.DRAFT')}</option>
             <option value="PUBLISHED">{t('adminEvents.status.PUBLISHED')}</option>
             <option value="CANCELLED">{t('adminEvents.status.CANCELLED')}</option>
-          </select>
-        </label>
-        <label className="space-y-1 text-sm font-medium">
-          {t('adminEvents.filters.visibility')}
-          <select
-            className={`${controlClassName} w-full`}
-            value={visibility ?? ''}
-            onChange={(event) => {
-              setVisibility((event.target.value || null) as EventVisibility | null)
-              setPage(1)
-            }}
-          >
-            <option value="">{t('adminEvents.filters.all')}</option>
-            <option value="PUBLIC">{t('adminEvents.visibility.PUBLIC')}</option>
-            <option value="MEMBERS">{t('adminEvents.visibility.MEMBERS')}</option>
           </select>
         </label>
         <label className="space-y-1 text-sm font-medium">

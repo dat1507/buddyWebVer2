@@ -1,4 +1,4 @@
-"""Audience-safe Event list and detail queries with localized cover projection."""
+"""Published Event list and detail queries with localized cover projection."""
 
 from __future__ import annotations
 
@@ -18,9 +18,7 @@ from app.models import (
     EventMediaUsage,
     EventPhase,
     EventStatus,
-    EventVisibility,
     User,
-    UserRole,
 )
 from app.schemas.event import (
     EventLocale,
@@ -55,27 +53,11 @@ class PublicEventFilters:
     page_size: int = 20
 
 
-def _is_verified_member(viewer: User | None) -> bool:
-    return bool(
-        viewer is not None
-        and viewer.role is UserRole.USER
-        and viewer.is_active
-        and viewer.deleted_at is None
-        and viewer.is_current_email_verified
-    )
-
-
-def _audience_clause(viewer: User | None) -> ColumnElement[bool]:
-    allowed_visibility = (
-        (EventVisibility.PUBLIC, EventVisibility.MEMBERS)
-        if _is_verified_member(viewer)
-        else (EventVisibility.PUBLIC,)
-    )
+def _public_clause() -> ColumnElement[bool]:
     return and_(
         Event.deleted_at.is_(None),
         Event.published_at.is_not(None),
         Event.status.in_((EventStatus.PUBLISHED, EventStatus.CANCELLED)),
-        Event.visibility.in_(allowed_visibility),
     )
 
 
@@ -118,7 +100,8 @@ def _filter_clauses(
     viewer: User | None,
     now: datetime,
 ) -> tuple[ColumnElement[bool], ...]:
-    clauses: list[ColumnElement[bool]] = [_audience_clause(viewer)]
+    del viewer
+    clauses: list[ColumnElement[bool]] = [_public_clause()]
     if filters.category is not None:
         clauses.append(Event.category == filters.category)
     if filters.phase is EventPhase.UPCOMING:
@@ -291,11 +274,12 @@ async def get_public_event_detail(
     now: datetime | None = None,
 ) -> PublicEventResponse | None:
     """Return one authorized Event, keeping hidden/deleted/unknown records indistinguishable."""
+    del viewer
     reference_time = _require_aware(now or datetime.now(UTC), field_name="Query time")
     statement = (
         select(Event, EventMedia)
         .outerjoin(EventMedia, _cover_join())
-        .where(Event.id == event_id, _audience_clause(viewer))
+        .where(Event.id == event_id, _public_clause())
     )
     row = (await session.execute(statement)).one_or_none()
     if row is None:

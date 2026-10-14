@@ -79,7 +79,6 @@ async def test_admin_list_includes_drafts_with_stable_filters_and_two_queries() 
             page_size=5,
             search=" Buddy ",
             status=EventStatus.DRAFT,
-            visibility=EventVisibility.MEMBERS,
             phase=EventPhase.UPCOMING,
             from_instant=NOW,
             to_instant=NOW + timedelta(days=31),
@@ -96,7 +95,8 @@ async def test_admin_list_includes_drafts_with_stable_filters_and_two_queries() 
     mock.scalars.assert_awaited_once()
     sql = _compiled(mock.scalars.await_args.args[0])
     assert "events.status = 'draft'" in sql
-    assert "events.visibility = 'members'" in sql
+    assert "events.visibility =" not in sql
+    assert "events.visibility in" not in sql
     assert "app_private.events.title_en" in sql
     assert "%%buddy%%" in sql or "%buddy%" in sql
     assert "events.start_date <" in sql

@@ -152,7 +152,7 @@ def test_restore_summary_and_schema_compatibility_are_bounded() -> None:
         "0020_semester_restore_execution",
         SEMESTER_RESTORE_ALEMBIC_HEAD,
     }
-    assert SEMESTER_RESTORE_ALEMBIC_HEAD == "0021_restore_runtime_permissions"
+    assert SEMESTER_RESTORE_ALEMBIC_HEAD == "0022_public_event_visibility_default"
     assert _integer_counts({"users": 2, "buddy_messages": 1}) == {
         "users": 2,
         "buddy_messages": 1,

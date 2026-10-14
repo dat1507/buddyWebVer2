@@ -295,7 +295,7 @@ async def test_cleanup_failure_is_reported_without_object_identity_leak() -> Non
     ("viewer", "event", "allowed"),
     [
         (None, _event(status=EventStatus.PUBLISHED), True),
-        (None, _event(status=EventStatus.PUBLISHED, visibility=EventVisibility.MEMBERS), False),
+        (None, _event(status=EventStatus.PUBLISHED, visibility=EventVisibility.MEMBERS), True),
         (
             _actor(role=UserRole.USER),
             _event(status=EventStatus.PUBLISHED, visibility=EventVisibility.MEMBERS),
@@ -304,13 +304,13 @@ async def test_cleanup_failure_is_reported_without_object_identity_leak() -> Non
         (
             _actor(role=UserRole.USER, verified=False),
             _event(status=EventStatus.PUBLISHED, visibility=EventVisibility.MEMBERS),
-            False,
+            True,
         ),
         (_actor(), _event(status=EventStatus.DRAFT), True),
         (None, _event(status=EventStatus.DRAFT), False),
     ],
 )
-async def test_media_delivery_follows_parent_event_audience(
+async def test_media_delivery_follows_parent_event_publication_state(
     viewer: User | None,
     event: Event,
     allowed: bool,

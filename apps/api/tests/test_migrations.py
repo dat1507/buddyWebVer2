@@ -60,9 +60,12 @@ def test_alembic_script_directory_is_loadable() -> None:
     restore_permissions_revision = script_directory.get_revision(
         "0021_restore_runtime_permissions"
     )
+    public_event_default_revision = script_directory.get_revision(
+        "0022_public_event_visibility_default"
+    )
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0021_restore_runtime_permissions"]
+    assert script_directory.get_heads() == ["0022_public_event_visibility_default"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None
@@ -103,6 +106,8 @@ def test_alembic_script_directory_is_loadable() -> None:
     assert semester_restore_revision.down_revision == "0019_semester_reset_execution"
     assert restore_permissions_revision is not None
     assert restore_permissions_revision.down_revision == "0020_semester_restore_execution"
+    assert public_event_default_revision is not None
+    assert public_event_default_revision.down_revision == "0021_restore_runtime_permissions"
 
 
 def test_database_configuration_is_deferred() -> None:
@@ -207,6 +212,8 @@ def test_offline_upgrade_renders_private_schema_boundary(
     assert (
         "bucket_id not in ('profile-images', 'event-media', 'event-slider-images')" in rendered_sql
     )
+    assert "alter table app_private.events alter column visibility set default" in rendered_sql
+    assert "'public'::app_private.event_visibility" in rendered_sql
 
 
 def test_offline_user_downgrade_removes_table_and_enum(
@@ -301,6 +308,36 @@ def test_offline_storage_downgrade_removes_only_policies(
     assert "drop policy if exists vgu_buddy_clients_no_image_insert" in rendered_sql
     assert "drop policy if exists vgu_buddy_clients_no_image_select" in rendered_sql
     assert "delete from storage.buckets" not in rendered_sql
+
+
+def test_public_event_visibility_default_migration_is_reversible_without_data_rewrite(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv(MIGRATION_URL_VARIABLE, migration_test_url())
+    get_migration_database_settings.cache_clear()
+    try:
+        command.upgrade(
+            migration_config(),
+            "0021_restore_runtime_permissions:0022_public_event_visibility_default",
+            sql=True,
+        )
+        upgrade_sql = capsys.readouterr().out.lower()
+        assert "alter table app_private.events alter column visibility set default" in upgrade_sql
+        assert "'public'::app_private.event_visibility" in upgrade_sql
+        assert "update app_private.events" not in upgrade_sql
+
+        command.downgrade(
+            migration_config(),
+            "0022_public_event_visibility_default:0021_restore_runtime_permissions",
+            sql=True,
+        )
+    finally:
+        get_migration_database_settings.cache_clear()
+
+    rendered_sql = capsys.readouterr().out.lower()
+    assert "alter table app_private.events alter column visibility set default" in rendered_sql
+    assert "'members'::app_private.event_visibility" in rendered_sql
+    assert "update app_private.events" not in rendered_sql
 
 
 def test_alembic_cli_reads_pyproject_configuration() -> None:

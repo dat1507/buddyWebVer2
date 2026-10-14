@@ -1,4 +1,4 @@
-"""Admin Event cover lifecycle and audience-authorized media delivery endpoints."""
+"""Admin Event cover lifecycle and publication-authorized media delivery endpoints."""
 
 from __future__ import annotations
 
@@ -327,7 +327,7 @@ async def read_event_media_url(
     session: Annotated[AsyncSession, Depends(get_database_session)],
     storage: Annotated[ImageStorageService, Depends(get_image_storage_service)],
 ) -> EventMediaUrlResponse:
-    """Issue a short URL only after parent Event audience authorization."""
+    """Issue a short URL only after parent Event publication authorization."""
     authorized = await get_authorized_event_media(
         session,
         event_id,

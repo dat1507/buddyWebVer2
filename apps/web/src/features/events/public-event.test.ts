@@ -18,7 +18,6 @@ const payload = {
   registration_enabled: false,
   registration_deadline: null,
   status: 'PUBLISHED',
-  visibility: 'PUBLIC',
   phase: 'UPCOMING',
   cover: {
     url: 'https://storage.example.test/signed-cover',
@@ -41,7 +40,9 @@ describe('FE-031 public Event API contract', () => {
   })
 
   it('reads a localized Event with credentials through the exact detail route', async () => {
-    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json(payload))
+    const fetch = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(Response.json({ ...payload, visibility: 'MEMBERS' }))
 
     await expect(publicEventsClient.readEvent(EVENT_ID, 'en')).resolves.toEqual(payload)
     expect(fetch).toHaveBeenCalledWith(

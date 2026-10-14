@@ -1,4 +1,4 @@
-"""Contract tests for Event editorial state, schedule and audience visibility."""
+"""Contract tests for Event editorial state, schedule and public visibility."""
 
 from datetime import UTC, datetime, timedelta
 from typing import cast, get_args, get_type_hints
@@ -165,7 +165,7 @@ def test_event_draft_fields_are_nullable_but_supplied_content_is_bounded() -> No
     }
 
 
-def test_event_state_defaults_are_private_and_registration_independent() -> None:
+def test_event_state_defaults_are_public_draft_and_registration_independent() -> None:
     table = cast(Table, Event.__table__)
     status = table.c.status
     visibility = table.c.visibility
@@ -183,8 +183,8 @@ def test_event_state_defaults_are_private_and_registration_independent() -> None
     assert visibility.type.enum_class is EventVisibility
     assert visibility.type.enums == ["PUBLIC", "MEMBERS"]
     assert visibility.type.schema == APPLICATION_SCHEMA
-    assert cast(ColumnDefault, visibility.default).arg is EventVisibility.MEMBERS
-    assert str(cast(DefaultClause, visibility.server_default).arg) == "MEMBERS"
+    assert cast(ColumnDefault, visibility.default).arg is EventVisibility.PUBLIC
+    assert str(cast(DefaultClause, visibility.server_default).arg) == "PUBLIC"
 
     assert isinstance(registration_enabled.type, Boolean)
     assert cast(ColumnDefault, registration_enabled.default).arg is False
@@ -283,7 +283,7 @@ def test_event_phase_is_derived_with_half_open_boundaries_and_offset_instants() 
         derive_event_phase(start, end, at=datetime(2026, 10, 1, 9, 0))
 
 
-def test_public_visibility_requires_published_history_public_audience_and_live_row() -> None:
+def test_public_visibility_requires_published_history_and_live_row() -> None:
     published_at = datetime(2026, 9, 1, tzinfo=UTC)
     visible = _event(
         status=EventStatus.PUBLISHED,
@@ -301,7 +301,7 @@ def test_public_visibility_requires_published_history_public_audience_and_live_r
     assert visible.is_publicly_visible() is False
     visible.status = EventStatus.PUBLISHED
     visible.visibility = EventVisibility.MEMBERS
-    assert visible.is_publicly_visible() is False
+    assert visible.is_publicly_visible() is True
     visible.visibility = EventVisibility.PUBLIC
     visible.deleted_at = published_at
     assert visible.is_publicly_visible() is False
@@ -312,7 +312,7 @@ def test_public_visibility_requires_published_history_public_audience_and_live_r
     ).lower()
     assert "events.deleted_at is null" in statement
     assert "events.published_at is not null" in statement
-    assert "events.visibility" in statement
+    assert "events.visibility" not in statement
     assert "events.status in" in statement
 
 
@@ -326,7 +326,7 @@ def test_postgresql_ddl_matches_event_contract() -> None:
     assert "end_date timestamp with time zone" in ddl
     assert "timezone text default 'asia/ho_chi_minh' not null" in ddl
     assert "status app_private.event_status default 'draft' not null" in ddl
-    assert "visibility app_private.event_visibility default 'members' not null" in ddl
+    assert "visibility app_private.event_visibility default 'public' not null" in ddl
     assert "registration_enabled boolean default false not null" in ddl
     assert "constraint ck_events_date_order" in ddl
     assert "constraint ck_events_registration_url_https" in ddl

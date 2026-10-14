@@ -1,4 +1,4 @@
-"""Canonical Event persistence model and derived audience/time behavior."""
+"""Canonical Event persistence model and derived publication/time behavior."""
 
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ class EventStatus(StrEnum):
 
 
 class EventVisibility(StrEnum):
-    """Audience allowed to discover an otherwise published Event."""
+    """Legacy persisted audience values retained for schema compatibility."""
 
     PUBLIC = "PUBLIC"
     MEMBERS = "MEMBERS"
@@ -226,8 +226,8 @@ class Event(Base):
             values_callable=lambda visibilities: [visibility.value for visibility in visibilities],
         ),
         nullable=False,
-        default=EventVisibility.MEMBERS,
-        server_default=EventVisibility.MEMBERS.value,
+        default=EventVisibility.PUBLIC,
+        server_default=EventVisibility.PUBLIC.value,
     )
     registration_enabled: Mapped[bool] = mapped_column(
         Boolean,
@@ -300,12 +300,11 @@ class Event(Base):
         return derive_event_phase(self.start_date, self.end_date, at=at)
 
     def is_publicly_visible(self) -> bool:
-        """Apply the anonymous audience rule to an in-memory Event."""
+        """Apply the published, non-deleted rule to an in-memory Event."""
 
         return (
             self.deleted_at is None
             and self.published_at is not None
-            and self.visibility is EventVisibility.PUBLIC
             and self.status in {EventStatus.PUBLISHED, EventStatus.CANCELLED}
         )
 
@@ -316,7 +315,6 @@ class Event(Base):
         return and_(
             cls.deleted_at.is_(None),
             cls.published_at.is_not(None),
-            cls.visibility == EventVisibility.PUBLIC,
             cls.status.in_((EventStatus.PUBLISHED, EventStatus.CANCELLED)),
         )
 

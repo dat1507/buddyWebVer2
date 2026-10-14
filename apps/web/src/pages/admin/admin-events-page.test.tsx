@@ -35,7 +35,6 @@ const publishedEvent = {
   registration_url: null,
   cover_media_id: '22222222-2222-4222-8222-222222222222',
   status: 'PUBLISHED' as const,
-  visibility: 'PUBLIC' as const,
   phase: 'UPCOMING' as const,
   registration_enabled: false,
   max_participants: null,
@@ -198,7 +197,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
     expect(screen.getByText('Buddy Day')).toBeVisible()
   })
 
-  it('debounces search and sends server-owned editorial, audience, phase, and date filters', async () => {
+  it('debounces search and sends server-owned editorial, phase, and date filters', async () => {
     renderPage()
     await screen.findByText('Buddy Day')
     fireEvent.change(screen.getByRole('searchbox', { name: 'Search Events' }), {
@@ -207,7 +206,7 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
     fireEvent.change(screen.getByLabelText('Editorial status'), {
       target: { value: 'PUBLISHED' },
     })
-    fireEvent.change(screen.getByLabelText('Audience'), { target: { value: 'PUBLIC' } })
+    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Schedule phase'), {
       target: { value: 'UPCOMING' },
     })
@@ -222,7 +221,6 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
             page: 1,
             search: 'Buddy',
             status: 'PUBLISHED',
-            visibility: 'PUBLIC',
             phase: 'UPCOMING',
             from: '2026-10-01T00:00:00.000Z',
             to: '2026-11-01T00:00:00.000Z',

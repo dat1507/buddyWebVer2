@@ -26,7 +26,6 @@ const event: AdminEvent = {
   registration_url: 'https://events.example.test/register',
   cover_media_id: '22222222-2222-4222-8222-222222222222',
   status: 'PUBLISHED',
-  visibility: 'PUBLIC',
   phase: 'UPCOMING',
   registration_enabled: true,
   max_participants: 100,
@@ -50,7 +49,6 @@ const request: AdminEventListRequest = {
   pageSize: 10,
   search: ' Buddy & VGU ',
   status: 'PUBLISHED',
-  visibility: 'PUBLIC',
   phase: 'UPCOMING',
   from: '2026-10-01T00:00:00.000Z',
   to: '2026-11-01T00:00:00.000Z',
@@ -80,15 +78,17 @@ describe('ADMIN-006 Admin Event API contract', () => {
 
   it('builds only allowlisted bounded filters and requires a complete date pair', () => {
     expect(adminEventListPath(request)).toBe(
-      '/admin/events?page=2&page_size=10&search=Buddy+%26+VGU&status=PUBLISHED&visibility=PUBLIC&phase=UPCOMING&from=2026-10-01T00%3A00%3A00.000Z&to=2026-11-01T00%3A00%3A00.000Z',
+      '/admin/events?page=2&page_size=10&search=Buddy+%26+VGU&status=PUBLISHED&phase=UPCOMING&from=2026-10-01T00%3A00%3A00.000Z&to=2026-11-01T00%3A00%3A00.000Z',
     )
     expect(adminEventListPath({ ...request, search: ' ', to: null })).toBe(
-      '/admin/events?page=2&page_size=10&status=PUBLISHED&visibility=PUBLIC&phase=UPCOMING',
+      '/admin/events?page=2&page_size=10&status=PUBLISHED&phase=UPCOMING',
     )
   })
 
   it('reads the strict Event page through an authenticated GET', async () => {
-    fetch.mockResolvedValueOnce(Response.json(page))
+    fetch.mockResolvedValueOnce(
+      Response.json({ ...page, items: [{ ...event, visibility: 'MEMBERS' }] }),
+    )
 
     await expect(adminEventsClient.readEvents(request)).resolves.toEqual(page)
     expect(fetch).toHaveBeenCalledWith(
@@ -156,7 +156,6 @@ describe('ADMIN-006 Admin Event API contract', () => {
       category: null,
       organizer: null,
       registration_url: null,
-      visibility: 'MEMBERS' as const,
       registration_enabled: false,
       max_participants: null,
       registration_deadline: null,

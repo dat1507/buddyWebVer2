@@ -64,7 +64,6 @@ class EventContentFields(BaseModel):
     category: StrictStr | None = None
     organizer: StrictStr | None = None
     registration_url: StrictStr | None = None
-    visibility: EventVisibility | None = None
     registration_enabled: StrictBool | None = None
     max_participants: StrictInt | None = Field(default=None, ge=1)
     registration_deadline: datetime | None = None
@@ -135,13 +134,6 @@ class EventContentFields(BaseModel):
             raise ValueError("Registration URL must be an absolute HTTPS URL.")
         return candidate
 
-    @field_validator("visibility")
-    @classmethod
-    def reject_null_visibility(cls, value: EventVisibility | None) -> EventVisibility:
-        if value is None:
-            raise ValueError("Visibility cannot be null.")
-        return value
-
     @field_validator("registration_enabled")
     @classmethod
     def reject_null_registration_enabled(cls, value: bool | None) -> bool:
@@ -167,10 +159,9 @@ class EventContentFields(BaseModel):
 
 
 class EventDraftCreate(EventContentFields):
-    """Create one incomplete Event draft with private defaults."""
+    """Create one incomplete Event draft with safe application defaults."""
 
     timezone: StrictStr | None = DEFAULT_EVENT_TIMEZONE
-    visibility: EventVisibility | None = EventVisibility.MEMBERS
     registration_enabled: StrictBool | None = False
 
 
@@ -216,6 +207,7 @@ class AdminEventResponse(BaseModel):
     registration_url: str | None
     cover_media_id: UUID | None
     status: EventStatus
+    # Deprecated read-only rollout field. Admin write contracts no longer expose it.
     visibility: EventVisibility
     phase: EventPhase | None
     registration_enabled: bool
@@ -404,7 +396,7 @@ class PublicEventCoverResponse(BaseModel):
 
 
 class PublicEventResponse(BaseModel):
-    """Localized audience-safe Event detail used by public and member clients."""
+    """Localized published Event detail used by public clients."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -422,13 +414,14 @@ class PublicEventResponse(BaseModel):
     registration_enabled: bool
     registration_deadline: datetime | None
     status: EventStatus
+    # Deprecated read-only rollout field for old frontend artifacts.
     visibility: EventVisibility
     phase: EventPhase | None
     cover: PublicEventCoverResponse | None
 
 
 class PublicEventListResponse(BaseModel):
-    """One deterministic bounded page of audience-safe Events."""
+    """One deterministic bounded page of published Events."""
 
     model_config = ConfigDict(extra="forbid")
 

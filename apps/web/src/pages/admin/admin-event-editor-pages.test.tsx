@@ -35,7 +35,6 @@ const event: AdminEvent = {
   registration_url: null,
   cover_media_id: null,
   status: 'DRAFT',
-  visibility: 'MEMBERS',
   phase: 'UPCOMING',
   registration_enabled: false,
   max_participants: null,
@@ -129,6 +128,7 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
     updateEvent.mockResolvedValue(updated)
     renderApp('/admin/events/new')
 
+    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Choose cover image'), {
       target: { files: [coverFile] },
     })
@@ -205,20 +205,19 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
     )
   })
 
-  it('exposes audience while preserving other retired Event Details fields on save', async () => {
+  it('omits audience and other retired Event Details fields while preserving registration', async () => {
     updateEvent.mockResolvedValue({ ...event, version: 2 })
     renderApp(`/admin/events/${EVENT_ID}/edit`)
 
     expect(await screen.findByLabelText('HTTPS registration URL')).toBeVisible()
     expect(screen.queryByLabelText('Category')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Organizer')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Audience')).toHaveValue('MEMBERS')
+    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Maximum participants')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('HTTPS registration URL'), {
       target: { value: 'https://events.example/register' },
     })
-    fireEvent.change(screen.getByLabelText('Audience'), { target: { value: 'PUBLIC' } })
     fireEvent.click(screen.getByLabelText('Registration is enabled'))
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
 
@@ -228,7 +227,6 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
         expect.objectContaining({
           category: 'community',
           organizer: 'VGU Buddy',
-          visibility: 'PUBLIC',
           max_participants: null,
           registration_url: 'https://events.example/register',
           registration_enabled: true,
@@ -256,7 +254,6 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
       location_en: null,
       location_de: null,
       phase: null,
-      visibility: 'PUBLIC' as const,
       cover_media_id: MEDIA_ID,
     }
     const published = {
@@ -328,7 +325,7 @@ describe('ADMIN-007/008 Event create and edit pages', () => {
     await waitFor(() => expect(screen.getByText(/Current status: Draft/)).toBeVisible())
     fireEvent.click(screen.getByRole('button', { name: 'Cancel Event' }))
     expect(await screen.findByRole('alertdialog')).toHaveTextContent(
-      'The cancellation remains visible to its intended audience',
+      'The cancellation remains publicly visible',
     )
   })
 })

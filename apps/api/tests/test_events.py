@@ -128,6 +128,7 @@ async def test_create_incomplete_draft_derives_actor_and_never_commits() -> None
     assert event.title_en is None
     assert event.created_by == ADMIN_ID
     assert event.updated_by == ADMIN_ID
+    assert event.visibility is EventVisibility.PUBLIC
     assert event.version == 1
     mock.add.assert_called_once_with(event)
     mock.flush.assert_awaited_once_with()
@@ -277,6 +278,7 @@ async def test_publish_requires_localized_content_and_ready_cover_but_not_schedu
     )
 
     assert published.status is EventStatus.PUBLISHED
+    assert published.visibility is EventVisibility.PUBLIC
     assert published.published_at == datetime(2026, 9, 22, tzinfo=UTC)
     assert published.version == 3
     mock.commit.assert_not_awaited()

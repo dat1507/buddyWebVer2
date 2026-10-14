@@ -11,7 +11,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.models import Event, EventPhase, EventStatus, EventVisibility
+from app.models import Event, EventPhase, EventStatus
 from app.schemas.event import AdminEventListResponse, AdminEventResponse
 from app.services.events import project_admin_event
 
@@ -28,7 +28,6 @@ class AdminEventFilters:
     page_size: int = 20
     search: str | None = None
     status: EventStatus | None = None
-    visibility: EventVisibility | None = None
     phase: EventPhase | None = None
     from_instant: datetime | None = None
     to_instant: datetime | None = None
@@ -58,7 +57,6 @@ def _validated(filters: AdminEventFilters) -> AdminEventFilters:
         page_size=filters.page_size,
         search=search,
         status=filters.status,
-        visibility=filters.visibility,
         phase=filters.phase,
         from_instant=filters.from_instant,
         to_instant=filters.to_instant,
@@ -83,8 +81,6 @@ def _clauses(
         )
     if filters.status is not None:
         clauses.append(Event.status == filters.status)
-    if filters.visibility is not None:
-        clauses.append(Event.visibility == filters.visibility)
     if filters.phase is EventPhase.UPCOMING:
         clauses.append(Event.start_date > now)
     elif filters.phase is EventPhase.ONGOING:

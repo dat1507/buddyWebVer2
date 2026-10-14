@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { EventsSlider } from '@/components/landing/events-slider'
@@ -85,6 +85,48 @@ describe('EventsSlider', () => {
     expect(screen.getByText('Event 1 of 2')).toBeVisible()
     fireEvent.click(screen.getByRole('button', { name: 'Show next event' }))
     expect(screen.getByText('Event 2 of 2')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Show next event' })).toBeEnabled()
+  })
+
+  it('queues rapid navigation and ignores bubbled child transitions', async () => {
+    const { container } = renderSlider(events)
+    const next = screen.getByRole('button', { name: 'Show next event' })
+    const track = screen.getByTestId('event-slider-track')
+
+    fireEvent.click(next)
+    fireEvent.click(next)
+    fireEvent.click(next)
+    expect(track).toHaveAttribute('data-transitioning', 'true')
+    expect(screen.getByText('Event 2 of 2')).toBeVisible()
+
+    const activeCard = container.querySelector('article[aria-hidden="false"] > *')
+    expect(activeCard).not.toBeNull()
+    fireEvent.transitionEnd(activeCard!, { propertyName: 'border-color' })
+    expect(track).toHaveAttribute('data-transitioning', 'true')
+
+    fireEvent.transitionEnd(track, { propertyName: 'transform' })
+    await waitFor(() => expect(screen.getByText('Event 1 of 2')).toBeVisible())
+    fireEvent.transitionEnd(track, { propertyName: 'transform' })
+    await waitFor(() => expect(screen.getByText('Event 2 of 2')).toBeVisible())
+    fireEvent.transitionEnd(track, { propertyName: 'transform' })
+    await waitFor(() => expect(track).toHaveAttribute('data-transitioning', 'false'))
+
+    const finalSlide = container.querySelector('article[aria-hidden="false"]')
+    expect(finalSlide).not.toBeNull()
+    expect(within(finalSlide as HTMLElement).getByText('Club Fair 26')).toBeVisible()
+  })
+
+  it('supports previous navigation and horizontal touch swipes without blocking vertical scroll', () => {
+    setReducedMotion(true)
+    renderSlider(events)
+    const carousel = screen.getByRole('region', { name: 'Upcoming events carousel' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show previous event' }))
+    expect(screen.getByText('Event 2 of 2')).toBeVisible()
+
+    fireEvent.touchStart(carousel, { touches: [{ clientX: 220, clientY: 100 }] })
+    fireEvent.touchEnd(carousel, { changedTouches: [{ clientX: 120, clientY: 110 }] })
+    expect(screen.getByText('Event 1 of 2')).toBeVisible()
   })
 
   it('makes the active live-shaped slide one keyboard-accessible detail link', () => {
@@ -138,5 +180,16 @@ describe('EventsSlider', () => {
     expect(nextButton).toBeEnabled()
     fireEvent.click(nextButton)
     expect(screen.getByText('Event 1 of 2')).toBeVisible()
+    expect(screen.getByTestId('event-slider-track')).toHaveClass('motion-reduce:transition-none')
+  })
+
+  it('preloads fixed-aspect covers so image decode does not resize a moving card', () => {
+    renderSlider(events)
+
+    for (const image of screen.getAllByRole('img')) {
+      expect(image).toHaveAttribute('loading', 'eager')
+      expect(image).toHaveAttribute('decoding', 'async')
+      expect(image).toHaveAttribute('draggable', 'false')
+    }
   })
 })

@@ -15,7 +15,7 @@ from app.api.dependencies import (
     require_session_csrf,
 )
 from app.core.database import get_database_session
-from app.models import EventPhase, EventStatus, EventVisibility, User, UserRole
+from app.models import EventPhase, EventStatus, User, UserRole
 from app.schemas.event import (
     AdminEventListResponse,
     AdminEventResponse,
@@ -96,7 +96,6 @@ async def read_admin_events(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     search: Annotated[str | None, Query(max_length=100)] = None,
     event_status: Annotated[EventStatus | None, Query(alias="status")] = None,
-    visibility: Annotated[EventVisibility | None, Query()] = None,
     phase: Annotated[EventPhase | None, Query()] = None,
     from_instant: Annotated[datetime | None, Query(alias="from")] = None,
     to_instant: Annotated[datetime | None, Query(alias="to")] = None,
@@ -110,7 +109,6 @@ async def read_admin_events(
                 page_size=page_size,
                 search=search,
                 status=event_status,
-                visibility=visibility,
                 phase=phase,
                 from_instant=from_instant,
                 to_instant=to_instant,
@@ -156,7 +154,6 @@ async def create_admin_event(
             resource_id=event.id,
             new_value={
                 "status": event.status,
-                "visibility": event.visibility,
                 "version": event.version,
             },
         )
@@ -198,7 +195,6 @@ async def update_admin_event(
             old_value={"version": payload.version},
             new_value={
                 "status": event.status,
-                "visibility": event.visibility,
                 "version": event.version,
             },
         )

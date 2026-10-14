@@ -144,7 +144,6 @@ def _draft_payload() -> dict[str, object]:
         "title_en": "Buddy Day",
         "title_de": "Buddy-Tag",
         "timezone": "Asia/Ho_Chi_Minh",
-        "visibility": "MEMBERS",
         "registration_enabled": False,
     }
 
@@ -175,7 +174,6 @@ async def test_admin_list_and_detail_are_private_and_allowlisted(
                 "page_size": 5,
                 "search": "Buddy",
                 "status": "DRAFT",
-                "visibility": "MEMBERS",
                 "phase": "UPCOMING",
             },
         )
@@ -222,7 +220,7 @@ async def test_create_is_csrf_protected_audited_and_committed_atomically(
     audit_call = audit_service.await_args
     assert audit_call is not None
     assert audit_call.kwargs["action"] == "event.create"
-    assert set(audit_call.kwargs["new_value"]) == {"status", "visibility", "version"}
+    assert set(audit_call.kwargs["new_value"]) == {"status", "version"}
     mock.commit.assert_awaited_once_with()
     mock.rollback.assert_not_awaited()
 

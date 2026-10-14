@@ -17,6 +17,7 @@ from app.models import (
     EventMediaUsage,
     EventRegistration,
     EventStatus,
+    EventVisibility,
     User,
     UserRole,
 )
@@ -236,6 +237,7 @@ async def create_event_draft(
     values = draft.model_dump()
     event = Event(
         **values,
+        visibility=EventVisibility.PUBLIC,
         created_by=actor.id,
         updated_by=actor.id,
         status=EventStatus.DRAFT,
@@ -303,6 +305,7 @@ async def set_event_status(
             raise EventValidationError("Publication time must be timezone-aware.")
         if event.published_at is None:
             event.published_at = published_at
+        event.visibility = EventVisibility.PUBLIC
 
     if update.status is EventStatus.CANCELLED:
         event.registration_enabled = False

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type TouchEvent,
+  type TransitionEvent,
+} from 'react'
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -8,6 +16,7 @@ import type { EventSlider } from '@/features/events/event-slider'
 import { cn } from '@/lib/utils'
 
 const autoplayDelay = 3_000
+const swipeThreshold = 48
 
 interface EventsSliderProps {
   events: readonly EventSlider[]
@@ -64,8 +73,10 @@ function EventSlide({
           <img
             src={slide.imageUrl}
             alt={clone ? '' : slide.imageAlt}
-            className="h-full w-full object-contain"
-            loading={active ? 'eager' : 'lazy'}
+            className="h-full w-full select-none object-contain"
+            loading="eager"
+            decoding="async"
+            draggable={false}
             onError={() => setFailedImageUrl(slide.imageUrl)}
           />
         )}
@@ -109,6 +120,10 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isPointerPaused, setIsPointerPaused] = useState(false)
   const [isFocusPaused, setIsFocusPaused] = useState(false)
+  const isTransitioningRef = useRef(false)
+  const pendingDirectionsRef = useRef<Array<-1 | 1>>([])
+  const resumeFrameRef = useRef<number | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
   const isPaused = prefersReducedMotion || isPointerPaused || isFocusPaused
 
   const slides = useMemo<CarouselSlide[]>(() => {
@@ -133,21 +148,35 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
     return () => window.cancelAnimationFrame(animationFrame)
   }, [isTransitionEnabled])
 
+  useEffect(
+    () => () => {
+      if (resumeFrameRef.current !== null) window.cancelAnimationFrame(resumeFrameRef.current)
+    },
+    [],
+  )
+
   const moveSlide = useCallback(
     (direction: -1 | 1) => {
-      if (events.length <= 1 || isTransitioning) return
+      if (events.length <= 1) return
 
       if (prefersReducedMotion) {
+        pendingDirectionsRef.current = []
         setSlideIndex(
           (currentIndex) => ((currentIndex - 1 + direction + events.length) % events.length) + 1,
         )
         return
       }
 
+      if (isTransitioningRef.current) {
+        pendingDirectionsRef.current.push(direction)
+        return
+      }
+
+      isTransitioningRef.current = true
       setIsTransitioning(true)
       setSlideIndex((currentIndex) => currentIndex + direction)
     },
-    [events.length, isTransitioning, prefersReducedMotion],
+    [events.length, prefersReducedMotion],
   )
 
   useEffect(() => {
@@ -157,9 +186,11 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
     return () => window.clearTimeout(autoplayTimer)
   }, [events.length, isPaused, isTransitioning, moveSlide, slideIndex])
 
-  const handleTransitionEnd = () => {
+  const handleTransitionEnd = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.currentTarget !== event.target || event.propertyName !== 'transform') return
     if (events.length <= 1) return
 
+    const crossedLoopBoundary = slideIndex === 0 || slideIndex === events.length + 1
     if (slideIndex === 0) {
       setIsTransitionEnabled(false)
       setSlideIndex(events.length)
@@ -168,19 +199,66 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
       setSlideIndex(1)
     }
 
-    setIsTransitioning(false)
+    const needsResumeFrame = crossedLoopBoundary || pendingDirectionsRef.current.length > 0
+    isTransitioningRef.current = needsResumeFrame
+    setIsTransitioning(needsResumeFrame)
+
+    if (!needsResumeFrame) return
+
+    const continueQueuedNavigation = () => {
+      if (crossedLoopBoundary) setIsTransitionEnabled(true)
+      const direction = pendingDirectionsRef.current.shift()
+      resumeFrameRef.current = null
+      if (direction === undefined) {
+        isTransitioningRef.current = false
+        setIsTransitioning(false)
+        return
+      }
+      isTransitioningRef.current = true
+      setIsTransitioning(true)
+      setSlideIndex((currentIndex) => currentIndex + direction)
+    }
+
+    if (crossedLoopBoundary) {
+      resumeFrameRef.current = window.requestAnimationFrame(() => {
+        resumeFrameRef.current = window.requestAnimationFrame(continueQueuedNavigation)
+      })
+    } else {
+      resumeFrameRef.current = window.requestAnimationFrame(continueQueuedNavigation)
+    }
+  }
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0]
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current
+    const touch = event.changedTouches[0]
+    touchStartRef.current = null
+    if (!start || !touch) return
+    const horizontal = touch.clientX - start.x
+    const vertical = touch.clientY - start.y
+    if (Math.abs(horizontal) < swipeThreshold || Math.abs(horizontal) <= Math.abs(vertical)) return
+    moveSlide(horizontal < 0 ? 1 : -1)
   }
 
   const logicalIndex = events.length <= 1 ? 0 : (slideIndex - 1 + events.length) % events.length
 
   return (
     <div
-      className="relative mx-auto w-full max-w-4xl"
+      className="relative mx-auto w-full max-w-4xl touch-pan-y"
       role="region"
       aria-roledescription="carousel"
       aria-label={t('stats.carouselLabel')}
       onMouseEnter={() => setIsPointerPaused(true)}
       onMouseLeave={() => setIsPointerPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => {
+        touchStartRef.current = null
+      }}
       onFocusCapture={() => setIsFocusPaused(true)}
       onBlurCapture={(event) => {
         const nextTarget = event.relatedTarget
@@ -191,11 +269,19 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
     >
       <div className="overflow-hidden rounded-2xl">
         <div
+          data-testid="event-slider-track"
+          data-slide-index={logicalIndex}
+          data-transitioning={isTransitioning ? 'true' : 'false'}
           className={cn(
             'flex motion-reduce:transition-none',
-            isTransitionEnabled && 'transition-transform duration-700 ease-out',
+            isTransitionEnabled && 'transition-transform duration-500',
           )}
-          style={{ transform: `translateX(-${slideIndex * 100}%)` }}
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: `translate3d(-${slideIndex * 100}%, 0, 0)`,
+            transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            willChange: isTransitioning ? 'transform' : 'auto',
+          }}
           onTransitionEnd={handleTransitionEnd}
         >
           {slides.map(({ event, clone, key }, index) => (
@@ -212,7 +298,6 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
             variant="secondary"
             className="absolute left-3 top-[42%] rounded-full border-white/20 bg-black/75 text-white backdrop-blur-sm hover:bg-orange-500 hover:text-black sm:left-4"
             aria-label={t('stats.previousEvent')}
-            disabled={isTransitioning}
             onClick={() => moveSlide(-1)}
           >
             <ChevronLeft aria-hidden="true" />
@@ -223,7 +308,6 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
             variant="secondary"
             className="absolute right-3 top-[42%] rounded-full border-white/20 bg-black/75 text-white backdrop-blur-sm hover:bg-orange-500 hover:text-black sm:right-4"
             aria-label={t('stats.nextEvent')}
-            disabled={isTransitioning}
             onClick={() => moveSlide(1)}
           >
             <ChevronRight aria-hidden="true" />

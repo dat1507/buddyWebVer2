@@ -10,11 +10,9 @@ import {
 } from '@/features/admin-events/event-form'
 
 describe('ADMIN-007/008 Event form boundaries', () => {
-  it('defaults new drafts to the public audience while preserving explicit member-only edits', () => {
-    expect(emptyEventFormValues.visibility).toBe('PUBLIC')
-    expect(eventFormPayload({ ...emptyEventFormValues, visibility: 'MEMBERS' }).visibility).toBe(
-      'MEMBERS',
-    )
+  it('does not expose or submit an audience field', () => {
+    expect(emptyEventFormValues).not.toHaveProperty('visibility')
+    expect(eventFormPayload(emptyEventFormValues)).not.toHaveProperty('visibility')
   })
 
   it('converts local Event wall time through the selected IANA timezone', () => {
@@ -24,14 +22,13 @@ describe('ADMIN-007/008 Event form boundaries', () => {
     expect(zonedLocalToIso('2026-10-10T15:00', 'Not/A_Zone')).toBeNull()
   })
 
-  it('trims draft payloads and preserves explicit audience and registration controls', () => {
+  it('trims draft payloads and preserves registration controls', () => {
     expect(
       eventFormPayload({
         ...emptyEventFormValues,
         titleEn: '  Buddy Day  ',
         startDate: '2026-10-10T15:00',
         endDate: '2026-10-10T17:00',
-        visibility: 'PUBLIC',
         registrationEnabled: true,
         maxParticipants: '100',
       }),
@@ -40,7 +37,6 @@ describe('ADMIN-007/008 Event form boundaries', () => {
       title_de: null,
       start_date: '2026-10-10T08:00:00.000Z',
       end_date: '2026-10-10T10:00:00.000Z',
-      visibility: 'PUBLIC',
       registration_enabled: true,
       max_participants: 100,
     })

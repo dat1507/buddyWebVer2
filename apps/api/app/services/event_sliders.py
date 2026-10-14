@@ -14,7 +14,6 @@ from app.models import (
     EventMediaProcessingStatus,
     EventMediaUsage,
     EventStatus,
-    EventVisibility,
 )
 from app.schemas.event import EventLocale, EventSliderCta, PublicEventSliderResponse
 from app.services.image_storage import (
@@ -60,7 +59,6 @@ def _slider_statement(now: datetime) -> Select[tuple[Event, EventMedia]]:
             Event.deleted_at.is_(None),
             Event.published_at.is_not(None),
             Event.status == EventStatus.PUBLISHED,
-            Event.visibility == EventVisibility.PUBLIC,
             or_(Event.start_date.is_(None), Event.start_date >= now),
         )
         .order_by(Event.start_date.asc().nulls_last(), Event.id.asc())

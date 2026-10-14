@@ -15,7 +15,6 @@ from app.models import (
     EventMediaProcessingStatus,
     EventMediaUsage,
     EventStatus,
-    EventVisibility,
     User,
     UserRole,
 )
@@ -298,16 +297,7 @@ def _viewer_can_read_event(event: Event, viewer: User | None) -> bool:
         EventStatus.CANCELLED,
     }:
         return False
-    if event.visibility is EventVisibility.PUBLIC:
-        return True
-    return bool(
-        viewer is not None
-        and viewer.role is UserRole.USER
-        and viewer.is_active
-        and viewer.deleted_at is None
-        and viewer.is_current_email_verified
-        and event.visibility is EventVisibility.MEMBERS
-    )
+    return True
 
 
 async def get_authorized_event_media(

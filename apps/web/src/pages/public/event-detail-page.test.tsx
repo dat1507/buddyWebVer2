@@ -27,7 +27,6 @@ const event: PublicEvent = {
   registration_enabled: false,
   registration_deadline: null,
   status: 'PUBLISHED',
-  visibility: 'PUBLIC',
   phase: 'UPCOMING',
   cover: {
     url: 'https://storage.example.test/signed-cover',
@@ -88,15 +87,11 @@ describe('FE-031 Event detail page', () => {
     vi.clearAllMocks()
   })
 
-  it('waits for session bootstrap before loading a viewer-scoped direct URL', async () => {
+  it('loads a public direct URL independently of session bootstrap', async () => {
     useAuthStore.getState().startLoading()
     renderEvent()
 
     expect(screen.getByRole('status', { name: 'Loading Event' })).toBeVisible()
-    expect(readEvent).not.toHaveBeenCalled()
-
-    act(() => useAuthStore.getState().clearSession())
-
     expect(await screen.findByRole('heading', { level: 1, name: 'Buddy Day' })).toBeVisible()
     expect(readEvent).toHaveBeenCalledTimes(1)
   })

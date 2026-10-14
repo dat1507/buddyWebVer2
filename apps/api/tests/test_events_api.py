@@ -62,7 +62,7 @@ def _event(*, locale: str = "en") -> PublicEventResponse:
         registration_enabled=True,
         registration_deadline=NOW + timedelta(hours=12),
         status=EventStatus.PUBLISHED,
-        visibility=EventVisibility.PUBLIC,
+        visibility=EventVisibility.MEMBERS,
         phase=EventPhase.UPCOMING,
         cover=None,
     )

@@ -21,15 +21,18 @@ EVENT_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 ADMIN_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
 
 
-def test_empty_draft_uses_private_defaults_and_permits_incomplete_content() -> None:
+def test_empty_draft_omits_audience_and_permits_incomplete_content() -> None:
     draft = EventDraftCreate.model_validate({})
 
     assert draft.title_en is None
     assert draft.description_de is None
     assert draft.start_date is None
     assert draft.timezone == "Asia/Ho_Chi_Minh"
-    assert draft.visibility is EventVisibility.MEMBERS
+    assert "visibility" not in draft.model_fields_set
+    assert "visibility" not in draft.model_dump()
     assert draft.registration_enabled is False
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        EventDraftCreate.model_validate({"visibility": "PUBLIC"})
 
 
 def test_event_content_is_trimmed_and_requires_aware_ordered_https_values() -> None:
@@ -133,6 +136,7 @@ def test_admin_projection_omits_actor_and_storage_data_and_derives_phase() -> No
 
     assert response.id == EVENT_ID
     assert response.phase is EventPhase.COMPLETED
+    assert response.visibility is EventVisibility.PUBLIC
     assert "created_by" not in payload
     assert "updated_by" not in payload
     assert "object_key" not in payload
@@ -156,7 +160,7 @@ def test_public_projection_accepts_an_unscheduled_location_free_announcement() -
             "registration_enabled": True,
             "registration_deadline": None,
             "status": "PUBLISHED",
-            "visibility": "PUBLIC",
+            "visibility": "MEMBERS",
             "phase": None,
             "cover": None,
         }
@@ -164,4 +168,5 @@ def test_public_projection_accepts_an_unscheduled_location_free_announcement() -
 
     assert response.start_date is None
     assert response.location is None
+    assert response.visibility is EventVisibility.MEMBERS
     assert response.phase is None

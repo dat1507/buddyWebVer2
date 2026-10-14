@@ -398,7 +398,6 @@
       "title": "Event",
       "schedule": "Schedule",
       "status": "Status",
-      "visibility": "Audience",
       "phase": "Phase",
       "updated": "Updated",
       "actions": "Actions"
@@ -408,7 +407,6 @@
       "searchPlaceholder": "Title, category, or organizer",
       "clearSearch": "Clear Event search",
       "status": "Editorial status",
-      "visibility": "Audience",
       "phase": "Schedule phase",
       "from": "From date",
       "to": "Through date",
@@ -420,10 +418,6 @@
       "DRAFT": "Draft",
       "PUBLISHED": "Published",
       "CANCELLED": "Cancelled"
-    },
-    "visibility": {
-      "PUBLIC": "Public",
-      "MEMBERS": "Members"
     },
     "phase": {
       "UPCOMING": "Upcoming",
@@ -466,7 +460,6 @@
       "title": "Event details",
       "category": "Category",
       "organizer": "Organizer",
-      "visibility": "Audience",
       "capacity": "Maximum participants",
       "registrationUrl": "HTTPS registration URL",
       "registrationEnabled": "Registration is enabled"
@@ -536,7 +529,7 @@
       "draftTitle": "Move this Event to draft?",
       "draftDescription": "The Event and its linked public promotion will be hidden. Saved content and publication history remain available.",
       "cancelTitle": "Cancel this Event?",
-      "cancelDescription": "The cancellation remains visible to its intended audience, is removed from the slider, and disables registration.",
+      "cancelDescription": "The cancellation remains publicly visible, is removed from the slider, and disables registration.",
       "keep": "Keep current status"
     },
     "errors": {

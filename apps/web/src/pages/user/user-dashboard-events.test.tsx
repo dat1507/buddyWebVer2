@@ -39,7 +39,6 @@ const event: PublicEvent = {
   registration_enabled: true,
   registration_deadline: null,
   status: 'PUBLISHED',
-  visibility: 'MEMBERS',
   phase: null,
   cover: null,
 }
