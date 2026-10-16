@@ -1,5 +1,30 @@
 # Documentation migration validation
 
+## BUDDY-MATCH-SENT-001 local validation — 2026-10-16
+
+| Check | Result |
+| --- | --- |
+| Bidirectional ACTIVE-Match SQL / safe profile allowlist | 7 focused backend PASS |
+| Simplified matching card / selected-profile dialog | 3 files / 24 focused frontend PASS |
+| Simplified Sent Invitations / preserved actions | 3 files / 32 focused frontend PASS |
+| Full backend | 1,416 PASS / 37 explicit live-environment SKIP; disposable Python 3.12 container |
+| Full frontend | 85 files / 812 PASS with two workers |
+| Ruff / strict mypy | PASS / PASS (292 source files) |
+| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
+| Production build | PASS; existing large-chunk advisory only |
+| Task files / unique task-index links | 223 / 223; no missing, extra or duplicate path |
+| Whitespace validation | `git diff --check` PASS |
+| Schema / Production / release boundary | No migration; no Production/account/database/provider write; not pushed or deployed |
+| Live authenticated desktop/mobile browser | NOT RUN; automated DOM/layout-path coverage is recorded, but no disposable authenticated browser data source was used |
+
+Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. The authoritative ACTIVE Match predicate excludes
+both pair orientations while preserving pending invitations, existing eligibility, score ordering
+and pagination. The matching dialog reuses the bounded safe projection and compatibility
+explanation; Sent rows retain current cancellation, accepted hide and chat behavior without a
+relationship/conversation mutation. The default-worker frontend run first produced five unrelated
+timing failures after 807 passes; all five passed in a 56-test serial rerun, and the subsequent full
+two-worker run passed all 812 tests.
+
 ## FE-LANDING-CTA-001 local validation — 2026-10-16
 
 | Check | Result |

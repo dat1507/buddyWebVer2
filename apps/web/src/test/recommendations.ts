@@ -4,8 +4,13 @@ const recommendation: Recommendation = {
   profile: {
     id: '11111111-1111-4111-8111-111111111111',
     display_name: 'Linh',
+    full_name: 'Nguyen Thuy Linh',
     student_type: 'VIETNAMESE',
+    bio: 'I enjoy photography, languages and meeting new students.',
     major: 'Computer Science',
+    study_year: 3,
+    nationality: 'Vietnamese',
+    home_university: 'Vietnamese-German University',
     avatar: {
       id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
       width: 800,

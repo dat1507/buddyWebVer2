@@ -19,11 +19,7 @@ import { Typography } from '@/components/ui/typography'
 import { InvitationComposer } from '@/features/matching/invitation-composer'
 import { InvitationSections } from '@/features/matching/invitation-sections'
 import { invitationErrorKey } from '@/features/matching/invitation'
-import {
-  CompatibilityDetails,
-  MatchingProfileDetails,
-} from '@/features/matching/matching-profile-details'
-import { RecommendationAvatar } from '@/features/matching/recommendation-avatar'
+import { RecommendationProfileDialog } from '@/features/matching/recommendation-profile-dialog'
 import type { Recommendation } from '@/features/matching/recommendation'
 import { RECOMMENDATION_PAGE_SIZE } from '@/features/matching/recommendation'
 import {
@@ -50,13 +46,13 @@ function formatReferenceWeek(value: string, locale: CatalogLocale): string {
 
 function RecommendationCard({
   recommendation,
-  locale,
   invitationState,
+  onViewProfile,
   onInvite,
 }: {
   recommendation: Recommendation
-  locale: CatalogLocale
   invitationState: 'sent' | 'received' | null
+  onViewProfile: (recommendation: Recommendation) => void
   onInvite: (recommendation: Recommendation) => void
 }) {
   const { t } = useTranslation()
@@ -65,42 +61,28 @@ function RecommendationCard({
 
   return (
     <Card role="article" aria-labelledby={titleId} className="min-w-0 overflow-hidden">
-      <CardHeader className="gap-4 sm:flex-row sm:items-start">
-        <RecommendationAvatar profile={recommendation.profile} />
-        <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 space-y-1">
-              <CardTitle id={titleId} className="break-words">
-                {name}
-              </CardTitle>
-              <CardDescription>
-                {t(`recommendedBuddies.studentTypes.${recommendation.profile.student_type}`)}
-              </CardDescription>
-              <CardDescription className="break-words">
-                {recommendation.profile.major?.trim() || t('recommendedBuddies.majorNotShared')}
-              </CardDescription>
-            </div>
-            <div className="rounded-2xl bg-vgu-orange/10 px-4 py-3 text-center text-vgu-orange-dark">
-              <div className="text-2xl font-bold tabular-nums">{recommendation.score}%</div>
-              <div className="text-xs font-semibold">{t('recommendedBuddies.compatibility')}</div>
-            </div>
-          </div>
-          <progress
-            aria-label={t('recommendedBuddies.overallCompatibility', { name })}
-            className="h-2 w-full accent-vgu-orange"
-            max={100}
-            value={recommendation.score}
-          />
+      <CardHeader className="gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <CardTitle id={titleId} className="break-words">
+            {name}
+          </CardTitle>
+          <CardDescription>
+            {t(`recommendedBuddies.studentTypes.${recommendation.profile.student_type}`)}
+          </CardDescription>
+          <CardDescription className="break-words">
+            {recommendation.profile.major?.trim() || t('recommendedBuddies.majorNotShared')}
+          </CardDescription>
+        </div>
+        <div className="shrink-0 rounded-2xl bg-vgu-orange/10 px-4 py-3 text-center text-vgu-orange-dark">
+          <div className="text-2xl font-bold tabular-nums">{recommendation.score}%</div>
+          <div className="text-xs font-semibold">{t('recommendedBuddies.compatibility')}</div>
         </div>
       </CardHeader>
-      <CardContent className="grid min-w-0 gap-6 lg:grid-cols-2">
-        <MatchingProfileDetails profile={recommendation.profile} />
-        <CompatibilityDetails
-          explanation={recommendation.explanation}
-          locale={locale}
-          headingId={`${titleId}-compatibility`}
-        />
-        <div className="flex flex-wrap items-center justify-end gap-3 lg:col-span-2">
+      <CardContent>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <Button type="button" variant="outline" onClick={() => onViewProfile(recommendation)}>
+            {t('recommendedBuddies.viewProfile')}
+          </Button>
           <Button
             type="button"
             disabled={invitationState !== null}
@@ -177,6 +159,7 @@ function MatchingPage() {
     page: 1,
   })
   const [composerTarget, setComposerTarget] = useState<Recommendation | null>(null)
+  const [profileTarget, setProfileTarget] = useState<Recommendation | null>(null)
   const [composerErrorKey, setComposerErrorKey] = useState<string | null>(null)
   const [successName, setSuccessName] = useState<string | null>(null)
   const sendStartedRef = useRef(false)
@@ -326,7 +309,6 @@ function MatchingPage() {
               <RecommendationCard
                 key={recommendation.profile.id}
                 recommendation={recommendation}
-                locale={locale}
                 invitationState={
                   incomingProfileIds.has(recommendation.profile.id)
                     ? 'received'
@@ -334,6 +316,7 @@ function MatchingPage() {
                       ? 'sent'
                       : null
                 }
+                onViewProfile={setProfileTarget}
                 onInvite={(target) => {
                   setSuccessName(null)
                   setComposerErrorKey(null)
@@ -395,6 +378,11 @@ function MatchingPage() {
         errorKey={composerErrorKey}
         onCancel={closeComposer}
         onSubmit={submitInvitation}
+      />
+      <RecommendationProfileDialog
+        recommendation={profileTarget}
+        locale={locale}
+        onClose={() => setProfileTarget(null)}
       />
     </section>
   )

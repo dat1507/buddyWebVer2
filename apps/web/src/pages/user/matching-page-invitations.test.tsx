@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -10,7 +10,11 @@ import i18n from '@/i18n'
 import { ApiError } from '@/lib/api'
 import { MatchingPage } from '@/pages/user/matching-page'
 import { currentBuddyList } from '@/test/current-buddies'
-import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
+import {
+  incomingInvitationList,
+  recommendationInvitationProfile,
+  sentInvitationList,
+} from '@/test/invitations'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { recommendationList } from '@/test/recommendations'
 
@@ -80,7 +84,7 @@ describe('INV-007 invitation UI', () => {
         {
           ...sentInvitationList.items[0],
           id: receipt.id,
-          recipient: recommendationList.items[0].profile,
+          recipient: recommendationInvitationProfile,
         },
       ],
       total: 1,
@@ -214,6 +218,17 @@ describe('INV-007 invitation UI', () => {
     renderPage()
 
     const cancelButton = await screen.findByRole('button', { name: 'Cancel invitation' })
+    const sentCard = screen.getByRole('article', { name: 'Alex' })
+    expect(
+      await within(sentCard).findByRole('img', { name: 'Profile photo for Alex' }),
+    ).toBeVisible()
+    expect(within(sentCard).getByText('Pending')).toBeVisible()
+    expect(within(sentCard).queryByText('Computer Science')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Photography')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Coffee chat')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('English · Fluent')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Weekly availability')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Compatibility breakdown')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove from Sent' })).not.toBeInTheDocument()
     fireEvent.click(cancelButton)
     await waitFor(() => expect(cancel).toHaveBeenCalledWith(sentInvitationList.items[0].id))
@@ -234,14 +249,21 @@ describe('INV-007 invitation UI', () => {
     })
     renderPage()
 
-    expect(await screen.findByRole('link', { name: 'Start chatting' })).toHaveAttribute(
-      'href',
-      '/user/buddy',
-    )
+    const startChatting = await screen.findByRole('link', { name: 'Start chatting' })
+    const sentCard = screen.getByRole('article', { name: 'Sam' })
+    expect(
+      within(sentCard).getByRole('img', { name: 'Profile photo unavailable for Sam' }),
+    ).toBeVisible()
+    expect(within(sentCard).getByText('Accepted')).toBeVisible()
+    expect(within(sentCard).queryByText('Computer Science')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Photography')).not.toBeInTheDocument()
+    expect(within(sentCard).queryByText('Compatibility breakdown')).not.toBeInTheDocument()
+    expect(startChatting).toHaveAttribute('href', '/user/buddy')
     expect(screen.getByText(/does not end your Buddy relationship/i)).toBeVisible()
     expect(screen.queryByRole('button', { name: 'Cancel invitation' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Remove from Sent' }))
     await waitFor(() => expect(hide).toHaveBeenCalledWith(accepted.id))
+    expect(matchingClient.readCurrentBuddies).not.toHaveBeenCalled()
     expect(
       await screen.findByRole('heading', { name: 'No visible sent invitations' }),
     ).toBeVisible()

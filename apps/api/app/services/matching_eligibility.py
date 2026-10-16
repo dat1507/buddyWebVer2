@@ -7,15 +7,17 @@ from dataclasses import dataclass, field
 from typing import cast
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.selectable import ScalarSelect
 
 from app.models import (
     Activity,
+    BuddyMatch,
     Interest,
     Language,
+    MatchStatus,
     PreferenceKind,
     ProfileActivity,
     ProfileCustomPreference,
@@ -151,6 +153,20 @@ def _eligible_candidate_conditions(
     )
     interest_count = _interest_count()
     language_count = _language_count()
+    active_match_exists = (
+        select(BuddyMatch.id)
+        .where(
+            BuddyMatch.status == MatchStatus.ACTIVE,
+            or_(
+                (BuddyMatch.participant_one_user_id == current.user_id)
+                & (BuddyMatch.participant_two_user_id == StudentProfile.user_id),
+                (BuddyMatch.participant_two_user_id == current.user_id)
+                & (BuddyMatch.participant_one_user_id == StudentProfile.user_id),
+            ),
+        )
+        .correlate(StudentProfile)
+        .exists()
+    )
     return (
         User.role == UserRole.USER,
         User.semester_id == current.semester_id,
@@ -163,6 +179,7 @@ def _eligible_candidate_conditions(
         StudentProfile.student_type.is_not(None),
         StudentProfile.student_type != current.student_type,
         StudentProfile.matching_opt_in.is_(True),
+        ~active_match_exists,
         func.char_length(func.btrim(StudentProfile.full_name)).between(1, 120),
         ready_avatar_count == 1,
         interest_count.between(1, 20),
@@ -346,8 +363,13 @@ async def _project_safe_profiles(
             SafeMatchingProfile(
                 id=profile.id,
                 display_name=profile.display_name,
+                full_name=profile.full_name,
                 student_type=profile.student_type,
+                bio=profile.bio,
                 major=profile.major,
+                study_year=profile.study_year,
+                nationality=profile.nationality,
+                home_university=profile.home_university,
                 avatar=SafeMatchingAvatar(
                     id=avatar.id,
                     width=avatar.width,

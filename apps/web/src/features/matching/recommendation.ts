@@ -54,8 +54,13 @@ const safeMatchingProfileSchema = z
   .object({
     id: z.string().uuid(),
     display_name: z.string().max(80).nullable(),
+    full_name: z.string().max(120).nullable(),
     student_type: z.enum(['VIETNAMESE', 'INTERNATIONAL']),
+    bio: z.string().max(500).nullable(),
     major: z.string().nullable(),
+    study_year: z.number().int().min(1).max(10).nullable(),
+    nationality: z.string().nullable(),
+    home_university: z.string().nullable(),
     avatar: z
       .object({
         id: z.string().uuid(),

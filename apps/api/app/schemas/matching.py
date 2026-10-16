@@ -11,6 +11,7 @@ from pydantic import (
     ConfigDict,
     Field,
     StrictBool,
+    StrictInt,
     StrictStr,
     model_validator,
 )
@@ -77,8 +78,13 @@ class SafeMatchingProfile(BaseModel):
 
     id: UUID
     display_name: StrictStr | None = Field(default=None, max_length=80)
+    full_name: StrictStr | None = Field(default=None, max_length=120)
     student_type: StudentType
+    bio: StrictStr | None = Field(default=None, max_length=500)
     major: StrictStr | None = None
+    study_year: StrictInt | None = Field(default=None, ge=1, le=10)
+    nationality: StrictStr | None = None
+    home_university: StrictStr | None = None
     avatar: SafeMatchingAvatar
     interests: list[SafeMatchingPreference] = Field(
         min_length=1,

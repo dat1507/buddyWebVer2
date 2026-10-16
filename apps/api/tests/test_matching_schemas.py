@@ -25,8 +25,13 @@ def _safe_profile() -> SafeMatchingProfile:
     return SafeMatchingProfile(
         id=PROFILE_ID,
         display_name="Buddy",
+        full_name="Buddy Example",
         student_type=StudentType.INTERNATIONAL,
+        bio="About Buddy",
         major="Computer Science",
+        study_year=2,
+        nationality="German",
+        home_university="Example University",
         avatar=SafeMatchingAvatar(id=PHOTO_ID, width=640, height=640),
         interests=[
             SafeMatchingPreference(
@@ -66,8 +71,13 @@ def test_candidate_projection_is_an_explicit_privacy_allowlist() -> None:
     assert set(payload) == {
         "id",
         "display_name",
+        "full_name",
         "student_type",
+        "bio",
         "major",
+        "study_year",
+        "nationality",
+        "home_university",
         "avatar",
         "interests",
         "languages",

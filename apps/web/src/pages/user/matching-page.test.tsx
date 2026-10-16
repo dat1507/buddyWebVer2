@@ -55,7 +55,7 @@ describe('REC-004 Recommended Buddies page', () => {
       </QueryClientProvider>,
     )
 
-  it('renders safe profile data and the real invitation entry point', async () => {
+  it('renders only the requested card summary and opens the complete profile dialog', async () => {
     const read = vi
       .spyOn(matchingClient, 'readRecommendations')
       .mockResolvedValue(recommendationList)
@@ -63,21 +63,39 @@ describe('REC-004 Recommended Buddies page', () => {
 
     expect(screen.getByText('Loading your recommendations…')).toBeVisible()
     const card = await screen.findByRole('article', { name: 'Linh' })
-    expect(
-      await within(card).findByRole('img', { name: 'Profile photo for Linh' }),
-    ).toHaveAttribute('src', 'https://media.example.test/recommendation-avatar')
     expect(within(card).getByText('Vietnamese student')).toBeVisible()
     expect(within(card).getByText('Computer Science')).toBeVisible()
     expect(within(card).getByText('87%')).toBeVisible()
-    expect(within(card).getByText('Photography')).toBeVisible()
-    expect(within(card).getByText('Formula 1')).toBeVisible()
-    expect(within(card).getByText('English · Fluent')).toBeVisible()
-    expect(within(card).getByText('Thai · Beginner')).toBeVisible()
-    expect(within(card).getByText('Monday, 09:00–11:00')).toBeVisible()
-    expect(within(card).getByText('75% match · 30 / 40 points')).toBeVisible()
-    expect(within(card).getAllByRole('progressbar')).toHaveLength(6)
+    expect(within(card).queryByRole('img')).not.toBeInTheDocument()
+    expect(within(card).queryByText('Photography')).not.toBeInTheDocument()
+    expect(within(card).queryByText('Formula 1')).not.toBeInTheDocument()
+    expect(within(card).queryByText('English · Fluent')).not.toBeInTheDocument()
+    expect(within(card).queryByText('Monday, 09:00–11:00')).not.toBeInTheDocument()
+    expect(within(card).queryByRole('progressbar')).not.toBeInTheDocument()
     expect(screen.getByText('Availability comparison week: Sep 21, 2026')).toBeVisible()
+    expect(within(card).getByRole('button', { name: 'View profile' })).toBeEnabled()
     expect(within(card).getByRole('button', { name: 'Send invitation' })).toBeEnabled()
+    expect(profileClient.readPhotoUrl).not.toHaveBeenCalled()
+
+    fireEvent.click(within(card).getByRole('button', { name: 'View profile' }))
+    const dialog = screen.getByRole('dialog', { name: 'Profile details for Linh' })
+    expect(
+      await within(dialog).findByRole('img', { name: 'Profile photo for Linh' }),
+    ).toHaveAttribute('src', 'https://media.example.test/recommendation-avatar')
+    expect(within(dialog).getByText('Nguyen Thuy Linh')).toBeVisible()
+    expect(
+      within(dialog).getByText('I enjoy photography, languages and meeting new students.'),
+    ).toBeVisible()
+    expect(within(dialog).getByText('Photography')).toBeVisible()
+    expect(within(dialog).getByText('Coffee chat')).toBeVisible()
+    expect(within(dialog).getByText('English · Fluent')).toBeVisible()
+    expect(within(dialog).getByText('Monday, 09:00–11:00')).toBeVisible()
+    expect(within(dialog).getByText('75% match · 30 / 40 points')).toBeVisible()
+    expect(within(dialog).getByText('Year 3')).toBeVisible()
+    expect(within(dialog).getByText('Vietnamese')).toBeVisible()
+    expect(within(dialog).getByText('Vietnamese-German University')).toBeVisible()
+    expect(within(dialog).getAllByRole('progressbar')).toHaveLength(5)
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close profile' }))
     const resultHeading = screen.getByRole('heading', { name: 'Recommendation results' })
     const invitationsHeading = screen.getByRole('heading', { name: 'Invitations' })
     const incomingHeading = screen.getByRole('heading', { name: 'Incoming invitations' })
@@ -147,6 +165,8 @@ describe('REC-004 Recommended Buddies page', () => {
     })
     renderPage()
 
+    const card = await screen.findByRole('article', { name: 'Linh' })
+    fireEvent.click(within(card).getByRole('button', { name: 'View profile' }))
     expect(
       await screen.findByRole('img', { name: 'Profile photo unavailable for Linh' }),
     ).toBeVisible()
@@ -161,6 +181,7 @@ describe('REC-004 Recommended Buddies page', () => {
         ...recommendationList.items[0].profile,
         id: '66666666-6666-4666-8666-666666666666',
         display_name: 'Alex',
+        full_name: 'Alex Example',
       },
     }
     vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue({
@@ -176,6 +197,61 @@ describe('REC-004 Recommended Buddies page', () => {
     expect(within(cards[1]).getByRole('heading', { name: 'Alex' })).toBeVisible()
     expect(screen.queryByText(/private@example\.com/i)).not.toBeInTheDocument()
     expect(screen.queryByText(recommendationList.items[0].profile.id)).not.toBeInTheDocument()
+
+    fireEvent.click(within(cards[1]).getByRole('button', { name: 'View profile' }))
+    const dialog = screen.getByRole('dialog', { name: 'Profile details for Alex' })
+    expect(within(dialog).getByText('Alex Example')).toBeVisible()
+    expect(within(dialog).queryByText('Nguyen Thuy Linh')).not.toBeInTheDocument()
+  })
+
+  it('closes the profile dialog with Escape or the backdrop and restores focus and scrolling', async () => {
+    vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue(recommendationList)
+    renderPage()
+
+    const trigger = await screen.findByRole('button', { name: 'View profile' })
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(screen.getByRole('button', { name: 'Close profile' })).toHaveFocus()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+    expect(document.body.style.overflow).toBe('')
+
+    fireEvent.click(trigger)
+    fireEvent.click(screen.getByTestId('recommendation-profile-backdrop'))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+  })
+
+  it('uses consistent fallbacks for missing optional profile details', async () => {
+    vi.spyOn(matchingClient, 'readRecommendations').mockResolvedValue({
+      ...recommendationList,
+      items: [
+        {
+          ...recommendationList.items[0],
+          profile: {
+            ...recommendationList.items[0].profile,
+            full_name: null,
+            bio: null,
+            major: null,
+            study_year: null,
+            nationality: null,
+            home_university: null,
+            activities: [],
+            availability: null,
+          },
+        },
+      ],
+    })
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'View profile' }))
+    const dialog = screen.getByRole('dialog', { name: 'Profile details for Linh' })
+    expect(within(dialog).getAllByText('Not provided').length).toBeGreaterThanOrEqual(6)
+    expect(within(dialog).getByText('None shared')).toBeVisible()
+    expect(within(dialog).getByText('No weekly availability shared.')).toBeVisible()
   })
 
   it('renders empty and sanitized retryable error states', async () => {

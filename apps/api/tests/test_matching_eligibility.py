@@ -128,7 +128,11 @@ def _candidate_profile(
         full_name=f"{display_name} Legal Name",
         display_name=display_name,
         student_type=StudentType.INTERNATIONAL,
+        nationality="German",
         major="Computer Science",
+        study_year=3,
+        bio=f"About {display_name}",
+        home_university="Example University",
         availability=availability,
         matching_opt_in=True,
         version=2,
@@ -217,7 +221,7 @@ async def test_current_user_without_semester_fails_closed_before_completion_look
     reader.assert_not_awaited()
 
 
-def test_pair_policy_excludes_self_and_same_type_but_not_unmodeled_relationship_state() -> None:
+def test_pair_policy_excludes_self_and_same_type_before_query_relationship_filtering() -> None:
     current = _principal()
     opposite = _principal(
         user_id=UUID(int=CURRENT_USER_ID.int + 10),
@@ -251,6 +255,13 @@ def test_candidate_query_is_bounded_deterministic_and_enforces_all_rec_001_gates
     assert "student_profiles.id !=" in sql
     assert "student_profiles.student_type !=" in sql
     assert "student_profiles.matching_opt_in is true" in sql
+    assert "not (exists" in sql
+    assert "app_private.matches" in sql
+    assert "matches.status =" in sql
+    assert "matches.participant_one_user_id =" in sql
+    assert "matches.participant_two_user_id =" in sql
+    assert "matches.participant_two_user_id = app_private.student_profiles.user_id" in sql
+    assert "matches.participant_one_user_id = app_private.student_profiles.user_id" in sql
     assert "profile_photos.processing_status" in sql
     assert "interests.is_active is true" in sql
     assert "languages.is_active is true" in sql
@@ -262,8 +273,22 @@ def test_candidate_query_is_bounded_deterministic_and_enforces_all_rec_001_gates
     assert SEMESTER_ID in compiled.params.values()
     assert "app_private.users.email," not in sql
     assert "users.password_hash" not in sql
-    assert "matches" not in sql
-    assert "invitations" not in sql
+    assert "matching_invitations" not in sql
+
+
+def test_candidate_query_excludes_only_active_match_pairs_in_both_directions() -> None:
+    statement = eligible_candidate_statement(_principal(), limit=25)
+    compiled = statement.compile(dialect=make_url("postgresql+asyncpg://").get_dialect()())
+    sql = " ".join(str(compiled).lower().split())
+    parameter_values = tuple(compiled.params.values())
+
+    assert sql.count("app_private.matches.participant_one_user_id") >= 2
+    assert sql.count("app_private.matches.participant_two_user_id") >= 2
+    assert "matches.status =" in sql
+    # One self-exclusion plus both ACTIVE-Match participant orientations.
+    assert parameter_values.count(CURRENT_USER_ID) == 3
+    assert any(value == "ACTIVE" or getattr(value, "value", None) == "ACTIVE" for value in parameter_values)
+    assert "matching_invitations" not in sql
 
 
 def test_candidate_query_rejects_an_unbounded_or_empty_limit() -> None:
@@ -370,6 +395,11 @@ async def test_candidate_projection_batches_catalog_and_custom_preferences_witho
     assert result[0].availability is not None
     assert result[0].availability.timezone == "Europe/Berlin"
     assert result[1].availability is None
+    assert result[0].full_name == "Alex Legal Name"
+    assert result[0].bio == "About Alex"
+    assert result[0].study_year == 3
+    assert result[0].nationality == "German"
+    assert result[0].home_university == "Example University"
     rendered = repr([candidate.model_dump() for candidate in result]).lower()
     assert "normalized_key" not in rendered
     assert "email" not in rendered

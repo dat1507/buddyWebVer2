@@ -1,12 +1,26 @@
-import type { IncomingInvitationList, SentInvitationList } from '@/features/matching/invitation'
+import type {
+  IncomingInvitationList,
+  InvitationProfile,
+  SentInvitationList,
+} from '@/features/matching/invitation'
 import { recommendationList } from '@/test/recommendations'
 
-const sender = {
-  ...recommendationList.items[0].profile,
+const recommendationProfile = recommendationList.items[0].profile
+
+const sender: InvitationProfile = {
+  id: recommendationProfile.id,
+  display_name: recommendationProfile.display_name,
+  student_type: recommendationProfile.student_type,
+  major: recommendationProfile.major,
+  avatar: recommendationProfile.avatar,
+  interests: recommendationProfile.interests,
+  languages: recommendationProfile.languages,
+  activities: recommendationProfile.activities,
+  availability: recommendationProfile.availability,
 }
 
-const recipient = {
-  ...recommendationList.items[0].profile,
+const recipient: InvitationProfile = {
+  ...sender,
   id: '77777777-7777-4777-8777-777777777777',
   display_name: 'Alex',
   avatar: {
@@ -68,4 +82,4 @@ const sentInvitationList: SentInvitationList = {
   reference_week_start: '2026-09-21',
 }
 
-export { incomingInvitationList, sentInvitationList }
+export { incomingInvitationList, sender as recommendationInvitationProfile, sentInvitationList }

@@ -1183,6 +1183,21 @@
       "INTERNATIONAL": "Internationale:r Student:in"
     },
     "majorNotShared": "Studiengang nicht angegeben",
+    "viewProfile": "Profil ansehen",
+    "profileDialog": {
+      "title": "Profildetails für {{name}}",
+      "description": "Hier siehst du die Profilangaben und die serverseitige Kompatibilitätsübersicht dieser Empfehlung.",
+      "close": "Profil schließen",
+      "name": "Name",
+      "fullName": "Vollständiger Name",
+      "about": "Über mich",
+      "studyProgram": "Studiengang",
+      "studyYear": "Studienjahr",
+      "studyYearValue": "Jahr {{year}}",
+      "nationality": "Nationalität",
+      "homeUniversity": "Heimatuniversität",
+      "notProvided": "Nicht angegeben"
+    },
     "compatibility": "Kompatibilität",
     "overallCompatibility": "Gesamtkompatibilität mit {{name}}",
     "profileInformation": "Profil und Präferenzen",

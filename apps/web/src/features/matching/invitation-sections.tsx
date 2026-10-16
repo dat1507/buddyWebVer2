@@ -226,13 +226,7 @@ function IncomingInvitationCard({
   )
 }
 
-function SentInvitationCard({
-  invitation,
-  locale,
-}: {
-  invitation: SentInvitation
-  locale: CatalogLocale
-}) {
+function SentInvitationCard({ invitation }: { invitation: SentInvitation }) {
   const { t } = useTranslation()
   const titleId = useId()
   const busyRef = useRef(false)
@@ -260,34 +254,18 @@ function SentInvitationCard({
 
   return (
     <Card role="article" aria-labelledby={titleId} aria-busy={busy} className="overflow-hidden">
-      <InvitationProfileHeader
-        profile={invitation.recipient}
-        score={invitation.score}
-        titleId={titleId}
-      />
-      <CardContent className="space-y-6">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-          <span className="rounded-full border border-border px-3 py-1 font-semibold text-foreground">
+      <CardHeader className="gap-4 sm:flex-row sm:items-center">
+        <RecommendationAvatar profile={invitation.recipient} />
+        <div className="min-w-0 flex-1 space-y-3">
+          <CardTitle id={titleId} className="break-words">
+            {invitation.recipient.display_name?.trim() || t('recommendedBuddies.unnamed')}
+          </CardTitle>
+          <span className="inline-flex rounded-full border border-border px-3 py-1 text-sm font-semibold text-foreground">
             {t(`invitations.status.${invitation.status}`)}
           </span>
-          <span>
-            {t('invitations.sentAt', { date: formatDateTime(invitation.created_at, locale) })}
-          </span>
-          {invitation.status === 'PENDING' ? (
-            <span className="flex items-center gap-1.5">
-              <Clock3 aria-hidden="true" className="size-4" />
-              {t('invitations.expiresAt', {
-                date: formatDateTime(invitation.expires_at, locale),
-              })}
-            </span>
-          ) : null}
         </div>
-        <InvitationContext
-          invitation={invitation}
-          profile={invitation.recipient}
-          locale={locale}
-          titleId={titleId}
-        />
+      </CardHeader>
+      <CardContent className="space-y-4">
         {invitation.status === 'ACCEPTED' ? (
           <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
             {t('invitations.sent.acceptedHelp')}
@@ -467,7 +445,7 @@ function InvitationSections({
         ) : (
           <div className="space-y-5">
             {sentItems.map((invitation) => (
-              <SentInvitationCard key={invitation.id} invitation={invitation} locale={locale} />
+              <SentInvitationCard key={invitation.id} invitation={invitation} />
             ))}
           </div>
         )}

@@ -2,11 +2,23 @@
 
 **Updated:** 2026-10-16 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** FE-LANDING-CTA-001 complete locally; awaiting the owner's next instruction
+**Current mode:** `BUDDY-MATCH-SENT-001` complete locally; awaiting a new owner instruction
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`BUDDY-MATCH-SENT-001` is complete locally. Authoritative ACTIVE Match pairs are excluded from
+recommendations in both participant orientations while pending invitations retain their existing
+behavior. Matching cards now contain only the requested four fields and two actions; View Profile
+opens the selected candidate's accessible detail dialog using the bounded safe projection and
+unchanged compatibility explanation. Sent rows contain only avatar, name and status as row data;
+pending cancellation, accepted help, `/user/buddy` Start chatting and non-destructive accepted hide
+remain intact. Focused suites, full backend (1,416 pass / 37 explicit live skips), full frontend
+(85 files / 812 pass), Ruff, strict mypy, TypeScript, ESLint, Prettier and production build pass.
+No migration, Production/account/database/provider write, push or deployment occurred.
+
+The previous verified continuation point follows unchanged.
 
 `FE-LANDING-CTA-001` is complete locally. The Landing CTA contains one centered Join the Community
 registration action; the exclusive Watch Demo state, dialog, strings, tests and media are removed.

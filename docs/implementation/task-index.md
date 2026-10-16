@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-16 **Task IDs:** 222
+**Generated:** 2026-10-16 **Task IDs:** 223
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -91,6 +91,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`BUDDY-001`](tasks/BUDDY-001.md)                                       | DONE / PRESERVED                                            | -                  | buddy-v2           | REC-002; Database + Backend.                                                                                                                                                         |
 | [`BUDDY-002`](tasks/BUDDY-002.md)                                       | DONE / PRESERVED                                            | -                  | buddy-v2           | BUDDY-001, INV-005, AUTH-V2-001; Backend.                                                                                                                                            |
 | [`BUDDY-003`](tasks/BUDDY-003.md)                                       | DONE / PRESERVED                                            | -                  | buddy-v2           | BUDDY-002, INV-007; Frontend.                                                                                                                                                        |
+| [`BUDDY-MATCH-SENT-001`](tasks/BUDDY-MATCH-SENT-001.md)                 | DONE — LOCAL VERIFIED / NOT DEPLOYED                        | P1                 | buddy-v2           | ACTIVE-pair filtering, simplified matching/profile dialog and Sent rows pass focused/full regression and static/build gates; no schema or Production change.                       |
 | [`CHAT-001`](tasks/CHAT-001.md)                                         | DONE / PRESERVED                                            | -                  | buddy-v2           | BUDDY-001; Database + Backend.                                                                                                                                                       |
 | [`CHAT-002`](tasks/CHAT-002.md)                                         | DONE / PRESERVED                                            | -                  | buddy-v2           | CHAT-001, AUTH-V2-001; Backend.                                                                                                                                                      |
 | [`CHAT-003`](tasks/CHAT-003.md)                                         | DONE / PRESERVED                                            | -                  | buddy-v2           | CHAT-002, OPS-001; Backend + Infrastructure.                                                                                                                                         |

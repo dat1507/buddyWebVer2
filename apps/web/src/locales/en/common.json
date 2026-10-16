@@ -1183,6 +1183,21 @@
       "INTERNATIONAL": "International student"
     },
     "majorNotShared": "Study program not shared",
+    "viewProfile": "View profile",
+    "profileDialog": {
+      "title": "Profile details for {{name}}",
+      "description": "Review the profile information and server-owned compatibility breakdown for this recommendation.",
+      "close": "Close profile",
+      "name": "Name",
+      "fullName": "Full name",
+      "about": "About",
+      "studyProgram": "Study program",
+      "studyYear": "Study year",
+      "studyYearValue": "Year {{year}}",
+      "nationality": "Nationality",
+      "homeUniversity": "Home university",
+      "notProvided": "Not provided"
+    },
     "compatibility": "Compatibility",
     "overallCompatibility": "Overall compatibility with {{name}}",
     "profileInformation": "Profile and preferences",
