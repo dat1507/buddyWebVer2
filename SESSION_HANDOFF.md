@@ -1,15 +1,21 @@
 # Session handoff
 
 **Updated:** 2026-10-16 (Asia/Saigon)
-**TASK_ID:** FE-USER-EVENTS-001 (DONE — COMMITTED LOCALLY / NOT PUSHED)
-**Current mode:** Task complete and committed locally; no push or deployment requested
+**TASK_ID:** FE-USER-EVENTS-001 (DONE — PUSHED / CI PASS / PRODUCTION VERIFIED)
+**Current mode:** Task and read-only Production acceptance complete
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
 
-`FE-USER-EVENTS-001` is complete and committed locally on `main`, directly after the already-pushed
-base commit `78ddc0f` (`Events update`). The User Events tab now consumes the same
+`FE-USER-EVENTS-001` is complete, pushed and Production verified from commit
+`66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c`, directly after base commit `78ddc0f` (`Events
+update`). GitHub Actions run `38881976983` passed Frontend and Backend. Automatic Vercel Production
+deployment `7115826436` succeeded for the exact feature SHA; the generated deployment URL is
+`https://buddy-web-ver2-hzuq40wmq-dat1507s-projects.vercel.app`, and the public alias serves bundle
+`index-BVBP8HUi.js`.
+
+The User Events tab consumes the same
 `/api/event-sliders` query, cache and first-five selector as the Landing slider, so eligibility,
 order, publication refresh and empty/error behavior cannot drift through a second frontend list.
 The slider projection additively exposes the Event's existing registration URL/enabled fields; no
@@ -25,9 +31,13 @@ round-trip 2 files / 21 tests, full frontend 86 files / 818 tests, TypeScript, E
 normal production build and Admin-ON/Public-ON production build. Focused backend Slider coverage
 passed 8 tests on the repository-supported Python 3.12 runtime in a disposable local container;
 Ruff, strict mypy and a direct Pydantic slider-response smoke check also passed. Only the existing
-frontend large-chunk advisory remains. No database, Event, registration, user, Storage, provider
-configuration or Production state changed. No live browser/provider verification, push or
-deployment occurred.
+frontend large-chunk advisory remains. Read-only Production API and browser smoke found the same
+three Events in the same order on Landing and User Events. Experience Day and Buddy Recruitment
+have no registration URL and render only View Details; Kawazo retains Register plus View Details.
+Landing detail returned Home, dashboard detail showed `Back to Event Dashboard` and returned to
+`/user/events`, and both inspected browser sessions had zero console warnings/errors. API live and
+readiness were healthy with database/Redis `ok`. No database, Event, registration, user, Storage,
+DNS or provider-configuration mutation occurred.
 
 The previous verified continuation point follows unchanged.
 

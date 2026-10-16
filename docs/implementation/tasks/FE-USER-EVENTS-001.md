@@ -1,6 +1,6 @@
 # FE-USER-EVENTS-001 — User Dashboard Event experience
 
-**Status:** DONE — COMMITTED LOCALLY / NOT PUSHED
+**Status:** DONE — PUSHED / CI PASS / PRODUCTION VERIFIED
 **Priority:** P1
 **Track:** events
 **Assigned:** 2026-10-16
@@ -52,11 +52,25 @@ navigation without creating a second discovery source.
 - Focused backend Slider tests: 8 PASS on the repository-supported Python 3.12 runtime in a
   disposable local container.
 - Backend Ruff, strict mypy and direct Pydantic slider-response contract smoke: PASS.
-- No database, Event, registration, user, Storage, Production configuration or deployment mutation
-  occurred. The task was committed locally only; no push or deployment occurred.
+- Commit `66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c` reached `origin/main`; GitHub Actions run
+  `38881976983` passed Frontend and Backend.
+- Automatic Vercel Production deployment `7115826436` succeeded for the exact feature SHA. The
+  generated deployment URL is
+  `https://buddy-web-ver2-hzuq40wmq-dat1507s-projects.vercel.app`; the canonical alias returns 200
+  and serves bundle `index-BVBP8HUi.js`.
+- Read-only Production API and authenticated browser smoke confirmed the same three Event IDs and
+  order on Landing and User Events. Experience Day and Buddy Recruitment have no usable
+  registration URL and show View Details only; Kawazo retains Register and View Details.
+- Landing detail shows the existing Home return and navigates home. Dashboard-origin detail shows
+  exact `Back to Event Dashboard` and returns to `/user/events`. Browser console inspection found
+  zero warnings/errors; API live/readiness returned healthy with database/Redis `ok`.
+- No database, Event, registration, user, Storage, DNS or provider-configuration mutation occurred.
 
 ## Release boundary
 
-The implementation is committed locally on `main` after base commit `78ddc0f`. Production behavior
-has not changed and no live browser or provider claim is made by this task. Push and deployment
-remain separate requests.
+The implementation is pushed and Production verified from exact feature commit `66f44d1`. The
+read-only acceptance did not submit forms or change Production data. The generated Vercel URL is
+deployment-protected and redirects unauthenticated requests to Vercel login; the canonical public
+alias was the verified browser and HTTP surface. Render deployment identity/source SHA was not
+independently exposed, although the new additive registration fields are directly visible in the
+live public Slider API.

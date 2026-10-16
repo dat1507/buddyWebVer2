@@ -1,6 +1,6 @@
 # Production status
 
-**Last direct verification:** 2026-10-14 22:18 Asia/Saigon
+**Last direct verification:** 2026-10-16 16:44 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
 the Phase 2 frontend and later Landing slideshow corrective release. No backend/database/DNS
@@ -10,6 +10,10 @@ during this release verification.
 The later `EVENT-AUDIENCE-SLIDER-001` release authorized the exact source push and its automatic
 deployment. Its Production verification was read-only: no Event, user, registration setting,
 Storage object, database row, DNS record, feature flag or provider configuration was changed.
+
+The later `FE-USER-EVENTS-001` release authorized exact commit `66f44d1` for push and Production
+deployment. Its acceptance was read-only and changed no Event, registration setting, user, Storage
+object, database row, DNS record, feature flag or provider configuration.
 
 ## Directly observed
 
@@ -28,6 +32,29 @@ Storage object, database row, DNS record, feature flag or provider configuration
 
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
+
+## User Events synchronization release — 2026-10-16
+
+| Check | Result |
+| --- | --- |
+| Released commit | `66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c` on `origin/main` |
+| GitHub Actions | Run `38881976983`; Backend and Frontend SUCCESS for the exact SHA |
+| GitHub/Vercel deployment | Production deployment `7115826436`; SUCCESS for the exact SHA |
+| Vercel deployment URL | `https://buddy-web-ver2-hzuq40wmq-dat1507s-projects.vercel.app` |
+| Public alias / bundle | `www.vgubuddyprogram.com` 200; `index-BVBP8HUi.js` |
+| Public Slider API | 3 Events in order: Experience Day, Kawazo, Buddy Recruitment |
+| User Events | Same 3 IDs and order as Slider after a fresh authenticated reload |
+| Registration actions | Experience Day and Buddy Recruitment: View Details only; Kawazo: Register + View Details |
+| Landing detail return | Existing Home label/href present; click returned to Landing |
+| Dashboard detail return | Exact `Back to Event Dashboard`; click returned to `/user/events` |
+| API health | live `alive`; ready `ready`; database/Redis `ok` |
+| Browser console | 0 warnings; 0 errors in Landing/detail and authenticated User Events/detail smoke |
+
+The generated Vercel deployment URL is protected and redirected an unauthenticated HTTP request to
+Vercel login; the canonical public alias is the verified serving surface. Render deployment
+identity/source SHA was not independently exposed. The new public Slider registration fields and
+their frontend behavior are directly visible, but this record does not infer an unobserved provider
+deployment identifier. No Production data or configuration mutation occurred.
 
 ## Event Audience removal and Slider release — 2026-10-14
 

@@ -11,14 +11,18 @@
 | Production builds                          | Normal PASS; Admin-ON/Public-ON PASS; existing chunk advisory only            |
 | Focused backend Slider tests                | 8 PASS on repository-supported Python 3.12 in a disposable local container    |
 | Backend Ruff / strict mypy / contract smoke | PASS / PASS / PASS                                                            |
-| Data/provider boundary                     | No database, Event, account, provider, Production, push or deployment write  |
+| Data/provider boundary                     | Authorized push/deploy only; no database, Event, account or provider-config write |
+| GitHub Actions / Vercel Production         | Run `38881976983` SUCCESS / deployment `7115826436` SUCCESS for `66f44d1`     |
+| Production Event parity / registration     | Same 3 IDs/order; 2 View-only; 1 Register + View; PASS                         |
+| Production navigation / console / health   | Both return paths PASS; 0 warning/error; API live/ready PASS                    |
 
-Result: **DONE — COMMITTED LOCALLY / NOT PUSHED**. `/user/events` consumes the same endpoint,
+Result: **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**. `/user/events` consumes the same endpoint,
 cache and first-five selector as the Landing slider. The additive API projection carries the
 existing registration fields; unavailable URLs do not hide Events, and View Details becomes the
 sole primary action. The canonical detail route preserves refresh-safe dashboard context while
-Landing/direct access remains Home. Automated frontend and focused backend acceptance is complete.
-No live browser/provider verification, push or deployment occurred.
+Landing/direct access remains Home. Automated frontend/focused backend acceptance and read-only
+Production browser/API acceptance are complete. No Production data or provider configuration was
+mutated.
 
 **Migration date:** 2026-10-08
 
