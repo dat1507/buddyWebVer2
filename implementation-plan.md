@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.28
+**Plan version:** 1.29
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -54,7 +54,7 @@ remains open under the original Profile contract.
 | 12    | `FE-USER-EVENTS-001`            | P1 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `66f44d1`; synchronized Event sets, registration-optional cards and both detail-return flows pass CI and read-only Production smoke               | Preserve evidence; no repeat without regression reason                                            |
 | 13    | `FE-LANDING-CTA-001`            | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | Demo-only UI/media removed; centered registration CTA passes full regression and rendered desktop/tablet/mobile checks                            | Await separate push/deployment authorization                                                      |
 | 14    | `BUDDY-MATCH-SENT-001`          | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | ACTIVE-Buddy exclusion, simplified matching/profile dialog and Sent rows pass focused/full regression and static/build gates                      | Await separate push/deployment authorization                                                      |
-| 15    | `EMAIL-TEMPLATE-REDESIGN-001`   | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | Both runtimes share the Received Invitation design; verification/accepted templates pass regression and static/build gates                        | Await separate commit/push/deployment authorization                                               |
+| 15    | `EMAIL-TEMPLATE-REDESIGN-001`   | P1 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `e4624c0`; CI, Vercel, Render and the Supabase Production `email-worker` deployment pass                                                           | Preserve evidence; no repeat without a regression reason                                          |
 | 16    | `ACCOUNT-DELETE-001`            | Owner operation    | **DONE — PRODUCTION VERIFIED**                                | Guarded deletion removed one custom-auth account and owned Buddy/profile/session data; private image cleanup and post-checks passed               | Preserve sanitized evidence; owner may re-register normally                                       |
 | 17    | P1 product backlog              | P1                 | **PLANNED**                                                   | Depends on task-specific contracts                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
 | 18    | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                | Vercel Production and desktop/mobile/transition evidence pass                                                                                     | Preserve evidence; no repeat without regression reason                                            |
@@ -76,15 +76,15 @@ Start chatting and non-destructive hide semantics. Focused and full backend/fron
 static analysis and the production build pass; the existing large-chunk advisory remains. No
 schema, Production, push or deployment change occurred.
 
-`EMAIL-TEMPLATE-REDESIGN-001` completed locally on 2026-10-16. Email Verified, Received Invitation
-and Accepted Invitation now share the existing branded table layout in both the Production Edge
-worker and Python fallback. Exact token handling/expiry, current verified recipient selection,
-invitation/Match/conversation state, same-origin CTA destinations, provider topology and plain-text
-fallbacks are preserved. Focused/relevant/full backend regression, Edge tests, Ruff, strict mypy,
-frontend static gates and both builds pass. A deterministic side-by-side preview artifact was
-generated, but Gmail/Outlook and interactive browser visual acceptance were not run. The current
-email system has no localized variants; no localization subsystem, schema, Production mutation,
-commit, push or deployment was introduced.
+`EMAIL-TEMPLATE-REDESIGN-001` reached Production on 2026-10-17 from exact commit `e4624c0`.
+GitHub Actions run `38947149530` passed Backend and Frontend; Vercel Production is Ready, Render is
+Live for the exact SHA, and the Supabase Production `email-worker` accepted the exact pushed
+`core.ts` as deployment two. Email Verified, Received Invitation and Accepted Invitation share the
+existing branded table layout in both delivery runtimes while exact token handling/expiry, current
+verified recipient selection, invitation/Match/conversation state, same-origin CTA destinations,
+provider topology and plain-text fallbacks remain preserved. Public API live/readiness and the
+public site pass. Gmail/Outlook and a real transactional-email send were not run. No localization
+subsystem, schema, account, database or provider-configuration mutation was introduced.
 
 `ACCOUNT-DELETE-001` completed in Production on 2026-10-17 after an explicit owner confirmation.
 BuddyWebv2 uses its custom `app_private.users` identity rather than Supabase Auth for registration;

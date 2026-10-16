@@ -22,7 +22,7 @@ Result: **DONE — PRODUCTION VERIFIED**. The operation used only existing const
 Supabase Storage deletion. It did not disable triggers, weaken constraints, delete shared resources
 or create a replacement account.
 
-## EMAIL-TEMPLATE-REDESIGN-001 local validation — 2026-10-16
+## EMAIL-TEMPLATE-REDESIGN-001 Production validation — 2026-10-17
 
 | Check                                         | Result                                                                                                     |
 | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -35,16 +35,21 @@ or create a replacement account.
 | Frontend TypeScript / ESLint / Prettier       | PASS / PASS / PASS                                                                                         |
 | Backend package / frontend Production builds  | PASS / PASS; existing frontend large-chunk advisory only                                                   |
 | Python dependency integrity                   | PASS                                                                                                       |
-| Task files / unique task-index links          | 224 / 224; no missing, extra or duplicate path                                                             |
+| Task files / unique task-index links          | 225 / 225; no missing, extra or duplicate path                                                             |
 | Preview / real email-client boundary          | Side-by-side deterministic HTML generated; Gmail/Outlook and interactive browser visual acceptance NOT RUN |
-| Schema / Production / release boundary        | No migration; no Production/account/database/provider write; not committed, pushed or deployed             |
+| Source / CI                                    | `e4624c0`; GitHub Actions `38947149530` Backend and Frontend SUCCESS                                        |
+| Vercel / Render                                | Production Ready / Live for exact SHA                                                                       |
+| Supabase Edge                                  | Exact pushed `core.ts`; successful update; deployment count 1 -> 2                                         |
+| Production health                              | API live/ready PASS; database/Redis `ok`; email/Storage `configured`; public site 200                       |
+| Schema / Production boundary                   | No migration or Production account/database/provider-configuration write                                  |
 
-Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. All three transactional messages use equivalent
+Result: **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**. All three transactional messages use equivalent
 Received Invitation branding in the Edge and Python renderers, while exact verification/chat URLs,
 recipient resolution, sealed-token lifetime, plain-text fallbacks and acceptance/Match/conversation
 behavior remain unchanged. Automated coverage verifies shared/mobile markup, logo and CTA targets,
-fallback/security text, escaping and HTML propagation. The generated preview is a local artifact,
-not evidence of Gmail or Outlook rendering.
+fallback/security text, escaping and HTML propagation. Vercel, Render and the primary Production
+Edge worker all reached the exact release source. The generated preview is a local artifact, not
+evidence of Gmail/Outlook rendering, and no real transactional email was sent for acceptance.
 
 ## BUDDY-MATCH-SENT-001 local validation — 2026-10-16
 

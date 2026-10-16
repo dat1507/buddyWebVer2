@@ -21,16 +21,16 @@ remained healthy. No source, schema, provider configuration, commit, push or dep
 
 The previous verified continuation point follows unchanged.
 
-`EMAIL-TEMPLATE-REDESIGN-001` is complete locally. The Production Supabase Edge worker and Python
-fallback now use equivalent shared branding derived from Received Invitation for Email Verified,
-Received Invitation and Accepted Invitation. Verification keeps the exact sealed-token URL,
-fallback link, 15-minute expiry and security text; accepted notifications keep authoritative
-current-recipient/ACTIVE-Match/conversation resolution and the exact chat deep link. Plain-text
-fallbacks and all business events remain unchanged. Focused/relevant/full backend regression,
-Edge tests, Ruff, strict mypy, frontend static gates and both application builds pass. The
-side-by-side deterministic preview artifact was generated, but Gmail/Outlook and interactive
-browser visual acceptance were not run. No schema, Production/account/database/provider write,
-commit, push or deployment occurred.
+`EMAIL-TEMPLATE-REDESIGN-001` is pushed, CI-passed and Production verified from exact commit
+`e4624c0ca9732f08654c10a30db8ec99fc4bff01`. GitHub Actions run `38947149530` passed Backend and
+Frontend. Vercel Production deployment `dpl_7rbMhAeqPRPy5YbQsqhxKuxdtgHU` is Ready, Render
+deployment `dep-db96nsrm8hqs73e4s43g` is Live for the exact SHA, and the Supabase Production
+`email-worker` successfully advanced to deployment two with source matching the pushed `core.ts`.
+Verification keeps the exact sealed-token URL, fallback link, 15-minute expiry and security text;
+accepted notifications keep authoritative current-recipient/ACTIVE-Match/conversation resolution
+and the exact chat deep link. Public API live/readiness and the public site pass. Gmail/Outlook and
+a real transactional-email send were not run. No schema, account, database or provider-config
+mutation occurred.
 
 The previous verified continuation point follows unchanged.
 

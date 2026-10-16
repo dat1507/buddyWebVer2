@@ -1,6 +1,6 @@
 # Production status
 
-**Last direct verification:** 2026-10-17 01:09 Asia/Saigon
+**Last direct verification:** 2026-10-17 01:30 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
 the Phase 2 frontend and later Landing slideshow corrective release. No backend/database/DNS
@@ -19,6 +19,10 @@ The later `ACCOUNT-DELETE-001` owner operation explicitly authorized deletion of
 Production account and its owned Buddy/profile/session data. This did not authorize or cause a
 source, schema, migration, provider-configuration, deployment or unrelated-account change.
 
+The later `EMAIL-TEMPLATE-REDESIGN-001` release authorized exact commit `e4624c0` for push and
+deployment. Its verification was read-only after the source release: no account, database, schema,
+email, DNS, secret or provider-configuration mutation was performed.
+
 ## Directly observed
 
 | Check                                                  | Result                                                                    |
@@ -36,6 +40,27 @@ source, schema, migration, provider-configuration, deployment or unrelated-accou
 
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
+
+## Transactional email template release — 2026-10-17
+
+| Check | Result |
+| --- | --- |
+| Released commit | `e4624c0ca9732f08654c10a30db8ec99fc4bff01` on `origin/main` |
+| GitHub Actions | Run `38947149530`; Backend and Frontend SUCCESS for the exact SHA |
+| Vercel Production | `dpl_7rbMhAeqPRPy5YbQsqhxKuxdtgHU`; Ready; exact source SHA |
+| Vercel deployment URL | `https://buddy-web-ver2-2ghlk7xid-dat1507s-projects.vercel.app` |
+| Render Production | `dep-db96nsrm8hqs73e4s43g`; Live; exact source SHA; 57.7-second auto-deploy |
+| Supabase Edge | `email-worker` exact `core.ts`; update success; deployment count advanced 1 -> 2 |
+| Public health | API live `alive`; ready `ready`; database/Redis `ok`; email/Storage `configured`; site 200 |
+| Mutation boundary | No migration or account/database/DNS/secret/provider-configuration change; no test email sent |
+
+The Edge deployment used the existing Production project and preserved its secrets, Cron schedule,
+JWT setting and provider configuration. The dashboard source matched the pushed file after
+line-ending normalization. Automated rendering/contract coverage remains the acceptance evidence;
+Gmail/Outlook rendering and a real transactional-email delivery were not run.
+
+Sanitized details are recorded in
+[`email-template-redesign-production-2026-10-17.md`](../operations/email-template-redesign-production-2026-10-17.md).
 
 ## Account deletion acceptance — 2026-10-17
 

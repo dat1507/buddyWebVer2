@@ -1,6 +1,6 @@
 # EMAIL-TEMPLATE-REDESIGN-001 — Align verification and accepted-invitation emails
 
-**Status:** DONE — LOCAL VERIFIED / NOT DEPLOYED
+**Status:** DONE — PUSHED / CI PASS / PRODUCTION VERIFIED
 **Priority:** P1
 **Track:** auth-email / buddy-v2
 **Assigned:** 2026-10-16
@@ -96,7 +96,8 @@ No migration, new event, route, dependency or localization subsystem is required
 | Python dependency integrity | PASS |
 | Side-by-side local preview artifact | Generated for Received, Verification and Accepted templates with deterministic sample data |
 | Gmail / Outlook / interactive browser visual acceptance | NOT RUN; no claim of client-specific rendering |
-| Schema / Production / release boundary | No migration or Production/account/database/provider write; not committed, pushed or deployed |
+| Release | `e4624c0`; GitHub Actions `38947149530` PASS; Vercel, Render API and Supabase `email-worker` deployed |
+| Schema / Production boundary | No migration or Production account/database/provider-configuration write |
 
 The local preview gallery exercises all three Python-rendered templates and embeds the repository
 logo only for offline viewing. Automated coverage checks equivalent shared structure, mobile CSS,
@@ -118,5 +119,12 @@ explicit evidence gap rather than a claimed pass.
 
 ## Result
 
-**DONE — LOCAL VERIFIED / NOT DEPLOYED.** Tasks 0 through 5 are complete within the local
-presentation-only boundary. No commit, push, deployment or Production mutation was performed.
+**DONE — PUSHED / CI PASS / PRODUCTION VERIFIED.** Commit
+`e4624c0ca9732f08654c10a30db8ec99fc4bff01` reached `origin/main`. GitHub Actions run
+`38947149530` passed Backend and Frontend. Vercel Production deployment
+`dpl_7rbMhAeqPRPy5YbQsqhxKuxdtgHU` is Ready for the exact commit and serves the canonical public
+domain. Render deployment `dep-db96nsrm8hqs73e4s43g` is Live for the same commit. The Supabase
+Production `email-worker` accepted the exact pushed `core.ts`, reported a successful update and
+advanced from one to two deployments. Public API live/readiness and the public site pass after
+release. No schema, account, database or provider-configuration mutation occurred. Gmail/Outlook
+rendering and a real transactional-email send remain unclaimed.
