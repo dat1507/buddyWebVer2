@@ -26,8 +26,8 @@ const definitions: readonly {
   end?: boolean
 }[] = [
   { id: 'dashboard', route: 'dashboard', Icon: LayoutDashboard, end: true },
-  { id: 'editProfile', route: 'profile/edit', Icon: SquarePen },
   { id: 'myProfile', route: 'profile', Icon: UserRound, end: true },
+  { id: 'editProfile', route: 'profile/edit', Icon: SquarePen },
   { id: 'matching', route: 'matching', Icon: Users },
   { id: 'myBuddy', route: 'buddy', Icon: HeartHandshake },
   ...(publicEventsEnabled ? [{ id: 'events', route: 'events' as const, Icon: CalendarDays }] : []),
