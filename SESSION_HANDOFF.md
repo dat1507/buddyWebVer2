@@ -1,12 +1,24 @@
 # Session handoff
 
 **Updated:** 2026-10-16 (Asia/Saigon)
-**TASK_ID:** FE-USER-EVENTS-001 (DONE — PUSHED / CI PASS / PRODUCTION VERIFIED)
-**Current mode:** Task and read-only Production acceptance complete
+**TASK_ID:** NONE
+**Current mode:** FE-LANDING-CTA-001 complete locally; awaiting the owner's next instruction
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-CTA-001` is complete locally. The Landing CTA contains one centered Join the Community
+registration action; the exclusive Watch Demo state, dialog, strings, tests and media are removed.
+The shared modal-isolation utility and all other Landing content remain unchanged. Focused tests
+(2 files / 13), full frontend regression (85 files / 810), TypeScript, ESLint, Prettier and the
+production build pass. A controlled local Edge render measured a `0 px` center offset at 1440×900,
+768×1024 and 390×844, with one action, no demo dialog/video and zero console errors. The resulting
+local commit sits above preserved local documentation commit `5141331`; its exact SHA is reported
+in the completion response. No push or deployment was authorized, so Production remains on
+`66f44d1` and this CTA change is not claimed live.
+
+The previous verified continuation point follows unchanged.
 
 `FE-USER-EVENTS-001` is complete, pushed and Production verified from commit
 `66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c`, directly after base commit `78ddc0f` (`Events

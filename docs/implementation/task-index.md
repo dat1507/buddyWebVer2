@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-16 **Task IDs:** 221
+**Generated:** 2026-10-16 **Task IDs:** 222
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -14,6 +14,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`ADMIN-EVENT-ACTIVATION`](tasks/ADMIN-EVENT-ACTIVATION.md)             | DONE — PROD WRITE ACCEPTANCE PASS / DRAFT RETAINED          | P0                 | events             | Admin ON/public OFF; one synthetic DRAFT passed create/reload/cover replacement/edit/409; public exclusion PASS; no publish/delete.                                                  |
 | [`FE-EVENT-DETAIL-TEMPLATE-001`](tasks/FE-EVENT-DETAIL-TEMPLATE-001.md) | DONE — PRODUCTION VERIFIED                                  | P0                 | events             | `9df8c64`; CI PASS; `dpl_48YExmcZG4YREaUGGUmePsaZ9NP2` Ready/Production with Public/Admin ON; bounded smoke PASS; poster discrepancy owner-accepted.                                 |
 | [`FE-USER-EVENTS-001`](tasks/FE-USER-EVENTS-001.md)                     | DONE — PUSHED / CI PASS / PRODUCTION VERIFIED               | P1                 | events             | `66f44d1`; synchronized Landing/User Event sets, optional registration actions and context-aware detail navigation pass Production smoke.                                            |
+| [`FE-LANDING-CTA-001`](tasks/FE-LANDING-CTA-001.md)                     | DONE — LOCAL VERIFIED / NOT DEPLOYED                         | P1                 | frontend           | Demo-only UI/media removed; centered registration CTA passes full regression and rendered desktop/tablet/mobile checks.                                                               |
 | [`EVENT-OPTIONAL-PUBLISH-001`](tasks/EVENT-OPTIONAL-PUBLISH-001.md)     | DONE — COMMITTED / CI PASS / NOT DEPLOYED                    | P0                 | events             | `1f94629`; full regression and GitHub Actions Frontend/Backend PASS; no migration, deployment or Production mutation.                                                |
 | [`EVENT-AUDIENCE-SLIDER-001`](tasks/EVENT-AUDIENCE-SLIDER-001.md)     | DONE — PUSHED / CI PASS / PRODUCTION VERIFIED                | P0                 | events             | `65364a1`; Audience removal, legacy MEMBERS compatibility, Slider correction, full regression, CI and Production read-only verification PASS.                       |
 | [`ADMIN-001`](tasks/ADMIN-001.md)                                       | DONE / PRESERVED                                            | P0                 | admin              | FE-005, AUTH-006 — both DONE; shared Card/Typography/buttons and actual ADMIN RoleGuard acceptance verified.                                                                         |

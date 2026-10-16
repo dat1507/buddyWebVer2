@@ -1,8 +1,6 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import { DemoVideoDialog } from '@/components/landing/demo-video-dialog'
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 
@@ -10,14 +8,10 @@ import { Typography } from '@/components/ui/typography'
  * CTA Section
  *
  * Prompts students to take action ("Ready to Transform Your University Experience?")
- * with "Join the Community" (primary) and "Watch Demo" (secondary) action buttons.
- *
- * The primary action routes students to registration. The demo action opens the
- * local media dialog without introducing a route.
+ * with a centered "Join the Community" action that routes students to registration.
  */
 function CtaSection() {
   const { t } = useTranslation()
-  const [isDemoOpen, setIsDemoOpen] = useState(false)
 
   return (
     <section
@@ -44,27 +38,12 @@ function CtaSection() {
           {t('cta.subtitle')}
         </Typography>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
+        <div className="mt-10 flex justify-center">
           <Button asChild size="lg" className="w-full sm:w-auto">
             <Link to="/register">{t('cta.join')}</Link>
           </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full sm:w-auto"
-            aria-haspopup="dialog"
-            aria-expanded={isDemoOpen}
-            aria-controls="demo-video-dialog"
-            onClick={() => setIsDemoOpen(true)}
-          >
-            {t('cta.demo')}
-          </Button>
         </div>
       </div>
-
-      <DemoVideoDialog open={isDemoOpen} onOpenChange={setIsDemoOpen} />
     </section>
   )
 }

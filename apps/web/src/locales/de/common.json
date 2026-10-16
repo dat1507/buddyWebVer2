@@ -129,16 +129,7 @@
   "cta": {
     "title": "Bereit, dein Unileben zu transformieren?",
     "subtitle": "Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.",
-    "join": "Community beitreten",
-    "demo": "Demo ansehen"
-  },
-  "demoDialog": {
-    "title": "VGU Buddy Program Demo",
-    "description": "Erfahre, wie das Buddy-Programm die VGU-Community zusammenbringt.",
-    "videoLabel": "Demo-Video des VGU Buddy Programms",
-    "close": "Demo-Video schließen",
-    "loading": "Demo-Video wird geladen",
-    "error": "Das Demo-Video konnte nicht geladen werden. Bitte versuche es später erneut."
+    "join": "Community beitreten"
   },
   "auth": {
     "guard": {

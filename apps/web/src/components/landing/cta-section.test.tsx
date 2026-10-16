@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { CtaSection } from '@/components/landing/cta-section'
 import i18n from '@/i18n'
@@ -31,17 +31,20 @@ describe('CtaSection', () => {
     ).toBeVisible()
   })
 
-  it('renders an internal registration link and the Demo button with correct roles', () => {
-    renderCtaSection()
+  it('renders one centered registration action without demo UI', () => {
+    const { container } = renderCtaSection()
 
     const joinLink = screen.getByRole('link', { name: 'Join the Community' })
-    const demoBtn = screen.getByRole('button', { name: 'Watch Demo' })
+    const actions = joinLink.parentElement
 
     expect(joinLink).toBeVisible()
     expect(joinLink).toHaveAttribute('href', '/register')
-
-    expect(demoBtn).toBeVisible()
-    expect(demoBtn).toBeEnabled()
+    expect(joinLink).toHaveClass('w-full', 'sm:w-auto')
+    expect(actions).toHaveClass('flex', 'justify-center')
+    expect(actions).not.toHaveClass('gap-4', 'sm:gap-5')
+    expect(screen.queryByRole('button', { name: 'Watch Demo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(container.querySelector('video')).not.toBeInTheDocument()
   })
 
   it('renders German content after language switch', async () => {
@@ -60,43 +63,16 @@ describe('CtaSection', () => {
       'href',
       '/register',
     )
-    expect(screen.getByRole('button', { name: 'Demo ansehen' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Demo ansehen' })).not.toBeInTheDocument()
   })
 
-  it('actions are keyboard focusable', () => {
+  it('keeps the registration action keyboard focusable', () => {
     renderCtaSection()
 
     const joinLink = screen.getByRole('link', { name: 'Join the Community' })
-    const demoBtn = screen.getByRole('button', { name: 'Watch Demo' })
 
     joinLink.focus()
     expect(document.activeElement).toBe(joinLink)
-
-    demoBtn.focus()
-    expect(document.activeElement).toBe(demoBtn)
-  })
-
-  it('opens the demo dialog on demand and returns focus when it closes', () => {
-    const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => undefined)
-    renderCtaSection()
-    const demoButton = screen.getByRole('button', { name: 'Watch Demo' })
-
-    expect(document.querySelector('video')).not.toBeInTheDocument()
-    expect(demoButton).toHaveAttribute('aria-expanded', 'false')
-
-    demoButton.focus()
-    fireEvent.click(demoButton)
-
-    expect(screen.getByRole('dialog', { name: 'VGU Buddy Program Demo' })).toBeVisible()
-    expect(screen.getByLabelText('VGU Buddy Program demo video')).toBeInTheDocument()
-    expect(demoButton).toHaveAttribute('aria-expanded', 'true')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Close demo video' }))
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(demoButton).toHaveAttribute('aria-expanded', 'false')
-    expect(demoButton).toHaveFocus()
-    pause.mockRestore()
   })
 
   it('contains only the approved internal registration link', () => {

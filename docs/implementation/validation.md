@@ -1,5 +1,21 @@
 # Documentation migration validation
 
+## FE-LANDING-CTA-001 local validation — 2026-10-16
+
+| Check | Result |
+| --- | --- |
+| Focused CTA/Landing tests | 2 files / 13 PASS |
+| Full frontend | 85 files / 810 PASS |
+| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
+| Production build | PASS; existing large-chunk advisory only |
+| Rendered responsive check | 1440×900, 768×1024 and 390×844; center delta `0 px` |
+| Demo removal | One CTA action; no Watch Demo text, dialog or video |
+| Browser console | 0 errors with local auth bootstrap fixture |
+| Scope / deployment | CTA-only source and exclusive assets; not pushed or deployed |
+
+Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. No Production, database, account, Event, Storage,
+DNS or provider configuration mutation occurred.
+
 ## FE-USER-EVENTS-001 synchronized Event validation — 2026-10-16
 
 | Check                                      | Result                                                                        |

@@ -129,16 +129,7 @@
   "cta": {
     "title": "Ready to Transform Your University Experience?",
     "subtitle": "Join thousands of VGU students who are already making the most of their university journey.",
-    "join": "Join the Community",
-    "demo": "Watch Demo"
-  },
-  "demoDialog": {
-    "title": "VGU Buddy Program Demo",
-    "description": "See how the Buddy Program brings the VGU community together.",
-    "videoLabel": "VGU Buddy Program demo video",
-    "close": "Close demo video",
-    "loading": "Loading demo video",
-    "error": "The demo video could not be loaded. Please try again later."
+    "join": "Join the Community"
   },
   "auth": {
     "guard": {
