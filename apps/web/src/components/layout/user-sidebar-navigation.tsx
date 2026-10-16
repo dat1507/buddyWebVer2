@@ -25,17 +25,11 @@ function UserSidebarNavigation({
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const unavailableId = useId()
-  const hasUnavailableItems = items.some(({ available }) => !available)
   const { summary } = useBuddyUnread()
   const unreadCount = summary.total_unread_messages
 
   return (
     <nav aria-label={t('userNavigation.label')} className="min-w-0 space-y-3">
-      {hasUnavailableItems ? (
-        <Typography id={unavailableId} variant="muted" className="text-xs">
-          {t('userNavigation.unavailableHint')}
-        </Typography>
-      ) : null}
       <ul className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-1">
         {items.map(({ id, labelKey, Icon, end = false, ...destination }) => {
           const current = !!destination.to && !!matchPath({ path: destination.to, end }, pathname)
