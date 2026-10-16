@@ -1,7 +1,7 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.25
-**Updated:** 2026-10-16
+**Plan version:** 1.28
+**Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
@@ -48,16 +48,18 @@ remains open under the original Profile contract.
 | 6     | `EVENT-FLAG-SPLIT`              | P0 product-release | **DONE — PRODUCTION VERIFIED**                                | `b379966`; independent flags and OFF/OFF Production release verified                                                                              | Preserve evidence; no repeat without regression reason                                            |
 | 7     | `ADMIN-EVENT-ACTIVATION`        | P0 product-release | **DONE — PROD WRITE ACCEPTANCE PASS / DRAFT RETAINED**        | Admin ON/public OFF; one synthetic DRAFT passed create/reload/cover replace/edit/409; public exclusion and health pass                            | Preserve retained IDs; await separate publish, cleanup/delete or public-activation approval       |
 | 8     | `FE-EVENT-DETAIL-TEMPLATE-001`  | P0 product-release | **DONE — PRODUCTION VERIFIED**                                | `9df8c64`; CI passed; exact-SHA Public-ON/Admin-ON deployment and bounded Production smoke passed after the owner accepted the poster discrepancy | Preserve evidence and retained rollback; no repeat without a regression reason                    |
-| 9     | `EVENT-OPTIONAL-PUBLISH-001`     | P0 product         | **DONE — COMMITTED / CI PASS / NOT DEPLOYED**                 | `1f94629`; optional schedule/location, simplified Admin form and User registration action pass full regression and CI                              | Await separate deployment approval; preserve unrelated dirty files                                |
-| 10    | `ADMIN-010`                     | P0 product         | **DONE — SUPERSEDED BY EVENT-AUDIENCE-SLIDER-001**            | `ed250f5`; its pending Audience/backend state is superseded by the completed coherent removal release                                                | Preserve historical evidence                                                                      |
-| 11    | `EVENT-AUDIENCE-SLIDER-001`     | P0 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `65364a1`; Audience removed coherently, legacy published MEMBERS public, Slider smoothed, full regression/CI/Production read-only gates pass          | Preserve evidence; Production migration revision remains an explicit evidence gap                 |
-| 12    | `FE-USER-EVENTS-001`            | P1 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `66f44d1`; synchronized Event sets, registration-optional cards and both detail-return flows pass CI and read-only Production smoke                 | Preserve evidence; no repeat without regression reason                                            |
+| 9     | `EVENT-OPTIONAL-PUBLISH-001`    | P0 product         | **DONE — COMMITTED / CI PASS / NOT DEPLOYED**                 | `1f94629`; optional schedule/location, simplified Admin form and User registration action pass full regression and CI                             | Await separate deployment approval; preserve unrelated dirty files                                |
+| 10    | `ADMIN-010`                     | P0 product         | **DONE — SUPERSEDED BY EVENT-AUDIENCE-SLIDER-001**            | `ed250f5`; its pending Audience/backend state is superseded by the completed coherent removal release                                             | Preserve historical evidence                                                                      |
+| 11    | `EVENT-AUDIENCE-SLIDER-001`     | P0 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `65364a1`; Audience removed coherently, legacy published MEMBERS public, Slider smoothed, full regression/CI/Production read-only gates pass      | Preserve evidence; Production migration revision remains an explicit evidence gap                 |
+| 12    | `FE-USER-EVENTS-001`            | P1 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `66f44d1`; synchronized Event sets, registration-optional cards and both detail-return flows pass CI and read-only Production smoke               | Preserve evidence; no repeat without regression reason                                            |
 | 13    | `FE-LANDING-CTA-001`            | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | Demo-only UI/media removed; centered registration CTA passes full regression and rendered desktop/tablet/mobile checks                            | Await separate push/deployment authorization                                                      |
-| 14    | `BUDDY-MATCH-SENT-001`          | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | ACTIVE-Buddy exclusion, simplified matching/profile dialog and Sent rows pass focused/full regression and static/build gates                       | Await separate push/deployment authorization                                                      |
-| 15    | P1 product backlog              | P1                 | **PLANNED**                                                   | Depends on task-specific contracts                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
-| 16    | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                | Vercel Production and desktop/mobile/transition evidence pass                                                                                     | Preserve evidence; no repeat without regression reason                                            |
-| 17    | `FE-PROFILE-HOME-UNI-001`       | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass                                                                         | Owner edit/save/reload/clear/max-length review                                                    |
-| 18    | `FE-LANDING-BG-002`             | Phase 2 corrective | **DONE — PRODUCTION VERIFIED**                                | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass                                                                    | Preserve evidence; no repeat without regression reason                                            |
+| 14    | `BUDDY-MATCH-SENT-001`          | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | ACTIVE-Buddy exclusion, simplified matching/profile dialog and Sent rows pass focused/full regression and static/build gates                      | Await separate push/deployment authorization                                                      |
+| 15    | `EMAIL-TEMPLATE-REDESIGN-001`   | P1 product         | **DONE — LOCAL VERIFIED / NOT DEPLOYED**                      | Both runtimes share the Received Invitation design; verification/accepted templates pass regression and static/build gates                        | Await separate commit/push/deployment authorization                                               |
+| 16    | `ACCOUNT-DELETE-001`            | Owner operation    | **DONE — PRODUCTION VERIFIED**                                | Guarded deletion removed one custom-auth account and owned Buddy/profile/session data; private image cleanup and post-checks passed               | Preserve sanitized evidence; owner may re-register normally                                       |
+| 17    | P1 product backlog              | P1                 | **PLANNED**                                                   | Depends on task-specific contracts                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
+| 18    | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                | Vercel Production and desktop/mobile/transition evidence pass                                                                                     | Preserve evidence; no repeat without regression reason                                            |
+| 19    | `FE-PROFILE-HOME-UNI-001`       | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass                                                                         | Owner edit/save/reload/clear/max-length review                                                    |
+| 20    | `FE-LANDING-BG-002`             | Phase 2 corrective | **DONE — PRODUCTION VERIFIED**                                | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass                                                                    | Preserve evidence; no repeat without regression reason                                            |
 
 The 2026-10-14 `EVENT-AUDIENCE-SLIDER-001` release supersedes the older `ADMIN-010` pending
 Audience/backend/data state. The coherent release removes the Audience control and write input,
@@ -73,6 +75,27 @@ Sent rows show only avatar, name and status while preserving pending cancellatio
 Start chatting and non-destructive hide semantics. Focused and full backend/frontend regression,
 static analysis and the production build pass; the existing large-chunk advisory remains. No
 schema, Production, push or deployment change occurred.
+
+`EMAIL-TEMPLATE-REDESIGN-001` completed locally on 2026-10-16. Email Verified, Received Invitation
+and Accepted Invitation now share the existing branded table layout in both the Production Edge
+worker and Python fallback. Exact token handling/expiry, current verified recipient selection,
+invitation/Match/conversation state, same-origin CTA destinations, provider topology and plain-text
+fallbacks are preserved. Focused/relevant/full backend regression, Edge tests, Ruff, strict mypy,
+frontend static gates and both builds pass. A deterministic side-by-side preview artifact was
+generated, but Gmail/Outlook and interactive browser visual acceptance were not run. The current
+email system has no localized variants; no localization subsystem, schema, Production mutation,
+commit, push or deployment was introduced.
+
+`ACCOUNT-DELETE-001` completed in Production on 2026-10-17 after an explicit owner confirmation.
+BuddyWebv2 uses its custom `app_private.users` identity rather than Supabase Auth for registration;
+the target had no `auth.users` row and no `RESTRICT` dependencies. One guarded transaction deleted
+the exact application account and cascaded its profile, preferences, invitation, ACTIVE Match,
+conversation, refresh session and verification token. The linked private profile image object was
+deleted separately through Supabase Storage. Post-checks found no stale Buddy/account records,
+preserved the other participant and retained two sent outbox records with their user references
+set to null according to the existing retention policy. The target email is available for normal
+registration. No source, schema, migration, provider configuration, commit, push or deployment
+changed.
 
 `FE-USER-EVENTS-001` completed and reached Production on 2026-10-16 from exact commit `66f44d1`.
 GitHub Actions run `38881976983` and Vercel Production deployment `7115826436` succeeded. The User Events tab

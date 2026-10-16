@@ -1,12 +1,38 @@
 # Session handoff
 
-**Updated:** 2026-10-16 (Asia/Saigon)
+**Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** `BUDDY-MATCH-SENT-001` complete locally; awaiting a new owner instruction
+**Current mode:** ACCOUNT-DELETE-001 complete and Production verified; awaiting owner direction
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`ACCOUNT-DELETE-001` is complete and Production verified. After owner confirmation, the exact
+normalized target account was deleted in one guarded transaction from the custom
+`app_private.users` authentication system. Existing cascades removed its profile, preferences,
+accepted invitation, ACTIVE Match, Buddy conversation, refresh session and email-verification
+token. The one private profile image object was then deleted through Supabase Storage. Production
+post-checks found no target application/Auth/profile/Match/invitation/session/token/registration or
+Storage record, and the email is available for normal re-registration. The other Buddy participant
+and profile remain present. Two already-sent transactional-outbox records were retained under the
+schema's `ON DELETE SET NULL` policy and no longer reference the deleted user. API readiness
+remained healthy. No source, schema, provider configuration, commit, push or deployment changed.
+
+The previous verified continuation point follows unchanged.
+
+`EMAIL-TEMPLATE-REDESIGN-001` is complete locally. The Production Supabase Edge worker and Python
+fallback now use equivalent shared branding derived from Received Invitation for Email Verified,
+Received Invitation and Accepted Invitation. Verification keeps the exact sealed-token URL,
+fallback link, 15-minute expiry and security text; accepted notifications keep authoritative
+current-recipient/ACTIVE-Match/conversation resolution and the exact chat deep link. Plain-text
+fallbacks and all business events remain unchanged. Focused/relevant/full backend regression,
+Edge tests, Ruff, strict mypy, frontend static gates and both application builds pass. The
+side-by-side deterministic preview artifact was generated, but Gmail/Outlook and interactive
+browser visual acceptance were not run. No schema, Production/account/database/provider write,
+commit, push or deployment occurred.
+
+The previous verified continuation point follows unchanged.
 
 `BUDDY-MATCH-SENT-001` is complete locally. Authoritative ACTIVE Match pairs are excluded from
 recommendations in both participant orientations while pending invitations retain their existing

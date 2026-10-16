@@ -1,6 +1,6 @@
 # Production status
 
-**Last direct verification:** 2026-10-16 16:44 Asia/Saigon
+**Last direct verification:** 2026-10-17 01:09 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
 the Phase 2 frontend and later Landing slideshow corrective release. No backend/database/DNS
@@ -14,6 +14,10 @@ Storage object, database row, DNS record, feature flag or provider configuration
 The later `FE-USER-EVENTS-001` release authorized exact commit `66f44d1` for push and Production
 deployment. Its acceptance was read-only and changed no Event, registration setting, user, Storage
 object, database row, DNS record, feature flag or provider configuration.
+
+The later `ACCOUNT-DELETE-001` owner operation explicitly authorized deletion of one exact
+Production account and its owned Buddy/profile/session data. This did not authorize or cause a
+source, schema, migration, provider-configuration, deployment or unrelated-account change.
 
 ## Directly observed
 
@@ -33,22 +37,42 @@ object, database row, DNS record, feature flag or provider configuration.
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
 
+## Account deletion acceptance — 2026-10-17
+
+| Check                   | Result                                                                                                                 |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Authorization           | Explicit owner confirmation after a read-only scope report                                                             |
+| Authentication topology | Custom `app_private.users`; no matching `auth.users` row                                                               |
+| Preflight               | Exactly one USER/profile/Match/invitation/session/token/image; zero messages, registrations or `RESTRICT` dependencies |
+| Database mutation       | Guarded transaction deleted exactly one application user; existing FK cascades used unchanged                          |
+| Buddy cleanup           | Target invitation, ACTIVE Match and conversation absent in both participant orientations                               |
+| Profile cleanup         | Profile, preferences, photo metadata and private Storage object absent                                                 |
+| Session/auth cleanup    | Refresh session and verification token absent; no Auth user existed                                                    |
+| Retention               | Two already-sent outbox rows retained; `recipient_user_id` became `NULL` by existing policy                            |
+| Unrelated data          | Other Buddy user/profile preserved; no Event or shared resource deleted                                                |
+| Re-registration         | No normalized-email application/Auth row remains; email availability check PASS                                        |
+| Runtime health          | Readiness `ready`; database/Redis `ok`; email/Storage `configured`                                                     |
+| Release boundary        | No source, schema, migration, config, commit, push or deployment change                                                |
+
+Sanitized details are recorded in
+[`account-delete-001-production-2026-10-17.md`](../operations/account-delete-001-production-2026-10-17.md).
+
 ## User Events synchronization release — 2026-10-16
 
-| Check | Result |
-| --- | --- |
-| Released commit | `66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c` on `origin/main` |
-| GitHub Actions | Run `38881976983`; Backend and Frontend SUCCESS for the exact SHA |
-| GitHub/Vercel deployment | Production deployment `7115826436`; SUCCESS for the exact SHA |
-| Vercel deployment URL | `https://buddy-web-ver2-hzuq40wmq-dat1507s-projects.vercel.app` |
-| Public alias / bundle | `www.vgubuddyprogram.com` 200; `index-BVBP8HUi.js` |
-| Public Slider API | 3 Events in order: Experience Day, Kawazo, Buddy Recruitment |
-| User Events | Same 3 IDs and order as Slider after a fresh authenticated reload |
-| Registration actions | Experience Day and Buddy Recruitment: View Details only; Kawazo: Register + View Details |
-| Landing detail return | Existing Home label/href present; click returned to Landing |
-| Dashboard detail return | Exact `Back to Event Dashboard`; click returned to `/user/events` |
-| API health | live `alive`; ready `ready`; database/Redis `ok` |
-| Browser console | 0 warnings; 0 errors in Landing/detail and authenticated User Events/detail smoke |
+| Check                    | Result                                                                                   |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| Released commit          | `66f44d1a29e18bf6c1a8f64fb39e16002ba58a6c` on `origin/main`                              |
+| GitHub Actions           | Run `38881976983`; Backend and Frontend SUCCESS for the exact SHA                        |
+| GitHub/Vercel deployment | Production deployment `7115826436`; SUCCESS for the exact SHA                            |
+| Vercel deployment URL    | `https://buddy-web-ver2-hzuq40wmq-dat1507s-projects.vercel.app`                          |
+| Public alias / bundle    | `www.vgubuddyprogram.com` 200; `index-BVBP8HUi.js`                                       |
+| Public Slider API        | 3 Events in order: Experience Day, Kawazo, Buddy Recruitment                             |
+| User Events              | Same 3 IDs and order as Slider after a fresh authenticated reload                        |
+| Registration actions     | Experience Day and Buddy Recruitment: View Details only; Kawazo: Register + View Details |
+| Landing detail return    | Existing Home label/href present; click returned to Landing                              |
+| Dashboard detail return  | Exact `Back to Event Dashboard`; click returned to `/user/events`                        |
+| API health               | live `alive`; ready `ready`; database/Redis `ok`                                         |
+| Browser console          | 0 warnings; 0 errors in Landing/detail and authenticated User Events/detail smoke        |
 
 The generated Vercel deployment URL is protected and redirected an unauthenticated HTTP request to
 Vercel login; the canonical public alias is the verified serving surface. Render deployment
@@ -58,20 +82,20 @@ deployment identifier. No Production data or configuration mutation occurred.
 
 ## Event Audience removal and Slider release — 2026-10-14
 
-| Check | Result |
-| --- | --- |
-| Released commit | `65364a1180032063296898b2c6d8d2a9f59e1b97` on `origin/main` |
-| GitHub Actions | Run `38586750058`; Backend and Frontend SUCCESS for the exact SHA |
-| GitHub/Vercel deployment | Production deployment `7069199596`; SUCCESS for the exact SHA |
-| Vercel deployment URL | `https://buddy-web-ver2-n5hhkpzst-dat1507s-projects.vercel.app` |
-| Public alias / bundle | `www.vgubuddyprogram.com` 200; `index-DfxH7DYv.js` |
-| Effective feature behavior | Dynamic public EN/DE Slider and Admin Event form both available |
-| Public API EN / DE | Each returned the same two PUBLISHED, cover-ready Events |
-| Public Events | Kawazo `5a3c57aa-b676-4df3-92cd-414c82ea2c13`; Buddy Recruitment `98951257-9edc-4ed2-a64f-f5ea464ef771` |
-| Admin contract | Production OpenAPI draft input and list filter contain no `visibility` |
-| Admin UI | Create form contains no Audience field; inspected without submitting |
-| Slider desktop/mobile | EN/DE, rapid input and 390 × 844 no-horizontal-overflow checks PASS |
-| Browser console | 0 errors; 0 warnings during bounded smoke |
+| Check                      | Result                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Released commit            | `65364a1180032063296898b2c6d8d2a9f59e1b97` on `origin/main`                                             |
+| GitHub Actions             | Run `38586750058`; Backend and Frontend SUCCESS for the exact SHA                                       |
+| GitHub/Vercel deployment   | Production deployment `7069199596`; SUCCESS for the exact SHA                                           |
+| Vercel deployment URL      | `https://buddy-web-ver2-n5hhkpzst-dat1507s-projects.vercel.app`                                         |
+| Public alias / bundle      | `www.vgubuddyprogram.com` 200; `index-DfxH7DYv.js`                                                      |
+| Effective feature behavior | Dynamic public EN/DE Slider and Admin Event form both available                                         |
+| Public API EN / DE         | Each returned the same two PUBLISHED, cover-ready Events                                                |
+| Public Events              | Kawazo `5a3c57aa-b676-4df3-92cd-414c82ea2c13`; Buddy Recruitment `98951257-9edc-4ed2-a64f-f5ea464ef771` |
+| Admin contract             | Production OpenAPI draft input and list filter contain no `visibility`                                  |
+| Admin UI                   | Create form contains no Audience field; inspected without submitting                                    |
+| Slider desktop/mobile      | EN/DE, rapid input and 390 × 844 no-horizontal-overflow checks PASS                                     |
+| Browser console            | 0 errors; 0 warnings during bounded smoke                                                               |
 
 The API and live Slider confirm that legacy published `MEMBERS` no longer remains hidden solely by
 that stored value. This supersedes the older `ADMIN-010` statement that Buddy Recruitment visibility

@@ -1,21 +1,67 @@
 # Documentation migration validation
 
+## ACCOUNT-DELETE-001 Production validation — 2026-10-17
+
+| Check                                       | Result                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------ |
+| Exact normalized application account        | 1 before / 0 after                                                             |
+| Supabase Auth account                       | 0 before / 0 after; not used by application registration                       |
+| Profile / Match / invitation / conversation | 1 each before / 0 each after                                                   |
+| Refresh session / verification token        | 1 each before / 0 each after                                                   |
+| Profile preferences / photo metadata        | Cascaded to 0                                                                  |
+| Private profile image object                | 1 before / 0 after; Storage deletion success                                   |
+| Buddy messages / Event registrations        | 0 before / 0 after                                                             |
+| `RESTRICT` dependencies                     | 0 across audits, Events/media and Semester operations/backups                  |
+| Other Buddy participant/profile             | 1 / 1 preserved                                                                |
+| Transactional outbox                        | 2 sent rows retained; 0 remaining target user references                       |
+| Re-registration boundary                    | Normalized email availability PASS                                             |
+| Runtime health                              | Readiness PASS; database/Redis `ok`; email/Storage `configured`                |
+| Source/release boundary                     | No application, schema, migration, provider, commit, push or deployment change |
+
+Result: **DONE — PRODUCTION VERIFIED**. The operation used only existing constraints and supported
+Supabase Storage deletion. It did not disable triggers, weaken constraints, delete shared resources
+or create a replacement account.
+
+## EMAIL-TEMPLATE-REDESIGN-001 local validation — 2026-10-16
+
+| Check                                         | Result                                                                                                     |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Focused Python email rendering/contract tests | 13 PASS / 16 deselected                                                                                    |
+| Relevant auth/invitation regression set       | 96 PASS                                                                                                    |
+| Supabase Edge worker tests                    | 15 PASS                                                                                                    |
+| Full backend                                  | 1,417 PASS / 37 explicit live-environment SKIP; disposable Python 3.12 container                           |
+| Ruff / strict mypy                            | PASS / PASS (293 source files)                                                                             |
+| Edge TypeScript tests / Prettier              | PASS / PASS                                                                                                |
+| Frontend TypeScript / ESLint / Prettier       | PASS / PASS / PASS                                                                                         |
+| Backend package / frontend Production builds  | PASS / PASS; existing frontend large-chunk advisory only                                                   |
+| Python dependency integrity                   | PASS                                                                                                       |
+| Task files / unique task-index links          | 224 / 224; no missing, extra or duplicate path                                                             |
+| Preview / real email-client boundary          | Side-by-side deterministic HTML generated; Gmail/Outlook and interactive browser visual acceptance NOT RUN |
+| Schema / Production / release boundary        | No migration; no Production/account/database/provider write; not committed, pushed or deployed             |
+
+Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. All three transactional messages use equivalent
+Received Invitation branding in the Edge and Python renderers, while exact verification/chat URLs,
+recipient resolution, sealed-token lifetime, plain-text fallbacks and acceptance/Match/conversation
+behavior remain unchanged. Automated coverage verifies shared/mobile markup, logo and CTA targets,
+fallback/security text, escaping and HTML propagation. The generated preview is a local artifact,
+not evidence of Gmail or Outlook rendering.
+
 ## BUDDY-MATCH-SENT-001 local validation — 2026-10-16
 
-| Check | Result |
-| --- | --- |
-| Bidirectional ACTIVE-Match SQL / safe profile allowlist | 7 focused backend PASS |
-| Simplified matching card / selected-profile dialog | 3 files / 24 focused frontend PASS |
-| Simplified Sent Invitations / preserved actions | 3 files / 32 focused frontend PASS |
-| Full backend | 1,416 PASS / 37 explicit live-environment SKIP; disposable Python 3.12 container |
-| Full frontend | 85 files / 812 PASS with two workers |
-| Ruff / strict mypy | PASS / PASS (292 source files) |
-| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
-| Production build | PASS; existing large-chunk advisory only |
-| Task files / unique task-index links | 223 / 223; no missing, extra or duplicate path |
-| Whitespace validation | `git diff --check` PASS |
-| Schema / Production / release boundary | No migration; no Production/account/database/provider write; not pushed or deployed |
-| Live authenticated desktop/mobile browser | NOT RUN; automated DOM/layout-path coverage is recorded, but no disposable authenticated browser data source was used |
+| Check                                                   | Result                                                                                                                |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Bidirectional ACTIVE-Match SQL / safe profile allowlist | 7 focused backend PASS                                                                                                |
+| Simplified matching card / selected-profile dialog      | 3 files / 24 focused frontend PASS                                                                                    |
+| Simplified Sent Invitations / preserved actions         | 3 files / 32 focused frontend PASS                                                                                    |
+| Full backend                                            | 1,416 PASS / 37 explicit live-environment SKIP; disposable Python 3.12 container                                      |
+| Full frontend                                           | 85 files / 812 PASS with two workers                                                                                  |
+| Ruff / strict mypy                                      | PASS / PASS (292 source files)                                                                                        |
+| TypeScript / ESLint / Prettier                          | PASS / PASS / PASS                                                                                                    |
+| Production build                                        | PASS; existing large-chunk advisory only                                                                              |
+| Task files / unique task-index links                    | 223 / 223; no missing, extra or duplicate path                                                                        |
+| Whitespace validation                                   | `git diff --check` PASS                                                                                               |
+| Schema / Production / release boundary                  | No migration; no Production/account/database/provider write; not pushed or deployed                                   |
+| Live authenticated desktop/mobile browser               | NOT RUN; automated DOM/layout-path coverage is recorded, but no disposable authenticated browser data source was used |
 
 Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. The authoritative ACTIVE Match predicate excludes
 both pair orientations while preserving pending invitations, existing eligibility, score ordering
@@ -27,35 +73,35 @@ two-worker run passed all 812 tests.
 
 ## FE-LANDING-CTA-001 local validation — 2026-10-16
 
-| Check | Result |
-| --- | --- |
-| Focused CTA/Landing tests | 2 files / 13 PASS |
-| Full frontend | 85 files / 810 PASS |
-| TypeScript / ESLint / Prettier | PASS / PASS / PASS |
-| Production build | PASS; existing large-chunk advisory only |
-| Rendered responsive check | 1440×900, 768×1024 and 390×844; center delta `0 px` |
-| Demo removal | One CTA action; no Watch Demo text, dialog or video |
-| Browser console | 0 errors with local auth bootstrap fixture |
-| Scope / deployment | CTA-only source and exclusive assets; not pushed or deployed |
+| Check                          | Result                                                       |
+| ------------------------------ | ------------------------------------------------------------ |
+| Focused CTA/Landing tests      | 2 files / 13 PASS                                            |
+| Full frontend                  | 85 files / 810 PASS                                          |
+| TypeScript / ESLint / Prettier | PASS / PASS / PASS                                           |
+| Production build               | PASS; existing large-chunk advisory only                     |
+| Rendered responsive check      | 1440×900, 768×1024 and 390×844; center delta `0 px`          |
+| Demo removal                   | One CTA action; no Watch Demo text, dialog or video          |
+| Browser console                | 0 errors with local auth bootstrap fixture                   |
+| Scope / deployment             | CTA-only source and exclusive assets; not pushed or deployed |
 
 Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. No Production, database, account, Event, Storage,
 DNS or provider configuration mutation occurred.
 
 ## FE-USER-EVENTS-001 synchronized Event validation — 2026-10-16
 
-| Check                                      | Result                                                                        |
-| ------------------------------------------ | ----------------------------------------------------------------------------- |
-| Slider/Dashboard focused frontend          | 5 files / 43 PASS                                                             |
-| Feature-enabled detail and round-trip      | 2 files / 21 PASS                                                             |
-| Full frontend                              | 86 files / 818 PASS                                                           |
-| TypeScript / ESLint / Prettier             | PASS / PASS / PASS                                                            |
-| Production builds                          | Normal PASS; Admin-ON/Public-ON PASS; existing chunk advisory only            |
-| Focused backend Slider tests                | 8 PASS on repository-supported Python 3.12 in a disposable local container    |
-| Backend Ruff / strict mypy / contract smoke | PASS / PASS / PASS                                                            |
-| Data/provider boundary                     | Authorized push/deploy only; no database, Event, account or provider-config write |
-| GitHub Actions / Vercel Production         | Run `38881976983` SUCCESS / deployment `7115826436` SUCCESS for `66f44d1`     |
-| Production Event parity / registration     | Same 3 IDs/order; 2 View-only; 1 Register + View; PASS                         |
-| Production navigation / console / health   | Both return paths PASS; 0 warning/error; API live/ready PASS                    |
+| Check                                       | Result                                                                            |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| Slider/Dashboard focused frontend           | 5 files / 43 PASS                                                                 |
+| Feature-enabled detail and round-trip       | 2 files / 21 PASS                                                                 |
+| Full frontend                               | 86 files / 818 PASS                                                               |
+| TypeScript / ESLint / Prettier              | PASS / PASS / PASS                                                                |
+| Production builds                           | Normal PASS; Admin-ON/Public-ON PASS; existing chunk advisory only                |
+| Focused backend Slider tests                | 8 PASS on repository-supported Python 3.12 in a disposable local container        |
+| Backend Ruff / strict mypy / contract smoke | PASS / PASS / PASS                                                                |
+| Data/provider boundary                      | Authorized push/deploy only; no database, Event, account or provider-config write |
+| GitHub Actions / Vercel Production          | Run `38881976983` SUCCESS / deployment `7115826436` SUCCESS for `66f44d1`         |
+| Production Event parity / registration      | Same 3 IDs/order; 2 View-only; 1 Register + View; PASS                            |
+| Production navigation / console / health    | Both return paths PASS; 0 warning/error; API live/ready PASS                      |
 
 Result: **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**. `/user/events` consumes the same endpoint,
 cache and first-five selector as the Landing slider. The additive API projection carries the
@@ -528,44 +574,44 @@ and passed.
 
 ## EVENT-OPTIONAL-PUBLISH-001 local verification — 2026-10-14
 
-| Gate                                     | Result                                                                                 |
-| ---------------------------------------- | -------------------------------------------------------------------------------------- |
-| Focused backend Event                    | 38 PASS                                                                                |
-| Focused frontend Event/Admin/Dashboard   | 6 files / 32 PASS                                                                      |
-| Full backend, CPython 3.12                | 1,413 PASS / 37 explicit opt-in live SKIP                                              |
-| Full frontend                            | 86 files / 799 PASS                                                                    |
-| Backend static                           | Ruff PASS; mypy PASS on 107 source files                                               |
-| Frontend static                          | TypeScript, ESLint and Prettier PASS                                                   |
-| Production-target build                  | Admin ON/Public ON PASS; existing chunk-size advisory only                             |
-| Optional/partial facts                   | Publish, API, Slider and Detail null handling covered                                  |
+| Gate                                     | Result                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- |
+| Focused backend Event                    | 38 PASS                                                                                 |
+| Focused frontend Event/Admin/Dashboard   | 6 files / 32 PASS                                                                       |
+| Full backend, CPython 3.12               | 1,413 PASS / 37 explicit opt-in live SKIP                                               |
+| Full frontend                            | 86 files / 799 PASS                                                                     |
+| Backend static                           | Ruff PASS; mypy PASS on 107 source files                                                |
+| Frontend static                          | TypeScript, ESLint and Prettier PASS                                                    |
+| Production-target build                  | Admin ON/Public ON PASS; existing chunk-size advisory only                              |
+| Optional/partial facts                   | Publish, API, Slider and Detail null handling covered                                   |
 | Registration                             | Persisted HTTPS URL, enabled/disabled/missing, refresh, EN/DE and 390 px render covered |
-| Database / Production / release mutation | None; no migration, commit, push or deployment                                         |
-| Task files / unique task-index links     | 219 / 219; no missing or extra path                                                    |
-| Whitespace                               | `git diff --check` PASS                                                                |
+| Database / Production / release mutation | None; no migration, commit, push or deployment                                          |
+| Task files / unique task-index links     | 219 / 219; no missing or extra path                                                     |
+| Whitespace                               | `git diff --check` PASS                                                                 |
 
 Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. Release authorization is not inferred from the
 implementation request.
 
 ## EVENT-AUDIENCE-SLIDER-001 implementation and release — 2026-10-14
 
-| Gate | Result |
-| --- | --- |
-| Focused backend Event | 77 PASS |
-| Focused frontend Admin/Slider | 4 files / 32 PASS |
-| Full backend, CPython 3.12 | 1,415 PASS / 37 explicit opt-in live SKIP |
-| Full frontend | 86 files / 806 PASS |
-| Backend static | Ruff PASS; mypy PASS on 292 source files |
-| Frontend static | TypeScript, ESLint and Prettier PASS |
-| Migration contract | One head `0022`; reversible default-only SQL; no data `UPDATE` |
-| Production-target build | Admin ON/Public ON PASS; existing chunk-size advisory only |
-| Released source | `main=origin/main=65364a1180032063296898b2c6d8d2a9f59e1b97` |
-| Exact-SHA CI | Run `38586750058`; Backend and Frontend SUCCESS |
-| Vercel Production | GitHub deployment `7069199596`; SUCCESS for exact SHA; public alias 200 |
-| Public contract/data | No visibility create/filter input; EN/DE each return same two published, cover-ready Events |
-| Production browser | EN/DE Slider, rapid navigation, 390 × 844 no overflow, Admin no-Audience form, console clean |
-| Task files / unique task-index links | 220 / 220; no missing, extra or duplicate path |
-| Whitespace | `git diff --check` PASS |
-| Production mutation | None during verification; no Event, data, flag, provider or DNS change |
+| Gate                                 | Result                                                                                       |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Focused backend Event                | 77 PASS                                                                                      |
+| Focused frontend Admin/Slider        | 4 files / 32 PASS                                                                            |
+| Full backend, CPython 3.12           | 1,415 PASS / 37 explicit opt-in live SKIP                                                    |
+| Full frontend                        | 86 files / 806 PASS                                                                          |
+| Backend static                       | Ruff PASS; mypy PASS on 292 source files                                                     |
+| Frontend static                      | TypeScript, ESLint and Prettier PASS                                                         |
+| Migration contract                   | One head `0022`; reversible default-only SQL; no data `UPDATE`                               |
+| Production-target build              | Admin ON/Public ON PASS; existing chunk-size advisory only                                   |
+| Released source                      | `main=origin/main=65364a1180032063296898b2c6d8d2a9f59e1b97`                                  |
+| Exact-SHA CI                         | Run `38586750058`; Backend and Frontend SUCCESS                                              |
+| Vercel Production                    | GitHub deployment `7069199596`; SUCCESS for exact SHA; public alias 200                      |
+| Public contract/data                 | No visibility create/filter input; EN/DE each return same two published, cover-ready Events  |
+| Production browser                   | EN/DE Slider, rapid navigation, 390 × 844 no overflow, Admin no-Audience form, console clean |
+| Task files / unique task-index links | 220 / 220; no missing, extra or duplicate path                                               |
+| Whitespace                           | `git diff --check` PASS                                                                      |
+| Production mutation                  | None during verification; no Event, data, flag, provider or DNS change                       |
 
 Result: **PASS — AUDIENCE REMOVED, SLIDER SMOOTHED, TESTED, AND PUSHED TO MAIN**. The
 Production Alembic revision and Render provider deployment identity were not independently
