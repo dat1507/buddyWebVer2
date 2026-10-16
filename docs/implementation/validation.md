@@ -304,3 +304,207 @@ source and dependencies did not change.
 Result: frontend implementation and local release candidate are **PASS**. Continue only with the
 already authorized controlled frontend rollout and read-only OFF/OFF smoke. Admin-only activation,
 public-live activation and Production Event write acceptance remain separate approval gates.
+
+## EVENT-FLAG-SPLIT controlled Production release — 2026-10-11
+
+| Gate                     | Result                                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Git sync                 | `HEAD == origin/main == b3799669cf5fdb463cf03629e05b4b98fefe1f0a` before this local final-evidence addendum                 |
+| GitHub Actions           | Run `38077938121`; Backend SUCCESS; Frontend SUCCESS                                                                        |
+| Vercel                   | `dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` READY at `b379966`                                                                       |
+| Production bundle        | `index-XtzcBb4D.js`, 888,656 bytes; five static titles present; slider/Admin markers absent                                 |
+| Landing network/UI       | Zero Event-slider requests and Event links; no horizontal overflow; zero browser warnings/errors                            |
+| Disabled public route    | Direct Event detail renders the normal 404 boundary                                                                         |
+| Authenticated read smoke | Profile and Buddy Matching render; User Event navigation absent                                                             |
+| Admin boundary           | Direct Admin Event URL from the USER session renders no Admin layout/Event management UI                                    |
+| API                      | Site/live/readiness 200; database/Redis `ok`; email/Storage `configured`                                                    |
+| Render                   | No backend files changed; only Vercel has a GitHub deployment record for the SHA; accepted live/rollback baseline preserved |
+| Production mutation      | None; both new flags remain absent/OFF; no Event/account/data/provider write                                                |
+
+Result: **DEPLOYED — AWAITING ADMIN ACTIVATION**. Admin-only activation, controlled Production write
+acceptance and public-live activation remain separately authorized future gates.
+
+## ADMIN-EVENT-ACTIVATION evidence — 2026-10-11
+
+| Gate                  | Result                                                                                                                 |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Source / worktree     | `HEAD == origin/main == b379966`; existing uncommitted final-evidence docs preserved; Supabase local metadata excluded |
+| Production config     | `VITE_ADMIN_EVENTS_ENABLED=true` as Production Config; public/legacy keys absent                                       |
+| Vercel                | `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` READY from `b379966`; prior READY deployment retained                               |
+| Artifact boundary     | `index-CrsPaw6k.js`, 919,216 bytes; Admin list/create/metrics present; public slider and legacy markers absent         |
+| Public desktop/mobile | Five static titles, zero Event links/slider requests, zero overflow, zero browser warning/error; 390 x 844 PASS        |
+| API / Render          | live/ready 200; database/Redis `ok`; email/Storage `configured`; no backend deploy required                            |
+| USER / Anonymous      | Profile/Matching PASS; UI Admin denial PASS; anonymous Admin API 401/no-store                                          |
+| ADMIN UI              | PASS — Events nav/list and empty `0–0 of 0`; Create form; Edit not-found boundary; metrics render; zero warning/error  |
+| Production writes     | Zero; write-acceptance plan prepared and stopped before its first request                                              |
+| Documentation         | Prettier/diff-check PASS; task/index 217/217; 227 Markdown files with 0 broken links; 0 high-confidence secret hits    |
+
+The Production inventory contains no Event rows, so a populated edit form is not applicable until a
+separately approved synthetic DRAFT exists. Dashboard Published/Upcoming Event metric cards render
+`Not available`; they were not interpreted as zero.
+
+Result: **ADMIN ENABLED — AWAITING WRITE APPROVAL**. Documentation task-path coverage must remain
+217 / 217 with zero missing links. No application source, legacy archive or Production data changed.
+
+## ADMIN-EVENT-ACTIVATION Production write acceptance — 2026-10-11
+
+| Gate                 | Result                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Authorization        | One synthetic DRAFT only; Create/reload/cover replace/Edit/409; no publish/delete/public activation                |
+| Create / persistence | 201 then reload GET 200; Event `132dfbb1-b966-4cd0-a02e-901cd50cc8f5`; version 1                                   |
+| Cover upload         | Media `9f00a563-24d7-48d5-87ac-33c77abf5c9c`; version 3; `cleanup_pending=false`                                   |
+| Cover replacement    | Media `e3f58e3f-f1d4-44aa-839c-c7f699602215`; version 5; `cleanup_pending=false`; old object automatically removed |
+| Accepted Edit        | Organizer test marker persisted; version 6                                                                         |
+| Version conflict     | Stale version 5 returned 409; UI recovery message shown; no data or audit mutation                                 |
+| Final Event boundary | DRAFT; MEMBERS; registration OFF; `published_at=NULL`; active cover B; no status endpoint called                   |
+| Audit / notification | 6 expected audit rows; 0 Event-related transactional outbox rows                                                   |
+| Public exclusion     | Detail EN/DE 404; sliders EN/DE `[]`; no Landing title/ID/link or slider request                                   |
+| Runtime health       | live/ready 200; database/Redis `ok`; email/Storage `configured`; zero browser warning/error                        |
+| Source / broad tests | No source/config/deployment change; full regression intentionally not rerun                                        |
+| Documentation        | Prettier/diff-check PASS; task/index 217/217; 253 Markdown files, 0 broken links; 0 secret hits; archive unchanged |
+
+Result: **PASS — PRODUCTION WRITE ACCEPTANCE COMPLETE / DRAFT RETAINED**. Continue to block
+publication, status mutation, cleanup/delete and `VITE_PUBLIC_EVENTS_ENABLED` until separately
+approved.
+
+## FE-EVENT-DETAIL-TEMPLATE-001 local validation — 2026-10-14
+
+| Gate                                   | Result                                                                                        |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Production diagnosis                   | Read-only Admin inventory, public APIs, deployed bundle and UI boundary verified; zero writes |
+| Focused frontend                       | 6 files / 37 tests PASS                                                                       |
+| Full frontend                          | 85 files / 790 tests PASS                                                                     |
+| TypeScript / ESLint / Prettier         | PASS / PASS / PASS                                                                            |
+| Normal / public-enabled builds         | PASS / PASS; existing large-chunk advisory only                                               |
+| Focused backend Event, CPython 3.12.10 | 112 PASS / 1 explicit live-database SKIP                                                      |
+| Artifact-browser Slider -> Detail      | PASS: cover/title only, exact UUID route, exact EN/DE Description, direct reload              |
+| Responsive / cover / console           | Desktop and 390 x 844 no overflow; image decoded; 0 warnings / 0 errors                       |
+| Backend/schema/storage/runtime config  | 0 changes                                                                                     |
+| Production/provider mutation           | 0; public flag remains OFF; no deploy                                                         |
+
+Result: **IMPLEMENTATION COMPLETE — LOCAL VERIFICATION PASS / NOT DEPLOYED**. The next gate is an
+explicit public-release approval plus a genuine upcoming eligible Event. The frontend must be
+rebuilt after setting `VITE_PUBLIC_EVENTS_ENABLED=true`; no backend migration/release is required.
+
+## FE-EVENT-DETAIL-TEMPLATE-001 Kawazo acceptance and release preflight — 2026-10-14
+
+| Gate                                      | Result                                                                                                          |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Authorized Production write               | Kawazo dates only; Oct 10 -> Nov 10 with local time/duration preserved                                          |
+| Production post-write boundary            | Kawazo PUBLISHED/PUBLIC/UPCOMING; retained test Event DRAFT/MEMBERS; public Slider contains only Kawazo         |
+| Frontend release commit                   | `9df8c64493c3273f32e68f7193fb6b9ad70ec89d`; local only, one commit ahead of `origin/main`                       |
+| Focused / full frontend                   | 8 files / 62 tests PASS; 85 files / 791 tests PASS                                                              |
+| TypeScript / ESLint / Prettier            | PASS / PASS / PASS                                                                                              |
+| Production-target builds                  | Admin-ON/public-OFF PASS; Admin-ON/public-ON PASS; known chunk advisory only                                    |
+| Browser acceptance                        | Kawazo Slider/detail EN/DE, click/reload, desktop/mobile, cover and public 404 boundaries PASS; 0 warning/error |
+| Task files / unique task-index links      | 218 / 218; 0 missing in either direction                                                                        |
+| Markdown files / broken local links       | 262 / 0                                                                                                         |
+| Added high-confidence secret-pattern hits | 0                                                                                                               |
+| Legacy archive changes                    | 0                                                                                                               |
+| Public flag / push / deployment           | OFF / none / none                                                                                               |
+
+Result: **READY FOR RELEASE APPROVAL — NOT DEPLOYED**. The release boundary is exact frontend commit
+`9df8c64`; public activation and deployment remain blocked until a new explicit approval.
+
+## FE-EVENT-DETAIL-TEMPLATE-001 controlled release and recovery — 2026-10-14
+
+| Gate                                 | Result                                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Exact remote ref                     | `origin/main=9df8c64493c3273f32e68f7193fb6b9ad70ec89d`                                                             |
+| Required CI                          | GitHub run `38551287304`; Frontend PASS; Backend PASS                                                              |
+| Intermediate auto deployment         | `dpl_ArkWFd8NjyVF4GeiQ1h4ANbMarzu`; exact SHA; Public OFF                                                          |
+| Intended launch deployment           | `dpl_7jRJsyD4AqJtFMKMEUHx72Fpba8K`; exact SHA; Public ON/Admin ON                                                  |
+| Functional smoke                     | Anonymous/User EN/DE Slider/detail, direct reload, Admin, responsive and console/network gates passed              |
+| Mandatory content gate               | **FAIL** — cover showed Oct 10, 07:40–16:30 while canonical detail showed Nov 10, 07:20–19:00                      |
+| Recovery deployment                  | `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4`; Ready/Production, current domains, source `b379966`                            |
+| Serving rollback artifact            | HTML/bundle 200; `index-CrsPaw6k.js`; public markers absent; Admin markers present                                 |
+| Recovery UI                          | Static five-poster carousel; zero public Event links; Event route 404; Admin two-row inventory; zero warning/error |
+| Future-build configuration           | `VITE_PUBLIC_EVENTS_ENABLED=false`; `VITE_ADMIN_EVENTS_ENABLED=true`                                               |
+| Task files / unique task-index links | 218 / 218; 0 missing, duplicate or extra                                                                           |
+| Broken routed Markdown links         | 0                                                                                                                  |
+| Whitespace / staging                 | `git diff --check` PASS; staged paths 0                                                                            |
+| Tracked application/source delta     | 0 under `apps/` or `supabase/` from documentation finalization                                                     |
+
+Result: **FAIL / SAFELY ROLLED BACK**. No full regression was repeated because the release candidate
+did not change after its exact-SHA CI pass and the final work was documentation only. Pre-existing
+untracked local Supabase metadata remains unstaged and untouched. Content correction and another
+public release require new explicit approvals.
+
+## FE-EVENT-DETAIL-TEMPLATE-001 final Production release — 2026-10-14
+
+| Gate                                 | Result                                                                                                           |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Local/remote source                  | `main=origin/main=9df8c64493c3273f32e68f7193fb6b9ad70ec89d`; no new commit/push                                  |
+| Commit isolation                     | Seven intended frontend files; no documentation or local Supabase metadata included                              |
+| Fresh focused / full frontend        | 8 files / 90 tests PASS; 85 files / 791 tests PASS                                                               |
+| TypeScript / ESLint / Prettier       | PASS / PASS / PASS                                                                                               |
+| Admin ON/public OFF build            | PASS; existing large-chunk advisory only                                                                         |
+| Admin ON/public ON build             | PASS; existing large-chunk advisory only                                                                         |
+| Required CI                          | Run `38551287304`; Frontend PASS; Backend PASS for the exact SHA                                                 |
+| Production deployment                | `dpl_48YExmcZG4YREaUGGUmePsaZ9NP2`; Ready/Production; exact SHA; public domain assigned                          |
+| Effective Production flags           | `VITE_PUBLIC_EVENTS_ENABLED=true`; `VITE_ADMIN_EVENTS_ENABLED=true`                                              |
+| Serving artifact                     | `index-kimW3TwX.js`; HTML/bundle 200; public/Admin markers present; old static Event titles absent               |
+| Public API                           | No-cookie EN/DE Slider 200, exactly Kawazo; Kawazo detail 200; retained DRAFT absent and detail 404              |
+| Production browser smoke             | Slider/detail EN/DE, click/reload, User/Admin, desktop/390 x 844, console/network and Landing regression PASS    |
+| Runtime health                       | live/ready 200; readiness `ready`; database/Redis `ok`; email/Storage `configured`                               |
+| Invalid/non-public boundary          | Invalid ID rendered 404 UI and API rejected it; retained DRAFT rendered 404 and emitted no browser warning/error |
+| Rollback                             | `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` retained as Ready Admin-ON/public-OFF baseline                                |
+| Task files / unique index links      | 218 / 218; 0 missing, extra or duplicate                                                                         |
+| Routed Markdown links                | 252 files checked; 0 broken local links                                                                          |
+| Documentation formatting             | Focused Prettier check PASS                                                                                      |
+| Whitespace / staging                 | `git diff --check` PASS; staged paths 0                                                                          |
+| Tracked application/source delta     | 0 under `apps/` or `supabase/` from release documentation finalization                                           |
+| Accepted limitation                  | Poster/canonical schedule discrepancy owner-accepted and out of scope                                            |
+| Production data/backend/schema delta | 0                                                                                                                |
+
+Result: **PASS — COMMITTED, DEPLOYED, AND PRODUCTION-VERIFIED**. No backend regression suite was
+rerun because there was no backend/source change; the exact-SHA Backend CI job remained required
+and passed.
+
+## EVENT-OPTIONAL-PUBLISH-001 local verification — 2026-10-14
+
+| Gate                                     | Result                                                                                 |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| Focused backend Event                    | 38 PASS                                                                                |
+| Focused frontend Event/Admin/Dashboard   | 6 files / 32 PASS                                                                      |
+| Full backend, CPython 3.12                | 1,413 PASS / 37 explicit opt-in live SKIP                                              |
+| Full frontend                            | 86 files / 799 PASS                                                                    |
+| Backend static                           | Ruff PASS; mypy PASS on 107 source files                                               |
+| Frontend static                          | TypeScript, ESLint and Prettier PASS                                                   |
+| Production-target build                  | Admin ON/Public ON PASS; existing chunk-size advisory only                             |
+| Optional/partial facts                   | Publish, API, Slider and Detail null handling covered                                  |
+| Registration                             | Persisted HTTPS URL, enabled/disabled/missing, refresh, EN/DE and 390 px render covered |
+| Database / Production / release mutation | None; no migration, commit, push or deployment                                         |
+| Task files / unique task-index links     | 219 / 219; no missing or extra path                                                    |
+| Whitespace                               | `git diff --check` PASS                                                                |
+
+Result: **DONE — LOCAL VERIFIED / NOT DEPLOYED**. Release authorization is not inferred from the
+implementation request.
+
+## EVENT-AUDIENCE-SLIDER-001 implementation and release — 2026-10-14
+
+| Gate | Result |
+| --- | --- |
+| Focused backend Event | 77 PASS |
+| Focused frontend Admin/Slider | 4 files / 32 PASS |
+| Full backend, CPython 3.12 | 1,415 PASS / 37 explicit opt-in live SKIP |
+| Full frontend | 86 files / 806 PASS |
+| Backend static | Ruff PASS; mypy PASS on 292 source files |
+| Frontend static | TypeScript, ESLint and Prettier PASS |
+| Migration contract | One head `0022`; reversible default-only SQL; no data `UPDATE` |
+| Production-target build | Admin ON/Public ON PASS; existing chunk-size advisory only |
+| Released source | `main=origin/main=65364a1180032063296898b2c6d8d2a9f59e1b97` |
+| Exact-SHA CI | Run `38586750058`; Backend and Frontend SUCCESS |
+| Vercel Production | GitHub deployment `7069199596`; SUCCESS for exact SHA; public alias 200 |
+| Public contract/data | No visibility create/filter input; EN/DE each return same two published, cover-ready Events |
+| Production browser | EN/DE Slider, rapid navigation, 390 × 844 no overflow, Admin no-Audience form, console clean |
+| Task files / unique task-index links | 220 / 220; no missing, extra or duplicate path |
+| Whitespace | `git diff --check` PASS |
+| Production mutation | None during verification; no Event, data, flag, provider or DNS change |
+
+Result: **PASS — AUDIENCE REMOVED, SLIDER SMOOTHED, TESTED, AND PUSHED TO MAIN**. The
+Production Alembic revision and Render provider deployment identity were not independently
+available. Anonymous public API reads passed and matched the Slider, but available browser profiles
+were authenticated and were not signed out. Production create/publish and separate reduced-motion
+profiling were intentionally not performed; regression coverage and local browser verification
+remain the controlling evidence for those paths.

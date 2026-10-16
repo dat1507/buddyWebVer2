@@ -1,33 +1,200 @@
 # Session handoff
 
-**Updated:** 2026-10-11 (Asia/Saigon)
-**TASK_ID:** EVENT-FLAG-SPLIT (RELEASE CANDIDATE — LOCAL GATES PASS / BOTH PRODUCTION FLAGS OFF)
-**Current mode:** Controlled frontend release; stop before Admin-only activation or any Event write
+**Updated:** 2026-10-14 (Asia/Saigon)
+**TASK_ID:** EVENT-AUDIENCE-SLIDER-001 (DONE — PUSHED / CI PASS / PRODUCTION VERIFIED)
+**Current mode:** Task complete; preserve prior dirty files and the uncommitted documentation synchronization
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
 
-`EVENT-FLAG-SPLIT` is the active approved task. The frontend now uses independent strict
-`VITE_ADMIN_EVENTS_ENABLED` and `VITE_PUBLIC_EVENTS_ENABLED` build-time switches. Exact `true` is
-the only enabling value; missing/invalid values are OFF, and `VITE_EVENTS_LAUNCH_ENABLED` is ignored.
-Admin list/create/edit/navigation/metrics share the Admin switch, while Landing live data, public
-detail and User Event surfaces share the public switch. Disabled direct routes render a consistent
-404 without bypassing the existing USER/ADMIN role guards.
+`EVENT-AUDIENCE-SLIDER-001` is complete. Commit
+`65364a1180032063296898b2c6d8d2a9f59e1b97`, directly based on
+`ed250f52920b8bf415ea87224462cd10aa923df9`, reached `origin/main`; GitHub Actions run
+`38586750058` passed Frontend and Backend. GitHub Production deployment `7069199596` succeeded for
+the exact SHA and `www.vgubuddyprogram.com` serves bundle `index-DfxH7DYv.js`.
 
-Final local verification on 2026-10-11 is PASS: resolver 11/11; focused affected tests 67/67; each
-of four Admin/Public combinations plus missing/legacy and invalid/legacy matrices passes 8/8;
-full frontend 85 files / 788 tests; TypeScript, ESLint and Prettier PASS; all four production-build
-combinations PASS. The final OFF/OFF bundle retains all five static titles and contains neither the
-live slider endpoint marker nor `/admin/events`. No backend code/dependency changed, so prior backend
-CI evidence is reused.
+Audience is removed from Admin UI/write contracts, publishing normalizes Events to `PUBLIC`, and
+legacy published `MEMBERS` rows are no longer hidden solely by that stored value. No Production
+data rewrite occurred. The reversible `0022_public_event_visibility_default` migration changes only
+the server default and has no data `UPDATE`; its Production application was not independently
+queried. Draft/deleted/unpublished/non-ready-cover and Admin authorization boundaries remain intact.
 
-Production preflight confirmed the `buddy-web-ver2` Vercel project in the expected team, current
-READY deployments and absent Admin, public and legacy Event keys. Both features will therefore stay
-OFF after the authorized `main` rollout. Render requires no new backend deploy; preserve its accepted
-`e2ef4c0` live and `d15cb1d` rollback evidence. Run only read-only OFF/OFF Production smoke, then
-stop at **AWAITING ADMIN ACTIVATION**. Do not add either flag, create/upload/publish an Event, or
-change database, Storage, Redis, DNS, secrets or provider configuration.
+The Slider now guards the actual track-transform completion, queues rapid navigation, avoids
+lazy-image transition stalls and preserves stable mobile/touch/reduced-motion behavior. Focused
+backend 77, focused frontend 32, full backend 1,415 with 37 explicit live skips, full frontend 806,
+all static gates and the flag-ON Production build passed. Read-only Production verification found
+the same two published, cover-ready Events in EN/DE and in the live Slider, no Audience field in the
+Admin create form, usable rapid controls, no 390 × 844 horizontal overflow and no console errors.
+No Event, user, Storage, registration, database, DNS or provider configuration was changed.
+
+Available browser profiles were already authenticated, so anonymous frontend rendering was not
+repeated by signing out; unauthenticated public API reads returned 200 and the same two Events.
+Render deployment identity and the Production Alembic revision were not independently available.
+Preserve these evidence limits and the pre-existing dirty documentation/Supabase metadata.
+
+The previous verified continuation point follows unchanged.
+
+`ADMIN-010` and the linked Slider visibility correction are implemented, committed and pushed.
+Commit `ed250f52920b8bf415ea87224462cd10aa923df9`, directly based on
+`1f94629d8dd68e92966d61eb14b9a817c1fb991e`, reached `origin/main`; GitHub Actions run
+`38576202814` passed Frontend and Backend. Push-triggered GitHub Deployment `7067400901` completed
+successfully in Vercel Production for the exact SHA; `www` serves bundle `index-Bkc4hubM.js` with the
+new UI. New Event drafts default to `PUBLIC`, the Audience control is restored so an existing
+`MEMBERS` Event can be corrected explicitly, and Admin Inventory now has versioned dependency-aware
+deletion with confirmation, pending lock, safe feedback and public/Admin query invalidation.
+
+Production anonymous EN/DE list and Slider reads still return only Field trip. Field trip is directly
+confirmed `PUBLISHED`/`PUBLIC`, future-scheduled and cover-ready. A verified USER read returned Buddy
+Recruitment `b62cee68-8f9a-4206-89b7-d84b74fd4e8b` as `PUBLISHED`/`MEMBERS`, unscheduled,
+location-free, registration OFF, localized in EN/DE and cover-ready. Its `MEMBERS` visibility is the
+direct anonymous public-list/Slider exclusion. The existing unscheduled-Slider correction in
+`1f94629+` also requires the backend release before a later `PUBLIC` correction can make this Event
+appear on the Slider. No Production Event was modified. The backend release and Event visibility
+correction remain separate approvals.
+
+Verification passed: focused backend 48 and frontend 41, full backend 1,414 with 37 explicit live
+skips, full frontend 86 files / 803, Ruff, mypy 107 files, TypeScript, ESLint, Prettier and the
+Admin-ON/Public-ON Production build. Existing backend deletion authorization, dependency,
+transactional audit and Event-owned media cleanup tests remain PASS.
+
+The previous verified continuation point follows unchanged.
+
+`EVENT-OPTIONAL-PUBLISH-001` is complete locally and not deployed. Publication no longer requires
+locations or start/end timestamps; localized titles/descriptions and a ready cover remain required,
+and any supplied schedule still obeys ordering/deadline invariants. Published cover-ready Events
+without `start_date` are announcement slides after scheduled upcoming Events. Public/member API
+dates, phase and location are nullable, and Event Detail omits missing facts safely.
+
+The Admin form no longer renders Category, Organizer, Audience or Maximum participants, while edit
+payloads preserve their stored values. Registration enabled and the HTTPS URL remain editable. The
+confirmed URL defect was a missing consumer: persistence and API projection were already correct,
+but User Dashboard fetched no Events and neither Dashboard nor Detail rendered an action. Both now
+show the exact persisted HTTPS link only when registration is enabled and a URL exists; audience
+filtering remains backend-enforced and `['events']` invalidation refreshes updates.
+
+Verification passed: focused backend 38, focused frontend 32, full backend 1,413 with 37 explicit
+live skips, full frontend 86 files / 799, Ruff, mypy 107 files, TypeScript, ESLint, Prettier and the
+Admin-ON/Public-ON Production build. Commit
+`1f94629d8dd68e92966d61eb14b9a817c1fb991e`, directly based on
+`9df8c64493c3273f32e68f7193fb6b9ad70ec89d`, reached `origin/main`; GitHub Actions run
+`38571496427` passed Frontend and Backend. No migration, deployment or
+Production/data/configuration write occurred. Preserve the pre-existing dirty documentation and
+Supabase metadata and await separate deployment approval.
+
+The previous verified continuation point follows unchanged.
+
+`FE-EVENT-DETAIL-TEMPLATE-001` is complete. The owner explicitly accepted the Kawazo poster versus
+canonical schedule discrepancy as an out-of-scope content issue and authorized the controlled
+frontend release without changing the Event, cover or registration configuration. Exact commit
+`9df8c64493c3273f32e68f7193fb6b9ad70ec89d` remains both local `main` and `origin/main`; its direct
+parent is `b3799669cf5fdb463cf03629e05b4b98fefe1f0a`. GitHub Actions run `38551287304` passed both
+required jobs for that SHA.
+
+Vercel Production deployment `dpl_48YExmcZG4YREaUGGUmePsaZ9NP2` is Ready from the exact release
+SHA and serves `www.vgubuddyprogram.com`. Production Config is
+`VITE_PUBLIC_EVENTS_ENABLED=true` and `VITE_ADMIN_EVENTS_ENABLED=true`; the live bundle is
+`index-kimW3TwX.js`. The retained Admin-ON/public-OFF deployment
+`dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` remains the intended frontend rollback baseline.
+
+Fresh Production smoke passed for the dynamic EN/DE Slider, Kawazo-only eligibility, canonical
+Event Detail, direct navigation and refresh, normal-User/Admin boundaries, desktop and 390 x 844
+responsive layouts, public DRAFT exclusion, console/network health and unaffected Landing sections.
+The retained synthetic Event `132dfbb1-b966-4cd0-a02e-901cd50cc8f5` remains DRAFT/MEMBERS with
+registration OFF and is absent from both Slider locales; its public detail returns 404. No Event,
+registration setting, cover/Storage object, user, backend, schema or DNS data changed in this final
+release. No new source commit was created because the approved implementation was already the exact
+remote `main` commit.
+
+The poster's embedded October schedule remains intentionally accepted and out of scope; it is not a
+rollback trigger for this release. The Event update/audit transaction is supported by the reviewed
+implementation and existing rollback-on-audit-failure tests, but the specific Production audit row
+was not independently retrieved and is not claimed. Detailed evidence is in
+`docs/operations/event-kawazo-production-release-preflight-2026-10-14.md`.
+
+## Superseded rollback history
+
+`FE-EVENT-DETAIL-TEMPLATE-001` completed an owner-approved release attempt and was rolled back at a
+mandatory Production content gate. Before that release, after the owner
+authorized only a date correction, real Event `0a9fe1f9-ea26-4426-bfd8-8900113de46f` moved from
+2026-10-10 to 2026-11-10 while preserving 07:20–19:00 Asia/Ho_Chi_Minh. It remains `PUBLISHED`,
+`PUBLIC`, cover-ready and complete in EN/DE; registration configuration and deadline are unchanged.
+Its derived phase is now `UPCOMING`, anonymous EN/DE detail reads return 200, and the Slider API
+returns exactly Kawazo. At the preflight point `VITE_PUBLIC_EVENTS_ENABLED` was absent/OFF, so the
+Landing used five static posters and direct public Event routes stayed at the normal 404 boundary.
+
+The existing `/events/:eventId` template now uses a responsive legacy-inspired cover/article layout
+while preserving the canonical API, authorization, EN/DE behavior, signed-cover refresh and exact
+plain-text Description. Live Slider cards now show only cover and title; the full card remains an
+accessible link and failed covers use a recoverable fallback. Direct browser reload exposed and
+fixed a double-cleanup race in anonymous session bootstrap. Verification passed: frontend 85 files /
+791 tests, focused Admin/Slider/Detail/Auth 8 files / 62 tests, TypeScript/ESLint/Prettier, normal and
+public-enabled builds, plus local browser click/reload/EN-DE/desktop/mobile checks against the
+read-only Production Kawazo APIs with zero console warning/error. The preserved backend Event suite
+remains 112 PASS / 1 opt-in live SKIP; it was not repeated after the frontend-only fix.
+
+Release commit `9df8c64493c3273f32e68f7193fb6b9ad70ec89d` now equals `origin/main`; its direct
+parent is `b3799669cf5fdb463cf03629e05b4b98fefe1f0a`. GitHub Actions run `38551287304`
+passed both required CI jobs. Vercel automatic deployment
+`dpl_ArkWFd8NjyVF4GeiQ1h4ANbMarzu` was correctly treated as intermediate Public-OFF, then launch
+deployment `dpl_7jRJsyD4AqJtFMKMEUHx72Fpba8K` rebuilt the same SHA with Public ON and Admin ON.
+Anonymous/User EN/DE Slider and detail, click/direct reload, Admin access, desktop/mobile behavior,
+homepage regressions and console/network health passed until the content-consistency check found
+that the cover still advertised October 10 and 07:40–16:30 while the canonical Event published
+November 10 and 07:20–19:00.
+
+The release stopped and rollback deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` was promoted.
+Production now serves its `b379966` Admin-ON/public-OFF bundle `index-CrsPaw6k.js`; public routes are
+back behind the 404 boundary, the static five-poster Landing is restored, and Admin Event Management
+still loads both retained rows. Production Config is `VITE_PUBLIC_EVENTS_ENABLED=false` for future
+builds and `VITE_ADMIN_EVENTS_ENABLED=true`. No Event, registration, cover/Storage, user, backend,
+schema or DNS data was changed during release or recovery.
+
+The next action is a new explicit authorization to reconcile the Kawazo cover and canonical
+schedule. Do not change Production content under the consumed release approval. After corrected
+content is verified read only, public activation needs a separate controlled-release approval. No
+backend release or migration is required. Detailed evidence is in
+`docs/operations/event-detail-template-local-verification-2026-10-14.md` and
+`docs/operations/event-kawazo-production-release-preflight-2026-10-14.md`.
+
+`ADMIN-EVENT-ACTIVATION` is the previous completed Production acceptance. Vercel Production now contains the single
+Config variable `VITE_ADMIN_EVENTS_ENABLED=true`; `VITE_PUBLIC_EVENTS_ENABLED` remains absent/OFF
+and the legacy key remains absent and ignored. Deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` is
+READY from source `b379966`, and Production serves `index-CrsPaw6k.js`. The bundle contains Admin
+list/create/metrics markers but no public slider endpoint marker. The prior
+`dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` deployment remains a READY rollback point.
+
+Read-only Production smoke passed for the static five-poster Landing on desktop and 390 x 844,
+with no Event links, slider request, overflow or console warning/error. API live/readiness returned
+200 with database/Redis `ok` and email/Storage `configured`. Existing USER Profile and Buddy
+Matching still render; USER and Anonymous cannot enter Admin Event Management, and anonymous Admin
+API access returns 401/no-store. That activation/read-only stage changed no backend, Render,
+database, Storage, Redis, DNS, secret, account or Event data.
+
+Authenticated Admin read-only verification now passes. Dashboard exposes Events navigation and
+renders the Published/Upcoming Event metric cards as `Not available`; `/admin/events` loads the full
+filter/table shell and the authoritative empty state `0–0 of 0`; `/admin/events/new` renders the
+localized DRAFT form without submission; and a valid-shaped nonexistent edit URL returns the normal
+`Event not found` boundary. These pages produced zero browser warning/error entries. Because the
+Production inventory is empty, a populated edit form is not applicable until a separately approved
+synthetic DRAFT exists.
+
+The owner then separately approved exactly one synthetic Production DRAFT. Acceptance is PASS for
+Create -> reload -> cover upload/replace -> content Edit -> stale-version conflict. The retained
+Event is `132dfbb1-b966-4cd0-a02e-901cd50cc8f5`, version 6, `DRAFT`, `MEMBERS`, registration OFF,
+`published_at=NULL`, with active cover media `e3f58e3f-f1d4-44aa-839c-c7f699602215` at private
+object `event-media/b566eab7-7807-4c2b-a99f-dd898e1dfe7d.webp`. The first cover object was removed
+automatically by the authorized replacement path with `cleanup_pending=false`; no manual delete ran.
+
+Public detail EN/DE returns 404, slider EN/DE returns `[]`, and the flag-OFF Landing contains no
+synthetic title, link or slider request. The stale save returned 409 without an audit entry or data
+change; six expected create/update/media audit rows exist and the Event-related outbox count is zero.
+API live/readiness remains 200. Detailed sanitized evidence is in
+`docs/operations/admin-event-production-write-acceptance-2026-10-11.md`.
+
+Do not publish, cancel, delete, cleanup, upload again or enable `VITE_PUBLIC_EVENTS_ENABLED` without
+a new explicit approval. The retained Event and active private object are intentionally left for
+later cleanup handling.
 
 The large legacy plan has been split into a lightweight control plane plus per-task extracts. Start
 with `implementation-plan.md`; do not scan `implementation_plan_vgu_buddy.md`.

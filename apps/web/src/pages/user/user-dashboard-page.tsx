@@ -232,12 +232,12 @@ function RegistrationEventCard({ event, locale }: { event: PublicEvent; locale: 
         <Button asChild className="w-full sm:w-auto">
           <a href={registrationUrl} target="_blank" rel="noreferrer">
             <ExternalLink aria-hidden="true" />
-            {t('userDashboard.events.register', { title: event.title })}
+            {t('userDashboard.events.register')}
           </a>
         </Button>
         <Button asChild variant="outline" className="w-full sm:w-auto">
           <Link to={`/user/events/${event.id}`}>
-            {t('userDashboard.events.viewDetails', { title: event.title })}
+            {t('userDashboard.events.viewDetails')}
           </Link>
         </Button>
       </CardContent>

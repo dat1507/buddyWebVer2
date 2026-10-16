@@ -1158,8 +1158,8 @@
       "registrationDescription": "Registration links available for Events you can access.",
       "loading": "Loading Event registration…",
       "loadError": "Event registration could not be loaded.",
-      "register": "Register for {{title}}",
-      "viewDetails": "View {{title}} details"
+      "register": "Register for this event",
+      "viewDetails": "View details"
     }
   },
   "recommendedBuddies": {

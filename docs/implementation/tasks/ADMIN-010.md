@@ -1,6 +1,6 @@
 # ADMIN-010
 
-**Control-plane status:** IMPLEMENTED / FULL REGRESSION PASS — COMMIT PENDING
+**Control-plane status:** DONE — FRONTEND AUTO-DEPLOYED / BACKEND & DATA PENDING
 **Track:** admin
 **Priority:** P0
 **Dependencies (latest extracted):** ADMIN-005, ADMIN-006, EVT-009
@@ -35,10 +35,16 @@
   verification: backend 1,414 PASS / 37 explicit live skips; frontend 86 files / 803 tests PASS;
   Ruff, strict mypy (107 files), TypeScript, ESLint, Prettier and the Admin-ON/Public-ON Production
   build PASS. The existing bundle-size advisory is unchanged.
-- Exact persisted Admin fields for Buddy Recruitment were not independently read because available
-  browser sessions were anonymous or USER-only. The owner must authenticate the already-open Admin
-  Login before that data comparison can be upgraded from source/API-supported inference to direct
-  record evidence. No Production Event was modified.
+- A verified USER read directly returned Buddy Recruitment
+  `b62cee68-8f9a-4206-89b7-d84b74fd4e8b` in both locales as `PUBLISHED`/`MEMBERS`, unscheduled,
+  location-free, registration OFF and cover-ready. Field trip
+  `0a9fe1f9-ea26-4426-bfd8-8900113de46f` remained `PUBLISHED`/`PUBLIC`, future-scheduled and
+  cover-ready. This confirms `MEMBERS` as the direct anonymous eligibility failure; no Production
+  Event was modified.
+- Commit `ed250f52920b8bf415ea87224462cd10aa923df9` reached `origin/main`; GitHub Actions run
+  `38576202814` passed Frontend and Backend. Push-triggered GitHub Deployment `7067400901` completed
+  successfully in Vercel Production for the exact SHA and `www` serves `index-Bkc4hubM.js` with the
+  new UI. No backend deployment or Event mutation occurred; those remain separately gated.
 
 ## Preserved contract sections
 

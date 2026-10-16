@@ -1158,8 +1158,8 @@
       "registrationDescription": "Anmeldelinks für Veranstaltungen, auf die du zugreifen kannst.",
       "loading": "Veranstaltungsanmeldung wird geladen…",
       "loadError": "Die Veranstaltungsanmeldung konnte nicht geladen werden.",
-      "register": "Für {{title}} anmelden",
-      "viewDetails": "Details zu {{title}} anzeigen"
+      "register": "Für diese Veranstaltung anmelden",
+      "viewDetails": "Details anzeigen"
     }
   },
   "recommendedBuddies": {

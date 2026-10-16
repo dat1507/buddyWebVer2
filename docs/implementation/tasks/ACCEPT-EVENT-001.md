@@ -1,6 +1,6 @@
 # ACCEPT-EVENT-001
 
-**Control-plane status:** DONE — FLAG-OFF PRODUCTION SMOKE PASS
+**Control-plane status:** DONE — PRODUCTION WRITE ACCEPTANCE PASS / DRAFT RETAINED
 **Track:** release-operations
 **Priority:** -
 **Dependencies (latest extracted):** `EVS-007`, deployed matching frontend/API SHA, migration/head verification,
@@ -86,6 +86,19 @@ remain ADMIN-protected and lack the flag-OFF list/navigation path. Admin-ON/Publ
 requires a separately approved source change to split the flags and gate Admin routes consistently;
 no refactor, Production write or activation occurred in this task.
 
+## Subsequent Admin-only Production write acceptance — PASS 2026-10-11
+
+A newer, separate owner approval enabled Admin management while keeping public live Events OFF and
+authorized exactly one synthetic DRAFT acceptance record. Event
+`132dfbb1-b966-4cd0-a02e-901cd50cc8f5` passed create/reload, cover upload/replacement, accepted Edit
+and stale-version 409 checks. It remains DRAFT/MEMBERS with registration OFF and no public detail or
+slider projection. No publish or delete endpoint was called.
+
+This newer evidence supersedes only the earlier `PRODUCTION WRITES NOT RUN` continuation statement;
+the flag-OFF rollout history above remains immutable. Sanitized evidence is in
+[`admin-event-production-write-acceptance-2026-10-11.md`](../../operations/admin-event-production-write-acceptance-2026-10-11.md).
+Cleanup/delete and public-live activation still require separate explicit approvals.
+
 ## Staging readiness evidence — 2026-10-09
 
 - `EVS-007` is DONE locally, but no matching frontend/backend Event SHA is deployed to Staging.
@@ -137,16 +150,15 @@ cloud Staging was not used; it is not a current request to restore Staging.
   the production Event launch flag; failure keeps the release guard off.
 - **Next Task:** explicit product/release approval; no automatic production deployment.
 
-
 ## Cross-reference occurrences outside extracted headings
 
 - Legacy line 8265: - **Launch-scope integrity:** existing non-V2 P0 features must pass their own acceptance gates before production navigation advertises them. The Event/Event Slider/Admin Event track is restored to planned launch scope by controlling Part 27 and must pass \`ACCEPT-EVENT-001\`; until then its existing production feature gate remains off and placeholder routes are not advertised as delivered features.
-- Legacy line 8338:   \`ACCEPT-EVENT-001\` passes. After that acceptance, production enables the Event track; the flag is
-- Legacy line 8534:   -> ACCEPT-EVENT-001
-- Legacy line 8621:   sensitive content during \`ACCEPT-EVENT-001\`.
+- Legacy line 8338: \`ACCEPT-EVENT-001\` passes. After that acceptance, production enables the Event track; the flag is
+- Legacy line 8534: -> ACCEPT-EVENT-001
+- Legacy line 8621: sensitive content during \`ACCEPT-EVENT-001\`.
 - Legacy line 8844: - **Staging acceptance:** none; successful automation makes \`ACCEPT-EVENT-001\` ready.
 - Legacy line 8845: - **Next Task:** \`ACCEPT-EVENT-001\`.
 - Legacy line 8956: 13. \`ACCEPT-EVENT-001\` — Real Admin and public staging acceptance
-- Legacy line 8971:   \`ACCEPT-EVENT-001\` with implementation/deployment fixes. A failing acceptance returns to the owner
-- Legacy line 8980:   + public/USER flow is exclusively \`ACCEPT-EVENT-001\`.
-- Legacy line 9095:    \`ADMIN-009 → FE-031 → FE-014B → EVS-007 → ACCEPT-EVENT-001\`.
+- Legacy line 8971: \`ACCEPT-EVENT-001\` with implementation/deployment fixes. A failing acceptance returns to the owner
+- Legacy line 8980: + public/USER flow is exclusively \`ACCEPT-EVENT-001\`.
+- Legacy line 9095: \`ADMIN-009 → FE-031 → FE-014B → EVS-007 → ACCEPT-EVENT-001\`.

@@ -1,6 +1,6 @@
 # EVENT-FLAG-SPLIT — Separate Admin Event Management and public live Events
 
-- **Status:** RELEASE CANDIDATE — LOCAL GATES PASS / BOTH PRODUCTION FLAGS OFF
+- **Status:** DONE — PRODUCTION VERIFIED
 - **Priority / track:** P0 product-release / events
 - **Owner decision:** 2026-10-11
 - **Dependencies:** `ACCEPT-EVENT-001` flag-OFF release; existing Admin RBAC and canonical Event APIs
@@ -62,3 +62,31 @@ This task does not authorize Admin-only activation, public-live activation or an
 write. The next action requires a separate owner approval to add exactly
 `VITE_ADMIN_EVENTS_ENABLED=true` to Production and rebuild Vercel while keeping the public key
 absent/OFF. Controlled create/edit/cover acceptance is a later, separately authorized write gate.
+
+## Controlled Production release — 2026-10-11
+
+- Commit `b3799669cf5fdb463cf03629e05b4b98fefe1f0a` reached `origin/main`.
+- GitHub Actions run `38077938121` completed Backend and Frontend with SUCCESS.
+- Vercel deployment `dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` is READY and Production serves
+  `index-XtzcBb4D.js`.
+- The deployed bundle retains all five static titles and contains zero live slider endpoint or
+  `/admin/events` markers. Landing made zero Event-slider requests, exposed zero Event links, had no
+  horizontal overflow and logged no browser warning/error. Direct public Event detail returned the
+  normal 404 boundary.
+- Authenticated read-only Profile and Buddy Matching smoke passed; User navigation exposed no Event
+  entry, and a direct Admin Event URL did not render the Admin layout to the USER session.
+- Site, API live and API readiness returned 200. The release contains no backend change; GitHub
+  recorded only the successful Vercel deployment for this SHA, and the accepted Render live/
+  rollback baseline remains unchanged.
+
+No flag, Event/account data, Storage, Redis, DNS, secret or provider setting was changed during the
+flag-split release. Final release status: **DONE — PRODUCTION VERIFIED**.
+
+## Subsequent Admin-only activation — 2026-10-11
+
+The owner separately approved and consumed the Admin-only activation gate. Production now contains
+`VITE_ADMIN_EVENTS_ENABLED=true`, while `VITE_PUBLIC_EVENTS_ENABLED` remains absent/OFF and the
+legacy key remains ignored. Vercel deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` is READY from
+`b379966`; the live `index-CrsPaw6k.js` bundle includes Admin Event markers and excludes the slider
+endpoint. Public/static and security smoke pass. Authenticated Admin UI verification and every
+Production Event write remain tracked under `ADMIN-EVENT-ACTIVATION`.

@@ -1,11 +1,15 @@
 # Production status
 
-**Last direct verification:** 2026-10-09 11:15 Asia/Saigon
+**Last direct verification:** 2026-10-14 22:18 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of
 the Phase 2 frontend and later Landing slideshow corrective release. No backend/database/DNS
 configuration, reset, restore, backup retry, secret, account or test-message mutation occurred
 during this release verification.
+
+The later `EVENT-AUDIENCE-SLIDER-001` release authorized the exact source push and its automatic
+deployment. Its Production verification was read-only: no Event, user, registration setting,
+Storage object, database row, DNS record, feature flag or provider configuration was changed.
 
 ## Directly observed
 
@@ -24,6 +28,34 @@ during this release verification.
 
 This proves that the first-party DNS cutover is active and the public dependency gate is healthy at
 the observation time. It supersedes earlier statements that DNS was still pending.
+
+## Event Audience removal and Slider release — 2026-10-14
+
+| Check | Result |
+| --- | --- |
+| Released commit | `65364a1180032063296898b2c6d8d2a9f59e1b97` on `origin/main` |
+| GitHub Actions | Run `38586750058`; Backend and Frontend SUCCESS for the exact SHA |
+| GitHub/Vercel deployment | Production deployment `7069199596`; SUCCESS for the exact SHA |
+| Vercel deployment URL | `https://buddy-web-ver2-n5hhkpzst-dat1507s-projects.vercel.app` |
+| Public alias / bundle | `www.vgubuddyprogram.com` 200; `index-DfxH7DYv.js` |
+| Effective feature behavior | Dynamic public EN/DE Slider and Admin Event form both available |
+| Public API EN / DE | Each returned the same two PUBLISHED, cover-ready Events |
+| Public Events | Kawazo `5a3c57aa-b676-4df3-92cd-414c82ea2c13`; Buddy Recruitment `98951257-9edc-4ed2-a64f-f5ea464ef771` |
+| Admin contract | Production OpenAPI draft input and list filter contain no `visibility` |
+| Admin UI | Create form contains no Audience field; inspected without submitting |
+| Slider desktop/mobile | EN/DE, rapid input and 390 × 844 no-horizontal-overflow checks PASS |
+| Browser console | 0 errors; 0 warnings during bounded smoke |
+
+The API and live Slider confirm that legacy published `MEMBERS` no longer remains hidden solely by
+that stored value. This supersedes the older `ADMIN-010` statement that Buddy Recruitment visibility
+required a Production data correction. No broad update or Event mutation was performed.
+
+The release includes reversible migration `0022_public_event_visibility_default`, which changes
+only the database server default and performs no data rewrite. Its Production Alembic revision was
+not independently queried. The new backend behavior and OpenAPI contract are directly visible, but
+the Render deployment identity/source SHA was not exposed through the available read-only access.
+Available browser profiles were authenticated, so anonymous frontend rendering was not repeated by
+signing out; unauthenticated public API reads returned 200 and matched the rendered two-Event Slider.
 
 ## Phase 2 frontend release — 2026-10-09
 
@@ -270,6 +302,239 @@ task.
 - The authorized rollout must preserve the static five-poster Landing, hidden Admin/public Event UI
   and no Landing slider API request. It must stop before Admin-only activation or any Production
   Event write.
+
+### EVENT-FLAG-SPLIT release verification — 2026-10-11
+
+- `b3799669cf5fdb463cf03629e05b4b98fefe1f0a` reached `origin/main`. GitHub Actions run
+  `38077938121` completed Backend and Frontend with SUCCESS.
+- Vercel deployment `dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` is READY. Production serves
+  `index-XtzcBb4D.js`; all five static Event titles are present and the live slider endpoint and
+  `/admin/events` markers are absent.
+- Landing generated zero Event-slider requests and zero Event links, with no horizontal overflow or
+  browser warning/error. Direct public Event detail returned the normal 404 boundary.
+- The existing authenticated USER session rendered Profile and Buddy Matching normally, without an
+  Event navigation entry. A direct Admin Event URL rendered neither an Admin layout nor Event
+  management UI.
+- Site, API live and readiness are 200; database/Redis are `ok`, email/Storage are `configured`.
+- No backend file changed. GitHub reports only the successful Vercel Production deployment for this
+  SHA; Render was not expected to rebuild and the accepted `e2ef4c0` live / `d15cb1d` rollback
+  baseline remains controlling. The Render dashboard session was signed out, so no login or provider
+  mutation was attempted merely to repeat that deployment-ID observation.
+- Both new Vercel keys and the legacy key remain absent. No flag, Event/account data, database,
+  Storage, Redis, DNS, secret or provider setting changed.
+
+Status: **DEPLOYED — AWAITING ADMIN ACTIVATION**. Admin-only activation, controlled Production write
+acceptance and public-live activation still require separate explicit approvals.
+
+## ADMIN-EVENT-ACTIVATION — 2026-10-11
+
+- Vercel Production now contains the single Config value `VITE_ADMIN_EVENTS_ENABLED=true`.
+  `VITE_PUBLIC_EVENTS_ENABLED` and the legacy key remain absent; public live Events therefore remain
+  OFF and the legacy key cannot enable either surface.
+- A required rebuild created Production deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4`, READY from
+  source `b3799669cf5fdb463cf03629e05b4b98fefe1f0a`. The live bundle is
+  `index-CrsPaw6k.js` (919,216 bytes): Admin list/create/metrics markers are present, while the live
+  slider endpoint and legacy markers are absent.
+- The prior `dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` deployment and other READY Production deployments
+  remain available rollback points. No backend file changed or Render restart was required; the
+  accepted `e2ef4c0` live / `d15cb1d` rollback baseline remains controlling.
+- API live/readiness returned 200 with database/Redis `ok` and email/Storage `configured`. Landing
+  desktop and 390 x 844 retain all five static posters, have no Event links, slider request or
+  horizontal overflow, and recorded zero console warning/error.
+- Existing USER Profile and Buddy Matching reads pass. USER direct Admin Event access returns to
+  the public surface; Anonymous redirects to Admin Login; the anonymous Admin Event API returns
+  401 with no-store.
+- After the owner completed ADMIN login, authenticated read-only smoke passed. Dashboard exposes the
+  Events navigation item and renders Published/Upcoming Event metrics as `Not available`.
+  `/admin/events` loads its filter/table shell and reports `0–0 of 0`; `/admin/events/new` renders
+  the localized DRAFT form without submission; a valid-shaped nonexistent edit URL returns
+  `Event not found`. No warning/error was recorded on the Admin list, Create or Edit-boundary pages.
+  A populated edit form is not applicable while the Production Event inventory is empty.
+- No Event/account/database/Storage write, form submission, upload, status transition, delete,
+  Supabase/Redis/DNS/secret change or public activation occurred.
+
+This was the accepted pre-write continuation point. A newer owner-approved write acceptance is
+recorded below; this paragraph remains the historical activation boundary.
+
+### Production write acceptance — 2026-10-11
+
+- The owner authorized exactly one synthetic DRAFT and the bounded Create -> reload -> cover
+  upload/replace -> Edit -> stale-version conflict sequence. No publish, status transition,
+  delete/cleanup or public-flag change was authorized.
+- `POST /api/admin/events` returned 201 for Event
+  `132dfbb1-b966-4cd0-a02e-901cd50cc8f5`; reload GET returned 200 with version 1. The final row is
+  version 6, `DRAFT`, `MEMBERS`, registration OFF, `published_at=NULL`, and organizer
+  `VGU Buddy QA (synthetic, edited)`.
+- Cover A created media `9f00a563-24d7-48d5-87ac-33c77abf5c9c` and private object
+  `event-media/0b9f13bd-ab39-4563-b835-eaea8d6067fe.webp`. Cover B replaced it with media
+  `e3f58e3f-f1d4-44aa-839c-c7f699602215` and retained private object
+  `event-media/b566eab7-7807-4c2b-a99f-dd898e1dfe7d.webp`. Both upload responses reported
+  `cleanup_pending=false`; the authorized replacement path automatically removed cover A from
+  metadata and Storage. No manual delete or cleanup ran.
+- The normal Edit advanced version 5 -> 6. A second tab retained version 5; its save returned 409
+  and displayed the reload/review message. Database state stayed at version 6 and no audit row was
+  created for the rejected stale request.
+- Six expected audit rows exist: one create, three accepted content updates and two media replaces.
+  Event-related transactional outbox rows: zero.
+- Anonymous public detail EN/DE returns 404. Slider EN/DE returns `[]`. The flag-OFF Landing contains
+  no synthetic title, Event ID or link and made zero `/event-sliders` requests. Admin, stale-conflict
+  and public Landing tabs recorded zero browser warning/error entries.
+- API live/readiness remains 200 with database/Redis `ok` and email/Storage `configured`.
+  `VITE_PUBLIC_EVENTS_ENABLED` remains absent/OFF; no source code, deployment, real Event, user data,
+  DNS, secret or provider configuration changed.
+
+Detailed sanitized evidence:
+[`admin-event-production-write-acceptance-2026-10-11.md`](../operations/admin-event-production-write-acceptance-2026-10-11.md).
+
+Status: **DONE — PRODUCTION WRITE ACCEPTANCE PASS / DRAFT RETAINED**. Publication, status change,
+retained-DRAFT cleanup/delete and public-live activation require new explicit approvals.
+
+## Event visibility diagnosis — 2026-10-14
+
+- Authenticated Admin inventory was read only. It contained the retained synthetic DRAFT plus real
+  Event `0a9fe1f9-ea26-4426-bfd8-8900113de46f`, titled
+  `𝐅𝐈𝐄𝐋𝐃 𝐓𝐑𝐈𝐏 𝐓𝐎 𝐊𝐀𝐖𝐀𝐙𝐎 𝐂𝐑𝐀𝐅𝐓 𝐕𝐈𝐋𝐋𝐀𝐆𝐄`.
+- The real Event is `PUBLISHED`, `PUBLIC`, cover-ready and complete in EN/DE, but its 2026-10-10
+  schedule is `COMPLETED`. Slider reads in EN/DE return `200 []` because the canonical projection is
+  upcoming-only (`start_date >= now()` plus published/public/non-deleted/ready-cover eligibility).
+- Anonymous detail reads in EN/DE return 200 with canonical content. This confirms the record,
+  publication boundary and detail API are healthy; completed Events remain directly readable.
+- Production still serves `index-CrsPaw6k.js`. Admin Events are enabled, while
+  `VITE_PUBLIC_EVENTS_ENABLED` remains OFF. The Landing retains five static posters, generates no
+  live Event link/request, and a direct Event route remains at the frontend 404 boundary.
+- Local `FE-EVENT-DETAIL-TEMPLATE-001` implementation and verification pass, but are not deployed.
+  No Production Event/account/database/Storage/flag/configuration/deployment mutation occurred.
+
+Status: **DIAGNOSIS CONFIRMED / LOCAL IMPLEMENTATION PASS / NOT DEPLOYED**. Public release requires
+separate approval, a truthful upcoming eligible Event and a rebuilt frontend with the public flag
+set to exact `true`; no backend migration or deployment is required.
+
+## Kawazo schedule acceptance and public-release preflight — 2026-10-14
+
+- The owner explicitly authorized only a schedule correction for Kawazo
+  (`0a9fe1f9-ea26-4426-bfd8-8900113de46f`). Admin API version 3 was fresh immediately before the
+  write. The accepted update set `start_date=2026-11-10T00:20:00Z` and
+  `end_date=2026-11-10T12:00:00Z`, preserving 07:20–19:00 Asia/Ho_Chi_Minh and the 11h40m duration.
+- Fresh Admin reads showed only the authorized dates plus derived `phase=UPCOMING`, `version=4` and
+  `updated_at` changed. Status remains `PUBLISHED`; visibility remains `PUBLIC`; localized content,
+  ready cover, timezone, registration URL/state/deadline and `published_at` are unchanged.
+- The update endpoint records `event.update` in the same transaction as the business write. The 200
+  response proves both committed together. There is no implemented audit-log read API/UI in this
+  release, so no independent audit-row retrieval is claimed.
+- Anonymous EN/DE detail reads returned 200 with the new schedule and unchanged canonical content.
+  The public Slider returned exactly Kawazo with its canonical detail link.
+- A final refreshed Admin inventory showed exactly two rows: Kawazo as
+  `PUBLISHED`/`PUBLIC`/`UPCOMING`, and retained acceptance Event
+  `132dfbb1-b966-4cd0-a02e-901cd50cc8f5` as `DRAFT`/`MEMBERS` with no schedule. The retained DRAFT
+  still returns the public 404 boundary and does not appear in the Slider.
+- Vercel current Production remains `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` from `b379966`, with
+  `VITE_ADMIN_EVENTS_ENABLED=true` and `VITE_PUBLIC_EVENTS_ENABLED` absent/OFF. Retained READY
+  deployment `dpl_GGJ7ZaVioxoNt3nLcsMd7XHY8y36` remains available; no provider config or deployment
+  changed.
+- Verified local frontend release commit `9df8c64493c3273f32e68f7193fb6b9ad70ec89d` is one commit
+  ahead of `origin/main`. It passed 85 files / 791 tests, focused 8 files / 62 tests,
+  TypeScript/ESLint/Prettier, public-OFF/public-ON builds and local browser acceptance against
+  read-only Production Event APIs. It has not been pushed or deployed.
+
+Detailed sanitized evidence:
+[`event-kawazo-production-release-preflight-2026-10-14.md`](../operations/event-kawazo-production-release-preflight-2026-10-14.md).
+
+Status: **READY FOR RELEASE APPROVAL — NOT DEPLOYED**. The only Production data mutation was the
+authorized Kawazo schedule update. Public activation, push and deployment still require a new
+explicit approval. No backend release or migration is required.
+
+## Event Detail and Slider release attempt — rolled back — 2026-10-14
+
+- Exact frontend commit `9df8c64493c3273f32e68f7193fb6b9ad70ec89d` reached `origin/main`.
+  GitHub Actions run `38551287304` passed both required jobs: `CI / Frontend` and `CI / Backend`.
+- Automatic Vercel deployment `dpl_ArkWFd8NjyVF4GeiQ1h4ANbMarzu` was the intermediate Public-OFF
+  build. After CI, Production Config was set to Public ON while preserving Admin ON, and deployment
+  `dpl_7jRJsyD4AqJtFMKMEUHx72Fpba8K` rebuilt the exact SHA and became the serving Production
+  artifact.
+- Immediate eligibility reads returned exactly Kawazo in both Slider locales. Anonymous/User EN/DE
+  Slider and detail, canonical click/direct reload, normal-User/Admin boundaries, desktop/mobile
+  layout, unaffected homepage sections and console/network health passed.
+- Mandatory content consistency failed: the live poster advertised `EVENT DATE 10/10/2026` and
+  `7:40–16:30`, but the canonical Event detail published November 10, 2026 and 07:20–19:00. The
+  accepted registration-deadline condition was not investigated and is unrelated to this failure.
+- Rollout stopped. Deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` was promoted and Production now
+  serves its `b379966` bundle `index-CrsPaw6k.js`. Direct HTTPS verification returned HTML/bundle
+  200, with Admin Event markers present and public Slider/detail-route markers absent. Browser
+  verification showed the static five-poster carousel with zero Event links, the public Event 404
+  boundary and the two-row Admin inventory with zero warning/error.
+- Production Config was restored to `VITE_PUBLIC_EVENTS_ENABLED=false` for future builds;
+  `VITE_ADMIN_EVENTS_ENABLED=true` was preserved. No Event, registration setting, cover/Storage
+  object, user, backend, schema or DNS data was changed. The independently retrieved Production
+  audit row remains unavailable and is not newly claimed.
+- Post-recovery API checks returned live 200 and readiness 200/`ready`. EN and DE Slider reads each
+  still returned exactly one item containing Kawazo and neither contained the retained synthetic
+  DRAFT; the rolled-back frontend does not request or render that projection while Public Events is
+  OFF.
+
+Status: **RELEASE ROLLED BACK — CONTENT CORRECTION REQUIRED**. `origin/main` retains the approved
+frontend commit, while Production aliases serve the verified rollback artifact. Correcting the
+Kawazo content and attempting another public release both require fresh explicit authorization.
+
+## Event Detail and Slider final owner-accepted release — 2026-10-14
+
+- The owner explicitly accepted the Kawazo poster versus canonical schedule discrepancy as an
+  out-of-scope content issue and authorized release without modifying the Event, poster or
+  registration configuration.
+- Exact commit `9df8c64493c3273f32e68f7193fb6b9ad70ec89d` remains on local and remote `main`; no redundant
+  source commit or push was created. GitHub Actions run `38551287304` passed Frontend and Backend.
+- Vercel Production Config now has `VITE_PUBLIC_EVENTS_ENABLED=true` and
+  `VITE_ADMIN_EVENTS_ENABLED=true`. Deployment `dpl_48YExmcZG4YREaUGGUmePsaZ9NP2` is Ready from
+  the exact SHA and owns `www.vgubuddyprogram.com`.
+- The live HTML and `index-kimW3TwX.js` return 200. The bundle contains public Slider and Admin Event
+  markers and no longer contains the old static `Recruitment` or `Club Fair 26` Event titles.
+- No-cookie EN/DE Slider reads each returned exactly Kawazo. Its canonical detail returned 200; the
+  retained synthetic DRAFT was absent from both Sliders and its public detail returned 404.
+- Browser smoke passed for dynamic EN/DE Slider and detail, card navigation, direct refresh,
+  normal-User denial of Admin Events, authenticated Admin two-row inventory, desktop and 390 x 844
+  layouts, console/network health and unrelated Landing sections.
+- Fresh `/api/health/live` and `/api/health/ready` reads returned 200; readiness was `ready` with
+  database/Redis `ok` and email/Storage `configured`.
+- Retained deployment `dpl_ENhaDrJxJfVFMrfPeoKTeoZJ8kd4` remains the intended Admin-ON/public-OFF
+  rollback baseline. No Event, registration setting, cover/Storage object, user, backend, schema or
+  DNS state changed in this final release.
+
+Status: **PASS — COMMITTED, DEPLOYED, AND PRODUCTION-VERIFIED**. The accepted poster discrepancy is
+recorded but is not a release failure. The specific Production audit row was not independently
+retrieved; only the reviewed transactional implementation and existing rollback-on-audit-failure
+tests support that evidence.
+
+## Optional Event publication implementation push — 2026-10-14
+
+- Commit `1f94629d8dd68e92966d61eb14b9a817c1fb991e`, directly based on
+  `9df8c64493c3273f32e68f7193fb6b9ad70ec89d`, reached `origin/main`.
+- The commit contains the 23 intended implementation, focused-test, localization and task-record
+  files for `EVENT-OPTIONAL-PUBLISH-001`; pre-existing dirty documentation and local Supabase
+  metadata were not staged or included.
+- GitHub Actions run `38571496427` passed both Frontend and Backend for the exact commit.
+- No deployment, feature-flag change, migration or Production data/configuration write occurred.
+
+Status: **PASS — COMMITTED / CI PASS / NOT DEPLOYED**. Deployment remains separately gated.
+
+## Event visibility and Admin deletion implementation push — 2026-10-14
+
+- Commit `ed250f52920b8bf415ea87224462cd10aa923df9`, directly based on
+  `1f94629d8dd68e92966d61eb14b9a817c1fb991e`, reached `origin/main`.
+- GitHub Actions run `38576202814` passed Frontend and Backend for the exact commit.
+- Production anonymous EN/DE Event list and Slider reads returned only Field trip. Its public
+  projection confirms `PUBLISHED`/`PUBLIC`, future schedule and a ready cover. A verified USER read
+  returned Buddy Recruitment `b62cee68-8f9a-4206-89b7-d84b74fd4e8b` in both locales as
+  `PUBLISHED`/`MEMBERS`, unscheduled, location-free, registration OFF and cover-ready, directly
+  confirming the anonymous eligibility failure.
+- Source evidence found that the Admin form had hidden Audience while defaulting new drafts to
+  `MEMBERS`. The pushed correction defaults new drafts to `PUBLIC`, restores explicit Audience
+  editing and adds the dependency-aware confirmed Delete action to Admin Inventory.
+- Push-triggered GitHub Deployment `7067400901` completed successfully in Vercel Production for the
+  exact SHA. `www` serves `index-Bkc4hubM.js`, which contains the new deletion contract and UI.
+- No backend deployment, feature-flag change, Event mutation, delete, media/Storage write, migration
+  or Production configuration change occurred.
+
+Status: **FRONTEND AUTO-DEPLOYED / BACKEND & DATA PENDING**. Backend release and Buddy Recruitment
+visibility correction remain separately gated.
 
 ## Verification method
 
