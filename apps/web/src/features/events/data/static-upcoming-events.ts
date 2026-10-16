@@ -59,6 +59,8 @@ function getStaticUpcomingEvents(locale: EventSliderLocale): EventSlider[] {
     eventStartAt: null,
     eventEndAt: null,
     location: null,
+    registrationUrl: null,
+    registrationEnabled: false,
     cta: null,
     sortOrder,
   }))

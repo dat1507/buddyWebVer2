@@ -1,5 +1,25 @@
 # Documentation migration validation
 
+## FE-USER-EVENTS-001 synchronized Event validation — 2026-10-16
+
+| Check                                      | Result                                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------------------- |
+| Slider/Dashboard focused frontend          | 5 files / 43 PASS                                                             |
+| Feature-enabled detail and round-trip      | 2 files / 21 PASS                                                             |
+| Full frontend                              | 86 files / 818 PASS                                                           |
+| TypeScript / ESLint / Prettier             | PASS / PASS / PASS                                                            |
+| Production builds                          | Normal PASS; Admin-ON/Public-ON PASS; existing chunk advisory only            |
+| Focused backend Slider tests                | 8 PASS on repository-supported Python 3.12 in a disposable local container    |
+| Backend Ruff / strict mypy / contract smoke | PASS / PASS / PASS                                                            |
+| Data/provider boundary                     | No database, Event, account, provider, Production, push or deployment write  |
+
+Result: **DONE — COMMITTED LOCALLY / NOT PUSHED**. `/user/events` consumes the same endpoint,
+cache and first-five selector as the Landing slider. The additive API projection carries the
+existing registration fields; unavailable URLs do not hide Events, and View Details becomes the
+sole primary action. The canonical detail route preserves refresh-safe dashboard context while
+Landing/direct access remains Home. Automated frontend and focused backend acceptance is complete.
+No live browser/provider verification, push or deployment occurred.
+
 **Migration date:** 2026-10-08
 
 ## Required invariants

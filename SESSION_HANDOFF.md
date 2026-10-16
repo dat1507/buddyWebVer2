@@ -1,12 +1,35 @@
 # Session handoff
 
-**Updated:** 2026-10-14 (Asia/Saigon)
-**TASK_ID:** EVENT-AUDIENCE-SLIDER-001 (DONE — PUSHED / CI PASS / PRODUCTION VERIFIED)
-**Current mode:** Task complete; preserve prior dirty files and the uncommitted documentation synchronization
+**Updated:** 2026-10-16 (Asia/Saigon)
+**TASK_ID:** FE-USER-EVENTS-001 (DONE — COMMITTED LOCALLY / NOT PUSHED)
+**Current mode:** Task complete and committed locally; no push or deployment requested
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-USER-EVENTS-001` is complete and committed locally on `main`, directly after the already-pushed
+base commit `78ddc0f` (`Events update`). The User Events tab now consumes the same
+`/api/event-sliders` query, cache and first-five selector as the Landing slider, so eligibility,
+order, publication refresh and empty/error behavior cannot drift through a second frontend list.
+The slider projection additively exposes the Event's existing registration URL/enabled fields; no
+database schema or migration changed.
+
+Events without a usable registration URL remain visible and show View Details as the primary
+action. Events with an enabled HTTPS URL retain the external Register action plus View Details.
+View Details continues to use `/events/:eventId?from=user-dashboard`; the shared detail page returns
+to `/user/events`, while Landing, direct and malformed-context access retain Back to home.
+
+Validation passed: synchronization-focused frontend 5 files / 43 tests, feature-enabled detail and
+round-trip 2 files / 21 tests, full frontend 86 files / 818 tests, TypeScript, ESLint, Prettier,
+normal production build and Admin-ON/Public-ON production build. Focused backend Slider coverage
+passed 8 tests on the repository-supported Python 3.12 runtime in a disposable local container;
+Ruff, strict mypy and a direct Pydantic slider-response smoke check also passed. Only the existing
+frontend large-chunk advisory remains. No database, Event, registration, user, Storage, provider
+configuration or Production state changed. No live browser/provider verification, push or
+deployment occurred.
+
+The previous verified continuation point follows unchanged.
 
 `EVENT-AUDIENCE-SLIDER-001` is complete. Commit
 `65364a1180032063296898b2c6d8d2a9f59e1b97`, directly based on

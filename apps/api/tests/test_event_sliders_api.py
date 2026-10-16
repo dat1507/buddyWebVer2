@@ -56,6 +56,8 @@ def _slide() -> PublicEventSliderResponse:
         event_start_at=NOW,
         event_end_at=NOW,
         location="VGU Campus",
+        registration_url="https://events.example.test/register",
+        registration_enabled=True,
         cta=EventSliderCta(label="View event", href=f"/events/{EVENT_ID}"),
         sort_order=0,
     )
@@ -86,6 +88,8 @@ async def test_public_slider_returns_exact_adapter_shape_and_empty_array(
         "event_start_at": "2026-10-10T08:00:00Z",
         "event_end_at": "2026-10-10T08:00:00Z",
         "location": "VGU Campus",
+        "registration_url": "https://events.example.test/register",
+        "registration_enabled": True,
         "cta": {"label": "View event", "href": f"/events/{EVENT_ID}"},
         "sort_order": 0,
     }
@@ -123,3 +127,5 @@ def test_openapi_exposes_read_only_slider_without_storage_fields() -> None:
     assert "bucket" not in properties
     assert "object_key" not in properties
     assert "created_by" not in properties
+    assert "registration_url" in properties
+    assert "registration_enabled" in properties

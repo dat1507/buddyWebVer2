@@ -9,6 +9,11 @@ const httpsUrlSchema = z
     message: 'Expected an HTTPS URL',
   })
 
+const optionalRegistrationUrlSchema = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim() || null : value),
+  httpsUrlSchema.nullable().optional(),
+)
+
 const eventDetailHrefSchema = z
   .string()
   .regex(/^\/events\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
@@ -29,6 +34,8 @@ const publicEventSliderApiSchema = z.object({
   event_start_at: z.string().datetime({ offset: true }).nullable(),
   event_end_at: z.string().datetime({ offset: true }).nullable(),
   location: z.string().max(200).nullable(),
+  registration_url: optionalRegistrationUrlSchema,
+  registration_enabled: z.boolean().optional().default(false),
   cta: ctaSchema,
   sort_order: z.number().int().nonnegative(),
 })
@@ -46,6 +53,8 @@ interface EventSlider {
   eventStartAt: string | null
   eventEndAt: string | null
   location: string | null
+  registrationUrl: string | null
+  registrationEnabled: boolean
   cta: { label: string; href: string } | null
   sortOrder: number
 }
@@ -60,6 +69,8 @@ function parsePublicEventSliders(payload: unknown): EventSlider[] {
     eventStartAt: slider.event_start_at,
     eventEndAt: slider.event_end_at,
     location: slider.location,
+    registrationUrl: slider.registration_url ?? null,
+    registrationEnabled: slider.registration_enabled,
     cta: slider.cta,
     sortOrder: slider.sort_order,
   }))

@@ -108,6 +108,8 @@ async def list_public_event_sliders(
                 event_start_at=event.start_date,
                 event_end_at=event.end_date,
                 location=location,
+                registration_url=event.registration_url,
+                registration_enabled=event.registration_enabled,
                 cta=EventSliderCta(label=cta_label, href=f"/events/{event.id}"),
                 sort_order=sort_order,
             )

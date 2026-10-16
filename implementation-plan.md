@@ -1,7 +1,7 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.18
-**Updated:** 2026-10-14
+**Plan version:** 1.20
+**Updated:** 2026-10-16
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`
@@ -51,16 +51,26 @@ remains open under the original Profile contract.
 | 9     | `EVENT-OPTIONAL-PUBLISH-001`     | P0 product         | **DONE — COMMITTED / CI PASS / NOT DEPLOYED**                 | `1f94629`; optional schedule/location, simplified Admin form and User registration action pass full regression and CI                              | Await separate deployment approval; preserve unrelated dirty files                                |
 | 10    | `ADMIN-010`                     | P0 product         | **DONE — SUPERSEDED BY EVENT-AUDIENCE-SLIDER-001**            | `ed250f5`; its pending Audience/backend state is superseded by the completed coherent removal release                                                | Preserve historical evidence                                                                      |
 | 11    | `EVENT-AUDIENCE-SLIDER-001`     | P0 product         | **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**             | `65364a1`; Audience removed coherently, legacy published MEMBERS public, Slider smoothed, full regression/CI/Production read-only gates pass          | Preserve evidence; Production migration revision remains an explicit evidence gap                 |
-| 12    | P1 product backlog              | P1                 | **PLANNED**                                                   | Depends on task-specific contracts                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
-| 13    | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                | Vercel Production and desktop/mobile/transition evidence pass                                                                                     | Preserve evidence; no repeat without regression reason                                            |
-| 14    | `FE-PROFILE-HOME-UNI-001`       | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass                                                                         | Owner edit/save/reload/clear/max-length review                                                    |
-| 15    | `FE-LANDING-BG-002`             | Phase 2 corrective | **DONE — PRODUCTION VERIFIED**                                | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass                                                                    | Preserve evidence; no repeat without regression reason                                            |
+| 12    | `FE-USER-EVENTS-001`            | P1 product         | **DONE — COMMITTED LOCALLY / NOT PUSHED**                     | User Events reuses the Landing slider projection/first-five order; no-registration and shared-detail flows pass 818-test regression                | Await separate push/deployment request                                                            |
+| 13    | P1 product backlog              | P1                 | **PLANNED**                                                   | Depends on task-specific contracts                                                                                                                | Select explicitly after P0 post-deployment sequence                                               |
+| 14    | `FE-LANDING-BG-001`             | Phase 2 Priority 1 | **DONE — PRODUCTION VERIFIED**                                | Vercel Production and desktop/mobile/transition evidence pass                                                                                     | Preserve evidence; no repeat without regression reason                                            |
+| 15    | `FE-PROFILE-HOME-UNI-001`       | Phase 2 Priority 2 | **DEPLOYED — DISPLAY ACCEPTED / EDIT-PERSISTENCE GATES OPEN** | Owner confirmed correct Production display; automated behavior tests pass                                                                         | Owner edit/save/reload/clear/max-length review                                                    |
+| 16    | `FE-LANDING-BG-002`             | Phase 2 corrective | **DONE — PRODUCTION VERIFIED**                                | `c2fbaf1`; Vercel deployment `6952736000`; 15-transition Production audit pass                                                                    | Preserve evidence; no repeat without regression reason                                            |
 
 The 2026-10-14 `EVENT-AUDIENCE-SLIDER-001` release supersedes the older `ADMIN-010` pending
 Audience/backend/data state. The coherent release removes the Audience control and write input,
 makes published legacy `MEMBERS` rows publicly eligible without rewriting them, and deploys the
 Slider correction. Its Production Alembic revision and Render provider deployment record were not
 independently available; those are evidence gaps, not authorization for a data or provider change.
+
+`FE-USER-EVENTS-001` completed and was committed locally on 2026-10-16. The User Events tab now
+uses the Landing slider's authoritative endpoint, cache and first-five selector. Registration data
+is an additive slider projection: Events without a usable URL remain visible with View Details as
+the primary action, while enabled HTTPS registration remains external. View Details reuses
+`/events/:eventId`, and one validated query marker preserves the dashboard back destination without
+changing direct/Landing behavior. Frontend full/static/build gates pass; focused backend Slider
+coverage passes 8 tests on Python 3.12, with Ruff, mypy and a contract smoke check also passing. The
+commit is not pushed or deployed; Production is unchanged.
 
 `SESSION_HANDOFF.md` records the Phase 2 frontend deployment and remaining authenticated Profile
 visual gate. `PROD-001`, Backup/DR, `SEM-008` and `ACCEPT-001` remain open in the release lane. The

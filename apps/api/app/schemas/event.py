@@ -370,6 +370,8 @@ class PublicEventSliderResponse(BaseModel):
     event_start_at: datetime | None
     event_end_at: datetime | None
     location: str | None = Field(default=None, max_length=200)
+    registration_url: str | None = None
+    registration_enabled: bool = False
     cta: EventSliderCta | None
     sort_order: int = Field(ge=0)
 

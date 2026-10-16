@@ -11,6 +11,8 @@ const validPayload = {
   event_start_at: '2026-10-01T08:00:00+07:00',
   event_end_at: null,
   location: 'VGU campus',
+  registration_url: 'https://events.example.com/register',
+  registration_enabled: true,
   cta: { label: 'Learn more', href: '/events/11111111-1111-4111-8111-111111111111' },
   sort_order: 0,
 }
@@ -22,6 +24,8 @@ describe('parsePublicEventSliders', () => {
         imageUrl: validPayload.image_url,
         eventStartAt: validPayload.event_start_at,
         sortOrder: 0,
+        registrationUrl: validPayload.registration_url,
+        registrationEnabled: true,
       }),
     ])
   })
@@ -47,5 +51,25 @@ describe('parsePublicEventSliders', () => {
 
   it('requires every live slide to link to its Event detail', () => {
     expect(() => parsePublicEventSliders([{ ...validPayload, cta: null }])).toThrow()
+  })
+
+  it.each([undefined, null, '', '   '])(
+    'normalizes an unavailable registration URL without rejecting the Event: %s',
+    (registrationUrl) => {
+      const payload = { ...validPayload, registration_url: registrationUrl }
+      if (registrationUrl === undefined) delete payload.registration_url
+
+      expect(parsePublicEventSliders([payload])[0]).toEqual(
+        expect.objectContaining({ registrationUrl: null }),
+      )
+    },
+  )
+
+  it('rejects a non-HTTPS registration URL', () => {
+    expect(() =>
+      parsePublicEventSliders([
+        { ...validPayload, registration_url: 'http://events.example.com/register' },
+      ]),
+    ).toThrow()
   })
 })

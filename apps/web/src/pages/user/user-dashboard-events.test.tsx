@@ -8,7 +8,8 @@ vi.mock('@/config/launch-scope', () => ({
   publicEventsEnabled: true,
 }))
 
-import { publicEventsClient, type PublicEvent } from '@/features/events/public-event'
+import type { EventSlider } from '@/features/events/event-slider'
+import { eventSliderRepository } from '@/features/events/repositories/event-slider-repository-provider'
 import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
@@ -25,32 +26,24 @@ const user = {
   email_verified: true,
   email_verified_at: '2026-10-14T08:00:00Z',
 }
-const event: PublicEvent = {
+const event: EventSlider = {
   id: EVENT_ID,
-  locale: 'en',
   title: 'Buddy Announcement',
   description: 'Registration is open.',
-  start_date: null,
-  end_date: null,
-  timezone: 'Asia/Ho_Chi_Minh',
+  imageUrl: 'https://storage.example.test/buddy-announcement',
+  imageAlt: 'Buddy Announcement poster',
+  eventStartAt: null,
+  eventEndAt: null,
   location: null,
-  category: null,
-  organizer: null,
-  registration_url: 'https://events.example/register?source=dashboard',
-  registration_enabled: true,
-  registration_deadline: null,
-  status: 'PUBLISHED',
-  phase: null,
-  cover: null,
+  registrationUrl: 'https://events.example/register?source=dashboard',
+  registrationEnabled: true,
+  cta: { label: 'View event', href: `/events/${EVENT_ID}` },
+  sortOrder: 0,
 }
 
-function page(items: PublicEvent[]) {
-  return { items, page: 1, page_size: 100, total: items.length, total_pages: items.length ? 1 : 0 }
-}
-
-describe('User Events registration page', () => {
+describe('User Events synchronized Slider page', () => {
   let client: QueryClient
-  const readEvents = vi.spyOn(publicEventsClient, 'readEvents')
+  const listPublished = vi.spyOn(eventSliderRepository, 'listPublished')
 
   beforeEach(async () => {
     await i18n.changeLanguage('en')
@@ -58,7 +51,7 @@ describe('User Events registration page', () => {
     useAuthStore.getState().setAuthenticated(user)
     vi.spyOn(profileClient, 'readOwn').mockResolvedValue(completeOwnProfile)
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(completeProfileCompletion)
-    readEvents.mockReset().mockResolvedValue(page([event]))
+    listPublished.mockReset().mockResolvedValue([event])
     client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   })
 
@@ -82,65 +75,73 @@ describe('User Events registration page', () => {
     renderEvents()
 
     const link = await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
-    expect(link).toHaveAttribute('href', event.registration_url)
+    expect(link).toHaveAttribute('href', event.registrationUrl)
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noreferrer')
     expect(screen.getByRole('link', { name: 'View Buddy Announcement details' })).toHaveAttribute(
       'href',
       `/events/${EVENT_ID}?from=user-dashboard`,
     )
-    expect(readEvents).toHaveBeenCalledWith('en', expect.any(AbortSignal))
+    expect(screen.getByRole('img', { name: event.imageAlt })).toHaveAttribute('src', event.imageUrl)
+    expect(screen.getByText(event.description!)).toBeVisible()
+    expect(listPublished).toHaveBeenCalledWith('en', expect.any(AbortSignal))
   })
 
-  it('hides broken actions when registration is disabled or the URL is missing', async () => {
-    readEvents.mockResolvedValueOnce(
-      page([
-        { ...event, registration_enabled: false },
-        { ...event, id: '22222222-2222-4222-8222-222222222222', registration_url: null },
-      ]),
-    )
+  it('keeps Slider Events without registration visible with View Details as the primary action', async () => {
+    const withoutRegistration = {
+      ...event,
+      id: '22222222-2222-4222-8222-222222222222',
+      title: 'Open Day',
+      registrationUrl: null,
+      registrationEnabled: false,
+      cta: {
+        label: 'View event',
+        href: '/events/22222222-2222-4222-8222-222222222222',
+      },
+      sortOrder: 1,
+    } satisfies EventSlider
+    listPublished.mockResolvedValueOnce([event, withoutRegistration])
     renderEvents()
 
-    expect(await screen.findByRole('heading', { name: 'Events' })).toBeVisible()
-    await waitFor(() => expect(readEvents).toHaveBeenCalledTimes(1))
-    expect(screen.getByRole('heading', { name: 'No event registrations available' })).toBeVisible()
-    expect(screen.queryByRole('link', { name: /Register for/ })).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Open Day' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Register for Buddy Announcement' })).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'Register for Open Day' })).not.toBeInTheDocument()
+    const details = screen.getByRole('link', { name: 'View Open Day details' })
+    expect(details).toHaveAttribute(
+      'href',
+      '/events/22222222-2222-4222-8222-222222222222?from=user-dashboard',
+    )
+    expect(details).toHaveClass('bg-gradient-to-br')
   })
 
   it('preserves loading and retry behavior after moving registration to the Events tab', async () => {
-    readEvents
-      .mockRejectedValueOnce(new Error('network details'))
-      .mockResolvedValueOnce(page([event]))
+    listPublished.mockRejectedValueOnce(new Error('network details')).mockResolvedValueOnce([event])
     renderEvents()
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Event registration could not be loaded.',
-    )
+    expect(await screen.findByRole('alert')).toHaveTextContent('Events could not be loaded.')
     expect(screen.queryByText('network details')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(
       await screen.findByRole('link', { name: 'Register for Buddy Announcement' }),
     ).toBeVisible()
-    expect(readEvents).toHaveBeenCalledTimes(2)
+    expect(listPublished).toHaveBeenCalledTimes(2)
   })
 
   it('revalidates an updated URL and keeps the German mobile action usable', async () => {
     const updatedUrl = 'https://events.example/register-updated'
-    readEvents
-      .mockResolvedValueOnce(page([event]))
-      .mockResolvedValueOnce(page([{ ...event, registration_url: updatedUrl }]))
-      .mockResolvedValueOnce(
-        page([
-          { ...event, locale: 'de', title: 'Buddy-Ankündigung', registration_url: updatedUrl },
-        ]),
-      )
+    listPublished
+      .mockResolvedValueOnce([event])
+      .mockResolvedValueOnce([{ ...event, registrationUrl: updatedUrl }])
+      .mockResolvedValueOnce([
+        { ...event, title: 'Buddy-Ankündigung', registrationUrl: updatedUrl },
+      ])
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 })
     renderEvents()
     await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
 
     await act(async () => {
-      await client.invalidateQueries({ queryKey: ['events'] })
+      await client.invalidateQueries({ queryKey: ['event-sliders'] })
     })
     await waitFor(() =>
       expect(screen.getByRole('link', { name: 'Register for Buddy Announcement' })).toHaveAttribute(
@@ -156,7 +157,30 @@ describe('User Events registration page', () => {
     const updated = await screen.findByRole('link', { name: 'Für Buddy-Ankündigung anmelden' })
     expect(updated).toHaveAttribute('href', updatedUrl)
     expect(updated).toHaveClass('w-full')
-    expect(readEvents).toHaveBeenCalledWith('de', expect.any(AbortSignal))
+    expect(listPublished).toHaveBeenCalledWith('de', expect.any(AbortSignal))
+  })
+
+  it('uses the same first-five Slider selection and canonical ordering as the Landing page', async () => {
+    const sliderEvents = Array.from({ length: 7 }, (_, index) => {
+      const number = index + 1
+      const id = `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`
+      return {
+        ...event,
+        id,
+        title: `Event ${number}`,
+        cta: { label: 'View event', href: `/events/${id}` },
+        sortOrder: index,
+      }
+    })
+    listPublished.mockResolvedValueOnce(sliderEvents)
+    renderEvents()
+
+    expect(await screen.findByRole('heading', { name: 'Event 5' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Event 6' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Event 7' })).not.toBeInTheDocument()
+    expect(
+      screen.getAllByRole('heading', { level: 3 }).map(({ textContent }) => textContent),
+    ).toEqual(['Event 1', 'Event 2', 'Event 3', 'Event 4', 'Event 5'])
   })
 
   it('does not render registration cards on the dashboard anymore', async () => {
@@ -172,6 +196,6 @@ describe('User Events registration page', () => {
     expect(
       screen.queryByRole('link', { name: 'Register for Buddy Announcement' }),
     ).not.toBeInTheDocument()
-    expect(readEvents).not.toHaveBeenCalled()
+    expect(listPublished).not.toHaveBeenCalled()
   })
 })

@@ -6,25 +6,42 @@ import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
-import type { EventLocale, PublicEvent } from '@/features/events/public-event'
-import { usePublicEvents } from '@/features/events/queries/use-public-event'
+import {
+  selectLandingEventSliders,
+  type EventSlider,
+  type EventSliderLocale,
+} from '@/features/events/event-slider'
+import { useEventSliders } from '@/features/events/queries/use-event-sliders'
 
-function RegistrationEventCard({ event, locale }: { event: PublicEvent; locale: EventLocale }) {
+function EventDashboardCard({ event, locale }: { event: EventSlider; locale: EventSliderLocale }) {
   const { t } = useTranslation()
-  const registrationUrl = event.registration_url
-  if (!event.registration_enabled || !registrationUrl) return null
-  const start = event.start_date
+  const registrationUrl = event.registrationEnabled ? event.registrationUrl?.trim() || null : null
+  const start = event.eventStartAt
     ? new Intl.DateTimeFormat(locale, {
         dateStyle: 'medium',
         timeStyle: 'short',
-        timeZone: event.timezone,
-      }).format(new Date(event.start_date))
+      }).format(new Date(event.eventStartAt))
     : null
+  const detailHref = event.cta?.href ?? `/events/${event.id}`
 
   return (
-    <Card className="flex min-w-0 flex-col">
+    <Card className="flex min-w-0 flex-col overflow-hidden">
+      <div className="flex aspect-[16/9] items-center justify-center bg-zinc-950">
+        <img
+          src={event.imageUrl}
+          alt={event.imageAlt}
+          className="size-full object-contain"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
       <CardHeader>
         <CardTitle className="break-words">{event.title}</CardTitle>
+        {event.description ? (
+          <p className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-foreground/80">
+            {event.description}
+          </p>
+        ) : null}
         {start || event.location ? (
           <CardDescription className="space-y-1">
             {start ? <span className="block">{start}</span> : null}
@@ -33,20 +50,26 @@ function RegistrationEventCard({ event, locale }: { event: PublicEvent; locale: 
         ) : null}
       </CardHeader>
       <CardContent className="mt-auto flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <Button asChild className="w-full sm:w-auto">
-          <a
-            href={registrationUrl}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={t('userDashboard.events.registerLabel', { title: event.title })}
-          >
-            <ExternalLink aria-hidden="true" />
-            {t('userDashboard.events.register')}
-          </a>
-        </Button>
-        <Button asChild variant="outline" className="w-full sm:w-auto">
+        {registrationUrl ? (
+          <Button asChild className="w-full sm:w-auto">
+            <a
+              href={registrationUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={t('userDashboard.events.registerLabel', { title: event.title })}
+            >
+              <ExternalLink aria-hidden="true" />
+              {t('userDashboard.events.register')}
+            </a>
+          </Button>
+        ) : null}
+        <Button
+          asChild
+          variant={registrationUrl ? 'outline' : 'default'}
+          className="w-full sm:w-auto"
+        >
           <Link
-            to={`/events/${event.id}?from=user-dashboard`}
+            to={`${detailHref}?from=user-dashboard`}
             aria-label={t('userDashboard.events.viewDetailsLabel', { title: event.title })}
           >
             {t('userDashboard.events.viewDetails')}
@@ -60,12 +83,9 @@ function RegistrationEventCard({ event, locale }: { event: PublicEvent; locale: 
 function UserEventsPage() {
   const { t, i18n } = useTranslation()
   const titleId = useId()
-  const locale: EventLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
-  const events = usePublicEvents(locale)
-  const registrationEvents =
-    events.data?.items.filter(
-      (event) => event.registration_enabled && event.registration_url !== null,
-    ) ?? []
+  const locale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
+  const events = useEventSliders(locale)
+  const visibleEvents = selectLandingEventSliders(events.data ?? [])
 
   return (
     <section
@@ -97,10 +117,10 @@ function UserEventsPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : registrationEvents.length ? (
+      ) : visibleEvents.length ? (
         <div className="grid min-w-0 gap-4 md:grid-cols-2">
-          {registrationEvents.map((event) => (
-            <RegistrationEventCard key={event.id} event={event} locale={locale} />
+          {visibleEvents.map((event) => (
+            <EventDashboardCard key={event.id} event={event} locale={locale} />
           ))}
         </div>
       ) : (

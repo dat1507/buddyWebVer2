@@ -44,11 +44,11 @@ def _event(index: int = 1) -> Event:
         location_de="VGU-Campus",
         category="community",
         organizer="VGU Buddy",
-        registration_url=None,
+        registration_url="https://events.example.test/register",
         cover_media_id=_id(index + 100),
         status=EventStatus.PUBLISHED,
         visibility=EventVisibility.PUBLIC,
-        registration_enabled=False,
+        registration_enabled=True,
         created_by=ADMIN_ID,
         updated_by=ADMIN_ID,
         published_at=NOW - timedelta(days=1),
@@ -124,6 +124,8 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
     assert slides[0].cta is not None
     assert slides[0].cta.label == "Event ansehen"
     assert slides[0].cta.href == f"/events/{_id(1)}"
+    assert slides[0].registration_url == "https://events.example.test/register"
+    assert slides[0].registration_enabled is True
     assert slides[0].sort_order == 0
     session_mock.execute.assert_awaited_once()
     storage_mock.create_signed_url.assert_awaited_once()
@@ -216,9 +218,7 @@ async def test_slider_returns_scheduled_field_trip_and_unscheduled_buddy_recruit
     de_session_mock, de_session, de_storage_mock, de_storage = _dependencies(
         [(field_trip, _media(1)), (recruitment, _media(2))]
     )
-    german_slides = await list_public_event_sliders(
-        de_session, de_storage, locale="de", now=NOW
-    )
+    german_slides = await list_public_event_sliders(de_session, de_storage, locale="de", now=NOW)
 
     assert [slide.title for slide in german_slides] == ["Ausflug", "Buddy-Rekrutierung"]
     assert german_slides[1].event_start_at is None

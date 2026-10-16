@@ -16,6 +16,8 @@ const event: EventSlider = {
   eventStartAt: '2026-10-10T08:00:00Z',
   eventEndAt: '2026-10-10T10:00:00Z',
   location: 'VGU Campus',
+  registrationUrl: null,
+  registrationEnabled: false,
   cta: {
     label: 'View event',
     href: '/events/11111111-1111-4111-8111-111111111111',

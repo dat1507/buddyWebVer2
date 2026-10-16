@@ -47,6 +47,20 @@ const publicEvent = {
   phase: 'UPCOMING' as const,
   cover: null,
 }
+const sliderEvent = {
+  id: EVENT_ID,
+  title: publicEvent.title,
+  description: publicEvent.description,
+  imageUrl: 'https://storage.example.test/event-cover',
+  imageAlt: 'Live matrix Event cover',
+  eventStartAt: publicEvent.start_date,
+  eventEndAt: publicEvent.end_date,
+  location: publicEvent.location,
+  registrationUrl: 'https://events.example/register',
+  registrationEnabled: true,
+  cta: { label: 'View event', href: `/events/${EVENT_ID}` },
+  sortOrder: 0,
+}
 
 function testClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
@@ -163,19 +177,7 @@ describe('independent Event feature-flag integration', () => {
   it('round-trips from User Events through the shared detail page when public Events are enabled', async () => {
     if (!publicEventsEnabled) return
 
-    vi.spyOn(publicEventsClient, 'readEvents').mockResolvedValue({
-      items: [
-        {
-          ...publicEvent,
-          registration_enabled: true,
-          registration_url: 'https://events.example/register',
-        },
-      ],
-      page: 1,
-      page_size: 100,
-      total: 1,
-      total_pages: 1,
-    })
+    vi.spyOn(eventSliderRepository, 'listPublished').mockResolvedValue([sliderEvent])
     const readEvent = vi.spyOn(publicEventsClient, 'readEvent').mockResolvedValue(publicEvent)
     useAuthStore.getState().setAuthenticated(user)
     const { client } = renderWithRouter(<App />, '/user/events')
