@@ -66,6 +66,7 @@ function renderEvent(path = `/events/${FIRST_ID}`) {
               }
             />
           </Route>
+          <Route path="user/events" element={<h1>Event Dashboard fixture</h1>} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -114,6 +115,26 @@ describe('FE-031 Event detail page', () => {
     expect(screen.getByTestId('event-description')).toHaveClass('whitespace-pre-wrap')
     expect(container.querySelector('script')).toBeNull()
     expect(readEvent).toHaveBeenCalledWith(FIRST_ID, 'en', expect.any(AbortSignal))
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/')
+  })
+
+  it('returns dashboard-origin navigation to the User Events tab and survives a direct reload', async () => {
+    renderEvent(`/events/${FIRST_ID}?from=user-dashboard`)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Buddy Day' })).toBeVisible()
+    const back = screen.getByRole('link', { name: 'Back to Event Dashboard' })
+    expect(back).toHaveAttribute('href', '/user/events')
+
+    fireEvent.click(back)
+    expect(screen.getByRole('heading', { name: 'Event Dashboard fixture' })).toBeVisible()
+  })
+
+  it('defaults malformed or missing origin context to Home', async () => {
+    renderEvent(`/events/${FIRST_ID}?from=user-dashboard&from=home`)
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Buddy Day' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('link', { name: 'Back to Event Dashboard' })).not.toBeInTheDocument()
   })
 
   it('refetches localized data when the language changes', async () => {

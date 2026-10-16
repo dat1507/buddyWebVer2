@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -144,6 +144,50 @@ describe('independent Event feature-flag integration', () => {
       expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
       expect(within(nav).queryByText('Events')).not.toBeInTheDocument()
     }
+    client.clear()
+  })
+
+  it('does not render Event details inside the User dashboard layout', () => {
+    const readEvent = vi.spyOn(publicEventsClient, 'readEvent').mockResolvedValue(publicEvent)
+    useAuthStore.getState().setAuthenticated(user)
+    const { client } = renderWithRouter(<App />, `/user/events/${EVENT_ID}`)
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
+    expect(
+      screen.queryByRole('heading', { level: 1, name: publicEvent.title }),
+    ).not.toBeInTheDocument()
+    expect(readEvent).not.toHaveBeenCalled()
+    client.clear()
+  })
+
+  it('round-trips from User Events through the shared detail page when public Events are enabled', async () => {
+    if (!publicEventsEnabled) return
+
+    vi.spyOn(publicEventsClient, 'readEvents').mockResolvedValue({
+      items: [
+        {
+          ...publicEvent,
+          registration_enabled: true,
+          registration_url: 'https://events.example/register',
+        },
+      ],
+      page: 1,
+      page_size: 100,
+      total: 1,
+      total_pages: 1,
+    })
+    const readEvent = vi.spyOn(publicEventsClient, 'readEvent').mockResolvedValue(publicEvent)
+    useAuthStore.getState().setAuthenticated(user)
+    const { client } = renderWithRouter(<App />, '/user/events')
+
+    fireEvent.click(await screen.findByRole('link', { name: `View ${publicEvent.title} details` }))
+    expect(await screen.findByRole('heading', { level: 1, name: publicEvent.title })).toBeVisible()
+    expect(document.querySelector('[data-layout="user"]')).toBeNull()
+    expect(readEvent).toHaveBeenCalledWith(EVENT_ID, 'en', expect.any(AbortSignal))
+
+    fireEvent.click(screen.getByRole('link', { name: 'Back to Event Dashboard' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Events' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Events' })).toHaveAttribute('aria-current', 'page')
     client.clear()
   })
 

@@ -11,6 +11,7 @@ import { ProfilePage } from '@/pages/user/profile-page'
 import { ProfileEditPage } from '@/pages/user/profile-edit-page'
 import { SettingsPage } from '@/pages/user/settings-page'
 import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
+import { UserEventsPage } from '@/pages/user/user-events-page'
 
 type UserRoutePath =
   | 'dashboard'
@@ -69,7 +70,9 @@ const userRoutes: readonly UserRoute[] = [
   { path: 'assistant', title: 'AI assistant', kind: 'placeholder' },
   { path: 'campus', title: 'Campus', kind: 'placeholder' },
   ...(publicEventsEnabled
-    ? ([{ path: 'events', title: 'Events', kind: 'placeholder' }] satisfies readonly UserRoute[])
+    ? ([
+        { path: 'events', title: 'Events', kind: 'page', Component: UserEventsPage },
+      ] satisfies readonly UserRoute[])
     : []),
   { path: 'settings', title: 'Settings', kind: 'page', Component: SettingsPage },
 ]

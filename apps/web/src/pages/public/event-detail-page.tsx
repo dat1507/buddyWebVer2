@@ -1,6 +1,6 @@
 import { ArrowLeft, Building2, CalendarDays, Clock3, ExternalLink, MapPin, Tag } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
@@ -10,7 +10,21 @@ import { ApiError } from '@/lib/api'
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-function EventNotFound() {
+interface EventDetailBackLink {
+  label: string
+  to: '/' | '/user/events'
+}
+
+function useEventDetailBackLink(): EventDetailBackLink {
+  const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const sources = searchParams.getAll('from')
+  return sources.length === 1 && sources[0] === 'user-dashboard'
+    ? { label: t('eventDetail.backToEventDashboard'), to: '/user/events' }
+    : { label: t('eventDetail.back'), to: '/' }
+}
+
+function EventNotFound({ backLink }: { backLink: EventDetailBackLink }) {
   const { t } = useTranslation()
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-5 px-4 py-16 text-center">
@@ -22,7 +36,7 @@ function EventNotFound() {
       </Typography>
       <Typography variant="lead">{t('eventDetail.notFound.description')}</Typography>
       <Button asChild variant="outline">
-        <Link to="/">{t('eventDetail.back')}</Link>
+        <Link to={backLink.to}>{backLink.label}</Link>
       </Button>
     </main>
   )
@@ -30,6 +44,7 @@ function EventNotFound() {
 
 function EventDetailPage() {
   const { t, i18n } = useTranslation()
+  const backLink = useEventDetailBackLink()
   const { eventId: routeEventId } = useParams()
   const eventId = routeEventId && uuidPattern.test(routeEventId) ? routeEventId : null
   const locale: EventLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
@@ -41,7 +56,7 @@ function EventDetailPage() {
       eventQuery.error instanceof ApiError &&
       eventQuery.error.code === 'notFound')
   ) {
-    return <EventNotFound />
+    return <EventNotFound backLink={backLink} />
   }
 
   if (eventQuery.isPending) {
@@ -108,9 +123,9 @@ function EventDetailPage() {
       />
       <div className="mx-auto w-full max-w-7xl">
         <Button asChild variant="link" className="-ml-4 mb-6 gap-2">
-          <Link to="/">
+          <Link to={backLink.to}>
             <ArrowLeft aria-hidden="true" className="size-4" />
-            {t('eventDetail.back')}
+            {backLink.label}
           </Link>
         </Button>
 

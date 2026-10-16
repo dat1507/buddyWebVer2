@@ -540,6 +540,7 @@
   },
   "eventDetail": {
     "back": "Back to home",
+    "backToEventDashboard": "Back to Event Dashboard",
     "loading": "Loading Event",
     "noCover": "Event cover unavailable",
     "starts": "Starts",
@@ -1158,8 +1159,12 @@
       "registrationDescription": "Registration links available for Events you can access.",
       "loading": "Loading Event registration…",
       "loadError": "Event registration could not be loaded.",
+      "emptyTitle": "No event registrations available",
+      "emptyDescription": "There are no registration links available for the Events you can access right now.",
       "register": "Register for this event",
-      "viewDetails": "View details"
+      "registerLabel": "Register for {{title}}",
+      "viewDetails": "View details",
+      "viewDetailsLabel": "View {{title}} details"
     }
   },
   "recommendedBuddies": {
@@ -1466,8 +1471,7 @@
     "myBuddy": "My Buddy",
     "events": "Events",
     "settings": "Settings",
-    "comingSoon": "Coming soon",
-    "unavailableHint": "These pages are not available yet."
+    "comingSoon": "Coming soon"
   },
   "footer": {
     "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",

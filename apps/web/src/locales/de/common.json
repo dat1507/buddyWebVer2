@@ -540,6 +540,7 @@
   },
   "eventDetail": {
     "back": "Zurück zur Startseite",
+    "backToEventDashboard": "Zurück zur Veranstaltungsübersicht",
     "loading": "Veranstaltung wird geladen",
     "noCover": "Veranstaltungstitelbild nicht verfügbar",
     "starts": "Beginn",
@@ -1158,8 +1159,12 @@
       "registrationDescription": "Anmeldelinks für Veranstaltungen, auf die du zugreifen kannst.",
       "loading": "Veranstaltungsanmeldung wird geladen…",
       "loadError": "Die Veranstaltungsanmeldung konnte nicht geladen werden.",
+      "emptyTitle": "Keine Veranstaltungsanmeldungen verfügbar",
+      "emptyDescription": "Derzeit sind keine Anmeldelinks für die Veranstaltungen verfügbar, auf die du zugreifen kannst.",
       "register": "Für diese Veranstaltung anmelden",
-      "viewDetails": "Details anzeigen"
+      "registerLabel": "Für {{title}} anmelden",
+      "viewDetails": "Details anzeigen",
+      "viewDetailsLabel": "Details zu {{title}} anzeigen"
     }
   },
   "recommendedBuddies": {
@@ -1466,8 +1471,7 @@
     "myBuddy": "Mein Buddy",
     "events": "Veranstaltungen",
     "settings": "Einstellungen",
-    "comingSoon": "Demnächst",
-    "unavailableHint": "Diese Seiten sind noch nicht verfügbar."
+    "comingSoon": "Demnächst"
   },
   "footer": {
     "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",

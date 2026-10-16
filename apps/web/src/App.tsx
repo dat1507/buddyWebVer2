@@ -65,11 +65,7 @@ function App() {
                 />
               )
             })}
-            {publicEventsEnabled ? (
-              <Route path="events/:eventId" element={<EventDetailPage />} />
-            ) : (
-              <Route path="events/*" element={<NotFoundPage embedded />} />
-            )}
+            <Route path="events/*" element={<NotFoundPage embedded />} />
           </Route>
         </Route>
 

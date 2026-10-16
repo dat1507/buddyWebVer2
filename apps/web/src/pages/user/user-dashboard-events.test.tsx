@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -12,6 +12,7 @@ import { publicEventsClient, type PublicEvent } from '@/features/events/public-e
 import { profileClient } from '@/features/profile/profile-client'
 import i18n from '@/i18n'
 import { UserDashboardPage } from '@/pages/user/user-dashboard-page'
+import { UserEventsPage } from '@/pages/user/user-events-page'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { completeOwnProfile } from '@/test/profile'
@@ -47,7 +48,7 @@ function page(items: PublicEvent[]) {
   return { items, page: 1, page_size: 100, total: items.length, total_pages: items.length ? 1 : 0 }
 }
 
-describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
+describe('User Events registration page', () => {
   let client: QueryClient
   const readEvents = vi.spyOn(publicEventsClient, 'readEvents')
 
@@ -68,17 +69,17 @@ describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
     vi.clearAllMocks()
   })
 
-  const renderDashboard = () =>
+  const renderEvents = () =>
     render(
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <UserDashboardPage />
+          <UserEventsPage />
         </MemoryRouter>
       </QueryClientProvider>,
     )
 
   it('renders the exact persisted HTTPS action for an authorized User', async () => {
-    renderDashboard()
+    renderEvents()
 
     const link = await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
     expect(link).toHaveAttribute('href', event.registration_url)
@@ -86,7 +87,7 @@ describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
     expect(link).toHaveAttribute('rel', 'noreferrer')
     expect(screen.getByRole('link', { name: 'View Buddy Announcement details' })).toHaveAttribute(
       'href',
-      `/user/events/${EVENT_ID}`,
+      `/events/${EVENT_ID}?from=user-dashboard`,
     )
     expect(readEvents).toHaveBeenCalledWith('en', expect.any(AbortSignal))
   })
@@ -98,12 +99,30 @@ describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
         { ...event, id: '22222222-2222-4222-8222-222222222222', registration_url: null },
       ]),
     )
-    renderDashboard()
+    renderEvents()
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Events' })).toBeVisible()
     await waitFor(() => expect(readEvents).toHaveBeenCalledTimes(1))
-    expect(screen.queryByRole('heading', { name: 'Event registration' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'No event registrations available' })).toBeVisible()
     expect(screen.queryByRole('link', { name: /Register for/ })).not.toBeInTheDocument()
+  })
+
+  it('preserves loading and retry behavior after moving registration to the Events tab', async () => {
+    readEvents
+      .mockRejectedValueOnce(new Error('network details'))
+      .mockResolvedValueOnce(page([event]))
+    renderEvents()
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Event registration could not be loaded.',
+    )
+    expect(screen.queryByText('network details')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(
+      await screen.findByRole('link', { name: 'Register for Buddy Announcement' }),
+    ).toBeVisible()
+    expect(readEvents).toHaveBeenCalledTimes(2)
   })
 
   it('revalidates an updated URL and keeps the German mobile action usable', async () => {
@@ -117,7 +136,7 @@ describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
         ]),
       )
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 })
-    renderDashboard()
+    renderEvents()
     await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
 
     await act(async () => {
@@ -138,5 +157,21 @@ describe('EVENT-OPTIONAL-PUBLISH-001 User Dashboard registration', () => {
     expect(updated).toHaveAttribute('href', updatedUrl)
     expect(updated).toHaveClass('w-full')
     expect(readEvents).toHaveBeenCalledWith('de', expect.any(AbortSignal))
+  })
+
+  it('does not render registration cards on the dashboard anymore', async () => {
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <UserDashboardPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
+    expect(
+      screen.queryByRole('link', { name: 'Register for Buddy Announcement' }),
+    ).not.toBeInTheDocument()
+    expect(readEvents).not.toHaveBeenCalled()
   })
 })

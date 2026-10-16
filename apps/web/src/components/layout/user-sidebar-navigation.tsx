@@ -1,9 +1,7 @@
-import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { matchPath, NavLink, useLocation } from 'react-router'
 
 import { buttonVariants } from '@/components/ui/button-variants'
-import { Typography } from '@/components/ui/typography'
 import { UnreadBadge } from '@/components/ui/unread-badge'
 import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
 import { cn } from '@/lib/utils'
@@ -24,7 +22,6 @@ function UserSidebarNavigation({
 }) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const unavailableId = useId()
   const { summary } = useBuddyUnread()
   const unreadCount = summary.total_unread_messages
 
@@ -54,7 +51,6 @@ function UserSidebarNavigation({
                 <span
                   role="link"
                   aria-disabled="true"
-                  aria-describedby={unavailableId}
                   aria-current={current ? 'page' : undefined}
                   className={cn(
                     navigationClass(current),
