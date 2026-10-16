@@ -27,6 +27,7 @@ from app.services.email_verification import (
     digest_email_verification_token,
     issue_email_verification_token,
 )
+from app.services.transactional_email_branding import render_branded_email_html
 
 EMAIL_VERIFICATION_REQUESTED: Final = "EMAIL_VERIFICATION_REQUESTED"
 _PAYLOAD_VERSION: Final = 1
@@ -140,19 +141,21 @@ class EmailVerificationTemplate:
         ):
             raise EmailTemplateError("verification_link_expired")
         try:
-            token = AESGCM(self._settings.sealing_key.get_secret_value()).decrypt(
-                nonce,
-                ciphertext,
-                _SEALING_AAD,
-            ).decode("ascii")
+            token = (
+                AESGCM(self._settings.sealing_key.get_secret_value())
+                .decrypt(
+                    nonce,
+                    ciphertext,
+                    _SEALING_AAD,
+                )
+                .decode("ascii")
+            )
             digest_email_verification_token(token)
         except Exception:
             raise EmailTemplateError("verification_payload_invalid") from None
 
-        link = (
-            f"{self._settings.public_app_base_url}/verify-email"
-            f"?token={quote(token, safe='')}"
-        )
+        link = f"{self._settings.public_app_base_url}/verify-email?token={quote(token, safe='')}"
+        logo_url = f"{self._settings.public_app_base_url}/vguBuddy_logo.png"
         return RenderedEmailContent(
             subject="Verify your VGU Buddy email",
             text_body=(
@@ -160,6 +163,23 @@ class EmailVerificationTemplate:
                 f"{link}\n\n"
                 "This link expires 15 minutes after it was requested. "
                 "If you did not request this email, you can ignore it."
+            ),
+            html_body=render_branded_email_html(
+                document_title="Verify your VGU Buddy email",
+                preheader="Verify your email address to complete your VGU Buddy account setup.",
+                logo_url=logo_url,
+                heading="Verify your email address",
+                message_html=(
+                    "Please verify your email address to complete your account verification "
+                    "and continue using VGU Buddy."
+                ),
+                cta_label="Verify Email",
+                cta_url=link,
+                fallback_url=link,
+                notice_html=(
+                    "This link expires 15 minutes after it was requested. If you did not request "
+                    "this email, you can safely ignore it."
+                ),
             ),
         )
 

@@ -216,6 +216,23 @@ test("B. normal verification email decrypts the existing payload contract and se
     delivery.message.textBody,
     /https:\/\/staging\.vgubuddyprogram\.com\/verify-email/,
   );
+  assert.ok(delivery.message.htmlBody);
+  assert.match(
+    delivery.message.htmlBody,
+    /src="https:\/\/staging\.vgubuddyprogram\.com\/vguBuddy_logo\.png"/,
+  );
+  assert.match(
+    delivery.message.htmlBody,
+    /href="https:\/\/staging\.vgubuddyprogram\.com\/verify-email\?token=/,
+  );
+  assert.match(delivery.message.htmlBody, />Verify Email<\/a>/);
+  assert.match(delivery.message.htmlBody, /Verify your email address/);
+  assert.match(
+    delivery.message.htmlBody,
+    /This link expires 15 minutes after it was requested\./,
+  );
+  assert.match(delivery.message.htmlBody, /If the button does not work/);
+  assert.match(delivery.message.htmlBody, /Vietnamese-German University/);
   assert.equal(gateway.stored[0].attempts, 1);
   assert.equal(gateway.stored[0].sent, true);
 });
@@ -515,7 +532,7 @@ test("INV-008 accepts only the minimal invitation-created reference payload", ()
   );
 });
 
-test("INV-009 resolves current sender and sends one plain-text Start Chatting email", async () => {
+test("INV-009 resolves current sender and sends one branded Start Chatting email", async () => {
   const job = acceptedInvitationJob("accepted-current");
   class AcceptedInvitationGateway extends AtomicFakeGateway {
     override async resolve(claimed: OutboxJob): Promise<OutboxJob> {
@@ -562,6 +579,29 @@ test("INV-009 resolves current sender and sends one plain-text Start Chatting em
     delivery.message.textBody,
     /https:\/\/staging\.vgubuddyprogram\.com\/user\/buddy\?conversation=44444444/,
   );
+  assert.ok(delivery.message.htmlBody);
+  assert.match(
+    delivery.message.htmlBody,
+    /src="https:\/\/staging\.vgubuddyprogram\.com\/vguBuddy_logo\.png"/,
+  );
+  assert.match(
+    delivery.message.htmlBody,
+    /href="https:\/\/staging\.vgubuddyprogram\.com\/user\/buddy\?conversation=44444444/,
+  );
+  assert.match(delivery.message.htmlBody, />Start Chatting<\/a>/);
+  assert.match(
+    delivery.message.htmlBody,
+    /Your Buddy invitation has been accepted!/,
+  );
+  assert.match(
+    delivery.message.htmlBody,
+    /&lt;script&gt;alert\(1\)&lt;\/script&gt;/,
+  );
+  assert.equal(
+    delivery.message.htmlBody.includes("<script>alert(1)</script>"),
+    false,
+  );
+  assert.match(delivery.message.htmlBody, /Vietnamese-German University/);
   assert.equal(
     delivery.message.textBody.includes("private invitation message"),
     false,

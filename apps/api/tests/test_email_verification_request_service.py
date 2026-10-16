@@ -81,7 +81,18 @@ def test_sealed_payload_renders_only_in_memory_and_rejects_tampering_or_expiry(
     renderer = EmailVerificationTemplate(settings, clock=lambda: NOW)
     content = renderer.render(payload)
     assert content.subject == "Verify your VGU Buddy email"
-    assert f"https://buddy.example/verify-email?token={TOKEN}" in content.text_body
+    verification_url = f"https://buddy.example/verify-email?token={TOKEN}"
+    assert verification_url in content.text_body
+    assert content.html_body is not None
+    assert "Verify your email address" in content.html_body
+    assert 'src="https://buddy.example/vguBuddy_logo.png"' in content.html_body
+    assert f'href="{verification_url}"' in content.html_body
+    assert ">Verify Email</a>" in content.html_body
+    assert "If the button does not work" in content.html_body
+    assert "This link expires 15 minutes after it was requested." in content.html_body
+    assert "Vietnamese-German University" in content.html_body
+    assert 'class="email-shell"' in content.html_body
+    assert 'class="email-button"' in content.html_body
     assert TOKEN not in repr(content)
 
     tampered = dict(payload)

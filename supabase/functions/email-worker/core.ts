@@ -56,6 +56,18 @@ export interface TemplateSettings {
   sealingKey: Uint8Array;
 }
 
+interface BrandedEmailHtmlInput {
+  documentTitle: string;
+  preheader: string;
+  logoUrl: string;
+  heading: string;
+  messageHtml: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  noticeHtml: string;
+  fallbackUrl?: string;
+}
+
 export interface WorkerReport {
   claimed: number;
   sent: number;
@@ -403,6 +415,76 @@ export async function constantTimeSecretEquals(
   return difference === 0;
 }
 
+function renderBrandedEmailHtml(input: BrandedEmailHtmlInput): string {
+  const escapedDocumentTitle = escapeHtml(input.documentTitle);
+  const escapedPreheader = escapeHtml(input.preheader);
+  const escapedLogoUrl = escapeHtml(input.logoUrl);
+  const escapedHeading = escapeHtml(input.heading);
+  const escapedCtaLabel = escapeHtml(input.ctaLabel);
+  const escapedCtaUrl = escapeHtml(input.ctaUrl);
+  const fallbackHtml = input.fallbackUrl
+    ? `
+                <p style="margin:28px 0 8px;color:#52525b;font-size:13px;line-height:1.5;">If the button does not work, copy and paste this link into your browser:</p>
+                <p style="margin:0 0 28px;font-size:13px;line-height:1.5;word-break:break-all;"><a href="${escapeHtml(input.fallbackUrl)}" style="color:#c2410c;text-decoration:underline;">${escapeHtml(input.fallbackUrl)}</a></p>`
+    : "";
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${escapedDocumentTitle}</title>
+    <style>
+      @media only screen and (max-width: 620px) {
+        .email-shell { width: 100% !important; }
+        .email-content { padding: 32px 24px !important; }
+        .email-footer { padding: 24px !important; }
+        .email-button { display: block !important; text-align: center !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f4f5;color:#171717;font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      ${escapedPreheader}
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f4f5;">
+      <tr>
+        <td align="center" style="padding:32px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="email-shell" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
+            <tr>
+              <td align="center" style="background:#000000;padding:18px 24px;">
+                <img src="${escapedLogoUrl}" width="160" alt="VGU Buddy Program" style="display:block;width:160px;max-width:100%;height:auto;border:0;">
+              </td>
+            </tr>
+            <tr>
+              <td class="email-content" style="padding:40px 48px;">
+                <p style="margin:0 0 12px;color:#ff670d;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">VGU Buddy Program</p>
+                <h1 style="margin:0 0 20px;color:#000000;font-size:28px;line-height:1.25;font-weight:700;">${escapedHeading}</h1>
+                <p style="margin:0 0 28px;color:#3f3f46;font-size:16px;line-height:1.65;">${input.messageHtml}</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
+                  <tr>
+                    <td bgcolor="#ff670d" style="border-radius:10px;">
+                      <a href="${escapedCtaUrl}" class="email-button" style="display:inline-block;padding:14px 24px;color:#000000;font-size:16px;font-weight:700;line-height:1;text-decoration:none;border-radius:10px;">${escapedCtaLabel}</a>
+                    </td>
+                  </tr>
+                </table>${fallbackHtml}
+                <p style="margin:0;padding:16px 18px;background:#fff7ed;border-left:4px solid #ff670d;border-radius:8px;color:#52525b;font-size:14px;line-height:1.5;">${input.noticeHtml}</p>
+              </td>
+            </tr>
+            <tr>
+              <td class="email-footer" style="padding:24px 48px;background:#000000;color:#ffffff;">
+                <p style="margin:0;font-size:14px;font-weight:700;line-height:1.5;">VGU Buddy Program</p>
+                <p style="margin:2px 0 0;color:#d4d4d8;font-size:13px;line-height:1.5;">Vietnamese-German University</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
 async function renderVerificationEmail(
   job: OutboxJob,
   settings: TemplateSettings,
@@ -458,6 +540,7 @@ async function renderVerificationEmail(
     }
     const appOrigin = normalizePublicAppOrigin(settings.publicAppBaseUrl);
     const link = `${appOrigin}/verify-email?token=${encodeURIComponent(token)}`;
+    const logoUrl = `${appOrigin}/vguBuddy_logo.png`;
     return {
       recipientEmail: job.recipient_email,
       subject: "Verify your VGU Buddy email",
@@ -466,6 +549,20 @@ async function renderVerificationEmail(
         `${link}\n\n` +
         "This link expires 15 minutes after it was requested. " +
         "If you did not request this email, you can ignore it.",
+      htmlBody: renderBrandedEmailHtml({
+        documentTitle: "Verify your VGU Buddy email",
+        preheader:
+          "Verify your email address to complete your VGU Buddy account setup.",
+        logoUrl,
+        heading: "Verify your email address",
+        messageHtml:
+          "Please verify your email address to complete your account verification and continue using VGU Buddy.",
+        ctaLabel: "Verify Email",
+        ctaUrl: link,
+        fallbackUrl: link,
+        noticeHtml:
+          "This link expires 15 minutes after it was requested. If you did not request this email, you can safely ignore it.",
+      }),
     };
   } catch (error) {
     if (error instanceof TemplateFailure) {
@@ -505,8 +602,6 @@ function renderInvitationEmail(
   const link = `${appOrigin}/user/matching?invitation=${encodeURIComponent(invitationId)}`;
   const logoUrl = `${appOrigin}/vguBuddy_logo.png`;
   const escapedSenderDisplayName = escapeHtml(senderDisplayName);
-  const escapedLink = escapeHtml(link);
-  const escapedLogoUrl = escapeHtml(logoUrl);
   return {
     recipientEmail: job.recipient_email,
     subject: "You received a VGU Buddy invitation",
@@ -518,61 +613,18 @@ function renderInvitationEmail(
       "This invitation will expire after 7 days.\n\n" +
       "VGU Buddy Program\n" +
       "Vietnamese-German University",
-    htmlBody: `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>You received a VGU Buddy invitation</title>
-    <style>
-      @media only screen and (max-width: 620px) {
-        .email-shell { width: 100% !important; }
-        .email-content { padding: 32px 24px !important; }
-        .email-footer { padding: 24px !important; }
-        .email-button { display: block !important; text-align: center !important; }
-      }
-    </style>
-  </head>
-  <body style="margin:0;padding:0;background:#f4f4f5;color:#171717;font-family:Arial,Helvetica,sans-serif;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-      ${escapedSenderDisplayName} would like to connect with you on VGU Buddy.
-    </div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f4f4f5;">
-      <tr>
-        <td align="center" style="padding:32px 12px;">
-          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" class="email-shell" style="width:600px;max-width:600px;background:#ffffff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden;">
-            <tr>
-              <td align="center" style="background:#000000;padding:18px 24px;">
-                <img src="${escapedLogoUrl}" width="160" alt="VGU Buddy Program" style="display:block;width:160px;max-width:100%;height:auto;border:0;">
-              </td>
-            </tr>
-            <tr>
-              <td class="email-content" style="padding:40px 48px;">
-                <p style="margin:0 0 12px;color:#ff670d;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;">VGU Buddy Program</p>
-                <h1 style="margin:0 0 20px;color:#000000;font-size:28px;line-height:1.25;font-weight:700;">You've got a new Buddy invitation!</h1>
-                <p style="margin:0 0 28px;color:#3f3f46;font-size:16px;line-height:1.65;"><strong style="color:#000000;">${escapedSenderDisplayName}</strong> would like to connect with you on VGU Buddy.</p>
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 28px;">
-                  <tr>
-                    <td bgcolor="#ff670d" style="border-radius:10px;">
-                      <a href="${escapedLink}" class="email-button" style="display:inline-block;padding:14px 24px;color:#000000;font-size:16px;font-weight:700;line-height:1;text-decoration:none;border-radius:10px;">View invitation</a>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:0;padding:16px 18px;background:#fff7ed;border-left:4px solid #ff670d;border-radius:8px;color:#52525b;font-size:14px;line-height:1.5;">This invitation will expire after 7 days.</p>
-              </td>
-            </tr>
-            <tr>
-              <td class="email-footer" style="padding:24px 48px;background:#000000;color:#ffffff;">
-                <p style="margin:0;font-size:14px;font-weight:700;line-height:1.5;">VGU Buddy Program</p>
-                <p style="margin:2px 0 0;color:#d4d4d8;font-size:13px;line-height:1.5;">Vietnamese-German University</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`,
+    htmlBody: renderBrandedEmailHtml({
+      documentTitle: "You received a VGU Buddy invitation",
+      preheader: `${senderDisplayName} would like to connect with you on VGU Buddy.`,
+      logoUrl,
+      heading: "You've got a new Buddy invitation!",
+      messageHtml:
+        `<strong style="color:#000000;">${escapedSenderDisplayName}</strong> would like ` +
+        "to connect with you on VGU Buddy.",
+      ctaLabel: "View invitation",
+      ctaUrl: link,
+      noticeHtml: "This invitation will expire after 7 days.",
+    }),
   };
 }
 
@@ -603,6 +655,8 @@ function renderAcceptedInvitationEmail(
   }
   const appOrigin = normalizePublicAppOrigin(settings.publicAppBaseUrl);
   const link = `${appOrigin}/user/buddy?conversation=${encodeURIComponent(conversationId)}`;
+  const logoUrl = `${appOrigin}/vguBuddy_logo.png`;
+  const escapedAcceptorDisplayName = escapeHtml(acceptorDisplayName);
   return {
     recipientEmail: job.recipient_email,
     subject: "Your VGU Buddy invitation was accepted",
@@ -611,6 +665,18 @@ function renderAcceptedInvitationEmail(
       "Start chatting:\n" +
       `${link}\n\n` +
       "Sign in to VGU Buddy to open this conversation.",
+    htmlBody: renderBrandedEmailHtml({
+      documentTitle: "Your VGU Buddy invitation was accepted",
+      preheader: `${acceptorDisplayName} accepted your VGU Buddy invitation.`,
+      logoUrl,
+      heading: "Your Buddy invitation has been accepted!",
+      messageHtml:
+        `<strong style="color:#000000;">${escapedAcceptorDisplayName}</strong> accepted ` +
+        "your VGU Buddy invitation. You can now connect through the VGU Buddy Program.",
+      ctaLabel: "Start Chatting",
+      ctaUrl: link,
+      noticeHtml: "Sign in to VGU Buddy to open this conversation.",
+    }),
   };
 }
 

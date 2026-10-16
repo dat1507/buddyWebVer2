@@ -27,6 +27,21 @@ def test_edge_worker_allowlists_invitation_and_resolves_current_verified_recipie
     assert "This invitation will expire after 7 days." in core
 
 
+def test_edge_worker_brands_verification_and_accepted_templates_without_changing_ctas() -> None:
+    core = _source("supabase/functions/email-worker/core.ts")
+
+    assert "function renderBrandedEmailHtml" in core
+    assert 'heading: "Verify your email address"' in core
+    assert 'ctaLabel: "Verify Email"' in core
+    assert "fallbackUrl: link" in core
+    assert 'heading: "Your Buddy invitation has been accepted!"' in core
+    assert 'ctaLabel: "Start Chatting"' in core
+    assert "/verify-email?token=" in core
+    assert "/user/buddy?conversation=" in core
+    assert "/vguBuddy_logo.png" in core
+    assert "Vietnamese-German University" in core
+
+
 def test_invitation_request_path_only_enqueues_and_never_calls_email_provider() -> None:
     sending = _source("apps/api/app/services/invitation_sending.py")
 

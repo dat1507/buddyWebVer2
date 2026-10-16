@@ -325,7 +325,7 @@ async def test_accepted_resolver_rejects_malformed_or_expanded_payload(
     mock.execute.assert_not_awaited()
 
 
-def test_accepted_template_renders_plain_text_start_chatting_cta() -> None:
+def test_accepted_template_renders_branded_html_and_plain_text_start_chatting_cta() -> None:
     content = MatchingInvitationAcceptedTemplate(SETTINGS).render(
         {
             "version": 1,
@@ -347,6 +347,20 @@ def test_accepted_template_renders_plain_text_start_chatting_cta() -> None:
     assert "example.com" not in content.text_body
     assert str(INVITATION_ID) not in content.text_body
     assert str(MATCH_ID) not in content.text_body
+    assert content.html_body is not None
+    assert "Your Buddy invitation has been accepted!" in content.html_body
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in content.html_body
+    assert "<script>alert(1)</script>" not in content.html_body
+    assert 'src="https://staging.vgubuddyprogram.com/vguBuddy_logo.png"' in content.html_body
+    assert (
+        f'href="https://staging.vgubuddyprogram.com/user/buddy?conversation={CONVERSATION_ID}"'
+        in content.html_body
+    )
+    assert ">Start Chatting</a>" in content.html_body
+    assert "Sign in to VGU Buddy to open this conversation." in content.html_body
+    assert "Vietnamese-German University" in content.html_body
+    assert 'class="email-shell"' in content.html_body
+    assert 'class="email-button"' in content.html_body
     assert "<script>alert(1)</script>" not in repr(content)
 
 
