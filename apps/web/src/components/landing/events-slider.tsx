@@ -329,7 +329,8 @@ function EventsSlider({ events }: EventsSliderProps) {
 
   return (
     <section
-      className="bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      id="events"
+      className="scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       aria-labelledby="events-title"
     >
       <div className="mx-auto max-w-7xl">

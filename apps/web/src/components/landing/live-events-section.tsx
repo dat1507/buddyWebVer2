@@ -19,7 +19,8 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
   if (events.isPending) {
     return (
       <section
-        className="bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+        id="events"
+        className="scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-4xl space-y-10">
@@ -39,7 +40,8 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
   if (events.isError) {
     return (
       <section
-        className="bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
+        id="events"
+        className="scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-3xl space-y-5">
@@ -61,7 +63,8 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
   if (visibleEvents.length === 0) {
     return (
       <section
-        className="bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
+        id="events"
+        className="scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-3xl space-y-5">

@@ -2,7 +2,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
-    "features": "Campus Resources",
+    "features": "Resources",
     "community": "Community",
     "contact": "Contact",
     "surbook": "Survival Book",
@@ -20,7 +20,8 @@
     "accountNavigation": "Account navigation",
     "userLogin": "User login",
     "createStudentAccount": "Create student account",
-    "openWorkspace": "Open workspace"
+    "openWorkspace": "Open workspace",
+    "events": "Events"
   },
   "hero": {
     "title1": "Connect with",
@@ -90,7 +91,13 @@
     },
     "visit": "Visit {{resource}}",
     "newTab": "(opens in a new tab)",
-    "recapPending": "Event highlights are being prepared."
+    "recapPending": "Event highlights are being prepared.",
+    "eyebrow": "Campus Resources",
+    "social": {
+      "title": "Merchandise",
+      "desc": "VGU Buddy merchandise is not currently available for sale."
+    },
+    "merchPending": "Coming Soon"
   },
   "community": {
     "title": "What Students Say",

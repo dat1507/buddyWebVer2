@@ -26,7 +26,8 @@ describe('Navbar', () => {
 
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'About' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Campus Resources' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Resources' })).toHaveAttribute('href', '/#features')
+    expect(screen.getByRole('link', { name: 'Events' })).toHaveAttribute('href', '/#events')
     expect(screen.getByRole('link', { name: 'Community' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Contact' })).toBeVisible()
 
@@ -44,7 +45,11 @@ describe('Navbar', () => {
     expect(i18n.resolvedLanguage).toBe('de')
     expect(screen.getByRole('link', { name: 'Startseite' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Über uns' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Campus-Angebote' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Ressourcen' })).toHaveAttribute('href', '/#features')
+    expect(screen.getByRole('link', { name: 'Veranstaltungen' })).toHaveAttribute(
+      'href',
+      '/#events',
+    )
   })
 
   it('toggles language from mobile drawer and closes drawer', async () => {
@@ -200,5 +205,24 @@ describe('Navbar', () => {
     expect(
       within(drawer).queryByRole('link', { name: 'Create student account' }),
     ).not.toBeInTheDocument()
+  })
+  it.each([
+    ['en', 'Resources', '/#features'],
+    ['en', 'Events', '/#events'],
+    ['de', 'Ressourcen', '/#features'],
+    ['de', 'Veranstaltungen', '/#events'],
+  ])('closes the %s mobile drawer after %s navigation', async (language, label, href) => {
+    await i18n.changeLanguage(language)
+    renderNavbar()
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: language === 'en' ? 'Open navigation menu' : 'Navigationsmenü öffnen',
+      }),
+    )
+    const dialog = screen.getByRole('dialog')
+    const link = within(dialog).getByRole('link', { name: label })
+    expect(link).toHaveAttribute('href', href)
+    fireEvent.click(link)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
 })

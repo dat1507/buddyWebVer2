@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth-store'
 const navItems = [
   { href: '/#home', translationKey: 'nav.home' },
   { href: '/#about', translationKey: 'nav.about' },
+  { href: '/#events', translationKey: 'nav.events' },
   { href: '/#features', translationKey: 'nav.features' },
   { href: '/#community', translationKey: 'nav.community' },
   { href: '/#contact', translationKey: 'nav.contact' },
@@ -127,7 +128,7 @@ function Navbar() {
           </span>
         </a>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label={t('nav.primaryNavigation')}>
+        <nav className="hidden items-center gap-1 xl:flex" aria-label={t('nav.primaryNavigation')}>
           {navItems.map((item) => (
             <a
               key={item.href}
@@ -157,7 +158,7 @@ function Navbar() {
             <Button
               asChild
               variant="outline"
-              className="hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 lg:inline-flex"
+              className="hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 xl:inline-flex"
             >
               <Link to={workspacePath}>
                 <UserRound aria-hidden="true" className="size-4" />
@@ -169,7 +170,7 @@ function Navbar() {
               </Link>
             </Button>
           ) : (
-            <div className="relative hidden lg:block">
+            <div className="relative hidden xl:block">
               <Button
                 ref={signInButtonRef}
                 type="button"
@@ -219,7 +220,7 @@ function Navbar() {
             type="button"
             variant="ghost"
             size="icon"
-            className="text-zinc-100 hover:bg-white/10 hover:text-orange-400 lg:hidden"
+            className="text-zinc-100 hover:bg-white/10 hover:text-orange-400 xl:hidden"
             aria-label={t('nav.openMenu')}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation"
@@ -231,7 +232,7 @@ function Navbar() {
       </div>
 
       {isMenuOpen ? (
-        <div ref={drawerOverlayRef} className="fixed inset-0 top-0 z-50 lg:hidden">
+        <div ref={drawerOverlayRef} className="fixed inset-0 top-0 z-50 xl:hidden">
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default bg-black/70 backdrop-blur-sm"

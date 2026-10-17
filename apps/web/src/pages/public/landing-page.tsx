@@ -18,7 +18,7 @@ function LandingPage() {
   const { state, hash } = useLocation()
 
   useEffect(() => {
-    if (hash !== '#about' && hash !== '#features') return
+    if (!['#about', '#features', '#events'].includes(hash)) return
     const frame = requestAnimationFrame(() => {
       document.getElementById(hash.slice(1))?.scrollIntoView()
     })

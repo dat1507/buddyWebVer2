@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LiveEventsSection } from '@/components/landing/live-events-section'
 import type { EventSlider } from '@/features/events/event-slider'
@@ -47,6 +47,10 @@ function renderLive(repository: EventSliderRepository) {
 }
 
 describe('FE-014B live Landing Event section', () => {
+  afterEach(() => {
+    expect(document.querySelectorAll('#events')).toHaveLength(1)
+    expect(document.querySelector('#events')).toHaveClass('scroll-mt-20')
+  })
   beforeEach(async () => {
     await i18n.changeLanguage('en')
   })
@@ -103,6 +107,7 @@ describe('FE-014B live Landing Event section', () => {
       'Upcoming events could not be loaded.',
     )
     expect(screen.queryByText(/private provider detail/)).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Upcoming Events' })).toHaveAttribute('id', 'events')
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 

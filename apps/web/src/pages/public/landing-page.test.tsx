@@ -60,7 +60,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
     expect(sections[5].id).toBe('cta')
   })
 
-  it.each(['about', 'features'])(
+  it.each(['about', 'features', 'events'])(
     'retains Learn More and resolves direct #%s navigation after mount',
     async (anchor) => {
       const scroll = vi.fn()
@@ -148,7 +148,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
   it('contains valid section anchors matching navigation targets', () => {
     const { container } = renderLandingPage()
 
-    const expectedAnchors = ['home', 'about', 'features', 'community', 'contact']
+    const expectedAnchors = ['home', 'about', 'events', 'features', 'community', 'contact']
     for (const anchor of expectedAnchors) {
       const el = container.querySelector(`#${anchor}`)
       expect(el).not.toBeNull()

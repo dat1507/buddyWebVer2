@@ -680,3 +680,24 @@ explicit localized accessible labels resolved both. Final focused run passes. Lo
 pre-existing auth bootstrap connection warning (no local API); no authenticated session was used.
 International Office was read on the official site; other destinations are owner-confirmed, with
 no separate external availability acceptance. Events Recap is **UI prepared — functionality pending**.
+
+## FE-LANDING-NAV-MERCH-001 — 2026-10-17 local validation
+
+| Check | Result |
+| --- | --- |
+| Focused grid/Navbar/Landing/slider/live states | 5 files / 45 PASS; final Navbar rerun 15 PASS |
+| TypeScript / affected ESLint / Prettier | PASS; unsupported `exact` test options corrected after first build |
+| Production build | PASS; existing large-bundle advisory remains |
+| Merchandise | Six cards, EN/DE unavailable text and Coming Soon / Demnächst verfügbar; no purchasing links/actions |
+| Existing resources | Four exact confirmed HTTPS URLs and secure external-link attributes preserved |
+| Events anchor | Unique #events with 80px scroll margin in static and all live states; no fetch/eligibility/order logic change |
+| Brave responsive | 1440×1000 3×2; 768×1024 2 columns; 390×844 1 column; EN/DE no overflow |
+| Navbar correction | German 1024px overflow resolved by full navigation at 1280px; drawer below that breakpoint |
+| Navigation | EN/DE mobile links close drawer; /login → /#events and refresh work; section top 80px below ~65px navbar |
+| Motion/accessibility | Reduced preference gives auto scroll and all six card transitions none; focus contracts preserved |
+| Documentation | 229 task paths; focused links, formatting and whitespace validated |
+| Scope | No backend/database/API/auth/Production write; local commit, no push/deployment |
+
+Browser used the local static slider path; live pending/error/empty/populated anchor behavior is
+covered by focused tests. The pre-existing local auth bootstrap connection warning remains; no
+account was used. No Merchandise or Events Recap functionality is implied by the prepared cards.

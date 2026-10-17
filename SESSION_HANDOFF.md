@@ -2,11 +2,19 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Campus Resources redesign complete locally; no deployment
+**Current mode:** Merchandise/navigation update complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-NAV-MERCH-001` is complete locally on `main`. Six Resources cards include Merchandise
+with Coming Soon / Demnächst verfügbar and no purchase action. Navbar Resources/Ressourcen keeps
+#features; Events/Veranstaltungen targets the existing slider at #events, including live loading,
+error and empty states. Full navbar starts at 1280px to prevent German overflow; smaller widths
+use the existing drawer. Focused tests, static/build gates and local responsive/navigation checks
+pass; see the task/validation record. No push, deployment or Production change. TASK_ID is clear.
+This newer task supersedes only the five-card/navigation layout described immediately below.
 
 `FE-LANDING-RESOURCES-001` is complete locally on `main`. Campus Resources replaces Benefits
 with five responsive cards and EN/DE navbar/footer/section copy. Four owner-confirmed official

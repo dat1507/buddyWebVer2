@@ -2,7 +2,7 @@
   "nav": {
     "home": "Startseite",
     "about": "Über uns",
-    "features": "Campus-Angebote",
+    "features": "Ressourcen",
     "community": "Community",
     "contact": "Kontakt",
     "surbook": "Überlebensbuch",
@@ -20,7 +20,8 @@
     "accountNavigation": "Kontonavigation",
     "userLogin": "Benutzeranmeldung",
     "createStudentAccount": "Studierendenkonto erstellen",
-    "openWorkspace": "Arbeitsbereich öffnen"
+    "openWorkspace": "Arbeitsbereich öffnen",
+    "events": "Veranstaltungen"
   },
   "hero": {
     "title1": "Verbinde dich mit",
@@ -90,7 +91,13 @@
     },
     "visit": "{{resource}} besuchen",
     "newTab": "(öffnet in einem neuen Tab)",
-    "recapPending": "Veranstaltungsrückblicke werden vorbereitet."
+    "recapPending": "Veranstaltungsrückblicke werden vorbereitet.",
+    "eyebrow": "Campus-Angebote",
+    "social": {
+      "title": "Merchandise",
+      "desc": "Merchandise des VGU Buddy Programms ist derzeit nicht zum Verkauf verfügbar."
+    },
+    "merchPending": "Demnächst verfügbar"
   },
   "community": {
     "title": "Was Studierende sagen",

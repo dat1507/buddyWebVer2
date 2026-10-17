@@ -60,13 +60,18 @@ embedding an authenticated dashboard. The old demo CTA/video was removed before 
 Sticky-navbar offset is preserved for `#about`, including direct refresh.
 
 [Campus Resources](../../implementation/tasks/FE-LANDING-RESOURCES-001.md) replaces Benefits
-with five icon cards: Events Recap, Library, Sports Hall, International Office and Dormitory
-Service. The owner confirmed all four official destinations; the source array owns those URLs.
+with six icon cards after the [Merchandise/navigation update](../../implementation/tasks/FE-LANDING-NAV-MERCH-001.md):
+Events Recap, Library, Sports Hall, International Office, Dormitory Service and Merchandise.
+Merchandise is unavailable, with Coming Soon / Demnächst verfügbar and no purchase interaction. The owner confirmed all four official destinations; the source array owns those URLs.
 Resource links open secure new tabs with localized labels, focus rings and 44px touch height.
 Events Recap is **UI prepared — functionality pending** with no action or route. Navbar/footer
-share EN/DE Campus Resources copy; `#features` remains the anchor, uses 80px scroll margin and
-resolves after mount/direct refresh. Desktop centers a 3+2 card grid, tablet uses two columns
+share EN/DE Resources / Ressourcen copy; `#features` remains the anchor, uses 80px scroll margin and
+resolves after mount/direct refresh. Desktop uses a 3×2 card grid, tablet uses two columns
 and mobile one; equal-height rows and reduced-motion-safe border/shadow hover use shared tokens.
+Navbar Events / Veranstaltungen targets `/#events` on the existing slider and live loading/error/empty
+states, with 80px scroll margin and direct-refresh/cross-route hash resolution. Full navbar starts
+at 1280px; smaller widths retain the accessible drawer and close it after link navigation.
+The Campus Resources heading/description and official destinations remain unchanged.
 No Campus Resources API, auth dependency or database state is introduced.
 
 Responsive verification records cover desktop/tablet/mobile widths and horizontal overflow;

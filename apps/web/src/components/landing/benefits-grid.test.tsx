@@ -7,12 +7,12 @@ describe('Campus Resources', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
   })
-  it('renders five resources with the preserved anchor and navbar clearance', () => {
+  it('renders six resources with the preserved anchor and navbar clearance', () => {
     render(<BenefitsGrid />)
     const section = screen.getByRole('region', { name: 'Explore VGU Campus Resources' })
     expect(section).toHaveAttribute('id', 'features')
     expect(section).toHaveClass('scroll-mt-20')
-    expect(within(section).getAllByRole('heading', { level: 3 })).toHaveLength(5)
+    expect(within(section).getAllByRole('heading', { level: 3 })).toHaveLength(6)
     for (const name of [
       'Events Recap',
       'Library',
@@ -22,7 +22,13 @@ describe('Campus Resources', () => {
     ]) {
       expect(screen.getByRole('heading', { name })).toBeVisible()
     }
-    expect(screen.queryByText('Merchandise')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Merchandise' })).toBeVisible()
+    expect(screen.getByText('Coming Soon')).toBeVisible()
+    const merchandise = screen.getByRole('heading', { name: 'Merchandise' }).parentElement!
+    expect(merchandise.querySelector('a, button, [tabindex]')).toBeNull()
+    expect(
+      screen.getByText('VGU Buddy merchandise is not currently available for sale.'),
+    ).toBeVisible()
     expect(
       screen.getByText(
         'Discover the facilities, services, and opportunities that support student life at Vietnamese-German University.',
@@ -74,5 +80,11 @@ describe('Campus Resources', () => {
       }),
     ).toBeVisible()
     expect(screen.getByText('Veranstaltungsrückblicke werden vorbereitet.')).toBeVisible()
+    expect(screen.getByText('Demnächst verfügbar')).toBeVisible()
+    expect(
+      screen.getByText(
+        'Merchandise des VGU Buddy Programms ist derzeit nicht zum Verkauf verfügbar.',
+      ),
+    ).toBeVisible()
   })
 })
