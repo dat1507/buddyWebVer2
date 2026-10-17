@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-17 **Task IDs:** 232
+**Generated:** 2026-10-17 **Task IDs:** 233
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -8,6 +8,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 
 | Task                                                                    | Status                                                      | Priority           | Track               | Dependencies / source note                                                                                                                                                           |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`FE-LANDING-RESOURCE-IMAGES-001`](tasks/FE-LANDING-RESOURCE-IMAGES-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Four supplied resource photos, optimized WebP, 16:9 lazy loading/EN-DE alt text and responsive crop acceptance. |
 | [`FE-LANDING-SHOWCASE-001`](tasks/FE-LANDING-SHOWCASE-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Preserved slider; Explore More Recap/Merchandise Coming Soon routes; four-resource 2×2 grid; future business features pending. |
 | [`FE-LANDING-FOOTER-001`](tasks/FE-LANDING-FOOTER-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Minimal Branding Footer; EN/DE Get in Touch mailto, retained social/logo/year, no duplicated navigation. |
 | [`FE-LANDING-ORDER-001`](tasks/FE-LANDING-ORDER-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Navbar Home/Events/About/Resources; cards Merchandise/Recap/Library/Sports/International Office/Dormitory. |

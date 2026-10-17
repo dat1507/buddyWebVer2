@@ -75,7 +75,13 @@ functionality pending**, with no real recap/gallery/commerce/API implementation.
 [Campus Resources](../../../apps/web/src/components/landing/benefits-grid.tsx) now contains
 Library, Sports Hall, International Office and Dormitory Service in that DOM/visual order.
 Desktop/tablet use two columns, mobile one; shared cards retain equal-height rows, official
-owner-confirmed URLs, secure external tabs, focus rings and 44px links. Heading/description,
+owner-confirmed URLs, secure external tabs, focus rings and 44px links.
+[Photo cards](../../implementation/tasks/FE-LANDING-RESOURCE-IMAGES-001.md) use four owner-supplied images
+from `Downloads/Campus Resources`, optimized into `src/assets/campus-resources/*.webp`.
+The task records source mapping/dimensions/bytes. Reserved 16:9 CSS cover containers replace
+decorative icons; group/dormitory positions preserve subjects. Intrinsic dimensions, native
+lazy loading, async decoding and EN/DE descriptive alt text accompany rounded image clipping.
+Original files remain unchanged; no dependency or replacement image was introduced. Heading/description,
 EN/DE copy and `#features` 80px scroll margin remain. Recap and Merchandise moved to Explore More.
 
 Navbar order remains Home, Events, About, Resources, Community, Contact, Survival Book (EN/DE).

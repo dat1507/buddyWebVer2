@@ -75,19 +75,23 @@
     },
     "academic": {
       "title": "Bibliothek",
-      "desc": "Entdecke Informationen und Ressourcen der Bibliothek für dein Studium an der VGU."
+      "desc": "Entdecke Informationen und Ressourcen der Bibliothek für dein Studium an der VGU.",
+      "imageAlt": "Atrium der VGU-Bibliothek mit Lernbereichen und zentraler Treppe"
     },
     "sports": {
       "title": "Sporthalle",
-      "desc": "Informiere dich über die Sporteinrichtungen der VGU und bleib auf dem Campus aktiv."
+      "desc": "Informiere dich über die Sporteinrichtungen der VGU und bleib auf dem Campus aktiv.",
+      "imageAlt": "Sportplätze auf dem VGU-Campus"
     },
     "support": {
       "title": "International Office",
-      "desc": "Hier findest du Informationen und Unterstützung für internationale Studienaufenthalte und deine Zeit an der VGU."
+      "desc": "Hier findest du Informationen und Unterstützung für internationale Studienaufenthalte und deine Zeit an der VGU.",
+      "imageAlt": "Gruppe des International Office neben der blauen Einstein-Statue"
     },
     "global": {
       "title": "Wohnheimservice",
-      "desc": "Informiere dich über studentisches Wohnen und das Leben an der VGU."
+      "desc": "Informiere dich über studentisches Wohnen und das Leben an der VGU.",
+      "imageAlt": "VGU-Wohnheim mit Eingangsbereich und Fußweg"
     },
     "visit": "{{resource}} besuchen",
     "newTab": "(öffnet in einem neuen Tab)",

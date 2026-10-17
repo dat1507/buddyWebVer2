@@ -745,3 +745,20 @@ account was used. No Merchandise or Events Recap functionality is implied by the
 - Sandbox preview could not respond; local-only unsandboxed server recovered visual verification.
 - 232 task/index paths, focused links and whitespace validated. No account/Production access,
   backend/database/API change, push or Preview/Production deployment.
+
+## FE-LANDING-RESOURCE-IMAGES-001 — 2026-10-17 local validation
+
+- Resources/Landing: 2 files / 15 PASS, localized photo mapping, geometry/loading attributes,
+  unchanged order/copy/secure official destinations and keyboard focus.
+- TypeScript, affected ESLint/Prettier and production build PASS; four hashed WebP outputs;
+  existing large-bundle advisory. Only supplied optimized copies added, no dependency.
+- Original dimensions/sizes and mapping recorded in the task. 1,893,202 → 576,760 bytes (−69.5%);
+  max 1440px, no upscaling, WebP quality 82/method 6. Source SHA-256 unchanged before/after.
+- Brave EN/DE 1440×1000 / 768×1000 / 390×1000: 2/2/1 grid, four decoded images with 16:9
+  object-cover containers, equal card heights and zero overflow. Faces/statue/library/dormitory
+  subjects preserved by crops; mobile photo height ~192px. Correct descriptive alt text.
+- At Home all four photos deferred with 352.35px reserved height; after Resources navigation
+  all decoded with unchanged height. Library → Tab → Sports retains visible orange focus ring.
+  Emulated reduced motion gives transition-property none on all four cards; overrides reset.
+- 233 task/index paths, focused documentation links and whitespace validated. Existing local
+  API bootstrap warning; no account/Production acceptance, push or Preview/Production deployment.

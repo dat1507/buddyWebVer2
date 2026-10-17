@@ -2,11 +2,19 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Events Showcase/resources complete locally; no deployment
+**Current mode:** Campus Resources photo cards complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-RESOURCE-IMAGES-001` is complete locally on `main`. Four supplied photos now top the
+Campus Resources cards; optimized WebP copies under src/assets/campus-resources total 576,760
+bytes (69.5% smaller). Originals remain unchanged. Reserved 16:9 cover areas, subject-aware
+positions, native lazy loading/async decoding, intrinsic dimensions and EN/DE alt text pass
+responsive crop/loading/focus/reduced-motion checks. Existing four-card order/copy/official
+links and 2/2/1 layout remain. 15 focused tests, TypeScript/lint/format/build pass. No unrelated
+section, backend or data change; local commit only, no push/deployment. No task assigned.
 
 `FE-LANDING-SHOWCASE-001` is complete locally on `main`. Existing Upcoming slider source/data paths
 are unchanged. Explore More follows it with Previous Events Recap then Merchandise links to

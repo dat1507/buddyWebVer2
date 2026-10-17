@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.35
+**Plan version:** 1.36
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -45,6 +45,8 @@ push/deploy or application/Production mutation. Missing historical/operational e
 explicit in the audit; existing product/release statuses are unchanged.
 
 ## Latest frontend task
+
+`FE-LANDING-RESOURCE-IMAGES-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — four supplied photos optimized to WebP, 16:9 lazy-loaded image cards, EN/DE alt text; 15 focused tests, static/build and responsive/crop/loading checks pass.
 
 `FE-LANDING-SHOWCASE-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — unchanged Upcoming slider plus Explore More Recap/Merchandise cards, public Coming Soon routes and four-resource 2×2 grid. EN/DE focused/flag-ON/static/build and local browser acceptance pass; business features pending.
 

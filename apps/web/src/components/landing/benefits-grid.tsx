@@ -1,15 +1,48 @@
-import { BookOpen, Building2, Dumbbell, ExternalLink, Globe } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import libraryImage from '@/assets/campus-resources/library.webp'
+import sportsImage from '@/assets/campus-resources/sports-hall.webp'
+import officeImage from '@/assets/campus-resources/international-office.webp'
+import dormitoryImage from '@/assets/campus-resources/dormitory.webp'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Typography } from '@/components/ui/typography'
 
 // Official destinations confirmed by the owner on 2026-10-17.
 const resources = [
-  { key: 'academic', icon: BookOpen, href: 'https://library.vgu.edu.vn/' },
-  { key: 'sports', icon: Dumbbell, href: 'https://vgu.edu.vn/sports-complex' },
-  { key: 'support', icon: Globe, href: 'https://vgu.edu.vn/international-office' },
-  { key: 'global', icon: Building2, href: 'https://dorm.vgu.edu.vn/' },
+  {
+    key: 'academic',
+    image: libraryImage,
+    width: 1201,
+    height: 800,
+    position: '50% 50%',
+    href: 'https://library.vgu.edu.vn/',
+  },
+  {
+    key: 'sports',
+    image: sportsImage,
+    width: 1440,
+    height: 810,
+    position: '50% 50%',
+    href: 'https://vgu.edu.vn/sports-complex',
+  },
+  {
+    key: 'support',
+    image: officeImage,
+    width: 1440,
+    height: 846,
+    position: '50% 40%',
+    href: 'https://vgu.edu.vn/international-office',
+  },
+  {
+    key: 'global',
+    image: dormitoryImage,
+    width: 1440,
+    height: 959,
+    position: '50% 65%',
+    href: 'https://dorm.vgu.edu.vn/',
+  },
 ] as const
 
 function BenefitsGrid() {
@@ -35,18 +68,24 @@ function BenefitsGrid() {
         </div>
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2">
-          {resources.map(({ key, icon: Icon, href }) => (
+          {resources.map(({ key, image, width, height, position, href }) => (
             <Card
               key={key}
-              className="group min-w-0 border-white/10 bg-zinc-900/70 shadow-lg transition-[border-color,box-shadow] duration-300 hover:border-vgu-orange/50 hover:shadow-[0_8px_30px_rgba(255,103,13,0.12)] motion-reduce:transition-none"
+              className="group flex min-w-0 flex-col overflow-hidden border-white/10 bg-zinc-900/70 shadow-lg transition-[border-color,box-shadow] duration-300 hover:border-vgu-orange/50 hover:shadow-[0_8px_30px_rgba(255,103,13,0.12)] motion-reduce:transition-none"
             >
-              <CardContent className="flex h-full flex-col items-start p-6 sm:p-7">
-                <span
-                  className="mb-6 flex size-12 shrink-0 items-center justify-center rounded-xl bg-vgu-orange/10 text-vgu-orange"
-                  aria-hidden="true"
-                >
-                  <Icon className="size-6" />
-                </span>
+              <div className="aspect-video shrink-0 overflow-hidden bg-zinc-800">
+                <img
+                  src={image}
+                  alt={t(`features.${key}.imageAlt`)}
+                  width={width}
+                  height={height}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: position }}
+                />
+              </div>
+              <CardContent className="flex flex-1 flex-col items-start p-6 sm:p-7">
                 <Typography variant="h3" className="text-xl">
                   {t(`features.${key}.title`)}
                 </Typography>

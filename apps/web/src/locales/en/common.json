@@ -75,19 +75,23 @@
     },
     "academic": {
       "title": "Library",
-      "desc": "Explore library information and resources to support your studies at VGU."
+      "desc": "Explore library information and resources to support your studies at VGU.",
+      "imageAlt": "VGU library atrium with study spaces and central stairs"
     },
     "sports": {
       "title": "Sports Hall",
-      "desc": "Find information about VGU sports facilities and staying active on campus."
+      "desc": "Find information about VGU sports facilities and staying active on campus.",
+      "imageAlt": "Outdoor sports courts at the VGU campus"
     },
     "support": {
       "title": "International Office",
-      "desc": "Find information and support for international study and your time at VGU."
+      "desc": "Find information and support for international study and your time at VGU.",
+      "imageAlt": "International Office group beside the blue Einstein statue"
     },
     "global": {
       "title": "Dormitory Service",
-      "desc": "Explore information about student accommodation and life at VGU."
+      "desc": "Explore information about student accommodation and life at VGU.",
+      "imageAlt": "VGU student dormitory building and entrance walkway"
     },
     "visit": "Visit {{resource}}",
     "newTab": "(opens in a new tab)",
