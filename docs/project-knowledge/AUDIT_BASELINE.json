@@ -1,0 +1,13 @@
+{
+  "audit_date": "2026-10-17",
+  "timezone": "Asia/Saigon",
+  "last_audited_source_commit": "794a1a4530f3770f4e67b2863ebf658c8c0078d2",
+  "branch": "main",
+  "reachable_commit_count": 211,
+  "earliest_accessible_commit": "cd11dcf",
+  "baseline_tracked_markdown_count": 272,
+  "scope": "Documentation inventory, grouped reachable history, available divergent branches, focused source/test contracts and retained dated operations evidence",
+  "runtime_tests_rerun": false,
+  "production_access_performed": false,
+  "known_gaps_file": "DOCUMENTATION_AUDIT.md"
+}

@@ -3,19 +3,23 @@
 ## Overview
 
 VGU Buddy is a student companion platform for the Vietnamese-German University community. It is
-being built to help students discover campus activities, manage their profiles, and eventually find
-compatible buddies through a secure matching workflow.
+designed to help students discover campus activities, manage their profiles, find compatible
+Buddies through recommendations and invitations, and communicate through private conversations.
 
 The repository is a monorepo containing a React frontend and a FastAPI backend. The public website
-and authentication screens are usable today, while authenticated sessions, domain data, and the
-matching workflow are still under active development.
+and authentication screens, profiles, Matching, invitations, chat and canonical Events are
+implemented. Code availability, task acceptance and Production deployment have separate evidence.
+Start with the [technical knowledge base](docs/project-knowledge/README.md) for architecture,
+workflows, history, learning and interview preparation. The [current plan](implementation-plan.md)
+and [Production status](docs/implementation/production-status.md) retain task/environment authority.
 
 ## Current Features
 
 Implemented:
 
-- Responsive EN/DE public landing page, navigation, bundled static Upcoming Events carousel, and
-  accessible demo dialog.
+- Responsive EN/DE Landing, campus slideshow, accessible About walkthrough and registration CTA.
+  The demo dialog was removed. Canonical Events are used when the public build flag is enabled;
+  bundled static posters remain for the flag-OFF path.
 - API-connected registration, User/Admin login, session bootstrap/refresh/logout, protected routes,
   exact-role guards, and private-query cleanup.
 - Backend-owned bcrypt passwords, rotating JWT cookie sessions, signed double-submit CSRF,
@@ -25,17 +29,24 @@ Implemented:
 - Private profile-avatar upload, crop/optimization, server-side validation, Supabase Storage, signed
   delivery URLs, removal, and persistence across reload/login.
 - Admin-only bounded user/profile reads plus the Admin shell, overview, DataTable and ConfirmDialog.
-- Event tables and CRUD/publication service contracts. These services are not yet exposed as Event
-  API routes.
-- Async SQLAlchemy/PostgreSQL access, Alembic migrations through `0007_event_tables`, private
+- Verified-email capability, custom preferences, deterministic recommendations, invitations,
+  atomic ACTIVE Buddy acceptance, Current Buddies and authorized REST/WebSocket chat.
+- Admin user list/detail, matching monitoring and guarded Semester management. Production private
+  Semester backup acceptance remains blocked; code presence does not prove recovery.
+- Canonical Event Admin/public APIs, private cover management, optional schedule/registration,
+  independent launch controls and synchronized Landing/User Event presentation.
+- Async SQLAlchemy/PostgreSQL access, repository migrations through
+  `0022_public_event_visibility_default` (Production revision evidence remains incomplete), private
   `app_private` schema, least-privilege runtime role, database health probe, and local PostgreSQL 17.
 
-Not implemented yet:
+Remaining delivery and acceptance:
 
-- Buddy Matching persistence, algorithm, APIs, delivered User pages, or Admin matching workflow.
-- Production Event/Event Slider APIs and the remaining Admin/public Event UI.
-- Notifications, AI assistant, campus, and settings business features.
-- Provisioned production backend/Redis/database/storage environments and verified same-site ingress.
+- AI assistant/campus and several Admin modules remain placeholders; see the route registries.
+- Full encrypted off-site DR rehearsal and residual acceptance/release evidence remain open.
+- Home University Production display is accepted; edit-persistence acceptance remains open.
+
+Provisioned Production uses Vercel, Render, Supabase and exclusive Production Redis with dated
+first-party ingress/core-flow acceptance. This is not a fresh Production health check.
 
 ## Architecture
 
@@ -54,13 +65,13 @@ FastAPI (apps/api)
           ▼
 PostgreSQL selected by environment
    ├── Local: Docker Compose, PostgreSQL 17 + pgvector package
-   └── Cloud: Supabase-hosted PostgreSQL is planned, not configured here
+   └── Hosted: Supabase PostgreSQL; private Storage and scheduled Edge workers
 
 Alembic ── DATABASE_MIGRATION_URL ──► app_private schema
 FastAPI ── DATABASE_URL ────────────► least-privilege runtime role
 ```
 
-FastAPI remains the planned authentication authority. The project does not use Supabase Auth, and
+FastAPI is the authentication authority. The project does not use Supabase Auth, and
 the repository does not contain a Supabase Local stack.
 
 ## Tech Stack
@@ -183,8 +194,8 @@ Committed templates:
   ADMIN/RBAC-protected management UI; exact `VITE_PUBLIC_EVENTS_ENABLED=true` selects the canonical
   API-backed public/User Event surfaces and first-five live Landing carousel. Missing, invalid or
   differently cased values are OFF. The retired `VITE_EVENTS_LAUNCH_ENABLED` key is ignored and
-  cannot enable either surface. Keep both new keys absent/OFF in Production until each activation
-  receives separate approval.
+  cannot enable either surface. Initial activation approvals and later public/Admin-ON release
+  observations are recorded in Production status; further flag changes require separate approval.
 - [apps/api/.env.example](apps/api/.env.example): local Compose values, runtime/migration database
   URLs, shared Redis namespaces, auth/CSRF signing keys, cookie policy, and exact CORS origins.
 
@@ -269,8 +280,9 @@ The progress-reporting MVP is now deployed on the first-party topology. A direct
 dependency-aware readiness, the deployed first-party API target, anonymous auth no-store behavior and
 exact-origin CORS. The owner then confirmed PASS for Admin/User dashboards, Recommendation,
 Invitation/Accept, Matching and Chat without functional errors. Secure cookie/session/CSRF,
-protocol-level authenticated WSS, Semester/release-safety review and the hold/rollback record are
-still required before `PROD-001` can be closed. Current evidence is summarized in
+protocol-level authenticated WSS and retained rollback checks later passed. The failed private
+Semester backup, named recovery/rollback owners and accepted post-repair hold still block
+`PROD-001`. Current evidence is summarized in
 [docs/implementation/production-status.md](docs/implementation/production-status.md).
 
 OPS-002 staging topology, backup/rollback rehearsal, WSS and end-to-end smoke requirements are in
@@ -280,17 +292,17 @@ OPS-002 staging topology, backup/rollback rehearsal, WSS and end-to-end smoke re
 
 Buddy Matching V2, email verification/outbox, preferences/recommendations, invitation/Current Buddy,
 chat, Admin monitoring and safeguarded Semester management are implemented. The reporting MVP is
-deployed and owner functional acceptance is PASS, but `PROD-001` remains IN PROGRESS / TECHNICAL
-VERIFY until the remaining security/protocol checks, hold monitoring and rollback evidence are
-complete. Residual `ACCEPT-001` and full encrypted DR evidence remain explicit post-deployment
+deployed and owner functional acceptance is PASS, but `PROD-001` remains BLOCKED / OWNER ACTION
+REQUIRED for private-backup repair/verification, named recovery owners and accepted post-repair hold. Residual `ACCEPT-001` and full encrypted DR evidence remain explicit post-deployment
 hardening.
 
 The current execution order and verified continuation point live in
 [implementation-plan.md](implementation-plan.md) and [SESSION_HANDOFF.md](SESSION_HANDOFF.md).
 Use [docs/implementation/task-index.md](docs/implementation/task-index.md) for one-task extracts;
 the former [complete plan](implementation_plan_vgu_buddy.md) is a legacy archive, not the current
-task router. Canonical Event code is deployed, while Admin management and the public live Event
-experience remain independently feature-gated and OFF pending separate activation approvals.
+task router. Canonical Event code is deployed; Admin and public surfaces have independent build
+controls, with dated public/Admin-ON acceptance in Production status. Do not infer current flag
+values from older OFF snapshots or change them without a separately authorized task.
 
 Development, commits and normal pushes use `main` directly unless repository protection or a user
 request requires another workflow; see [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -633,3 +633,28 @@ available. Anonymous public API reads passed and matched the Slider, but availab
 were authenticated and were not signed out. Production create/publish and separate reduced-motion
 profiling were intentionally not performed; regression coverage and local browser verification
 remain the controlling evidence for those paths.
+
+
+## DOC-KNOWLEDGE-001 — 2026-10-17 documentation audit
+
+Source baseline: `794a1a4530f3770f4e67b2863ebf658c8c0078d2`, clean initial `main`.
+No Production access, source/config/schema edits, runtime tests, push or deployment.
+
+| Check | Result |
+| --- | --- |
+| Reachable baseline history | 211 commits; non-shallow; first commit Sep 9; eight accessible divergent commits kept distinct |
+| Baseline documentation discovery | 272 tracked Markdown records inventoried; focused evidence/source reads, no full legacy-archive reread |
+| Populated knowledge base | 18 files; all requested domains, workflows, learning/interview, incidents/ADRs, checkpoint/update protocol |
+| Local links in changed/new Markdown | 778 checked; 0 missing targets; new knowledge links use file targets without heading fragments |
+| Knowledge commit references | 74 distinct references; all resolve to Git commits |
+| Task extracts / unique index links | 227 / 227; no missing, extra or duplicate task paths |
+| Static migration graph inspection | 22 revisions; one head `0022_public_event_visibility_default`; no missing ancestors; no DB connection/execution |
+| Sensitive-value scan | 0 high-confidence private-key, credential-URL, vendor-key or JWT pattern hits in changed/new documentation |
+| Scope and whitespace | Docs Markdown plus one audit JSON only; `git diff --check` PASS; legacy archive and application/config bytes unchanged |
+| Formatting | Focused Prettier PASS for 22 new/edited content files; old task-index/validation table formatting preserved to avoid historical rewrites |
+| Remaining gaps | Failed private Production backup; missing deployed revision evidence; open owner/hold/DR/Profile gates; incomplete historical rationale and pre-Git artifacts |
+
+Documentation delivery is complete; historical reconstruction remains explicitly partial where
+records are unavailable. No existing product/release gate was closed or repeated. One local
+documentation commit is authorized; no push/deploy. Commit identity is obtained from Git rather
+than embedded into the source checkpoint or this self-referential commit record.

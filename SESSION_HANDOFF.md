@@ -2,11 +2,21 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** FE-LANDING-ABOUT-001 complete locally; awaiting owner review
+**Current mode:** Knowledge-base audit complete locally; historical gaps recorded
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`DOC-KNOWLEDGE-001` is complete locally on `main`; the authorized documentation-only commit
+contains `docs/project-knowledge/`, corrected README overview and task/control-plane routing.
+Last audited source: `794a1a4530f3770f4e67b2863ebf658c8c0078d2`. Use its README to study and
+UPDATE_PROTOCOL.md plus AUDIT_BASELINE.json for incremental reviews. Historical gaps, stale
+ancestor deployment labels and unmerged Reset-disable branch are explicitly distinguished.
+Links/task coverage/format/scope/security checks passed; see the task verification record.
+No push/deploy, Production access, application/schema/config change or accepted-gate repeat.
+No implementation task is assigned; preserve existing owner-action release blockers. Prior
+continuation evidence follows unchanged.
 
 `FE-LANDING-ABOUT-001` is complete locally on main. About retains the community photo and now
 introduces Matching, Invitations/Chat and Events; the EN/DE three-step walkthrough uses labeled

@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.29
+**Plan version:** 1.30
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -36,7 +36,15 @@ Home University displays correctly in the authenticated Profile UI. This preserv
 tasks as DONE and closes only the Profile display gate; edit/save/reload/clear/max-length acceptance
 remains open under the original Profile contract.
 
-## Current assigned frontend task
+## Current documentation task
+
+`DOC-KNOWLEDGE-001`: **DONE — LOCAL DOCUMENTATION VERIFIED / HISTORICAL GAPS RECORDED** —
+populated technical knowledge base, grouped history, coverage audit and learning/update reference
+at `docs/project-knowledge/README.md`. Source baseline `794a1a4`; docs-only local commit, no
+push/deploy or application/Production mutation. Missing historical/operational evidence remains
+explicit in the audit; existing product/release statuses are unchanged.
+
+## Latest frontend task
 
 `FE-LANDING-ABOUT-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — owner-requested About redesign and accessible three-step walkthrough, EN/DE, existing #about navigation. Local implementation and commit only; no push/deployment.
 
@@ -309,6 +317,8 @@ The following remain non-release-critical and require explicit selection:
   recontracted.
 
 ## Documentation routing
+
+- Technical knowledge and historical audit: `docs/project-knowledge/README.md`
 
 - Current handoff: `SESSION_HANDOFF.md`
 - Production truth: `docs/implementation/production-status.md`
