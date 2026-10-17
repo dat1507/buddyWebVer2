@@ -762,3 +762,19 @@ account was used. No Merchandise or Events Recap functionality is implied by the
   Emulated reduced motion gives transition-property none on all four cards; overrides reset.
 - 233 task/index paths, focused documentation links and whitespace validated. Existing local
   API bootstrap warning; no account/Production acceptance, push or Preview/Production deployment.
+
+## FE-EXPLORE-WIDE-CARDS-001 — 2026-10-17 local validation
+
+- Coming Soon/Landing: 2 files / 16 tests PASS; copy/order/status, both routes and return flow.
+- TypeScript, affected ESLint/Prettier and production build PASS; existing bundle advisory.
+- Brave EN/DE 1440×1000 / 768×1000 / 390×1000: equal card sizes, aligned action offsets,
+  two/two/one columns, readable natural heights, zero horizontal overflow. Desktop containers
+  both 1280px; cards 624×~290px, 40px icons and 40px padding. German tablet status wrapping
+  initially shifted one action; responsive aligned footers resolved it before final verification.
+- Both pages refreshed and returned to #events with 80px clearance below ~65px Navbar.
+  Keyboard Recap → Merchandise shows focus rings; reduced-motion transitions none; settings reset.
+- Only Explore More source plus one status assertion changed. Slider/live/Event data source,
+  routes/locales, Campus Resources, Navbar/Footer and dependencies unchanged. Existing local
+  API bootstrap warning; no account/Production acceptance.
+- 234 task/index paths, focused links and whitespace validated. Unrelated TUN_9944.jpg deletion
+  preserved and excluded from task commit. No push or Preview/Production deployment.

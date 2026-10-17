@@ -63,6 +63,7 @@ describe('public community Coming Soon routes', () => {
     HTMLElement.prototype.scrollIntoView = scroll
     renderPath('/')
     const explore = screen.getByRole('region', { name: 'Explore More' })
+    expect(within(explore).getByText('Coming Soon')).toBeVisible()
     expect(
       within(explore)
         .getAllByRole('heading', { level: 3 })

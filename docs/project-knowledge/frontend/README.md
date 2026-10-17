@@ -62,8 +62,13 @@ Sticky-navbar offset is preserved for `#about`, including direct refresh.
 [Events Showcase](../../implementation/tasks/FE-LANDING-SHOWCASE-001.md) keeps the existing Upcoming
 Events slider as the primary content, including its flag-OFF static path and flag-ON query/states.
 [EventsExploreMore](../../../apps/web/src/components/landing/events-explore-more.tsx) follows
-that branch before About: compact Previous Events Recap then Merchandise cards, side by side
-from 640px and stacked below. No slider/query/cache/eligibility/order logic changed.
+that branch before About: Previous Events Recap then Merchandise
+[wide feature cards](../../implementation/tasks/FE-EXPLORE-WIDE-CARDS-001.md) now align with the slider
+max-w-7xl container, side by side from 640px and stacked below. Responsive 24–40px padding,
+36–40px icons and equal-height cards keep bottom actions aligned, including wrapped EN/DE
+status text. The wrapper reduces excess gap by 16/24px within the slider bottom padding;
+slider dimensions and query/cache/eligibility/order logic remain unchanged. Dark/orange styling,
+focus rings and reduced-motion-safe hover remain; no images or dependencies were added.
 
 Public routes `/events/recap` and `/merchandise` use
 [CommunityComingSoonPage](../../../apps/web/src/pages/public/community-coming-soon-page.tsx)

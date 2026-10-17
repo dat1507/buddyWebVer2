@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.36
+**Plan version:** 1.37
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -45,6 +45,8 @@ push/deploy or application/Production mutation. Missing historical/operational e
 explicit in the audit; existing product/release statuses are unchanged.
 
 ## Latest frontend task
+
+`FE-EXPLORE-WIDE-CARDS-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — wider max-w-7xl Explore More cards, prominent icons, aligned actions and tighter surrounding spacing. EN/DE responsive/route/focus checks, 16 tests and static/build gates pass; slider source unchanged.
 
 `FE-LANDING-RESOURCE-IMAGES-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — four supplied photos optimized to WebP, 16:9 lazy-loaded image cards, EN/DE alt text; 15 focused tests, static/build and responsive/crop/loading checks pass.
 

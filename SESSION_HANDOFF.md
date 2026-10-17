@@ -2,11 +2,19 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Campus Resources photo cards complete locally; no deployment
+**Current mode:** Wide Explore More cards complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-EXPLORE-WIDE-CARDS-001` is complete locally on `main`. Explore More now aligns to the slider
+max-w-7xl container, with equal wide cards, 36–40px icons, responsive 24–40px padding and aligned
+bottom actions. Recap/Merchandise copy, order, status and routes remain; Upcoming slider and all
+other source sections are unchanged. 16 focused tests, TypeScript/lint/format/build and local
+EN/DE responsive/route/focus/reduced-motion checks pass. No push or deployment. No task assigned.
+An unrelated root TUN_9944.jpg deletion appeared during work; it remains untouched and excluded
+from this commit. Earlier compact-card descriptions below are historical.
 
 `FE-LANDING-RESOURCE-IMAGES-001` is complete locally on `main`. Four supplied photos now top the
 Campus Resources cards; optimized WebP copies under src/assets/campus-resources total 576,760
