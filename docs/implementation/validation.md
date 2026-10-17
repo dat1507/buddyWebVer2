@@ -713,3 +713,17 @@ account was used. No Merchandise or Events Recap functionality is implied by the
 - 230 task files/index paths, focused documentation links and whitespace validated.
 - Existing local auth bootstrap connection warning; no account or Production verification.
   No backend/database/API, push or deployment change.
+
+## FE-LANDING-FOOTER-001 — 2026-10-17 local validation
+
+- Footer/Landing/Resources: 3 files / 19 tests PASS, including EN/DE, exact social/mailto targets,
+  removed columns, keyboard focus, retained resource links and a mocked future copyright year.
+- TypeScript, affected ESLint/Prettier and production build PASS; existing large-bundle advisory.
+- Brave EN/DE 1440×1000 / 768×1000 / 390×1000: two/two/one columns; zero horizontal overflow;
+  decoded 48×48 logo, 44px social/contact targets. Facebook → Instagram → Contact Us Tab sequence
+  displays orange focus rings. Reduced-motion social transitions are none; overrides reset.
+- Footer Quick Links and Support/International Office removed; Navbar/resource sources unchanged.
+  Exact social URLs/icons preserved; mailto:vgubuddy@vgu.edu.vn only, no email sent or form/API.
+- Dynamic year, localized availability, divider/dark surface retained; copyright contrast uses
+  zinc-400. 231 task/index paths, focused documentation links and whitespace validated.
+- Existing local API bootstrap warning; no account/Production verification, push or deployment.

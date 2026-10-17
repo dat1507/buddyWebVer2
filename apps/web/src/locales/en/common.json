@@ -1469,13 +1469,13 @@
     "comingSoon": "Coming soon"
   },
   "footer": {
-    "description": "Connecting students at Vietnamese-German University for an extraordinary academic and social experience.",
-    "quickLinks": "Quick Links",
-    "support": "Support",
-    "helpCenter": "International Office",
+    "description": "Connecting students and building a stronger community at Vietnamese-German University.",
     "emergency": "Emergency Contacts",
     "technical": "Technical Support",
-    "copyright": "© {{year}} VGU Buddy Program. All rights reserved. | Available in English & German"
+    "copyright": "© {{year}} VGU Buddy Program. All rights reserved. | Available in English & German",
+    "getInTouch": "Get in Touch",
+    "contactDescription": "Have questions or suggestions? We'd love to hear from you.",
+    "contactUs": "Contact Us"
   },
   "howItWorks": {
     "eyebrow": "How It Works",

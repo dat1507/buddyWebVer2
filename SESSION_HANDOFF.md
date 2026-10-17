@@ -2,11 +2,18 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Landing display order complete locally; no deployment
+**Current mode:** Minimal Branding Footer complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-FOOTER-001` is complete locally on `main`. Footer uses two branding/Get in Touch
+columns (mobile stacked), EN/DE copy and Contact Us → mailto:vgubuddy@vgu.edu.vn. Quick Links
+and Support/International Office are removed from Footer; logo/social URLs/icons/dynamic year
+remain. Navbar and Campus Resources are unchanged. 19 focused tests, TypeScript, ESLint,
+Prettier/build and EN/DE responsive/focus/reduced-motion checks pass. No email sent, push,
+deployment or Production change. No task assigned; previous task history follows unchanged.
 
 `FE-LANDING-ORDER-001` is complete locally on `main`. Navbar now reads Home, Events, About,
 Resources, Community, Contact, Survival Book on desktop/mobile in EN/DE. Resource order is

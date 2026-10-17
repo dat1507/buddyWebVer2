@@ -1,5 +1,5 @@
 import type { SVGProps } from 'react'
-import { ExternalLink } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
@@ -22,13 +22,6 @@ function InstagramIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-const quickLinks = [
-  { href: '/#home', translationKey: 'nav.home' },
-  { href: '/#about', translationKey: 'nav.about' },
-  { href: '/#features', translationKey: 'nav.features' },
-  { href: '/#community', translationKey: 'nav.community' },
-] as const
-
 const socialLinks = [
   {
     href: 'https://www.facebook.com/VGUBuddyProgram',
@@ -47,9 +40,9 @@ function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer id="contact" className="border-t border-white/10 bg-zinc-950">
+    <footer id="contact" className="scroll-mt-20 border-t border-white/10 bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] lg:gap-12">
+        <div className="grid gap-10 md:grid-cols-2 lg:gap-24">
           <div>
             <a
               href="/#home"
@@ -70,9 +63,9 @@ function Footer() {
                   key={label}
                   href={href}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex size-11 items-center justify-center rounded-lg border border-white/10 bg-black text-orange-500 transition-colors hover:border-orange-500 hover:bg-orange-500 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                  className="flex size-11 items-center justify-center rounded-lg border border-white/10 bg-black text-orange-500 transition-colors motion-reduce:transition-none hover:border-orange-500 hover:bg-orange-500 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                 >
                   <Icon aria-hidden="true" className="size-5" />
                 </a>
@@ -80,40 +73,26 @@ function Footer() {
             </div>
           </div>
 
-          <nav aria-labelledby="footer-quick-links-heading">
-            <h2 id="footer-quick-links-heading" className="text-lg font-semibold text-zinc-100">
-              {t('footer.quickLinks')}
+          <div className="min-w-0" aria-labelledby="footer-contact-heading">
+            <h2 id="footer-contact-heading" className="text-lg font-semibold text-zinc-100">
+              {t('footer.getInTouch')}
             </h2>
-            <ul className="mt-4 space-y-3">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <a
-                    href={link.href}
-                    className="rounded-sm text-base text-zinc-400 transition-colors hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                  >
-                    {t(link.translationKey)}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div>
-            <h2 className="text-lg font-semibold text-zinc-100">{t('footer.support')}</h2>
+            <p className="mt-4 max-w-md text-base leading-7 text-zinc-400">
+              {t('footer.contactDescription')}
+            </p>
             <a
-              href="https://vgu.edu.vn/international-office"
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-sm text-base text-zinc-400 transition-colors hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+              href="mailto:vgubuddy@vgu.edu.vn"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md text-base font-medium text-orange-300 underline-offset-4 hover:text-orange-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
             >
-              {t('footer.helpCenter')}
-              <ExternalLink aria-hidden="true" className="size-4" />
+              <Mail aria-hidden="true" className="size-5 shrink-0" />
+              {t('footer.contactUs')}
             </a>
+            <p className="mt-1 break-words text-sm leading-6 text-zinc-400">vgubuddy@vgu.edu.vn</p>
           </div>
         </div>
 
         <div className="mt-12 border-t border-white/10 pt-8 text-center">
-          <p className="text-sm leading-6 text-zinc-500">
+          <p className="text-sm leading-6 text-zinc-400">
             {t('footer.copyright', { year: currentYear })}
           </p>
         </div>

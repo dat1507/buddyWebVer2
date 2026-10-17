@@ -65,8 +65,8 @@ Display order after the [ordering task](../../implementation/tasks/FE-LANDING-OR
 Merchandise, Events Recap, Library, Sports Hall, International Office, Dormitory Service.
 Merchandise is unavailable, with Coming Soon / Demnächst verfügbar and no purchase interaction. The owner confirmed all four official destinations; the source array owns those URLs.
 Resource links open secure new tabs with localized labels, focus rings and 44px touch height.
-Events Recap is **UI prepared — functionality pending** with no action or route. Navbar/footer
-share EN/DE Resources / Ressourcen copy; `#features` remains the anchor, uses 80px scroll margin and
+Events Recap is **UI prepared — functionality pending** with no action or route. Navbar uses
+EN/DE Resources / Ressourcen copy; `#features` remains the anchor, uses 80px scroll margin and
 resolves after mount/direct refresh. Desktop uses a 3×2 card grid, tablet uses two columns
 and mobile one; equal-height rows and reduced-motion-safe border/shadow hover use shared tokens.
 Navbar desktop/mobile order is Home, Events, About, Resources, Community, Contact, Survival Book
@@ -76,6 +76,14 @@ states, with 80px scroll margin and direct-refresh/cross-route hash resolution. 
 at 1280px; smaller widths retain the accessible drawer and close it after link navigation.
 The Campus Resources heading/description and official destinations remain unchanged.
 No Campus Resources API, auth dependency or database state is introduced.
+
+[Footer](../../../apps/web/src/components/layout/footer.tsx) uses the
+[Minimal Branding layout](../../implementation/tasks/FE-LANDING-FOOTER-001.md): branding and preserved
+Facebook/Instagram links alongside Get in Touch, stacking on mobile. Quick Links and Support
+were removed. EN/DE Contact Us / Kontaktiere uns links to `mailto:vgubuddy@vgu.edu.vn`; no form
+or server email feature exists. Logo proportions, dynamic copyright year, language availability,
+dark background and orange focus rings remain. Socials use secure new tabs, 44px targets and
+reduced-motion-safe transitions. Footer retains `#contact` with 80px scroll margin.
 
 Responsive verification records cover desktop/tablet/mobile widths and horizontal overflow;
 they are scoped to each task, not evidence that every route passes every viewport. UI tests

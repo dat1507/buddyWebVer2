@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.33
+**Plan version:** 1.34
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -45,6 +45,8 @@ push/deploy or application/Production mutation. Missing historical/operational e
 explicit in the audit; existing product/release statuses are unchanged.
 
 ## Latest frontend task
+
+`FE-LANDING-FOOTER-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — Minimal Branding Footer with EN/DE Get in Touch mailto, preserved socials/logo/year, removed Quick Links/Support; focused/static/build and responsive acceptance pass.
 
 `FE-LANDING-ORDER-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — requested Navbar/card ordering only; EN/DE responsive, 32 focused tests, static/build checks pass. No push/deployment.
 

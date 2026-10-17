@@ -1469,13 +1469,13 @@
     "comingSoon": "Demnächst"
   },
   "footer": {
-    "description": "Wir verbinden Studierende an der Vietnamesisch-Deutschen Universität für ein außergewöhnliches akademisches und soziales Erlebnis.",
-    "quickLinks": "Schnellzugriff",
-    "support": "Unterstützung",
-    "helpCenter": "International Office",
+    "description": "Wir verbinden Studierende und stärken die Gemeinschaft an der Vietnamesisch-Deutschen Universität.",
     "emergency": "Notfallkontakte",
     "technical": "Technischer Support",
-    "copyright": "© {{year}} VGU Buddy Program. Alle Rechte vorbehalten. | Verfügbar auf Englisch & Deutsch"
+    "copyright": "© {{year}} VGU Buddy Program. Alle Rechte vorbehalten. | Verfügbar auf Englisch & Deutsch",
+    "getInTouch": "Kontakt aufnehmen",
+    "contactDescription": "Hast du Fragen oder Anregungen? Wir freuen uns auf deine Nachricht.",
+    "contactUs": "Kontaktiere uns"
   },
   "howItWorks": {
     "eyebrow": "So funktioniert’s",
