@@ -44,25 +44,26 @@
     "empty": "Derzeit gibt es keine bevorstehenden Veranstaltungen."
   },
   "about": {
-    "title": "Warum VGU Buddy wählen?",
-    "subtitle": "VGU Buddy ist nicht einfach nur ein Club – wir sind hier, um internationale Austauschstudierende zu unterstützen und ihnen zu helfen, sich während ihrer Zeit an der VGU wie zu Hause zu fühlen.",
+    "title": "Mehr als eine Plattform. Ein Ort zum Ankommen.",
+    "subtitle": "VGU Buddy hilft dir, passende Mitstudierende kennenzulernen, gemeinsame Interessen zu entdecken und während deiner Studienzeit echte Freundschaften aufzubauen.",
     "imageAlt": "Mitglieder des VGU Buddy Programms gemeinsam",
     "social": {
-      "title": "Soziales Netzwerk",
-      "desc": "Vernetze dich mit Kommilitonen, teile Erfahrungen und baue dauerhafte Freundschaften auf."
+      "title": "Buddy-Matching",
+      "desc": "Entdecke Studierende mit gemeinsamen Interessen und passenden Vorlieben."
     },
     "academic": {
-      "title": "Veranstaltungen & Aktivitäten",
-      "desc": "Greife auf Ressourcen zu, trete Lerngruppen bei und glänze in deinem Studium."
+      "title": "Einladungen & Chat",
+      "desc": "Versende Einladungen, werdet Buddies und kommt ins Gespräch."
     },
     "campus": {
-      "title": "Campus-Unterstützung",
-      "desc": "Buche Einrichtungen, nutze Bibliotheksdienste und verwalte deinen Zeitplan."
+      "title": "Events & Community",
+      "desc": "Entdecke kommende Aktivitäten und Möglichkeiten, Kontakte zu knüpfen."
     },
     "visual": {
       "title": "Starte deine Reise",
       "subtitle": "Alles, was du brauchst, an einem Ort"
-    }
+    },
+    "eyebrow": "Über VGU Buddy"
   },
   "features": {
     "title": "Hervorragende Vorteile",
@@ -1487,5 +1488,36 @@
     "emergency": "Notfallkontakte",
     "technical": "Technischer Support",
     "copyright": "© {{year}} VGU Buddy Program. Alle Rechte vorbehalten. | Verfügbar auf Englisch & Deutsch"
+  },
+  "howItWorks": {
+    "eyebrow": "So funktioniert’s",
+    "title": "In drei einfachen Schritten zu deinem Buddy",
+    "illustration": "Illustration des VGU-Buddy-Dashboards · Beispielinhalte",
+    "profile": {
+      "title": "Erstelle dein Profil",
+      "desc": "Erzähle der Community von dir, deinen Interessen, Sprachen und Lieblingsaktivitäten."
+    },
+    "discover": {
+      "title": "Entdecken & Matchen",
+      "desc": "Entdecke Profile, sieh dir eure Übereinstimmung an und finde Menschen, die deine Interessen teilen."
+    },
+    "connect": {
+      "title": "Vernetzen & Erleben",
+      "desc": "Versende eine Einladung, werdet nach der Annahme Buddies, startet Gespräche und entdeckt Community-Events."
+    },
+    "interests": "Interessen",
+    "languages": "Sprachen",
+    "activities": "Bevorzugte Aktivitäten",
+    "interestExample": "Musik · Fotografie",
+    "languageExample": "Englisch · Deutsch",
+    "activityExample": "Sport · Campus erkunden",
+    "compatibility": "Übereinstimmung",
+    "viewProfile": "Profil ansehen",
+    "invite": "Einladung senden",
+    "accepted": "Einladung angenommen",
+    "buddies": "Ihr seid jetzt Buddies",
+    "chat": "Chat starten",
+    "events": "Community-Events entdecken",
+    "student": "Beispielprofil"
   }
 }

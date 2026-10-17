@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 
@@ -14,7 +15,15 @@ import { publicEventsEnabled } from '@/config/launch-scope'
 
 function LandingPage() {
   const { t, i18n } = useTranslation()
-  const { state } = useLocation()
+  const { state, hash } = useLocation()
+
+  useEffect(() => {
+    if (hash !== '#about') return
+    const frame = requestAnimationFrame(() => {
+      document.getElementById('about')?.scrollIntoView()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [hash])
   const eventLocale: EventSliderLocale = i18n.resolvedLanguage?.startsWith('de') ? 'de' : 'en'
 
   return (

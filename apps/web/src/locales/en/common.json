@@ -44,25 +44,26 @@
     "empty": "There are no upcoming events to show right now."
   },
   "about": {
-    "title": "Why Choose VGU Buddy?",
-    "subtitle": "VGU Buddy isn’t just any club, we are here to support international transfer students and help them feel at home during their time at VGU.",
+    "title": "More Than a Platform. A Place to Belong.",
+    "subtitle": "VGU Buddy helps students connect with compatible peers, discover shared interests, and build meaningful friendships throughout their university journey.",
     "imageAlt": "VGU Buddy Program members together",
     "social": {
-      "title": "Social Networking",
-      "desc": "Connect with peers, share experiences, and build lasting friendships."
+      "title": "Buddy Matching",
+      "desc": "Discover students with shared interests and compatible preferences."
     },
     "academic": {
-      "title": "Events & Activities",
-      "desc": "Access resources, join study groups, and excel in your studies."
+      "title": "Invitations & Chat",
+      "desc": "Send invitations, become Buddies, and start conversations."
     },
     "campus": {
-      "title": "Campus Support",
-      "desc": "Book facilities, access library services, and manage your schedule."
+      "title": "Events & Community",
+      "desc": "Explore upcoming activities and opportunities to connect."
     },
     "visual": {
       "title": "Launch Your Journey",
       "subtitle": "Everything you need in one place"
-    }
+    },
+    "eyebrow": "About VGU Buddy"
   },
   "features": {
     "title": "Outstanding Benefits",
@@ -1487,5 +1488,36 @@
     "emergency": "Emergency Contacts",
     "technical": "Technical Support",
     "copyright": "© {{year}} VGU Buddy Program. All rights reserved. | Available in English & German"
+  },
+  "howItWorks": {
+    "eyebrow": "How It Works",
+    "title": "Three Simple Steps to Find Your Buddy",
+    "illustration": "Illustration based on the VGU Buddy dashboard · example content",
+    "profile": {
+      "title": "Create Your Profile",
+      "desc": "Tell the community about yourself, your interests, languages, and preferred activities."
+    },
+    "discover": {
+      "title": "Discover & Match",
+      "desc": "Explore student profiles, review compatibility, and find people who share your interests."
+    },
+    "connect": {
+      "title": "Connect & Explore",
+      "desc": "Send an invitation, become Buddies once accepted, start conversations, and discover community events."
+    },
+    "interests": "Interests",
+    "languages": "Languages",
+    "activities": "Preferred activities",
+    "interestExample": "Music · Photography",
+    "languageExample": "English · German",
+    "activityExample": "Sports · Exploring campus",
+    "compatibility": "Compatibility",
+    "viewProfile": "View Profile",
+    "invite": "Send Invitation",
+    "accepted": "Invitation accepted",
+    "buddies": "You are now Buddies",
+    "chat": "Start chatting",
+    "events": "Discover community events",
+    "student": "Example student"
   }
 }

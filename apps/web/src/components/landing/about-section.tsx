@@ -1,14 +1,15 @@
-import { Building2, CalendarHeart, Users } from 'lucide-react'
+import { CalendarHeart, MessageCircle, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import groupPhoto from '@/assets/group.jpg'
 import { Card, CardContent } from '@/components/ui/card'
+import { HowItWorks } from '@/components/landing/how-it-works'
 import { Typography } from '@/components/ui/typography'
 
 const features = [
   { key: 'social', icon: Users },
-  { key: 'academic', icon: CalendarHeart },
-  { key: 'campus', icon: Building2 },
+  { key: 'academic', icon: MessageCircle },
+  { key: 'campus', icon: CalendarHeart },
 ] as const
 
 function AboutSection() {
@@ -17,11 +18,14 @@ function AboutSection() {
   return (
     <section
       id="about"
-      className="bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="scroll-mt-20 bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       aria-labelledby="about-title"
     >
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-vgu-orange">
+            {t('about.eyebrow')}
+          </p>
           <Typography id="about-title" variant="h2">
             {t('about.title')}
           </Typography>
@@ -54,7 +58,7 @@ function AboutSection() {
         </div>
 
         <div className="relative mx-auto w-full max-w-2xl lg:max-w-none">
-          <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-vgu-orange to-vgu-orange-dark opacity-75 blur-sm" />
+          <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-vgu-orange to-vgu-orange-dark opacity-30 blur-xl" />
           <figure className="relative overflow-hidden rounded-2xl border border-orange-300/30 bg-zinc-950 p-3 shadow-2xl sm:p-5">
             <img
               src={groupPhoto}
@@ -65,6 +69,7 @@ function AboutSection() {
           </figure>
         </div>
       </div>
+      <HowItWorks />
     </section>
   )
 }

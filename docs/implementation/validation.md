@@ -1,5 +1,14 @@
 # Documentation migration validation
 
+## FE-LANDING-ABOUT-001 — 2026-10-17
+
+TypeScript, affected ESLint/Prettier, 4 files / 23 focused frontend tests and production build PASS.
+Brave desktop 1440×900, tablet 768×1024 and mobile 390×844 layout checks PASS with no horizontal
+overflow; EN/DE steps and refreshed #about checked. Features and final CTA source unchanged.
+Existing local auth bootstrap connection warning and build chunk advisory remain unrelated.
+Reduced motion checked in CSS, not emulated. Task-path coverage: 226 files / 226 unique links.
+Local commit only; no push/deployment or Production changes.
+
 ## ACCOUNT-DELETE-001 Production validation — 2026-10-17
 
 | Check                                       | Result                                                                         |
@@ -37,11 +46,11 @@ or create a replacement account.
 | Python dependency integrity                   | PASS                                                                                                       |
 | Task files / unique task-index links          | 225 / 225; no missing, extra or duplicate path                                                             |
 | Preview / real email-client boundary          | Side-by-side deterministic HTML generated; Gmail/Outlook and interactive browser visual acceptance NOT RUN |
-| Source / CI                                    | `e4624c0`; GitHub Actions `38947149530` Backend and Frontend SUCCESS                                        |
-| Vercel / Render                                | Production Ready / Live for exact SHA                                                                       |
-| Supabase Edge                                  | Exact pushed `core.ts`; successful update; deployment count 1 -> 2                                         |
-| Production health                              | API live/ready PASS; database/Redis `ok`; email/Storage `configured`; public site 200                       |
-| Schema / Production boundary                   | No migration or Production account/database/provider-configuration write                                  |
+| Source / CI                                   | `e4624c0`; GitHub Actions `38947149530` Backend and Frontend SUCCESS                                       |
+| Vercel / Render                               | Production Ready / Live for exact SHA                                                                      |
+| Supabase Edge                                 | Exact pushed `core.ts`; successful update; deployment count 1 -> 2                                         |
+| Production health                             | API live/ready PASS; database/Redis `ok`; email/Storage `configured`; public site 200                      |
+| Schema / Production boundary                  | No migration or Production account/database/provider-configuration write                                   |
 
 Result: **DONE — PUSHED / CI PASS / PRODUCTION VERIFIED**. All three transactional messages use equivalent
 Received Invitation branding in the Edge and Python renderers, while exact verification/chat URLs,

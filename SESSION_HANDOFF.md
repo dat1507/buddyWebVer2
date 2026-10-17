@@ -2,11 +2,21 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** ACCOUNT-DELETE-001 complete and Production verified; awaiting owner direction
+**Current mode:** FE-LANDING-ABOUT-001 complete locally; awaiting owner review
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-ABOUT-001` is complete locally on main. About retains the community photo and now
+introduces Matching, Invitations/Chat and Events; the EN/DE three-step walkthrough uses labeled
+CSS dashboard illustrations, accessible tabs, keyboard navigation and reduced-motion support.
+Learn More/#about and direct hash refresh retain sticky-navbar clearance. Features and final CTA
+source remain unchanged. TypeScript, affected ESLint/Prettier, 23 focused tests and production build
+pass. Brave desktop/tablet/mobile checks show no horizontal overflow. The local auth bootstrap
+connection warning is unrelated; no authenticated session was used. Existing large-bundle advisory
+remains. No push, deployment, backend, database, account or provider change. See the task extract
+for evidence limits. The previous verified continuation point follows unchanged.
 
 `ACCOUNT-DELETE-001` is complete and Production verified. After owner confirmation, the exact
 normalized target account was deleted in one guarded transaction from the custom
