@@ -1507,5 +1507,30 @@
     "chat": "Start chatting",
     "events": "Discover community events",
     "student": "Example student"
+  },
+  "eventsShowcase": {
+    "title": "Explore More",
+    "description": "Discover more from the VGU Buddy community.",
+    "recap": {
+      "title": "Previous Events Recap",
+      "description": "Relive memorable moments from past VGU Buddy events.",
+      "action": "Explore Recaps"
+    },
+    "merchandise": {
+      "title": "Merchandise",
+      "description": "Discover upcoming VGU Buddy merchandise.",
+      "action": "Explore Merchandise"
+    }
+  },
+  "communityComingSoon": {
+    "back": "Back to Events",
+    "recap": {
+      "title": "Previous Events Recap",
+      "description": "We're preparing a space to revisit memorable moments from past VGU Buddy events. Stay tuned!"
+    },
+    "merchandise": {
+      "title": "VGU Buddy Merchandise",
+      "description": "VGU Buddy merchandise is not available yet. Check back for future updates!"
+    }
   }
 }

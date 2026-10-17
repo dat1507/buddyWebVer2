@@ -59,23 +59,29 @@ keyboard navigation and reduced-motion behavior. They illustrate product concept
 embedding an authenticated dashboard. The old demo CTA/video was removed before this baseline.
 Sticky-navbar offset is preserved for `#about`, including direct refresh.
 
-[Campus Resources](../../implementation/tasks/FE-LANDING-RESOURCES-001.md) replaces Benefits
-with six icon cards after the [Merchandise/navigation update](../../implementation/tasks/FE-LANDING-NAV-MERCH-001.md):
-Display order after the [ordering task](../../implementation/tasks/FE-LANDING-ORDER-001.md) is
-Merchandise, Events Recap, Library, Sports Hall, International Office, Dormitory Service.
-Merchandise is unavailable, with Coming Soon / Demnächst verfügbar and no purchase interaction. The owner confirmed all four official destinations; the source array owns those URLs.
-Resource links open secure new tabs with localized labels, focus rings and 44px touch height.
-Events Recap is **UI prepared — functionality pending** with no action or route. Navbar uses
-EN/DE Resources / Ressourcen copy; `#features` remains the anchor, uses 80px scroll margin and
-resolves after mount/direct refresh. Desktop uses a 3×2 card grid, tablet uses two columns
-and mobile one; equal-height rows and reduced-motion-safe border/shadow hover use shared tokens.
-Navbar desktop/mobile order is Home, Events, About, Resources, Community, Contact, Survival Book
-(with EN/DE labels); shared arrays determine DOM/keyboard and responsive card order.
-Navbar Events / Veranstaltungen targets `/#events` on the existing slider and live loading/error/empty
-states, with 80px scroll margin and direct-refresh/cross-route hash resolution. Full navbar starts
-at 1280px; smaller widths retain the accessible drawer and close it after link navigation.
-The Campus Resources heading/description and official destinations remain unchanged.
-No Campus Resources API, auth dependency or database state is introduced.
+[Events Showcase](../../implementation/tasks/FE-LANDING-SHOWCASE-001.md) keeps the existing Upcoming
+Events slider as the primary content, including its flag-OFF static path and flag-ON query/states.
+[EventsExploreMore](../../../apps/web/src/components/landing/events-explore-more.tsx) follows
+that branch before About: compact Previous Events Recap then Merchandise cards, side by side
+from 640px and stacked below. No slider/query/cache/eligibility/order logic changed.
+
+Public routes `/events/recap` and `/merchandise` use
+[CommunityComingSoonPage](../../../apps/web/src/pages/public/community-coming-soon-page.tsx)
+inside PublicLayout, independent of Event flags/auth. Static Recap route takes precedence over
+Event detail matching. EN/DE placeholders preserve language selection and link Back to Events
+at `/#events`; existing SPA hosting rewrite supports direct URL refresh. Both are **Coming Soon —
+functionality pending**, with no real recap/gallery/commerce/API implementation.
+
+[Campus Resources](../../../apps/web/src/components/landing/benefits-grid.tsx) now contains
+Library, Sports Hall, International Office and Dormitory Service in that DOM/visual order.
+Desktop/tablet use two columns, mobile one; shared cards retain equal-height rows, official
+owner-confirmed URLs, secure external tabs, focus rings and 44px links. Heading/description,
+EN/DE copy and `#features` 80px scroll margin remain. Recap and Merchandise moved to Explore More.
+
+Navbar order remains Home, Events, About, Resources, Community, Contact, Survival Book (EN/DE).
+Events targets the existing `/#events` slider anchor in all live states, with 80px offset and
+cross-route/direct-refresh resolution. Full navbar starts at 1280px, with its accessible drawer
+below. No Campus Resources API, auth dependency or database state is introduced.
 
 [Footer](../../../apps/web/src/components/layout/footer.tsx) uses the
 [Minimal Branding layout](../../implementation/tasks/FE-LANDING-FOOTER-001.md): branding and preserved

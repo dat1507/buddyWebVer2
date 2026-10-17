@@ -727,3 +727,21 @@ account was used. No Merchandise or Events Recap functionality is implied by the
 - Dynamic year, localized availability, divider/dark surface retained; copyright contrast uses
   zinc-400. 231 task/index paths, focused documentation links and whitespace validated.
 - Existing local API bootstrap warning; no account/Production verification, push or deployment.
+
+## FE-LANDING-SHOWCASE-001 — 2026-10-17 local validation
+
+- Six focused files / 44 PASS: Resources, Coming Soon routes/round trips, Landing composition,
+  slider transitions/controls, live states/first-five ordering and independent Event flags.
+- Public Events ON: two route/flag files / 15 PASS; Recap static route wins over Event detail;
+  both placeholders public and feature-API-free. Existing OFF/ON Event detail behavior passes.
+- TypeScript, affected ESLint/Prettier and production build PASS; existing bundle advisory.
+- Brave EN/DE 1440×1000 / 768×1000 / 390×1000: four Resources in 2/2/1 columns, Recap then
+  Merchandise secondary cards in 2/2/1; no horizontal overflow. Pages refresh directly and return
+  to /#events, with 80px clearance below ~65px Navbar. Keyboard Recap → Merchandise shows focus.
+- Existing slider/live/query source bytes unchanged; Navbar/Footer/hosting config unchanged.
+  Four official resource URLs and secure link behavior retained. Business features pending.
+- Reduced-motion-safe classes retained; no placeholder animation. Local browser used static
+  Events, while live behavior is covered by focused tests. Existing API bootstrap warning remains.
+- Sandbox preview could not respond; local-only unsandboxed server recovered visual verification.
+- 232 task/index paths, focused links and whitespace validated. No account/Production access,
+  backend/database/API change, push or Preview/Production deployment.

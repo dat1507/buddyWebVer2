@@ -2,11 +2,21 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Minimal Branding Footer complete locally; no deployment
+**Current mode:** Events Showcase/resources complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-SHOWCASE-001` is complete locally on `main`. Existing Upcoming slider source/data paths
+are unchanged. Explore More follows it with Previous Events Recap then Merchandise links to
+/events/recap and /merchandise. Both are public EN/DE Coming Soon pages, returning to /#events;
+real recap/commerce functionality remains pending. Campus Resources now contains only Library,
+Sports Hall, International Office and Dormitory Service in a 2×2 desktop/tablet grid (mobile stacked).
+Official URLs, Navbar/anchors and Footer remain intact. 44 focused tests, 15 public-ON route/flag
+tests, TypeScript/lint/format/build and local EN/DE responsive/route checks pass. No push, Preview/
+Production deployment or backend/data change. No task assigned. Earlier six-card/pending-no-route
+records below are historical and superseded only by this task.
 
 `FE-LANDING-FOOTER-001` is complete locally on `main`. Footer uses two branding/Get in Touch
 columns (mobile stacked), EN/DE copy and Contact Us → mailto:vgubuddy@vgu.edu.vn. Quick Links

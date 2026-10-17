@@ -1,12 +1,4 @@
-import {
-  BookOpen,
-  Building2,
-  CalendarDays,
-  Dumbbell,
-  ExternalLink,
-  Globe,
-  ShoppingBag,
-} from 'lucide-react'
+import { BookOpen, Building2, Dumbbell, ExternalLink, Globe } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,8 +6,6 @@ import { Typography } from '@/components/ui/typography'
 
 // Official destinations confirmed by the owner on 2026-10-17.
 const resources = [
-  { key: 'social', icon: ShoppingBag, href: null },
-  { key: 'events', icon: CalendarDays, href: null },
   { key: 'academic', icon: BookOpen, href: 'https://library.vgu.edu.vn/' },
   { key: 'sports', icon: Dumbbell, href: 'https://vgu.edu.vn/sports-complex' },
   { key: 'support', icon: Globe, href: 'https://vgu.edu.vn/international-office' },
@@ -44,7 +34,7 @@ function BenefitsGrid() {
           </Typography>
         </div>
 
-        <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2">
           {resources.map(({ key, icon: Icon, href }) => (
             <Card
               key={key}
@@ -63,23 +53,17 @@ function BenefitsGrid() {
                 <p className="mb-6 mt-3 text-base leading-7 text-zinc-400">
                   {t(`features.${key}.desc`)}
                 </p>
-                {href ? (
-                  <a
-                    href={href}
-                    aria-label={`${t('features.visit', { resource: t(`features.${key}.title`) })} ${t('features.newTab')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-auto inline-flex min-h-11 items-center gap-2 rounded-md py-2 text-sm font-semibold text-orange-300 underline-offset-4 hover:text-orange-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange focus-visible:ring-offset-4 focus-visible:ring-offset-zinc-900"
-                  >
-                    {t('features.visit', { resource: t(`features.${key}.title`) })}
-                    <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
-                    <span className="sr-only"> {t('features.newTab')}</span>
-                  </a>
-                ) : (
-                  <p className="mt-auto border-t border-white/10 pt-4 text-sm text-zinc-400">
-                    {t(key === 'social' ? 'features.merchPending' : 'features.recapPending')}
-                  </p>
-                )}
+                <a
+                  href={href}
+                  aria-label={`${t('features.visit', { resource: t(`features.${key}.title`) })} ${t('features.newTab')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-auto inline-flex min-h-11 items-center gap-2 rounded-md py-2 text-sm font-semibold text-orange-300 underline-offset-4 hover:text-orange-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange focus-visible:ring-offset-4 focus-visible:ring-offset-zinc-900"
+                >
+                  {t('features.visit', { resource: t(`features.${key}.title`) })}
+                  <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+                  <span className="sr-only"> {t('features.newTab')}</span>
+                </a>
               </CardContent>
             </Card>
           ))}

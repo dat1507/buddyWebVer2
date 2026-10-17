@@ -104,6 +104,7 @@ describe('independent Event feature-flag integration', () => {
   it('uses the API-backed Landing section only when the public flag is on', async () => {
     const listPublished = vi.spyOn(eventSliderRepository, 'listPublished').mockResolvedValue([])
     const { client } = renderWithRouter(<LandingPage />)
+    expect(screen.getByRole('region', { name: 'Explore More' })).toBeVisible()
 
     if (publicEventsEnabled) {
       await waitFor(() => expect(listPublished).toHaveBeenCalledWith('en', expect.any(AbortSignal)))

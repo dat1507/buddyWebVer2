@@ -8,6 +8,7 @@ import { AdminUserDetailPage } from '@/pages/admin/admin-user-detail-page'
 import { AdminEventCreatePage } from '@/pages/admin/admin-event-create-page'
 import { AdminEventEditPage } from '@/pages/admin/admin-event-edit-page'
 import { LandingPage } from '@/pages/public/landing-page'
+import { CommunityComingSoonPage } from '@/pages/public/community-coming-soon-page'
 import { EventDetailPage } from '@/pages/public/event-detail-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { RoutePlaceholder } from '@/pages/route-placeholder'
@@ -32,6 +33,8 @@ function App() {
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
           <Route path="verify-email" element={<EmailVerificationPage />} />
+          <Route path="events/recap" element={<CommunityComingSoonPage feature="recap" />} />
+          <Route path="merchandise" element={<CommunityComingSoonPage feature="merchandise" />} />
           {publicEventsEnabled ? (
             <Route path="events/:eventId" element={<EventDetailPage />} />
           ) : (

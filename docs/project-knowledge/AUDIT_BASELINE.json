@@ -12,8 +12,8 @@
   "known_gaps_file": "DOCUMENTATION_AUDIT.md",
   "incremental_review": {
     "date": "2026-10-17",
-    "task": "FE-LANDING-FOOTER-001",
-    "base_commit": "6685bc9",
-    "scope": "Footer component/locales/focused tests and knowledge/control-plane delta; original historical audit checkpoint retained"
+    "task": "FE-LANDING-SHOWCASE-001",
+    "base_commit": "f666345",
+    "scope": "Landing Showcase/resource composition, public placeholder routes, locales, focused tests and knowledge/control-plane delta; original historical audit checkpoint retained"
   }
 }

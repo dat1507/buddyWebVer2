@@ -1507,5 +1507,30 @@
     "chat": "Chat starten",
     "events": "Community-Events entdecken",
     "student": "Beispielprofil"
+  },
+  "eventsShowcase": {
+    "title": "Mehr entdecken",
+    "description": "Entdecke mehr aus der VGU-Buddy-Community.",
+    "recap": {
+      "title": "Rückblicke auf vergangene Events",
+      "description": "Erlebe unvergessliche Momente vergangener VGU-Buddy-Events noch einmal.",
+      "action": "Rückblicke entdecken"
+    },
+    "merchandise": {
+      "title": "Merchandise",
+      "description": "Entdecke kommende Merchandise-Angebote von VGU Buddy.",
+      "action": "Merchandise entdecken"
+    }
+  },
+  "communityComingSoon": {
+    "back": "Zurück zu den Events",
+    "recap": {
+      "title": "Rückblicke auf vergangene Events",
+      "description": "Wir bereiten einen Bereich vor, in dem du unvergessliche Momente vergangener VGU-Buddy-Events noch einmal erleben kannst. Bleib gespannt!"
+    },
+    "merchandise": {
+      "title": "VGU Buddy Merchandise",
+      "description": "Merchandise von VGU Buddy ist noch nicht verfügbar. Schau für Neuigkeiten wieder vorbei!"
+    }
   }
 }

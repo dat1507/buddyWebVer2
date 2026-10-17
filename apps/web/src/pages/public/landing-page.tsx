@@ -6,6 +6,7 @@ import { AboutSection } from '@/components/landing/about-section'
 import { BenefitsGrid } from '@/components/landing/benefits-grid'
 import { CtaSection } from '@/components/landing/cta-section'
 import { EventsSlider } from '@/components/landing/events-slider'
+import { EventsExploreMore } from '@/components/landing/events-explore-more'
 import { HeroSection } from '@/components/landing/hero-section'
 import { LiveEventsSection } from '@/components/landing/live-events-section'
 import { TestimonialsMarquee } from '@/components/landing/testimonials-marquee'
@@ -42,6 +43,7 @@ function LandingPage() {
       ) : (
         <EventsSlider events={getStaticUpcomingEvents(eventLocale)} />
       )}
+      <EventsExploreMore />
       <AboutSection />
       <BenefitsGrid />
       <TestimonialsMarquee />

@@ -51,7 +51,11 @@ describe('LandingPage (FE-019 Assembly)', () => {
     const sections = Array.from(main!.querySelectorAll('section'))
     expect(sections).toHaveLength(6)
 
-    // Sections order: Hero, EventsSlider, About, Benefits, Testimonials, CTA
+    const explore = screen.getByRole('region', { name: 'Explore More' })
+    expect(explore.previousElementSibling).toHaveAttribute('id', 'events')
+    expect(explore.nextElementSibling).toHaveAttribute('id', 'about')
+
+    // Primary sections retain their sequence; Explore More follows the slider.
     expect(sections[0].id).toBe('home')
     expect(sections[1].getAttribute('aria-labelledby')).toBe('events-title')
     expect(sections[2].id).toBe('about')
