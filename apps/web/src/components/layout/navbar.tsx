@@ -13,8 +13,8 @@ import { useAuthStore } from '@/stores/auth-store'
 
 const navItems = [
   { href: '/#home', translationKey: 'nav.home' },
-  { href: '/#about', translationKey: 'nav.about' },
   { href: '/#events', translationKey: 'nav.events' },
+  { href: '/#about', translationKey: 'nav.about' },
   { href: '/#features', translationKey: 'nav.features' },
   { href: '/#community', translationKey: 'nav.community' },
   { href: '/#contact', translationKey: 'nav.contact' },

@@ -14,12 +14,12 @@ import { Typography } from '@/components/ui/typography'
 
 // Official destinations confirmed by the owner on 2026-10-17.
 const resources = [
+  { key: 'social', icon: ShoppingBag, href: null },
   { key: 'events', icon: CalendarDays, href: null },
   { key: 'academic', icon: BookOpen, href: 'https://library.vgu.edu.vn/' },
   { key: 'sports', icon: Dumbbell, href: 'https://vgu.edu.vn/sports-complex' },
   { key: 'support', icon: Globe, href: 'https://vgu.edu.vn/international-office' },
   { key: 'global', icon: Building2, href: 'https://dorm.vgu.edu.vn/' },
-  { key: 'social', icon: ShoppingBag, href: null },
 ] as const
 
 function BenefitsGrid() {

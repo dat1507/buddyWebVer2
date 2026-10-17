@@ -61,13 +61,16 @@ Sticky-navbar offset is preserved for `#about`, including direct refresh.
 
 [Campus Resources](../../implementation/tasks/FE-LANDING-RESOURCES-001.md) replaces Benefits
 with six icon cards after the [Merchandise/navigation update](../../implementation/tasks/FE-LANDING-NAV-MERCH-001.md):
-Events Recap, Library, Sports Hall, International Office, Dormitory Service and Merchandise.
+Display order after the [ordering task](../../implementation/tasks/FE-LANDING-ORDER-001.md) is
+Merchandise, Events Recap, Library, Sports Hall, International Office, Dormitory Service.
 Merchandise is unavailable, with Coming Soon / Demnächst verfügbar and no purchase interaction. The owner confirmed all four official destinations; the source array owns those URLs.
 Resource links open secure new tabs with localized labels, focus rings and 44px touch height.
 Events Recap is **UI prepared — functionality pending** with no action or route. Navbar/footer
 share EN/DE Resources / Ressourcen copy; `#features` remains the anchor, uses 80px scroll margin and
 resolves after mount/direct refresh. Desktop uses a 3×2 card grid, tablet uses two columns
 and mobile one; equal-height rows and reduced-motion-safe border/shadow hover use shared tokens.
+Navbar desktop/mobile order is Home, Events, About, Resources, Community, Contact, Survival Book
+(with EN/DE labels); shared arrays determine DOM/keyboard and responsive card order.
 Navbar Events / Veranstaltungen targets `/#events` on the existing slider and live loading/error/empty
 states, with 80px scroll margin and direct-refresh/cross-route hash resolution. Full navbar starts
 at 1280px; smaller widths retain the accessible drawer and close it after link navigation.

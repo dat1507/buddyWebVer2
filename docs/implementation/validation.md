@@ -701,3 +701,15 @@ no separate external availability acceptance. Events Recap is **UI prepared — 
 Browser used the local static slider path; live pending/error/empty/populated anchor behavior is
 covered by focused tests. The pre-existing local auth bootstrap connection warning remains; no
 account was used. No Merchandise or Events Recap functionality is implied by the prepared cards.
+
+## FE-LANDING-ORDER-001 — 2026-10-17 local validation
+
+- Navbar/Resources/Landing: 3 files / 32 tests PASS; EN/DE desktop/mobile order asserted.
+- TypeScript, affected ESLint/Prettier and production build PASS; existing bundle advisory.
+- Brave EN/DE 1440×1000 / 768×1000 / 390×1000: correct DOM/visual card order, 3/2/1 columns,
+  zero horizontal overflow. Mobile Events closes drawer; Library → Tab → Sports Hall verified.
+- Four exact secure external-link destinations/attributes retained. Merchandise unavailable;
+  Events Recap functionality pending. Only two source array orders changed; no CSS/locale edits.
+- 230 task files/index paths, focused documentation links and whitespace validated.
+- Existing local auth bootstrap connection warning; no account or Production verification.
+  No backend/database/API, push or deployment change.

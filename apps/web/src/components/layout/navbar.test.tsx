@@ -225,4 +225,38 @@ describe('Navbar', () => {
     fireEvent.click(link)
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   })
+  it.each(['en', 'de'])('preserves %s navbar order on desktop and mobile', async (language) => {
+    await i18n.changeLanguage(language)
+    renderNavbar()
+    const expected = [
+      '/#home',
+      '/#events',
+      '/#about',
+      '/#features',
+      '/#community',
+      '/#contact',
+      '/documents/vgu-buddy-survival-book.pdf',
+    ]
+    const desktop = screen.getByRole('navigation', {
+      name: language === 'en' ? 'Primary navigation' : 'Hauptnavigation',
+    })
+    expect(
+      within(desktop)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(expected)
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: language === 'en' ? 'Open navigation menu' : 'Navigationsmenü öffnen',
+      }),
+    )
+    const drawer = screen.getByRole('dialog')
+    const navigation = within(drawer).getByRole('navigation')
+    expect(
+      within(navigation)
+        .getAllByRole('link')
+        .slice(0, 7)
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(expected)
+  })
 })

@@ -2,11 +2,18 @@
 
 **Updated:** 2026-10-17 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Merchandise/navigation update complete locally; no deployment
+**Current mode:** Landing display order complete locally; no deployment
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `main`
 
 ## Continue from here
+
+`FE-LANDING-ORDER-001` is complete locally on `main`. Navbar now reads Home, Events, About,
+Resources, Community, Contact, Survival Book on desktop/mobile in EN/DE. Resource order is
+Merchandise, Events Recap, Library, Sports Hall, International Office, Dormitory Service.
+Only shared array order changed; links, anchors, offsets, unavailable states and styling remain.
+32 focused tests, static/build gates and EN/DE 3/2/1 responsive checks pass. No push/deployment
+or Production change. No task assigned. This supersedes only prior display-order descriptions.
 
 `FE-LANDING-NAV-MERCH-001` is complete locally on `main`. Six Resources cards include Merchandise
 with Coming Soon / Demnächst verfügbar and no purchase action. Navbar Resources/Ressourcen keeps

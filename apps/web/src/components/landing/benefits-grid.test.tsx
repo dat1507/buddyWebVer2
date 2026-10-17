@@ -12,7 +12,18 @@ describe('Campus Resources', () => {
     const section = screen.getByRole('region', { name: 'Explore VGU Campus Resources' })
     expect(section).toHaveAttribute('id', 'features')
     expect(section).toHaveClass('scroll-mt-20')
-    expect(within(section).getAllByRole('heading', { level: 3 })).toHaveLength(6)
+    expect(
+      within(section)
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent),
+    ).toEqual([
+      'Merchandise',
+      'Events Recap',
+      'Library',
+      'Sports Hall',
+      'International Office',
+      'Dormitory Service',
+    ])
     for (const name of [
       'Events Recap',
       'Library',
@@ -65,6 +76,16 @@ describe('Campus Resources', () => {
     expect(
       screen.getByRole('region', { name: 'Entdecke die Campus-Angebote der VGU' }),
     ).toBeVisible()
+    expect(
+      screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent),
+    ).toEqual([
+      'Merchandise',
+      'Veranstaltungsrückblicke',
+      'Bibliothek',
+      'Sporthalle',
+      'International Office',
+      'Wohnheimservice',
+    ])
     for (const name of [
       'Veranstaltungsrückblicke',
       'Bibliothek',

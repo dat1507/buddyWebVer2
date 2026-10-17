@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-17 **Task IDs:** 229
+**Generated:** 2026-10-17 **Task IDs:** 230
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -8,6 +8,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 
 | Task                                                                    | Status                                                      | Priority           | Track               | Dependencies / source note                                                                                                                                                           |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`FE-LANDING-ORDER-001`](tasks/FE-LANDING-ORDER-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Navbar Home/Events/About/Resources; cards Merchandise/Recap/Library/Sports/International Office/Dormitory. |
 | [`FE-LANDING-NAV-MERCH-001`](tasks/FE-LANDING-NAV-MERCH-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Merchandise Coming Soon, six cards, Resources/Events navigation and static/live #events; EN/DE responsive acceptance. |
 | [`FE-LANDING-RESOURCES-001`](tasks/FE-LANDING-RESOURCES-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Campus Resources 3+2/2/1 grid, EN/DE, #features, four confirmed official links; Events Recap UI prepared, functionality pending. |
 | [`DOC-KNOWLEDGE-001`](tasks/DOC-KNOWLEDGE-001.md) | DONE — LOCAL DOCS VERIFIED / GAPS RECORDED | Owner-assigned | documentation | Historical audit, populated knowledge base, learning/interview and incremental update protocol; local docs commit only. |

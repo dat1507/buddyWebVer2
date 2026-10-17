@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.32
+**Plan version:** 1.33
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -45,6 +45,8 @@ push/deploy or application/Production mutation. Missing historical/operational e
 explicit in the audit; existing product/release statuses are unchanged.
 
 ## Latest frontend task
+
+`FE-LANDING-ORDER-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — requested Navbar/card ordering only; EN/DE responsive, 32 focused tests, static/build checks pass. No push/deployment.
 
 `FE-LANDING-NAV-MERCH-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — six resource cards, unavailable Merchandise, Resources/Events navbar and #events static/live anchor. EN/DE responsive checks and focused/static/build gates pass; local commit only.
 
