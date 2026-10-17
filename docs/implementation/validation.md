@@ -658,3 +658,25 @@ Documentation delivery is complete; historical reconstruction remains explicitly
 records are unavailable. No existing product/release gate was closed or repeated. One local
 documentation commit is authorized; no push/deploy. Commit identity is obtained from Git rather
 than embedded into the source checkpoint or this self-referential commit record.
+
+## FE-LANDING-RESOURCES-001 — 2026-10-17 local validation
+
+| Check | Result |
+| --- | --- |
+| Focused Resources/Navbar/Landing tests | 3 files / 25 PASS, single worker, cache disabled |
+| EN/DE | Five localized cards, navbar/footer naming and external-link labels PASS |
+| TypeScript / affected ESLint / Prettier | PASS |
+| Production build | PASS; existing large-chunk advisory remains |
+| Brave responsive | 1440×1000: centered 3+2; 768×1024: 2 columns; 390×844: 1 column; zero horizontal overflow in EN/DE |
+| Anchor | `/#features` direct refresh resolves; section top ~80px below ~65px sticky navbar; existing About path retained |
+| External navigation | Exact four owner-confirmed HTTPS URLs, `_blank`, `noopener noreferrer`, accessible names and 44px link height |
+| Reduced motion | Emulated preference: root scroll behavior `auto`, all five card transition properties `none`; overrides reset |
+| Documentation | 228 task files / unique index paths; local links and whitespace checked |
+| Scope | No backend/database/auth/Event/Dashboard/runtime configuration edits; no push/deployment |
+
+The first focused run failed on sandbox temporary-file ENOENT; a stable workspace temp directory
+resolved it. Two link-name assertions then exposed missing accessible-name spacing in jsdom;
+explicit localized accessible labels resolved both. Final focused run passes. Local browser had the
+pre-existing auth bootstrap connection warning (no local API); no authenticated session was used.
+International Office was read on the official site; other destinations are owner-confirmed, with
+no separate external availability acceptance. Events Recap is **UI prepared — functionality pending**.

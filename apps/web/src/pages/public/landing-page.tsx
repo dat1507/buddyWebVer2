@@ -18,9 +18,9 @@ function LandingPage() {
   const { state, hash } = useLocation()
 
   useEffect(() => {
-    if (hash !== '#about') return
+    if (hash !== '#about' && hash !== '#features') return
     const frame = requestAnimationFrame(() => {
-      document.getElementById('about')?.scrollIntoView()
+      document.getElementById(hash.slice(1))?.scrollIntoView()
     })
     return () => cancelAnimationFrame(frame)
   }, [hash])

@@ -60,15 +60,18 @@ describe('LandingPage (FE-019 Assembly)', () => {
     expect(sections[5].id).toBe('cta')
   })
 
-  it('retains Learn More and resolves direct About navigation after mount', async () => {
-    const scroll = vi.fn()
-    const original = HTMLElement.prototype.scrollIntoView
-    HTMLElement.prototype.scrollIntoView = scroll
-    renderLandingPage('/#about')
-    expect(screen.getByRole('link', { name: 'Learn More' })).toHaveAttribute('href', '#about')
-    await vi.waitFor(() => expect(scroll).toHaveBeenCalled())
-    HTMLElement.prototype.scrollIntoView = original
-  })
+  it.each(['about', 'features'])(
+    'retains Learn More and resolves direct #%s navigation after mount',
+    async (anchor) => {
+      const scroll = vi.fn()
+      const original = HTMLElement.prototype.scrollIntoView
+      HTMLElement.prototype.scrollIntoView = scroll
+      renderLandingPage(`/#${anchor}`)
+      expect(screen.getByRole('link', { name: 'Learn More' })).toHaveAttribute('href', '#about')
+      await vi.waitFor(() => expect(scroll).toHaveBeenCalled())
+      HTMLElement.prototype.scrollIntoView = original
+    },
+  )
 
   it('has exactly one <h1> heading on the page for SEO best practices', () => {
     renderLandingPage()
@@ -100,7 +103,9 @@ describe('LandingPage (FE-019 Assembly)', () => {
     ).toBeVisible()
 
     // BenefitsGrid h2
-    expect(screen.getByRole('heading', { level: 2, name: 'Outstanding Benefits' })).toBeVisible()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Explore VGU Campus Resources' }),
+    ).toBeVisible()
 
     // TestimonialsMarquee h2
     expect(screen.getByRole('heading', { level: 2, name: 'What Students Say' })).toBeVisible()
@@ -128,7 +133,9 @@ describe('LandingPage (FE-019 Assembly)', () => {
         name: 'Mehr als eine Plattform. Ein Ort zum Ankommen.',
       }),
     ).toBeVisible()
-    expect(screen.getByRole('heading', { level: 2, name: 'Hervorragende Vorteile' })).toBeVisible()
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Entdecke die Campus-Angebote der VGU' }),
+    ).toBeVisible()
     expect(screen.getByRole('heading', { level: 2, name: 'Was Studierende sagen' })).toBeVisible()
     expect(
       screen.getByRole('heading', {

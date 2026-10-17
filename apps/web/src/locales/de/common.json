@@ -2,7 +2,7 @@
   "nav": {
     "home": "Startseite",
     "about": "Über uns",
-    "features": "Funktionen",
+    "features": "Campus-Angebote",
     "community": "Community",
     "contact": "Kontakt",
     "surbook": "Überlebensbuch",
@@ -66,50 +66,31 @@
     "eyebrow": "Über VGU Buddy"
   },
   "features": {
-    "title": "Hervorragende Vorteile",
-    "subtitle": "Alles, was du für ein großartiges Universitätsleben brauchst – alles auf einer Plattform.",
-    "social": {
-      "title": "Merchandise",
-      "desc": "Zeige deinen Spirit mit unserem coolen und praktischen Merch.",
-      "item1": "Zeig es",
-      "item2": "Trag es",
-      "item3": "Liebe es"
-    },
+    "title": "Entdecke die Campus-Angebote der VGU",
+    "subtitle": "Entdecke Einrichtungen, Services und Möglichkeiten, die das studentische Leben an der Vietnamesisch-Deutschen Universität bereichern.",
     "events": {
-      "title": "Eventkalender",
-      "desc": "Verpasse keine wichtigen Veranstaltungen, Workshops oder kulturellen Aktivitäten.",
-      "item1": "Bleib informiert",
-      "item2": "Nichts verpassen",
-      "item3": "Einfache Erinnerungen"
+      "title": "Veranstaltungsrückblicke",
+      "desc": "Ein Ort für Höhepunkte und Erinnerungen an vergangene Campus-Veranstaltungen."
     },
     "academic": {
-      "title": "Bibliotheksregeln",
-      "desc": "Greife auf alle akademischen Ressourcen zu und organisiere dein Studium.",
-      "item1": "Stundenpläne",
-      "item2": "Bibliothekszugang",
-      "item3": "Lernräume"
+      "title": "Bibliothek",
+      "desc": "Entdecke Informationen und Ressourcen der Bibliothek für dein Studium an der VGU."
     },
     "sports": {
       "title": "Sporthalle",
-      "desc": "Buche Einrichtungen und bleib aktiv mit deinen Freunden.",
-      "item1": "Spiel mit Power",
-      "item2": "Bleib fit",
-      "item3": "Teamwork"
+      "desc": "Informiere dich über die Sporteinrichtungen der VGU und bleib auf dem Campus aktiv."
     },
     "support": {
       "title": "International Office",
-      "desc": "Mach deinen Aufenthalt so angenehm wie möglich.",
-      "item1": "Auslandsstudium",
-      "item2": "Globale Unterstützung",
-      "item3": "Verbunden bleiben"
+      "desc": "Hier findest du Informationen und Unterstützung für internationale Studienaufenthalte und deine Zeit an der VGU."
     },
     "global": {
       "title": "Wohnheimservice",
-      "desc": "Komfortables Wohnen, nur wenige Schritte vom Campus entfernt.",
-      "item1": "Gemütliches Wohnen",
-      "item2": "Studentengemeinschaft",
-      "item3": "Campusnah"
-    }
+      "desc": "Informiere dich über studentisches Wohnen und das Leben an der VGU."
+    },
+    "visit": "{{resource}} besuchen",
+    "newTab": "(öffnet in einem neuen Tab)",
+    "recapPending": "Veranstaltungsrückblicke werden vorbereitet."
   },
   "community": {
     "title": "Was Studierende sagen",

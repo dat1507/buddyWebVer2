@@ -2,7 +2,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
-    "features": "Features",
+    "features": "Campus Resources",
     "community": "Community",
     "contact": "Contact",
     "surbook": "Survival Book",
@@ -66,50 +66,31 @@
     "eyebrow": "About VGU Buddy"
   },
   "features": {
-    "title": "Outstanding Benefits",
-    "subtitle": "Everything you need for an amazing university experience, all in one platform.",
-    "social": {
-      "title": "Merchandise",
-      "desc": "Show your spirit with our fun and practical merch.",
-      "item1": "Show it",
-      "item2": "Wear it",
-      "item3": "Love it"
-    },
+    "title": "Explore VGU Campus Resources",
+    "subtitle": "Discover the facilities, services, and opportunities that support student life at Vietnamese-German University.",
     "events": {
-      "title": "Events Calendar",
-      "desc": "Never miss important events, workshops, or cultural activities.",
-      "item1": "Stay updated",
-      "item2": "Never miss out",
-      "item3": "Easy reminders"
+      "title": "Events Recap",
+      "desc": "A space for highlights and memories from past campus events."
     },
     "academic": {
-      "title": "Library Regulations",
-      "desc": "Access all your academic resources and manage your studies.",
-      "item1": "Class schedules",
-      "item2": "Library access",
-      "item3": "Study rooms"
+      "title": "Library",
+      "desc": "Explore library information and resources to support your studies at VGU."
     },
     "sports": {
       "title": "Sports Hall",
-      "desc": "Book facilities and stay active with your buddies.",
-      "item1": "Play hard",
-      "item2": "Stay fit",
-      "item3": "Team up"
+      "desc": "Find information about VGU sports facilities and staying active on campus."
     },
     "support": {
       "title": "International Office",
-      "desc": "Make your stay as comfortable as possible.",
-      "item1": "Study abroad",
-      "item2": "Global support",
-      "item3": "Stay connected"
+      "desc": "Find information and support for international study and your time at VGU."
     },
     "global": {
       "title": "Dormitory Service",
-      "desc": "Comfortable living, just steps from campus life.",
-      "item1": "Cozy living",
-      "item2": "Student community",
-      "item3": "Campus close"
-    }
+      "desc": "Explore information about student accommodation and life at VGU."
+    },
+    "visit": "Visit {{resource}}",
+    "newTab": "(opens in a new tab)",
+    "recapPending": "Event highlights are being prepared."
   },
   "community": {
     "title": "What Students Say",

@@ -1,6 +1,6 @@
 # BuddyWebv2 lightweight implementation plan
 
-**Plan version:** 1.30
+**Plan version:** 1.31
 **Updated:** 2026-10-17
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
@@ -45,6 +45,8 @@ push/deploy or application/Production mutation. Missing historical/operational e
 explicit in the audit; existing product/release statuses are unchanged.
 
 ## Latest frontend task
+
+`FE-LANDING-RESOURCES-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — EN/DE Campus Resources grid with five cards, four owner-confirmed official links and inactive Events Recap; #features and navbar clearance retained. Local commit only; no push/deployment.
 
 `FE-LANDING-ABOUT-001`: **DONE — LOCAL VERIFIED / NOT DEPLOYED** — owner-requested About redesign and accessible three-step walkthrough, EN/DE, existing #about navigation. Local implementation and commit only; no push/deployment.
 

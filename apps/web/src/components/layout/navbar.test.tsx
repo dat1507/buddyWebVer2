@@ -26,7 +26,7 @@ describe('Navbar', () => {
 
     expect(screen.getByRole('link', { name: 'Home' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'About' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Features' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Campus Resources' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Community' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Contact' })).toBeVisible()
 
@@ -44,7 +44,7 @@ describe('Navbar', () => {
     expect(i18n.resolvedLanguage).toBe('de')
     expect(screen.getByRole('link', { name: 'Startseite' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Über uns' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Funktionen' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Campus-Angebote' })).toBeVisible()
   })
 
   it('toggles language from mobile drawer and closes drawer', async () => {

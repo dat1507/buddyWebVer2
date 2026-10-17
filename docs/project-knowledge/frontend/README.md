@@ -59,6 +59,16 @@ keyboard navigation and reduced-motion behavior. They illustrate product concept
 embedding an authenticated dashboard. The old demo CTA/video was removed before this baseline.
 Sticky-navbar offset is preserved for `#about`, including direct refresh.
 
+[Campus Resources](../../implementation/tasks/FE-LANDING-RESOURCES-001.md) replaces Benefits
+with five icon cards: Events Recap, Library, Sports Hall, International Office and Dormitory
+Service. The owner confirmed all four official destinations; the source array owns those URLs.
+Resource links open secure new tabs with localized labels, focus rings and 44px touch height.
+Events Recap is **UI prepared — functionality pending** with no action or route. Navbar/footer
+share EN/DE Campus Resources copy; `#features` remains the anchor, uses 80px scroll margin and
+resolves after mount/direct refresh. Desktop centers a 3+2 card grid, tablet uses two columns
+and mobile one; equal-height rows and reduced-motion-safe border/shadow hover use shared tokens.
+No Campus Resources API, auth dependency or database state is introduced.
+
 Responsive verification records cover desktop/tablet/mobile widths and horizontal overflow;
 they are scoped to each task, not evidence that every route passes every viewport. UI tests
 check semantic behavior and focus/role contracts. Preserve reduced motion, image decoding,
