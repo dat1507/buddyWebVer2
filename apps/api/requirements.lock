@@ -46,7 +46,7 @@ markupsafe==3.0.3
     # via mako
 packaging==26.3
     # via limits
-pillow==12.3.0
+pillow==13.0.0
     # via vgu-buddy-api (pyproject.toml)
 pycparser==3.0
     # via cffi
