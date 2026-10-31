@@ -7,6 +7,7 @@ import { SessionBootstrap } from '@/features/auth/session-controls'
 import { BuddyUnreadProvider } from '@/features/chat/buddy-unread'
 import './i18n'
 import './index.css'
+import './styles/community.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(

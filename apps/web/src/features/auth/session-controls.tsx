@@ -27,7 +27,7 @@ function SessionControls() {
   return (
     <aside
       aria-label={t('auth.session.label')}
-      className="border-b border-white/10 bg-zinc-950 px-4 py-3 text-sm text-zinc-200"
+      className="session-controls border-b border-white/10 bg-zinc-950 px-4 py-3 text-sm text-zinc-200"
     >
       {pending && action !== 'login' ? <p role="status">{t('auth.session.pending')}</p> : null}
       {sessionError ? (

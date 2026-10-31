@@ -1,5 +1,9 @@
 # Frontend implementation
 
+2026-10-31: [Accepted UI pre-release verification](UI_PRE_RELEASE_2026-10-31.md). Filtered UI-only candidate;
+demo excluded, real TLS/Storage and affected regressions verified; NO-GO on existing gates/dev audits
+and absent exact-SHA hosted CI. No release; pre-existing Windows trust preserved.
+
 React 19, TypeScript, Vite, React Router, TanStack Query, Zustand, Tailwind and i18next are
 declared in [package.json](../../../apps/web/package.json). Version ranges describe declared
 dependencies; the lockfile determines installed versions. These technologies are observed

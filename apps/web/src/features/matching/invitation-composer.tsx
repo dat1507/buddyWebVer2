@@ -136,7 +136,7 @@ function InvitationComposerContent({
         aria-describedby={descriptionId}
         aria-busy={pending}
         tabIndex={-1}
-        className="my-auto max-h-[calc(100vh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl outline-none sm:max-h-[calc(100vh-3rem)] sm:p-6"
+        className="community-surface my-auto max-h-[calc(100vh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl outline-none sm:max-h-[calc(100vh-3rem)] sm:p-6"
       >
         <h2 id={titleId} className="break-words text-xl font-semibold leading-tight">
           {t('invitations.composer.title', { name })}

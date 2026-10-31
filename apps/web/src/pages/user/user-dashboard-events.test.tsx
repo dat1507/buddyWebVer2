@@ -74,11 +74,13 @@ describe('User Events synchronized Slider page', () => {
   it('renders the exact persisted HTTPS action for an authorized User', async () => {
     renderEvents()
 
-    const link = await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
+    const link = await screen.findByRole('link', {
+      name: 'Register for this event: Buddy Announcement',
+    })
     expect(link).toHaveAttribute('href', event.registrationUrl)
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noreferrer')
-    expect(screen.getByRole('link', { name: 'View Buddy Announcement details' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'View details: Buddy Announcement' })).toHaveAttribute(
       'href',
       `/events/${EVENT_ID}?from=user-dashboard`,
     )
@@ -104,9 +106,13 @@ describe('User Events synchronized Slider page', () => {
     renderEvents()
 
     expect(await screen.findByRole('heading', { name: 'Open Day' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Register for Buddy Announcement' })).toBeVisible()
-    expect(screen.queryByRole('link', { name: 'Register for Open Day' })).not.toBeInTheDocument()
-    const details = screen.getByRole('link', { name: 'View Open Day details' })
+    expect(
+      screen.getByRole('link', { name: 'Register for this event: Buddy Announcement' }),
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('link', { name: 'Register for this event: Open Day' }),
+    ).not.toBeInTheDocument()
+    const details = screen.getByRole('link', { name: 'View details: Open Day' })
     expect(details).toHaveAttribute(
       'href',
       '/events/22222222-2222-4222-8222-222222222222?from=user-dashboard',
@@ -123,7 +129,7 @@ describe('User Events synchronized Slider page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(
-      await screen.findByRole('link', { name: 'Register for Buddy Announcement' }),
+      await screen.findByRole('link', { name: 'Register for this event: Buddy Announcement' }),
     ).toBeVisible()
     expect(listPublished).toHaveBeenCalledTimes(2)
   })
@@ -138,23 +144,24 @@ describe('User Events synchronized Slider page', () => {
       ])
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 })
     renderEvents()
-    await screen.findByRole('link', { name: 'Register for Buddy Announcement' })
+    await screen.findByRole('link', { name: 'Register for this event: Buddy Announcement' })
 
     await act(async () => {
       await client.invalidateQueries({ queryKey: ['event-sliders'] })
     })
     await waitFor(() =>
-      expect(screen.getByRole('link', { name: 'Register for Buddy Announcement' })).toHaveAttribute(
-        'href',
-        updatedUrl,
-      ),
+      expect(
+        screen.getByRole('link', { name: 'Register for this event: Buddy Announcement' }),
+      ).toHaveAttribute('href', updatedUrl),
     )
 
     await act(async () => {
       await i18n.changeLanguage('de')
     })
 
-    const updated = await screen.findByRole('link', { name: 'Für Buddy-Ankündigung anmelden' })
+    const updated = await screen.findByRole('link', {
+      name: 'Für diese Veranstaltung anmelden: Buddy-Ankündigung',
+    })
     expect(updated).toHaveAttribute('href', updatedUrl)
     expect(updated).toHaveClass('w-full')
     expect(listPublished).toHaveBeenCalledWith('de', expect.any(AbortSignal))
@@ -194,7 +201,7 @@ describe('User Events synchronized Slider page', () => {
 
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible()
     expect(
-      screen.queryByRole('link', { name: 'Register for Buddy Announcement' }),
+      screen.queryByRole('link', { name: 'Register for this event: Buddy Announcement' }),
     ).not.toBeInTheDocument()
     expect(listPublished).not.toHaveBeenCalled()
   })

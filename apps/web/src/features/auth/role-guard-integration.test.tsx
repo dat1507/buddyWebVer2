@@ -132,7 +132,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
   })
 
   it.each([
-    ['/user/profile/edit?view=details#photo', 'USER', 'Edit profile', 'user'],
+    ['/user/profile/edit?view=details#photo', 'USER', 'Make your profile feel like you', 'user'],
     ['/admin/audit-log?view=details#entry', 'ADMIN', 'Audit log', 'admin'],
   ])(
     'allows a matching role at %s with its deep link intact',
@@ -182,7 +182,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
     if (allowed) {
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Edit profile' : 'Audit log',
+          name: role === 'USER' ? 'Make your profile feel like you' : 'Audit log',
         }),
       ).toBeVisible()
       expect(location()).toBe(path + '?view=details#entry')
@@ -218,7 +218,7 @@ describe('AUTH-006 App roles + verified AUTH-021 session client', () => {
 
   it.each([
     ['/admin/audit-log', 'ADMIN', 'USER', 'Audit log'],
-    ['/user/profile/edit', 'USER', 'ADMIN', 'Edit profile'],
+    ['/user/profile/edit', 'USER', 'ADMIN', 'Make your profile feel like you'],
   ])(
     'verified refresh role change removes %s and clears private cache',
     async (path, oldRole, newRole, title) => {

@@ -9,8 +9,7 @@ import {
 } from '@/features/profile/preference-normalization'
 import { cn } from '@/lib/utils'
 
-const inputClassName =
-  'h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:border-foreground/25 focus-visible:border-vgu-orange focus-visible:ring-2 focus-visible:ring-vgu-orange/25 disabled:cursor-not-allowed disabled:opacity-60'
+const inputClassName = 'profile-input'
 
 interface CustomPreferenceValue {
   label: string
@@ -100,40 +99,39 @@ function PreferenceTagInput<T extends CustomPreferenceValue>({
   }
 
   return (
-    <div className="space-y-3 rounded-xl border border-dashed border-border p-4">
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="min-w-0 space-y-2">
-          <label htmlFor={inputId} className="text-sm font-medium">
-            {messages.inputLabel}
-          </label>
-          <input
-            ref={inputRef}
-            id={inputId}
-            value={input}
-            disabled={disabled || atLimit}
-            className={inputClassName}
-            placeholder={messages.placeholder}
-            aria-describedby={`${helpId}${error ? ` ${errorId}` : ''}`}
-            aria-invalid={Boolean(error)}
-            onChange={(event) => {
-              setInput(
-                Array.from(event.target.value)
-                  .slice(0, MAX_CUSTOM_PREFERENCE_INPUT_LENGTH)
-                  .join(''),
-              )
-              setError(null)
-            }}
-            onKeyDown={handleKeyDown}
-          />
-          <p id={helpId} className="text-xs text-muted-foreground">
-            {messages.characterCount(Array.from(input).length, MAX_CUSTOM_PREFERENCE_INPUT_LENGTH)}
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          {inputAccessory}
+    <div className="space-y-3 rounded-2xl bg-muted/40 p-4">
+      <div className="grid min-w-0 gap-x-3 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label htmlFor={inputId} className="text-sm font-medium sm:col-start-1 sm:row-start-1">
+          {messages.inputLabel}
+        </label>
+        <input
+          ref={inputRef}
+          id={inputId}
+          value={input}
+          disabled={disabled || atLimit}
+          className={cn(inputClassName, 'sm:col-start-1 sm:row-start-2 sm:self-end')}
+          placeholder={messages.placeholder}
+          aria-describedby={`${helpId}${error ? ` ${errorId}` : ''}`}
+          aria-invalid={Boolean(error)}
+          onChange={(event) => {
+            setInput(
+              Array.from(event.target.value).slice(0, MAX_CUSTOM_PREFERENCE_INPUT_LENGTH).join(''),
+            )
+            setError(null)
+          }}
+          onKeyDown={handleKeyDown}
+        />
+        <p id={helpId} className="text-xs text-muted-foreground sm:col-start-1 sm:row-start-3">
+          {messages.characterCount(Array.from(input).length, MAX_CUSTOM_PREFERENCE_INPUT_LENGTH)}
+        </p>
+        <div className="flex min-w-0 flex-col gap-3 sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:flex-row sm:items-end">
+          {inputAccessory ? (
+            <div className="min-w-0 [&_label>span]:block">{inputAccessory}</div>
+          ) : null}
           <Button
             type="button"
             variant="outline"
+            className="h-auto min-h-12 whitespace-normal"
             disabled={disabled || atLimit || !input.trim()}
             onClick={addValue}
           >
@@ -164,7 +162,7 @@ function PreferenceTagInput<T extends CustomPreferenceValue>({
               <button
                 type="button"
                 className={cn(
-                  'ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-foreground',
+                  'ml-auto inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange',
                 )}
                 disabled={disabled}

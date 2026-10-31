@@ -117,12 +117,10 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
         </p>
       </div>
 
-      <div className="grid gap-5 md:grid-cols-[9rem_minmax(0,1fr)] md:items-start">
+      <div className="grid gap-5 rounded-2xl bg-primary/5 p-4 sm:p-5 md:grid-cols-[8rem_minmax(0,1fr)] md:items-center">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            {t('profileAvatar.current')}
-          </p>
-          <div className="relative flex size-32 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-background shadow-sm">
+          <p className="text-sm font-medium text-muted-foreground">{t('profileAvatar.current')}</p>
+          <div className="relative flex size-28 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-background shadow-sm">
             {currentPhoto.data ? (
               <img
                 src={currentPhoto.data.url}
@@ -183,7 +181,7 @@ function ProfileAvatarControl({ profile }: { profile: OwnProfile }) {
               accept={AVATAR_ACCEPT}
               disabled={isPending}
               aria-describedby={upload.isError || clientError ? `${helpId} ${errorId}` : helpId}
-              className="block w-full rounded-lg border border-input bg-background text-sm text-foreground file:mr-3 file:border-0 file:bg-vgu-orange file:px-4 file:py-2.5 file:font-semibold file:text-vgu-black hover:file:bg-vgu-orange-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange disabled:cursor-not-allowed disabled:opacity-60"
+              className="block h-12 min-w-0 w-full rounded-xl border border-input bg-background p-1 text-base leading-[38px] text-foreground file:mr-3 file:h-[38px] file:rounded-lg file:border-0 file:bg-vgu-orange file:px-4 file:py-0 file:align-top file:font-semibold file:leading-[38px] file:text-vgu-black hover:file:bg-vgu-orange-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange disabled:cursor-not-allowed disabled:opacity-60"
               onChange={(event) => {
                 const file = event.target.files?.[0] ?? null
                 event.currentTarget.value = ''

@@ -56,7 +56,7 @@ function EventDashboardCard({ event, locale }: { event: EventSlider; locale: Eve
               href={registrationUrl}
               target="_blank"
               rel="noreferrer"
-              aria-label={t('userDashboard.events.registerLabel', { title: event.title })}
+              aria-label={`${t('userDashboard.events.register')}: ${event.title}`}
             >
               <ExternalLink aria-hidden="true" />
               {t('userDashboard.events.register')}
@@ -70,7 +70,7 @@ function EventDashboardCard({ event, locale }: { event: EventSlider; locale: Eve
         >
           <Link
             to={`${detailHref}?from=user-dashboard`}
-            aria-label={t('userDashboard.events.viewDetailsLabel', { title: event.title })}
+            aria-label={`${t('userDashboard.events.viewDetails')}: ${event.title}`}
           >
             {t('userDashboard.events.viewDetails')}
           </Link>

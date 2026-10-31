@@ -43,7 +43,7 @@ describe('FE-021 UserLayout shell', () => {
       expect(document.getElementById(main.id)).toBe(main)
       expect(
         within(screen.getByRole('complementary', { name: sidebarLabel })).getByRole('link', {
-          name: i18n.t('userLayout.backHome'),
+          name: `VGU Buddy ${i18n.t('userLayout.backHome')}`,
         }),
       ).toHaveAttribute('href', '/#home')
     },

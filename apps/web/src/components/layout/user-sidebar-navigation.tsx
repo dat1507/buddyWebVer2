@@ -10,7 +10,7 @@ import { userNavigationItems, type UserNavigationItem } from '@/routes/user-navi
 function navigationClass(active: boolean) {
   return cn(
     buttonVariants({ variant: 'ghost', size: 'sm' }),
-    'h-auto min-h-10 w-full justify-start whitespace-normal py-2 text-left',
+    'h-auto min-h-11 w-full justify-start whitespace-normal rounded-xl py-2 text-left motion-reduce:transition-none',
     active && 'bg-primary/15 text-primary ring-1 ring-primary/40',
   )
 }
@@ -27,7 +27,7 @@ function UserSidebarNavigation({
 
   return (
     <nav aria-label={t('userNavigation.label')} className="min-w-0 space-y-3">
-      <ul className="grid min-w-0 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+      <ul className="grid min-w-0 grid-cols-2 gap-2 lg:grid-cols-1">
         {items.map(({ id, labelKey, Icon, end = false, ...destination }) => {
           const current = !!destination.to && !!matchPath({ path: destination.to, end }, pathname)
           return (

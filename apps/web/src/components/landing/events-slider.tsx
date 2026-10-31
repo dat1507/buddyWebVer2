@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
 import type { EventSlider } from '@/features/events/event-slider'
 import { cn } from '@/lib/utils'
+import { LandingMotionContext } from '@/components/landing/landing-motion'
 
 const autoplayDelay = 3_000
 const swipeThreshold = 48
@@ -113,6 +115,7 @@ function EventSlide({
 }
 
 function EventCarousel({ events }: { events: readonly EventSlider[] }) {
+  const { paused: pagePaused } = useContext(LandingMotionContext)
   const { t } = useTranslation()
   const prefersReducedMotion = usePrefersReducedMotion()
   const [slideIndex, setSlideIndex] = useState(events.length > 1 ? 1 : 0)
@@ -124,7 +127,7 @@ function EventCarousel({ events }: { events: readonly EventSlider[] }) {
   const pendingDirectionsRef = useRef<Array<-1 | 1>>([])
   const resumeFrameRef = useRef<number | null>(null)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
-  const isPaused = prefersReducedMotion || isPointerPaused || isFocusPaused
+  const isPaused = pagePaused || prefersReducedMotion || isPointerPaused || isFocusPaused
 
   const slides = useMemo<CarouselSlide[]>(() => {
     if (events.length <= 1) {
@@ -330,11 +333,12 @@ function EventsSlider({ events }: EventsSliderProps) {
   return (
     <section
       id="events"
-      className="scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="landing-events scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       aria-labelledby="events-title"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
+        <div className="landing-events-intro">
+          <p className="landing-eyebrow">{t('landingRedesign.eventsEyebrow')}</p>
           <Typography id="events-title" variant="h2">
             {t('stats.title')}
           </Typography>
@@ -343,7 +347,9 @@ function EventsSlider({ events }: EventsSliderProps) {
           </Typography>
         </div>
 
-        <EventCarousel key={events.map((event) => event.id).join(':')} events={events} />
+        <div className="landing-event-stage">
+          <EventCarousel key={events.map((event) => event.id).join(':')} events={events} />
+        </div>
       </div>
     </section>
   )

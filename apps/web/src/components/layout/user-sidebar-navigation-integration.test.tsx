@@ -90,7 +90,7 @@ describe('FE-022 navigation in the real guarded App', () => {
   const expectNoStudentNavigation = () =>
     expect(screen.queryByRole('navigation', { name: 'Student navigation' })).not.toBeInTheDocument()
 
-  it.each([['/user/profile/edit', 'Edit profile', 'Edit Profile']])(
+  it.each([['/user/profile/edit', 'Make your profile feel like you', 'Edit Profile']])(
     'preserves the USER nested route %s and truthful navigation availability',
     (path, title, label) => {
       useAuthStore.getState().setAuthenticated(user)
@@ -192,7 +192,7 @@ describe('FE-022 navigation in the real guarded App', () => {
     expect(nav.querySelector('[aria-current="page"]')).toBe(current)
     expect(current).toHaveTextContent('Profil bearbeiten')
     expect(
-      within(screen.getByRole('main')).getByRole('heading', { name: 'Profil bearbeiten' }),
+      within(screen.getByRole('main')).getByRole('heading', { name: 'Zeig, was dich ausmacht' }),
     ).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/user/profile/edit')
     expect(fetch).not.toHaveBeenCalled()

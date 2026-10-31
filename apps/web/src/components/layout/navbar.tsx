@@ -115,7 +115,7 @@ function Navbar() {
   const closeMenu = () => setIsMenuOpen(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-lg">
+    <header className="public-navigation sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-lg">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <a
           href="/#home"
@@ -128,7 +128,10 @@ function Navbar() {
           </span>
         </a>
 
-        <nav className="hidden items-center gap-1 xl:flex" aria-label={t('nav.primaryNavigation')}>
+        <nav
+          className="navigation-desktop hidden items-center gap-1 xl:flex"
+          aria-label={t('nav.primaryNavigation')}
+        >
           {navItems.map((item) => (
             <a
               key={item.href}
@@ -158,7 +161,7 @@ function Navbar() {
             <Button
               asChild
               variant="outline"
-              className="hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 xl:inline-flex"
+              className="navigation-desktop-account hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 xl:inline-flex"
             >
               <Link to={workspacePath}>
                 <UserRound aria-hidden="true" className="size-4" />
@@ -170,7 +173,7 @@ function Navbar() {
               </Link>
             </Button>
           ) : (
-            <div className="relative hidden xl:block">
+            <div className="navigation-desktop-account relative hidden xl:block">
               <Button
                 ref={signInButtonRef}
                 type="button"
@@ -220,7 +223,7 @@ function Navbar() {
             type="button"
             variant="ghost"
             size="icon"
-            className="text-zinc-100 hover:bg-white/10 hover:text-orange-400 xl:hidden"
+            className="navigation-menu-trigger text-zinc-100 hover:bg-white/10 hover:text-orange-400 xl:hidden"
             aria-label={t('nav.openMenu')}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation"
@@ -232,7 +235,7 @@ function Navbar() {
       </div>
 
       {isMenuOpen ? (
-        <div ref={drawerOverlayRef} className="fixed inset-0 top-0 z-50 xl:hidden">
+        <div ref={drawerOverlayRef} className="fixed inset-0 top-0 z-50">
           <button
             type="button"
             className="absolute inset-0 h-full w-full cursor-default bg-black/70 backdrop-blur-sm"

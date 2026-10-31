@@ -1,10 +1,32 @@
 # Session handoff
 
-**Updated:** 2026-10-17 (Asia/Saigon)
+**Updated:** 2026-10-31 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Wide Explore More cards complete locally; no deployment
+**Current mode:** Accepted UI candidate prepared / NO-GO / owner decisions required
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
-**Branch:** `main`
+**Branch:** `codex/ui-release-rc`
+
+## Current pre-release checkpoint — 2026-10-31
+
+FE-UI-RELEASE-001 verification complete; NO-GO. Accepted c1e04e9 frozen, UI-only codex/ui-release-rc
+from freshly fetched origin/maine1a2cc59. Demo runtime and six unpublished chatbot commits excluded.
+Recovered833 frontend/1421 backend+93 image PASS; final affected Event42/5, static and both builds PASS.
+69 real API assertions and actual browser Event/profile flow verified.42 prior axe cases plus18 loaded
+EN/DE1440/768/390 cases0violations. Only nonvisual accessible-name/description-list corrections.
+Local HTTPS Storage resolved using pre-existing trusted CA; zero Windows trust changes; task fixtures
+and private credentials removed. Existing migration/2 ADMIN fixture failures, dev audits20npm/17pip,
+and absent exact-candidate hosted CI block release. RenderOff; provider settings unchanged.
+No push/merge/deploy/Production change. Original history/dirty work/.agents preserved. TASK_ID clear.
+Stop for scoped remediation decisions; separate publication and Production approval still required.
+
+[Current report](docs/project-knowledge/frontend/UI_PRE_RELEASE_2026-10-31.md).
+
+## Prior assignment — 2026-10-31
+
+Owner accepted c1e04e9 across six UI categories. FE-UI-RELEASE-001 IN PROGRESS: isolate approved
+presentation on latest origin/main, exclude unrelated chatbot/demo source, verify real disposable
+integration and full regression/security/deploy gates. No push/merge/deploy/Production change.
+Keep Render Auto-Deploy OFF. Preserve all prior work; read the assigned extract only.
 
 ## Continue from here
 

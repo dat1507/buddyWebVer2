@@ -181,9 +181,7 @@ describe('FE-038 profile readiness routing', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Checking profile readiness')
     expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
-    expect(
-      screen.queryByRole('heading', { name: 'Tell us about yourself' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Let’s start with you' })).not.toBeInTheDocument()
 
     await act(async () => completion.resolve(complete))
     expect(await screen.findByRole('heading', { name: 'Recommended Buddies' })).toBeVisible()
@@ -200,9 +198,7 @@ describe('FE-038 profile readiness routing', () => {
       'We could not verify where your profile should continue.',
     )
     expect(screen.getByTestId('location')).toHaveTextContent('/user/matching')
-    expect(
-      screen.queryByRole('heading', { name: 'Tell us about yourself' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Let’s start with you' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('heading', { name: 'Recommended Buddies' })).toBeVisible()

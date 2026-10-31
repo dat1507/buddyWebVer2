@@ -20,7 +20,7 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
     return (
       <section
         id="events"
-        className="scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+        className="landing-events scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-4xl space-y-10">
@@ -41,7 +41,7 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
     return (
       <section
         id="events"
-        className="scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
+        className="landing-events scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-3xl space-y-5">
@@ -64,7 +64,7 @@ function LiveEventsSection({ locale, repository }: LiveEventsSectionProps) {
     return (
       <section
         id="events"
-        className="scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
+        className="landing-events scroll-mt-20 bg-vgu-surface px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8"
         aria-labelledby="events-title"
       >
         <div className="mx-auto max-w-3xl space-y-5">

@@ -76,7 +76,7 @@ describe('FE-025 onboarding identity step', () => {
     renderPage()
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Tell us about yourself' }),
+      await screen.findByRole('heading', { level: 1, name: 'Let’s start with you' }),
     ).toBeVisible()
     const vietnamese = screen.getByRole('radio', { name: 'Vietnamese student' })
     const international = screen.getByRole('radio', { name: 'International student' })
@@ -183,7 +183,7 @@ describe('FE-025 onboarding identity step', () => {
       'Some profile details were not accepted. Review the fields and try again.',
     )
     expect(fullName).toHaveValue('Saved locally')
-    expect(screen.getByRole('heading', { name: 'Tell us about yourself' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Let’s start with you' })).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledTimes(2)
   })
 
@@ -192,7 +192,7 @@ describe('FE-025 onboarding identity step', () => {
     renderPage()
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Erzähl uns etwas über dich' }),
+      await screen.findByRole('heading', { level: 1, name: 'Erzähl ein bisschen von dir' }),
     ).toBeVisible()
     expect(screen.getByLabelText('Vollständiger Name')).toBeVisible()
     expect(screen.getByRole('radio', { name: 'Vietnamesische Studierende' })).not.toBeChecked()

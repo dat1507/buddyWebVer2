@@ -76,6 +76,43 @@
 }
 
 @layer components {
+  .user-community {
+    --background: 36 50% 98%;
+    --card: 0 0% 100%;
+    --muted: 32 30% 94%;
+    --muted-foreground: 25 10% 39%;
+    --border: 30 18% 85%;
+    --input: 25 12% 54%;
+    --primary: 21 90% 38%;
+    --primary-foreground: 0 0% 100%;
+    --ring: 21 90% 38%;
+  }
+
+  .dark .user-community {
+    --background: 25 14% 7%;
+    --card: 25 12% 11%;
+    --muted: 25 10% 17%;
+    --muted-foreground: 30 10% 73%;
+    --border: 25 10% 25%;
+    --input: 25 8% 45%;
+    --primary: 23.5 100% 60%;
+    --primary-foreground: 0 0% 0%;
+    --ring: 23.5 100% 60%;
+  }
+
+  .profile-input {
+    @apply min-h-12 w-full min-w-0 rounded-xl border border-input bg-background px-3 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground hover:border-foreground/50 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none;
+  }
+
+  .profile-panel {
+    @apply rounded-3xl border-border/60 shadow-sm;
+  }
+
+  .profile-section h1,
+  .profile-section h2 {
+    scroll-margin-top: 2rem;
+  }
+
   .hero-gradient {
     background: linear-gradient(135deg, #000000 0%, rgb(255 103 13 / 60%) 100%);
     background-size: 400% 400%;

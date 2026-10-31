@@ -1,5 +1,24 @@
 # Documentation migration validation
 
+## FE-UI-RELEASE-001 — 2026-10-31 recovered closeout
+
+FE-UI-RELEASE-001 verification complete; NO-GO. Accepted c1e04e9 frozen, UI-only codex/ui-release-rc
+from freshly fetched origin/maine1a2cc59. Demo runtime and six unpublished chatbot commits excluded.
+Recovered833 frontend/1421 backend+93 image PASS; final affected Event42/5, static and both builds PASS.
+69 real API assertions and actual browser Event/profile flow verified.42 prior axe cases plus18 loaded
+EN/DE1440/768/390 cases0violations. Only nonvisual accessible-name/description-list corrections.
+Local HTTPS Storage resolved using pre-existing trusted CA; zero Windows trust changes; task fixtures
+and private credentials removed. Existing migration/2 ADMIN fixture failures, dev audits20npm/17pip,
+and absent exact-candidate hosted CI block release. RenderOff; provider settings unchanged.
+No push/merge/deploy/Production change. Original history/dirty work/.agents preserved. TASK_ID clear.
+Stop for scoped remediation decisions; separate publication and Production approval still required.
+
+Full833/88 suite reused; final affected Event42/5 PASS after last semantic changes.42 prior axe
+cases included Event error states;18 final loaded-content cases now PASS. No expensive unaffected
+rerun. Initial resumed sandbox import failure executed0 tests; uncached retry42 PASS.
+Task registry/path coverage and focused documentation links validated.
+[Evidence/limits](../project-knowledge/frontend/UI_PRE_RELEASE_2026-10-31.md).
+
 ## FE-LANDING-ABOUT-001 — 2026-10-17
 
 TypeScript, affected ESLint/Prettier, 4 files / 23 focused frontend tests and production build PASS.

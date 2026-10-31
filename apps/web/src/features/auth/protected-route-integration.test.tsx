@@ -166,7 +166,9 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     expect(location()).toBe('/user/profile/edit?view=details#photo')
     await waitFor(() => expect(fetch).toHaveBeenCalledOnce())
     await act(async () => recovery.resolve(json({ csrf_token: 'recovered' })))
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { name: 'Make your profile feel like you' }),
+    ).toBeVisible()
     expect(location()).toBe('/user/profile/edit?view=details#photo')
     expect(useAuthStore.getState().role).toBe('USER')
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([

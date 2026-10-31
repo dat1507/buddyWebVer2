@@ -16,16 +16,16 @@ function EventsExploreMore() {
     <div
       role="region"
       aria-labelledby="explore-more-title"
-      className="-mt-4 bg-vgu-surface px-4 pb-16 sm:-mt-6 sm:px-6 sm:pb-20 lg:px-8"
+      className="landing-explore -mt-4 bg-vgu-surface px-4 pb-16 sm:-mt-6 sm:px-6 sm:pb-20 lg:px-8"
     >
-      <div className="mx-auto max-w-7xl border-t border-white/10 pt-8 sm:pt-10">
+      <div className="mx-auto max-w-7xl">
         <h2 id="explore-more-title" className="text-center text-2xl font-bold text-zinc-100">
           {t('eventsShowcase.title')}
         </h2>
         <p className="mt-3 text-center text-base leading-7 text-zinc-400">
           {t('eventsShowcase.description')}
         </p>
-        <div className="mt-8 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:gap-8">
+        <div className="landing-explore-grid mt-8 grid auto-rows-fr gap-6 sm:grid-cols-2 lg:gap-8">
           {features.map(({ key, href, icon: Icon }) => (
             <Card
               key={key}

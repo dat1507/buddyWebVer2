@@ -94,7 +94,7 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     expect(screen.queryByRole('main', { name: 'Student content' })).not.toBeInTheDocument()
   }
 
-  it.each([['/user/profile/edit', 'Edit profile']])(
+  it.each([['/user/profile/edit', 'Make your profile feel like you']])(
     'renders a verified USER nested route %s inside one layout main',
     (path, title) => {
       useAuthStore.getState().setAuthenticated(user)
@@ -154,7 +154,9 @@ describe('FE-021 guarded App and AUTH-021 session integration', () => {
     })
     expect(await screen.findByRole('complementary', { name: 'Student workspace' })).toBeVisible()
     expect(
-      within(screen.getByRole('main')).getByRole('heading', { name: 'Edit profile' }),
+      within(screen.getByRole('main')).getByRole('heading', {
+        name: 'Make your profile feel like you',
+      }),
     ).toBeVisible()
     expect(screen.getAllByRole('main')).toHaveLength(1)
     expect(screen.getByTestId('location')).toHaveTextContent(

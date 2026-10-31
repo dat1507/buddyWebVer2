@@ -1,10 +1,10 @@
 import { useRef, useState, type FormEvent } from 'react'
-import { CheckCircle2, LoaderCircle, LockKeyhole } from 'lucide-react'
+import { CheckCircle2, GraduationCap, LoaderCircle, LockKeyhole, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
+import { ProfileSectionHeading } from '@/features/profile/profile-section-heading'
 import { ProfileAvatarControl } from '@/features/profile/profile-avatar-control'
 import type { ProfileFormMode, ReloadOwnProfile } from '@/features/profile/profile-form'
 import type { OwnProfile, OwnProfileUpdate, StudentType } from '@/features/profile/profile'
@@ -26,8 +26,7 @@ interface IdentityFormState {
   bio: string
 }
 
-const inputClassName =
-  'h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:border-foreground/25 focus-visible:border-vgu-orange focus-visible:ring-2 focus-visible:ring-vgu-orange/25 disabled:cursor-not-allowed disabled:opacity-60'
+const inputClassName = 'profile-input'
 
 function profileToForm(profile: OwnProfile): IdentityFormState {
   return {
@@ -116,10 +115,10 @@ function OnboardingIdentityForm({
     const fields = [
       ['fullName', fullNameRef],
       ['displayName', displayNameRef],
+      ['bio', bioRef],
       ['studentType', vietnameseTypeRef],
       ['studyYear', studyYearRef],
       ['homeUniversity', homeUniversityRef],
-      ['bio', bioRef],
     ] as const
     fields.find(([field]) => nextErrors[field])?.[1].current?.focus()
   }
@@ -197,25 +196,21 @@ function OnboardingIdentityForm({
   const titleId = mode === 'edit' ? 'profile-edit-identity-title' : 'onboarding-identity-title'
 
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
-      <header className="space-y-2">
-        <Typography
-          variant="small"
-          className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-        >
-          {t(mode === 'edit' ? 'profileEdit.identityEyebrow' : 'onboarding.identity.step')}
-        </Typography>
-        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
-          {t(mode === 'edit' ? 'profileEdit.identityTitle' : 'onboarding.identity.title')}
-        </Typography>
-        <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t(mode === 'edit' ? 'profileEdit.identitySubtitle' : 'onboarding.identity.subtitle')}
-        </Typography>
-      </header>
+    <section className="profile-section min-w-0 space-y-5 py-6" aria-labelledby={titleId}>
+      <ProfileSectionHeading
+        id={titleId}
+        Icon={UserRound}
+        editing={mode === 'edit'}
+        eyebrow={t(mode === 'edit' ? 'profileEdit.identityEyebrow' : 'onboarding.identity.step')}
+        title={t(mode === 'edit' ? 'profileEdit.identityTitle' : 'onboarding.identity.title')}
+        description={t(
+          mode === 'edit' ? 'profileEdit.identitySubtitle' : 'onboarding.identity.subtitle',
+        )}
+      />
 
-      <Card className="max-w-4xl">
+      <Card className="profile-panel">
         <CardHeader>
-          <CardTitle>{t('onboarding.identity.cardTitle')}</CardTitle>
+          <CardTitle className="text-xl">{t('onboarding.identity.cardTitle')}</CardTitle>
           <CardDescription>{t('onboarding.identity.requiredHint')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-7">
@@ -223,7 +218,7 @@ function OnboardingIdentityForm({
           <form
             noValidate
             aria-busy={updateProfile.isPending}
-            className="space-y-7 border-t border-border pt-7"
+            className="space-y-7 border-t border-border/60 pt-7"
             onSubmit={handleSubmit}
           >
             <div className="grid gap-5 sm:grid-cols-2">
@@ -276,194 +271,6 @@ function OnboardingIdentityForm({
               </div>
             </div>
 
-            <fieldset
-              className="space-y-3"
-              aria-disabled={studentTypeLocked}
-              aria-describedby={[
-                'student-type-help',
-                studentTypeLocked ? 'student-type-locked-help' : null,
-                errors.studentType ? 'student-type-error' : null,
-              ]
-                .filter(Boolean)
-                .join(' ')}
-            >
-              <legend className="text-sm font-semibold">
-                {t('onboarding.identity.studentTypeLabel')}
-              </legend>
-              <p id="student-type-help" className="text-sm leading-6 text-muted-foreground">
-                {t('onboarding.identity.studentTypeHelp')}
-              </p>
-              {studentTypeLocked ? (
-                <p
-                  id="student-type-locked-help"
-                  className="flex max-w-2xl items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm leading-6 text-foreground"
-                >
-                  <LockKeyhole className="mt-1 size-4 shrink-0 text-amber-700" aria-hidden="true" />
-                  <span>{t('profileEdit.studentTypeLocked')}</span>
-                </p>
-              ) : null}
-              <div className="grid gap-3 md:grid-cols-2">
-                {(['VIETNAMESE', 'INTERNATIONAL'] as const).map((studentType) => (
-                  <label
-                    key={studentType}
-                    className={cn(
-                      'flex items-start gap-3 rounded-xl border border-border p-4 transition',
-                      studentTypeLocked
-                        ? 'cursor-not-allowed opacity-70'
-                        : 'cursor-pointer hover:border-vgu-orange/70',
-                      selectedStudentType === studentType && 'border-vgu-orange bg-vgu-orange/5',
-                      errors.studentType && 'border-destructive',
-                    )}
-                  >
-                    <input
-                      ref={studentType === 'VIETNAMESE' ? vietnameseTypeRef : undefined}
-                      type="radio"
-                      name="studentType"
-                      value={studentType}
-                      aria-labelledby={`student-type-${studentType}-label`}
-                      aria-describedby={[
-                        `student-type-${studentType}-help`,
-                        'student-type-help',
-                        studentTypeLocked ? 'student-type-locked-help' : null,
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      checked={selectedStudentType === studentType}
-                      disabled={updateProfile.isPending || studentTypeLocked}
-                      className="mt-1 size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
-                      onChange={() => setField('studentType', studentType)}
-                    />
-                    <span>
-                      <span
-                        id={`student-type-${studentType}-label`}
-                        className="block text-sm font-semibold"
-                      >
-                        {t(`onboarding.identity.studentTypes.${studentType}.label`)}
-                      </span>
-                      <span
-                        id={`student-type-${studentType}-help`}
-                        className="mt-1 block text-sm leading-6 text-muted-foreground"
-                      >
-                        {t(`onboarding.identity.studentTypes.${studentType}.help`)}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-              {errors.studentType ? (
-                <p id="student-type-error" className="text-sm text-destructive">
-                  {errors.studentType}
-                </p>
-              ) : null}
-            </fieldset>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="profile-major" className="text-sm font-medium">
-                  {t('onboarding.identity.majorLabel')}{' '}
-                  <span className="font-normal text-muted-foreground">
-                    {t('onboarding.identity.optional')}
-                  </span>
-                </label>
-                <input
-                  id="profile-major"
-                  name="major"
-                  value={form.major}
-                  disabled={updateProfile.isPending}
-                  className={inputClassName}
-                  onChange={(event) => setField('major', event.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="profile-study-year" className="text-sm font-medium">
-                  {t('onboarding.identity.studyYearLabel')}{' '}
-                  <span className="font-normal text-muted-foreground">
-                    {t('onboarding.identity.optional')}
-                  </span>
-                </label>
-                <input
-                  ref={studyYearRef}
-                  id="profile-study-year"
-                  name="studyYear"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={10}
-                  value={form.studyYear}
-                  disabled={updateProfile.isPending}
-                  aria-invalid={Boolean(errors.studyYear)}
-                  aria-describedby={errors.studyYear ? 'profile-study-year-error' : undefined}
-                  className={cn(inputClassName, errors.studyYear && 'border-destructive')}
-                  onChange={(event) => setField('studyYear', event.target.value)}
-                />
-                {errors.studyYear ? (
-                  <p id="profile-study-year-error" className="text-sm text-destructive">
-                    {errors.studyYear}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="profile-nationality" className="text-sm font-medium">
-                {t('onboarding.identity.nationalityLabel')}{' '}
-                <span className="font-normal text-muted-foreground">
-                  {t('onboarding.identity.optional')}
-                </span>
-              </label>
-              <input
-                id="profile-nationality"
-                name="nationality"
-                autoComplete="country-name"
-                value={form.nationality}
-                disabled={updateProfile.isPending}
-                className={inputClassName}
-                onChange={(event) => setField('nationality', event.target.value)}
-              />
-              <p className="text-sm leading-6 text-muted-foreground">
-                {t('onboarding.identity.nationalityHelp')}
-              </p>
-            </div>
-
-            {mode === 'edit' ? (
-              <div className="space-y-2">
-                <label htmlFor="profile-home-university" className="text-sm font-medium">
-                  {t('profileEdit.homeUniversityLabel')}{' '}
-                  <span className="font-normal text-muted-foreground">
-                    {t('onboarding.identity.optional')}
-                  </span>
-                </label>
-                <input
-                  ref={homeUniversityRef}
-                  id="profile-home-university"
-                  name="homeUniversity"
-                  maxLength={200}
-                  value={form.homeUniversity}
-                  disabled={updateProfile.isPending}
-                  aria-invalid={Boolean(errors.homeUniversity)}
-                  aria-describedby={
-                    errors.homeUniversity
-                      ? 'profile-home-university-error'
-                      : 'profile-home-university-help'
-                  }
-                  className={cn(inputClassName, errors.homeUniversity && 'border-destructive')}
-                  onChange={(event) => setField('homeUniversity', event.target.value)}
-                />
-                <div className="flex items-start justify-between gap-4 text-sm text-muted-foreground">
-                  <span id="profile-home-university-help">
-                    {t('profileEdit.homeUniversityHelp')}
-                  </span>
-                  <span aria-hidden="true">{[...form.homeUniversity].length}/200</span>
-                </div>
-                {errors.homeUniversity ? (
-                  <p id="profile-home-university-error" className="text-sm text-destructive">
-                    {errors.homeUniversity}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
             <div className="space-y-2">
               <label htmlFor="profile-bio" className="text-sm font-medium">
                 {t('onboarding.identity.bioLabel')}{' '}
@@ -475,6 +282,7 @@ function OnboardingIdentityForm({
                 ref={bioRef}
                 id="profile-bio"
                 name="bio"
+                placeholder={t('onboarding.identity.bioPlaceholder')}
                 rows={5}
                 value={form.bio}
                 disabled={updateProfile.isPending}
@@ -497,6 +305,203 @@ function OnboardingIdentityForm({
                 </p>
               ) : null}
             </div>
+
+            <fieldset className="space-y-6 rounded-2xl bg-muted/40 p-4 sm:p-6">
+              <legend className="flex items-center gap-2 px-2 text-lg font-semibold">
+                <GraduationCap className="size-5 text-primary" aria-hidden="true" />
+                {t('profileEdit.studentLifeTitle')}
+              </legend>
+              <fieldset
+                className="space-y-3"
+                aria-disabled={studentTypeLocked}
+                aria-describedby={[
+                  'student-type-help',
+                  studentTypeLocked ? 'student-type-locked-help' : null,
+                  errors.studentType ? 'student-type-error' : null,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <legend className="text-sm font-semibold">
+                  {t('onboarding.identity.studentTypeLabel')}
+                </legend>
+                <p id="student-type-help" className="text-sm leading-6 text-muted-foreground">
+                  {t('onboarding.identity.studentTypeHelp')}
+                </p>
+                {studentTypeLocked ? (
+                  <p
+                    id="student-type-locked-help"
+                    className="flex max-w-2xl items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm leading-6 text-foreground"
+                  >
+                    <LockKeyhole
+                      className="mt-1 size-4 shrink-0 text-amber-700"
+                      aria-hidden="true"
+                    />
+                    <span>{t('profileEdit.studentTypeLocked')}</span>
+                  </p>
+                ) : null}
+                <div className="grid gap-3 md:grid-cols-2">
+                  {(['VIETNAMESE', 'INTERNATIONAL'] as const).map((studentType) => (
+                    <label
+                      key={studentType}
+                      className={cn(
+                        'flex items-start gap-3 rounded-xl border border-border p-4 transition',
+                        studentTypeLocked
+                          ? 'cursor-not-allowed opacity-70'
+                          : 'cursor-pointer hover:border-vgu-orange/70',
+                        selectedStudentType === studentType && 'border-vgu-orange bg-vgu-orange/5',
+                        errors.studentType && 'border-destructive',
+                      )}
+                    >
+                      <input
+                        ref={studentType === 'VIETNAMESE' ? vietnameseTypeRef : undefined}
+                        type="radio"
+                        name="studentType"
+                        value={studentType}
+                        aria-labelledby={`student-type-${studentType}-label`}
+                        aria-describedby={[
+                          `student-type-${studentType}-help`,
+                          'student-type-help',
+                          studentTypeLocked ? 'student-type-locked-help' : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        checked={selectedStudentType === studentType}
+                        disabled={updateProfile.isPending || studentTypeLocked}
+                        className="mt-1 size-4 shrink-0 accent-vgu-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
+                        onChange={() => setField('studentType', studentType)}
+                      />
+                      <span>
+                        <span
+                          id={`student-type-${studentType}-label`}
+                          className="block text-sm font-semibold"
+                        >
+                          {t(`onboarding.identity.studentTypes.${studentType}.label`)}
+                        </span>
+                        <span
+                          id={`student-type-${studentType}-help`}
+                          className="mt-1 block text-sm leading-6 text-muted-foreground"
+                        >
+                          {t(`onboarding.identity.studentTypes.${studentType}.help`)}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {errors.studentType ? (
+                  <p id="student-type-error" className="text-sm text-destructive">
+                    {errors.studentType}
+                  </p>
+                ) : null}
+              </fieldset>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="profile-major" className="text-sm font-medium">
+                    {t('onboarding.identity.majorLabel')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      {t('onboarding.identity.optional')}
+                    </span>
+                  </label>
+                  <input
+                    id="profile-major"
+                    name="major"
+                    value={form.major}
+                    disabled={updateProfile.isPending}
+                    className={inputClassName}
+                    onChange={(event) => setField('major', event.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="profile-study-year" className="text-sm font-medium">
+                    {t('onboarding.identity.studyYearLabel')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      {t('onboarding.identity.optional')}
+                    </span>
+                  </label>
+                  <input
+                    ref={studyYearRef}
+                    id="profile-study-year"
+                    name="studyYear"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={10}
+                    value={form.studyYear}
+                    disabled={updateProfile.isPending}
+                    aria-invalid={Boolean(errors.studyYear)}
+                    aria-describedby={errors.studyYear ? 'profile-study-year-error' : undefined}
+                    className={cn(inputClassName, errors.studyYear && 'border-destructive')}
+                    onChange={(event) => setField('studyYear', event.target.value)}
+                  />
+                  {errors.studyYear ? (
+                    <p id="profile-study-year-error" className="text-sm text-destructive">
+                      {errors.studyYear}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="profile-nationality" className="text-sm font-medium">
+                  {t('onboarding.identity.nationalityLabel')}{' '}
+                  <span className="font-normal text-muted-foreground">
+                    {t('onboarding.identity.optional')}
+                  </span>
+                </label>
+                <input
+                  id="profile-nationality"
+                  name="nationality"
+                  autoComplete="country-name"
+                  value={form.nationality}
+                  disabled={updateProfile.isPending}
+                  className={inputClassName}
+                  onChange={(event) => setField('nationality', event.target.value)}
+                />
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {t('onboarding.identity.nationalityHelp')}
+                </p>
+              </div>
+
+              {mode === 'edit' ? (
+                <div className="space-y-2">
+                  <label htmlFor="profile-home-university" className="text-sm font-medium">
+                    {t('profileEdit.homeUniversityLabel')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      {t('onboarding.identity.optional')}
+                    </span>
+                  </label>
+                  <input
+                    ref={homeUniversityRef}
+                    id="profile-home-university"
+                    name="homeUniversity"
+                    maxLength={200}
+                    value={form.homeUniversity}
+                    disabled={updateProfile.isPending}
+                    aria-invalid={Boolean(errors.homeUniversity)}
+                    aria-describedby={
+                      errors.homeUniversity
+                        ? 'profile-home-university-error'
+                        : 'profile-home-university-help'
+                    }
+                    className={cn(inputClassName, errors.homeUniversity && 'border-destructive')}
+                    onChange={(event) => setField('homeUniversity', event.target.value)}
+                  />
+                  <div className="flex items-start justify-between gap-4 text-sm text-muted-foreground">
+                    <span id="profile-home-university-help">
+                      {t('profileEdit.homeUniversityHelp')}
+                    </span>
+                    <span aria-hidden="true">{[...form.homeUniversity].length}/200</span>
+                  </div>
+                  {errors.homeUniversity ? (
+                    <p id="profile-home-university-error" className="text-sm text-destructive">
+                      {errors.homeUniversity}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </fieldset>
 
             <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-h-6" aria-live="polite">

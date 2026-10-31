@@ -222,25 +222,21 @@ describe('FE-029 and PREF-004 own profile editing', () => {
 
     renderPage()
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Edit profile' })).toBeVisible()
-    expect(screen.getByRole('heading', { level: 2, name: 'Profile basics' })).toBeVisible()
     expect(
-      await screen.findByRole('heading', { level: 2, name: 'Interests and languages' }),
+      await screen.findByRole('heading', { level: 1, name: 'Make your profile feel like you' }),
     ).toBeVisible()
-    expect(
-      await screen.findByRole('heading', { level: 2, name: 'Availability and preferences' }),
-    ).toBeVisible()
-    expect(await screen.findByText('Ready for matching')).toBeVisible()
+    expect(screen.getByRole('heading', { level: 2, name: 'A little about you' })).toBeVisible()
+    expect(await screen.findByRole('heading', { level: 2, name: 'Things you enjoy' })).toBeVisible()
+    expect(await screen.findByRole('heading', { level: 2, name: 'Let’s connect' })).toBeVisible()
+    expect(await screen.findByText('You’re ready to meet your next buddy')).toBeVisible()
     expect(await screen.findByRole('checkbox', { name: 'Board Games' })).toBeChecked()
     expect(screen.getByRole('button', { name: 'Remove custom value Night kayaking' })).toBeVisible()
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove current photo' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Remove photo' }))
-    expect(await screen.findByText('New matching is disabled')).toBeVisible()
+    expect(await screen.findByText('A few things before your next hello')).toBeVisible()
     expect(
-      within(
-        screen.getByRole('list', { name: 'Required profile details still missing' }),
-      ).getByText('Profile photo'),
+      within(screen.getByRole('list', { name: 'A little more to add' })).getByText('Profile photo'),
     ).toBeVisible()
 
     fireEvent.click(screen.getByRole('checkbox', { name: 'Music' }))
@@ -262,9 +258,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     )
     await waitFor(() =>
       expect(
-        within(
-          screen.getByRole('list', { name: 'Required profile details still missing' }),
-        ).getByText('Interests'),
+        within(screen.getByRole('list', { name: 'A little more to add' })).getByText('Interests'),
       ).toBeVisible(),
     )
   })
@@ -396,7 +390,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     })
     renderPage()
 
-    expect(await screen.findByText('Ready for matching')).toBeVisible()
+    expect(await screen.findByText('You’re ready to meet your next buddy')).toBeVisible()
     expect(
       await screen.findByRole('button', { name: 'Remove custom value Formula 1' }),
     ).toBeVisible()
@@ -427,7 +421,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     fireEvent.change(screen.getByLabelText(/Display name/), { target: { value: 'Updated An' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
 
-    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(await screen.findByText('Looking good — your profile basics are saved.')).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/profile',
       expect.objectContaining({
@@ -466,7 +460,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     fireEvent.change(homeUniversity, { target: { value: '  Example University  ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
 
-    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(await screen.findByText('Looking good — your profile basics are saved.')).toBeVisible()
     expect(homeUniversity).toHaveValue('Example University')
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/profile',
@@ -501,7 +495,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     fireEvent.change(homeUniversity, { target: { value: '   ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
 
-    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(await screen.findByText('Looking good — your profile basics are saved.')).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/profile',
       expect.objectContaining({
@@ -559,7 +553,7 @@ describe('FE-029 and PREF-004 own profile editing', () => {
     fireEvent.change(displayName, { target: { value: 'Still editable' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save profile basics' }))
 
-    expect(await screen.findByText('Profile basics saved.')).toBeVisible()
+    expect(await screen.findByText('Looking good — your profile basics are saved.')).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith(
       '/profile',
       expect.objectContaining({

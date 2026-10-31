@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
+import { LandingMotionContext } from '@/components/landing/landing-motion'
 
 import campusExterior from '@/assets/landing-backgrounds/01-campus-exterior.webp'
 import campusAerial from '@/assets/landing-backgrounds/02-campus-aerial.webp'
@@ -115,6 +116,7 @@ function startVisibleTimer(callback: () => void, durationMs: number): () => void
 }
 
 function HeroBackgroundSlideshow() {
+  const { paused } = useContext(LandingMotionContext)
   const reducedMotion = usePrefersReducedMotion()
   const imageRefs = useRef<[HTMLImageElement | null, HTMLImageElement | null]>([null, null])
   const [slideshow, setSlideshow] = useState<SlideshowState>({
@@ -124,7 +126,7 @@ function HeroBackgroundSlideshow() {
   })
 
   useEffect(() => {
-    if (reducedMotion || heroBackgrounds.length < 2) return
+    if (reducedMotion || paused || heroBackgrounds.length < 2) return
 
     if (slideshow.phase === 'transition') {
       const outgoingImage = imageRefs.current[slideshow.activeLayer]
@@ -199,7 +201,7 @@ function HeroBackgroundSlideshow() {
       stopDisplayTimer()
       document.removeEventListener('visibilitychange', onVisibilityChange)
     }
-  }, [reducedMotion, slideshow])
+  }, [reducedMotion, paused, slideshow])
 
   if (reducedMotion) {
     return (

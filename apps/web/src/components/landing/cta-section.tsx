@@ -16,7 +16,7 @@ function CtaSection() {
   return (
     <section
       id="cta"
-      className="relative overflow-hidden bg-vgu-surface px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
+      className="landing-cta relative overflow-hidden bg-vgu-surface px-4 py-20 sm:px-6 sm:py-24 lg:px-8"
       aria-labelledby="cta-title"
     >
       {/* Background ambient glow */}
@@ -25,7 +25,7 @@ function CtaSection() {
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-4xl text-center">
+      <div className="landing-cta-card relative mx-auto max-w-7xl text-center">
         <Typography
           id="cta-title"
           variant="h2"
@@ -39,7 +39,7 @@ function CtaSection() {
         </Typography>
 
         <div className="mt-10 flex justify-center">
-          <Button asChild size="lg" className="w-full sm:w-auto">
+          <Button asChild size="lg" className="landing-primary w-full sm:w-auto">
             <Link to="/register">{t('cta.join')}</Link>
           </Button>
         </div>

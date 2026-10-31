@@ -1,11 +1,18 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
-import { CalendarClock, CheckCircle2, LoaderCircle, Plus, Trash2 } from 'lucide-react'
+import {
+  CalendarClock,
+  CalendarHeart,
+  CheckCircle2,
+  LoaderCircle,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
+import { ProfileSectionHeading } from '@/features/profile/profile-section-heading'
 import {
   MAX_ACTIVITIES,
   type CatalogLocale,
@@ -35,8 +42,7 @@ import { cn } from '@/lib/utils'
 const MAX_SLOTS = 100
 const HALF_HOUR_MINUTES = Array.from({ length: 49 }, (_, index) => index * 30)
 
-const inputClassName =
-  'h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition hover:border-foreground/25 focus-visible:border-vgu-orange focus-visible:ring-2 focus-visible:ring-vgu-orange/25 disabled:cursor-not-allowed disabled:opacity-60'
+const inputClassName = 'profile-input'
 
 interface AvailabilitySlotDraft extends WeeklyAvailabilitySlot {
   id: number
@@ -293,26 +299,22 @@ function OnboardingPreferencesEditor({
     mode === 'edit' ? 'profile-edit-preferences-title' : 'onboarding-preferences-title'
 
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
-      <header className="space-y-2">
-        <Typography
-          variant="small"
-          className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-        >
-          {t(mode === 'edit' ? 'profileEdit.preferencesEyebrow' : 'onboarding.preferences.step')}
-        </Typography>
-        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
-          {t(mode === 'edit' ? 'profileEdit.preferencesTitle' : 'onboarding.preferences.title')}
-        </Typography>
-        <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t(
-            mode === 'edit' ? 'profileEdit.preferencesSubtitle' : 'onboarding.preferences.subtitle',
-          )}
-        </Typography>
-      </header>
+    <section className="profile-section min-w-0 space-y-5 py-6" aria-labelledby={titleId}>
+      <ProfileSectionHeading
+        id={titleId}
+        Icon={CalendarHeart}
+        editing={mode === 'edit'}
+        eyebrow={t(
+          mode === 'edit' ? 'profileEdit.preferencesEyebrow' : 'onboarding.preferences.step',
+        )}
+        title={t(mode === 'edit' ? 'profileEdit.preferencesTitle' : 'onboarding.preferences.title')}
+        description={t(
+          mode === 'edit' ? 'profileEdit.preferencesSubtitle' : 'onboarding.preferences.subtitle',
+        )}
+      />
 
       <form className="space-y-6" aria-busy={isPending} onSubmit={handleSubmit}>
-        <Card>
+        <Card className="profile-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarClock className="size-5 text-vgu-orange" aria-hidden="true" />
@@ -368,9 +370,9 @@ function OnboardingPreferencesEditor({
                   {slots.map((slot, index) => (
                     <div
                       key={slot.id}
-                      className="grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+                      className="grid gap-4 rounded-2xl bg-muted/50 p-4 sm:grid-cols-2 sm:items-end xl:grid-cols-[1fr_1fr_1fr_auto]"
                     >
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <label
                           htmlFor={`availability-day-${slot.id}`}
                           className="text-sm font-medium"
@@ -395,7 +397,7 @@ function OnboardingPreferencesEditor({
                           )}
                         </select>
                       </div>
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <label
                           htmlFor={`availability-start-${slot.id}`}
                           className="text-sm font-medium"
@@ -418,7 +420,7 @@ function OnboardingPreferencesEditor({
                           ))}
                         </select>
                       </div>
-                      <div className="space-y-2">
+                      <div className="min-w-0 space-y-2">
                         <label
                           htmlFor={`availability-end-${slot.id}`}
                           className="text-sm font-medium"
@@ -471,9 +473,9 @@ function OnboardingPreferencesEditor({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="profile-panel">
           <CardHeader>
-            <CardTitle>{t('onboarding.preferences.activitiesTitle')}</CardTitle>
+            <CardTitle className="text-xl">{t('onboarding.preferences.activitiesTitle')}</CardTitle>
             <CardDescription>
               {t('onboarding.preferences.activitiesDescription', { maximum: MAX_ACTIVITIES })}
             </CardDescription>
@@ -531,7 +533,7 @@ function OnboardingPreferencesEditor({
                     </Button>
                   </div>
                 ) : null}
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-wrap gap-3">
                   {activities.data?.items.map((activity) => {
                     const checked = selectedActivityIds.includes(activity.id)
                     const disabled = isPending || (!checked && activityCount >= MAX_ACTIVITIES)
@@ -539,8 +541,8 @@ function OnboardingPreferencesEditor({
                       <label
                         key={activity.id}
                         className={cn(
-                          'flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition hover:border-vgu-orange/70',
-                          checked && 'border-vgu-orange bg-vgu-orange/5',
+                          'flex min-h-12 min-w-0 max-w-full cursor-pointer items-center gap-3 rounded-full border border-border bg-background/50 px-4 py-3 transition-colors hover:border-primary focus-within:ring-2 focus-within:ring-primary motion-reduce:transition-none',
+                          checked && 'border-primary bg-primary/10',
                           disabled && 'cursor-not-allowed opacity-60',
                         )}
                       >
@@ -587,9 +589,9 @@ function OnboardingPreferencesEditor({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="profile-panel">
           <CardHeader>
-            <CardTitle>{t('onboarding.preferences.matchingTitle')}</CardTitle>
+            <CardTitle className="text-xl">{t('onboarding.preferences.matchingTitle')}</CardTitle>
             <CardDescription>{t('onboarding.preferences.matchingDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -713,7 +715,7 @@ function OnboardingPreferencesEditor({
           </div>
         ) : null}
 
-        <div className="flex flex-col-reverse gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col-reverse gap-3 rounded-2xl bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-h-6" aria-live="polite">
             {updateProfile.isSuccess && checkingCompletion ? (
               <p className="flex items-center gap-2 text-sm font-medium">
@@ -776,7 +778,9 @@ function OnboardingPreferencesForm({
       <section className="py-6">
         <Card className="mx-auto max-w-2xl">
           <CardHeader>
-            <CardTitle>{t('onboarding.preferences.preferenceSelectionsErrorTitle')}</CardTitle>
+            <CardTitle className="text-xl">
+              {t('onboarding.preferences.preferenceSelectionsErrorTitle')}
+            </CardTitle>
             <CardDescription role="alert">
               {t('onboarding.preferences.preferenceSelectionsError')}
             </CardDescription>

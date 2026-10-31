@@ -1,4 +1,4 @@
-import { CheckCircle2, LoaderCircle, ShieldAlert } from 'lucide-react'
+import { CalendarHeart, CheckCircle2, Heart, LoaderCircle, Sprout, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
@@ -16,7 +16,7 @@ function ProfileReadiness({ completion }: { completion: ProfileCompletion }) {
 
   return (
     <Card
-      className={completion.matching_eligible ? 'border-emerald-500/40' : 'border-amber-500/50'}
+      className="rounded-2xl border-border/60 bg-muted/40 shadow-none"
       aria-labelledby="profile-readiness-title"
     >
       <CardHeader>
@@ -24,10 +24,10 @@ function ProfileReadiness({ completion }: { completion: ProfileCompletion }) {
           {completion.matching_eligible ? (
             <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" aria-hidden="true" />
           ) : (
-            <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-600" aria-hidden="true" />
+            <Sprout className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
           )}
           <div className="space-y-1">
-            <CardTitle id="profile-readiness-title">
+            <CardTitle id="profile-readiness-title" className="text-lg">
               {t(
                 completion.matching_eligible
                   ? 'profileEdit.matchingReady'
@@ -40,6 +40,21 @@ function ProfileReadiness({ completion }: { completion: ProfileCompletion }) {
           </div>
         </div>
       </CardHeader>
+      <CardContent>
+        <div
+          className="h-2 overflow-hidden rounded-full bg-background"
+          role="progressbar"
+          aria-label={t('userDashboard.completion.label')}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={completion.percentage}
+        >
+          <div
+            className="h-full rounded-full bg-primary"
+            style={{ width: `${completion.percentage}%` }}
+          />
+        </div>
+      </CardContent>
       {!completion.matching_eligible ? (
         <CardContent className="space-y-3">
           <ul className="space-y-1 text-sm text-muted-foreground">
@@ -107,28 +122,60 @@ function ProfileEditPage() {
   }
 
   return (
-    <div className="min-w-0 py-6">
-      <header className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div className="profile-builder min-w-0 space-y-8 py-2">
+      <header className="flex flex-col gap-5 rounded-3xl border border-primary/15 bg-primary/5 p-6 sm:p-8">
         <div className="space-y-2">
-          <Typography
-            variant="small"
-            className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-          >
+          <Typography variant="small" className="font-semibold text-primary">
             {t('profileEdit.eyebrow')}
           </Typography>
-          <Typography as="h1" variant="h2" id="profile-edit-title">
+          <Typography
+            as="h1"
+            variant="h3"
+            className="max-w-2xl text-balance text-3xl sm:text-4xl"
+            id="profile-edit-title"
+          >
             {t('profileEdit.title')}
           </Typography>
           <Typography variant="muted" className="max-w-3xl text-base leading-7">
             {t('profileEdit.subtitle')}
           </Typography>
         </div>
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" className="w-fit rounded-full">
           <Link to="/user/profile">{t('profileEdit.viewProfile')}</Link>
         </Button>
       </header>
 
-      <div className="mt-6" aria-live="polite" aria-busy={completion.isFetching}>
+      <nav aria-label={t('profileEdit.sectionNavigation')} className="grid gap-3 sm:grid-cols-3">
+        {[
+          {
+            id: 'profile-edit-identity-title',
+            label: 'profileEdit.identityTitle',
+            Icon: UserRound,
+          },
+          {
+            id: 'profile-edit-compatibility-title',
+            label: 'profileEdit.compatibilityTitle',
+            Icon: Heart,
+          },
+          {
+            id: 'profile-edit-preferences-title',
+            label: 'profileEdit.preferencesTitle',
+            Icon: CalendarHeart,
+          },
+        ].map(({ id, label, Icon }) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className="flex min-h-14 items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm font-semibold transition-colors hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary motion-reduce:transition-none"
+          >
+            <Icon className="size-5 shrink-0 text-primary" aria-hidden="true" />
+            {t(label)}
+          </a>
+        ))}
+      </nav>
+      <p className="text-sm leading-6 text-muted-foreground">{t('profileEdit.saveHint')}</p>
+
+      <div aria-live="polite" aria-busy={completion.isFetching}>
         {completion.isPending ? (
           <Card>
             <CardContent

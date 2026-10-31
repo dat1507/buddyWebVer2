@@ -13,7 +13,7 @@ function UserLayout() {
   const contentId = useId()
 
   return (
-    <div className="bg-background text-foreground" data-layout="user">
+    <div className="user-community min-h-dvh bg-background text-foreground" data-layout="user">
       <a
         href={`#${contentId}`}
         className="sr-only rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
@@ -22,11 +22,10 @@ function UserLayout() {
       </a>
       <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start lg:px-8">
         <aside aria-label={t('userLayout.sidebarLabel')} className="min-w-0 lg:sticky lg:top-6">
-          <Card className="space-y-5 p-4 sm:p-6">
+          <Card className="space-y-5 rounded-3xl border-border/60 p-4 shadow-sm sm:p-6">
             <div className="flex items-center justify-between gap-4 lg:flex-col lg:items-start">
               <Link
                 to="/#home"
-                aria-label={t('userLayout.backHome')}
                 className="flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vgu-orange"
               >
                 <img

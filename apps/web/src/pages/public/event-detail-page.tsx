@@ -7,6 +7,7 @@ import { Typography } from '@/components/ui/typography'
 import type { EventLocale } from '@/features/events/public-event'
 import { usePublicEvent } from '@/features/events/queries/use-public-event'
 import { ApiError } from '@/lib/api'
+import campusFallback from '@/assets/landing-backgrounds/03-campus-garden.webp'
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -116,7 +117,7 @@ function EventDetailPage() {
   )
 
   return (
-    <main className="relative isolate overflow-hidden px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <main className="community-surface community-event relative isolate overflow-hidden px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_top_right,rgba(255,103,13,0.16),transparent_58%)]"
@@ -140,8 +141,9 @@ function EventDetailPage() {
                 className="max-h-[52rem] w-full object-contain"
               />
             ) : (
-              <div className="flex min-h-72 size-full items-center justify-center text-zinc-400 lg:min-h-[42rem]">
-                {t('eventDetail.noCover')}
+              <div className="event-cover-fallback flex min-h-72 size-full items-center justify-center text-zinc-400 lg:min-h-[42rem]">
+                <img src={campusFallback} alt="" aria-hidden="true" />
+                <span>{t('eventDetail.noCover')}</span>
               </div>
             )}
           </figure>
@@ -163,7 +165,7 @@ function EventDetailPage() {
               <Typography
                 as="h1"
                 variant="h1"
-                className="break-words text-4xl font-black uppercase leading-tight tracking-tight sm:text-5xl"
+                className="break-words text-4xl font-bold leading-tight tracking-tight sm:text-5xl"
               >
                 {event.title}
               </Typography>
@@ -210,14 +212,14 @@ function EventDetailPage() {
             ) : null}
 
             {hasDetails ? (
-              <dl className="grid gap-5 rounded-2xl border border-border/70 bg-background/45 p-5 sm:grid-cols-2">
+              <div className="grid gap-5 rounded-2xl border border-border/70 bg-background/45 p-5 sm:grid-cols-2">
                 {event.start_date && start ? (
                   <div className="flex gap-3">
                     <CalendarDays
                       aria-hidden="true"
                       className="mt-0.5 size-5 shrink-0 text-vgu-orange"
                     />
-                    <div>
+                    <dl>
                       <dt className="font-semibold">{t('eventDetail.starts')}</dt>
                       <dd className="text-sm leading-6 text-muted-foreground">
                         <time dateTime={event.start_date}>{start}</time>
@@ -225,28 +227,28 @@ function EventDetailPage() {
                       {!event.end_date ? (
                         <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
                       ) : null}
-                    </div>
+                    </dl>
                   </div>
                 ) : null}
                 {event.end_date && end ? (
                   <div className="flex gap-3">
                     <Clock3 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                    <div>
+                    <dl>
                       <dt className="font-semibold">{t('eventDetail.ends')}</dt>
                       <dd className="text-sm leading-6 text-muted-foreground">
                         <time dateTime={event.end_date}>{end}</time>
                       </dd>
                       <dd className="text-xs text-muted-foreground">{event.timezone}</dd>
-                    </div>
+                    </dl>
                   </div>
                 ) : null}
                 {event.location ? (
                   <div className="flex gap-3 sm:col-span-2">
                     <MapPin aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                    <div>
+                    <dl>
                       <dt className="font-semibold">{t('eventDetail.location')}</dt>
                       <dd className="text-sm leading-6 text-muted-foreground">{event.location}</dd>
-                    </div>
+                    </dl>
                   </div>
                 ) : null}
                 {event.organizer ? (
@@ -255,22 +257,22 @@ function EventDetailPage() {
                       aria-hidden="true"
                       className="mt-0.5 size-5 shrink-0 text-vgu-orange"
                     />
-                    <div>
+                    <dl>
                       <dt className="font-semibold">{t('eventDetail.organizer')}</dt>
                       <dd className="text-sm leading-6 text-muted-foreground">{event.organizer}</dd>
-                    </div>
+                    </dl>
                   </div>
                 ) : null}
                 {event.category ? (
                   <div className="flex gap-3">
                     <Tag aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-vgu-orange" />
-                    <div>
+                    <dl>
                       <dt className="font-semibold">{t('eventDetail.category')}</dt>
                       <dd className="text-sm leading-6 text-muted-foreground">{event.category}</dd>
-                    </div>
+                    </dl>
                   </div>
                 ) : null}
-              </dl>
+              </div>
             ) : null}
           </div>
         </article>

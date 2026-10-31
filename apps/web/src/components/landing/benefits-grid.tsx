@@ -51,11 +51,11 @@ function BenefitsGrid() {
   return (
     <section
       id="features"
-      className="scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="landing-resources scroll-mt-20 bg-vgu-surface px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       aria-labelledby="features-title"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12 text-center sm:mb-16">
+        <div className="landing-resources-intro">
           <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-vgu-orange">
             {t('features.eyebrow')}
           </p>
@@ -67,7 +67,7 @@ function BenefitsGrid() {
           </Typography>
         </div>
 
-        <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="landing-resource-grid grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2">
           {resources.map(({ key, image, width, height, position, href }) => (
             <Card
               key={key}

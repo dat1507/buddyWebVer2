@@ -1,5 +1,15 @@
 # Production status
 
+## 2026-10-31 — Dated read-only pre-release provider verification
+
+Vercel buddy-web-ver2 remains ProductionREADY e1a2cc59/main, apps/web/Vite/Node24/default commands;
+Previewall-unassigned branches and30-day retention. Both Production Event flags alreadytrue and
+exact https://api.vgubuddyprogram.com/api verified after owner step-up. staging domain is a Production
+alias, not isolated testing. RenderLive642fc11/main, apps/api, overrides empty, AutoDeployOff/PR
+PreviewsOff. API tree equals candidate/main. No provider/config/deploy/rollback/Production data change;
+no new Production runtime or authenticated acceptance claimed. UI-only release NO-GO; read current
+pre-release report. Older dated records below remain historical.
+
 **Last direct verification:** 2026-10-17 01:30 Asia/Saigon
 **Owner functional acceptance:** PASS on 2026-10-08
 **Mutation boundary:** owner-authorized `origin/main` push and linked Vercel Production deployment of

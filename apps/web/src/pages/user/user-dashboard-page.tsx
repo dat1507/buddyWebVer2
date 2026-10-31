@@ -48,18 +48,14 @@ function ProfileSummary({ profile }: { profile: OwnProfile }) {
       </CardHeader>
       <CardContent className="space-y-5">
         <dl className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border/70 bg-background/60 p-3">
-            <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              {t('profile.major')}
-            </dt>
+          <div className="rounded-2xl bg-muted/40 p-3">
+            <dt className="text-sm font-medium text-muted-foreground">{t('profile.major')}</dt>
             <dd className="mt-1 break-words text-sm font-semibold">
               {profile.major?.trim() || t('profile.notAdded')}
             </dd>
           </div>
-          <div className="rounded-xl border border-border/70 bg-background/60 p-3">
-            <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              {t('profile.studyYear')}
-            </dt>
+          <div className="rounded-2xl bg-muted/40 p-3">
+            <dt className="text-sm font-medium text-muted-foreground">{t('profile.studyYear')}</dt>
             <dd className="mt-1 text-sm font-semibold">
               {profile.study_year
                 ? t('profile.studyYearValue', { year: profile.study_year })
@@ -91,7 +87,7 @@ function CompletionSummary({ completion }: { completion: ProfileCompletion }) {
   const complete = completion.status === 'COMPLETE'
 
   return (
-    <Card className={complete ? 'border-emerald-500/40' : 'border-amber-500/50'}>
+    <Card className={'rounded-3xl border-border/60'}>
       <CardHeader>
         <div className="flex items-start gap-3">
           {complete ? (
@@ -256,14 +252,11 @@ function UserDashboardPage() {
       className="min-w-0 space-y-6 py-6"
       aria-busy={profile.isFetching || completion.isFetching}
     >
-      <header className="space-y-2">
-        <Typography
-          variant="small"
-          className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-        >
+      <header className="dashboard-welcome space-y-2">
+        <Typography variant="small" className="font-semibold text-primary">
           {t('userDashboard.eyebrow')}
         </Typography>
-        <Typography as="h1" variant="h2" id={titleId} className="break-words">
+        <Typography as="h1" variant="h3" id={titleId} className="break-words">
           {t('userDashboard.title')}
         </Typography>
         <Typography variant="lead" className="break-words">

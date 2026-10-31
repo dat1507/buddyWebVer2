@@ -186,12 +186,10 @@ describe('FE-027 and PREF-004 availability and activity editor', () => {
     renderPage()
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Finish your Buddy profile' }),
+      await screen.findByRole('heading', { level: 1, name: 'Make time for friendship' }),
     ).toBeVisible()
     expect(await screen.findByRole('checkbox', { name: 'Board Games' })).not.toBeChecked()
-    expect(
-      screen.getByRole('checkbox', { name: /Add a weekly availability schedule/ }),
-    ).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /Share my weekly free time/ })).not.toBeChecked()
     fireEvent.click(screen.getByRole('button', { name: 'Save and finish onboarding' }))
 
     expect(await screen.findByText('Your profile still needs a few details')).toBeVisible()
@@ -218,10 +216,8 @@ describe('FE-027 and PREF-004 availability and activity editor', () => {
     installApi(complete)
     renderPage()
 
-    fireEvent.click(
-      await screen.findByRole('checkbox', { name: /Add a weekly availability schedule/ }),
-    )
-    fireEvent.change(screen.getByLabelText('IANA timezone'), {
+    fireEvent.click(await screen.findByRole('checkbox', { name: /Share my weekly free time/ }))
+    fireEvent.change(screen.getByLabelText('Your timezone (IANA)'), {
       target: { value: 'Europe/Berlin' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Add time slot' }))
@@ -236,7 +232,9 @@ describe('FE-027 and PREF-004 availability and activity editor', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Join buddy matching/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Save and finish onboarding' }))
 
-    expect(await screen.findByRole('heading', { name: 'Edit profile' })).toBeVisible()
+    expect(
+      await screen.findByRole('heading', { name: 'Make your profile feel like you' }),
+    ).toBeVisible()
     expect(authenticatedJson).toHaveBeenCalledWith('/profile/preferences', {
       method: 'PUT',
       body: {
@@ -316,9 +314,7 @@ describe('FE-027 and PREF-004 availability and activity editor', () => {
     installApi()
     renderPage()
 
-    fireEvent.click(
-      await screen.findByRole('checkbox', { name: /Add a weekly availability schedule/ }),
-    )
+    fireEvent.click(await screen.findByRole('checkbox', { name: /Share my weekly free time/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Add time slot' }))
     fireEvent.change(screen.getByLabelText('End time'), { target: { value: '540' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save and finish onboarding' }))
@@ -365,7 +361,7 @@ describe('FE-027 and PREF-004 availability and activity editor', () => {
     renderPage()
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Schließe dein Buddy-Profil ab' }),
+      await screen.findByRole('heading', { level: 1, name: 'Zeit für neue Freundschaften' }),
     ).toBeVisible()
     expect(await screen.findByRole('checkbox', { name: 'Brettspiele' })).toBeVisible()
     expect(screen.getByLabelText('Benutzerdefinierte Aktivität hinzufügen')).toBeVisible()

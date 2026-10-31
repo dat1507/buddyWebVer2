@@ -236,7 +236,7 @@ function AvatarCropDialogContent({
         aria-describedby={errorId ? `${descriptionId} ${errorId}` : descriptionId}
         aria-busy={processing}
         tabIndex={-1}
-        className="my-auto w-full max-w-xl rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl outline-none sm:p-6"
+        className="community-surface my-auto w-full max-w-xl rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl outline-none sm:p-6"
       >
         <h2 id={titleId} className="text-xl font-semibold leading-tight">
           {t('profileAvatar.cropTitle')}

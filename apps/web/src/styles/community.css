@@ -1,0 +1,190 @@
+/* Shared student-facing surfaces; preserve Admin styling and existing control behavior. */
+@media (prefers-reduced-motion: reduce) {
+  :is(.user-community, .community-surface) * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+body:has(.user-community) .session-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #faf6ee;
+  color: #242a25;
+  border-color: #d9d8ca;
+  padding-block: 8px;
+}
+body:has(.user-community) .session-controls button {
+  color: #8d350b;
+  border-color: #a54110;
+  min-height: 40px;
+}
+.user-community,
+.community-surface,
+.dark .user-community,
+.dark .community-surface {
+  --background: 40 55% 96%;
+  --foreground: 132 8% 15%;
+  --card: 40 60% 99%;
+  --card-foreground: 132 8% 15%;
+  --popover: 40 60% 99%;
+  --popover-foreground: 132 8% 15%;
+  --muted: 43 22% 90%;
+  --muted-foreground: 108 5% 34%;
+  --secondary: 80 27% 88%;
+  --secondary-foreground: 132 8% 15%;
+  --primary: 21 84% 36%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 28 70% 90%;
+  --accent-foreground: 132 8% 15%;
+  --border: 45 15% 79%;
+  --input: 108 8% 54%;
+  --ring: 21 84% 36%;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+:is(.user-community, .community-surface) :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+.user-community h1 {
+  font-size: clamp(1.875rem, 3vw, 2.75rem);
+  letter-spacing: -0.04em;
+}
+:is(.user-community, .community-surface) :is(.text-vgu-orange, .text-vgu-orange-dark) {
+  color: #a54110;
+}
+:is(.user-community, .community-surface) .text-orange-100 {
+  color: #793807;
+}
+:is(.user-community, .community-surface) .text-amber-400 {
+  color: #8a4d05;
+}
+:is(.user-community, .community-surface) button,
+:is(.user-community, .community-surface) a {
+  scroll-margin-block: 100px;
+}
+:is(.user-community, .community-surface) :is(button, a, input, textarea, select):focus-visible {
+  outline: 3px solid #a54110;
+  outline-offset: 3px;
+}
+:is(.user-community, .community-surface) .bg-gradient-to-br {
+  background-image: none;
+  background-color: #ff985b;
+  color: #242a25;
+  box-shadow: none;
+}
+:is(.user-community, .community-surface) .border-2.border-vgu-orange {
+  border-color: #a54110;
+  color: #8d350b;
+}
+:is(.user-community, .community-surface) .border-2.border-vgu-orange:hover {
+  background: #ff985b;
+  color: #242a25;
+}
+.user-community aside > div {
+  border-radius: 24px;
+  box-shadow: 0 8px 32px #25382f06;
+}
+.user-community aside > div > div:first-child {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #d9d8ca;
+}
+.user-community aside button[aria-label] {
+  color: #44503d;
+}
+.user-community nav a[aria-current='page'] {
+  background: #25382f;
+  color: #fff;
+  border-color: #25382f;
+  box-shadow: none;
+}
+.user-community .dashboard-welcome {
+  padding: 32px;
+  border-radius: 28px;
+  background: #25382f;
+  --foreground: 40 55% 96%;
+  --muted-foreground: 80 18% 83%;
+}
+.user-community .dashboard-welcome .text-primary {
+  color: #ffd1ae;
+}
+.user-community .profile-panel {
+  box-shadow: 0 4px 16px #25382f04;
+}
+.community-auth {
+  background-color: #faf6ee;
+}
+.community-auth > div[aria-hidden='true'] {
+  display: none;
+}
+.community-auth > div:not([aria-hidden]) {
+  background: #fffdf8;
+  border-color: #d9d8ca;
+  border-radius: 28px;
+  box-shadow: 0 16px 50px #25382f08;
+  backdrop-filter: none;
+}
+.community-auth input {
+  background: #fff;
+  border-color: #a2ab99;
+  color: #242a25;
+}
+.community-auth input::placeholder {
+  color: #6b7266;
+}
+.community-auth :is(.text-zinc-200, .text-zinc-300, .text-zinc-400, .text-zinc-500) {
+  color: #596057;
+}
+.community-auth :is(.text-white, .text-zinc-100) {
+  color: #242a25;
+}
+.community-auth .text-orange-400 {
+  color: #a54110;
+}
+.community-auth [class~='bg-black/25'] {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+}
+.community-event article {
+  box-shadow: 0 12px 40px #25382f08;
+}
+.community-event h1 {
+  font-size: clamp(2rem, 3.3vw, 3.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+.community-event figure {
+  background: #ecefdf;
+}
+.community-event .event-cover-fallback {
+  position: relative;
+  min-height: 320px;
+}
+.event-cover-fallback > img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+}
+.event-cover-fallback > span {
+  position: relative;
+  align-self: flex-end;
+  background: #25382fe8;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin: 24px;
+}
+@media (max-width: 767px) {
+  .user-community .dashboard-welcome {
+    padding: 24px;
+  }
+  .community-event figure {
+    min-height: 280px;
+  }
+  .community-event .event-cover-fallback {
+    min-height: 280px;
+  }
+}

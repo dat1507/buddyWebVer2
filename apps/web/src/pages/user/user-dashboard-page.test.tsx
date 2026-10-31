@@ -116,7 +116,7 @@ describe('FE-023 profile-aware User Dashboard', () => {
     vi.spyOn(profileClient, 'readCompletion').mockResolvedValue(incompleteProfileCompletion)
     renderDashboard()
 
-    expect(await screen.findByText('Your profile needs attention')).toBeVisible()
+    expect(await screen.findByText('Your next hello starts here')).toBeVisible()
     expect(screen.getByText('Full name')).toBeVisible()
     expect(screen.getByText('Profile photo')).toBeVisible()
     expect(screen.getByRole('link', { name: 'Finish profile' })).toHaveAttribute(
@@ -137,10 +137,10 @@ describe('FE-023 profile-aware User Dashboard', () => {
     const view = renderDashboard()
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading your dashboard')
-    expect(screen.queryByText('Your profile needs attention')).not.toBeInTheDocument()
+    expect(screen.queryByText('Your next hello starts here')).not.toBeInTheDocument()
 
     await act(async () => ownProfile.resolve(completeOwnProfile))
-    expect(await screen.findByText('Your profile needs attention')).toBeVisible()
+    expect(await screen.findByText('Your next hello starts here')).toBeVisible()
     view.unmount()
     client.clear()
 
@@ -148,7 +148,7 @@ describe('FE-023 profile-aware User Dashboard', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'We could not load your saved profile and readiness.',
     )
-    expect(screen.queryByText('Your profile needs attention')).not.toBeInTheDocument()
+    expect(screen.queryByText('Your next hello starts here')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByRole('heading', { name: 'An' })).toBeVisible()

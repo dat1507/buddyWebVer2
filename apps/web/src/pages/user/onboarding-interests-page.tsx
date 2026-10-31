@@ -1,10 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { CheckCircle2, LoaderCircle, Search } from 'lucide-react'
+import { CheckCircle2, Heart, LoaderCircle, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Typography } from '@/components/ui/typography'
+import { ProfileSectionHeading } from '@/features/profile/profile-section-heading'
 import {
   MAX_INTERESTS,
   MAX_LANGUAGES,
@@ -38,8 +38,7 @@ const PROFICIENCIES: readonly LanguageProficiency[] = [
   'beginner',
 ]
 
-const inputClassName =
-  'h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:border-foreground/25 focus-visible:border-vgu-orange focus-visible:ring-2 focus-visible:ring-vgu-orange/25 disabled:cursor-not-allowed disabled:opacity-60'
+const inputClassName = 'profile-input'
 
 function selectedValuesMatch(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((value) => right.includes(value))
@@ -290,32 +289,30 @@ function OnboardingInterestsEditor({
     mode === 'edit' ? 'profile-edit-compatibility-title' : 'onboarding-compatibility-title'
 
   return (
-    <section className="min-w-0 space-y-6 py-6" aria-labelledby={titleId}>
-      <header className="space-y-2">
-        <Typography
-          variant="small"
-          className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-        >
-          {t(
-            mode === 'edit' ? 'profileEdit.compatibilityEyebrow' : 'onboarding.compatibility.step',
-          )}
-        </Typography>
-        <Typography as={mode === 'edit' ? 'h2' : 'h1'} variant="h2" id={titleId}>
-          {t(mode === 'edit' ? 'profileEdit.compatibilityTitle' : 'onboarding.compatibility.title')}
-        </Typography>
-        <Typography variant="muted" className="max-w-3xl text-base leading-7">
-          {t(
-            mode === 'edit'
-              ? 'profileEdit.compatibilitySubtitle'
-              : 'onboarding.compatibility.subtitle',
-          )}
-        </Typography>
-      </header>
+    <section className="profile-section min-w-0 space-y-5 py-6" aria-labelledby={titleId}>
+      <ProfileSectionHeading
+        id={titleId}
+        Icon={Heart}
+        editing={mode === 'edit'}
+        eyebrow={t(
+          mode === 'edit' ? 'profileEdit.compatibilityEyebrow' : 'onboarding.compatibility.step',
+        )}
+        title={t(
+          mode === 'edit' ? 'profileEdit.compatibilityTitle' : 'onboarding.compatibility.title',
+        )}
+        description={t(
+          mode === 'edit'
+            ? 'profileEdit.compatibilitySubtitle'
+            : 'onboarding.compatibility.subtitle',
+        )}
+      />
 
       <form className="space-y-6" aria-busy={savePreferences.isPending} onSubmit={handleSubmit}>
-        <Card>
+        <Card className="profile-panel">
           <CardHeader>
-            <CardTitle>{t('onboarding.compatibility.interestsTitle')}</CardTitle>
+            <CardTitle className="text-xl">
+              {t('onboarding.compatibility.interestsTitle')}
+            </CardTitle>
             <CardDescription>
               {t('onboarding.compatibility.interestsDescription', { maximum: MAX_INTERESTS })}
             </CardDescription>
@@ -367,7 +364,7 @@ function OnboardingInterestsEditor({
                     )}
                   </p>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="flex flex-wrap gap-3">
                     {filteredInterests.map((interest) => {
                       const checked = selectedInterestIds.includes(interest.id)
                       const disabled =
@@ -376,8 +373,8 @@ function OnboardingInterestsEditor({
                         <label
                           key={interest.id}
                           className={cn(
-                            'flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition hover:border-vgu-orange/70',
-                            checked && 'border-vgu-orange bg-vgu-orange/5',
+                            'flex min-h-12 min-w-0 max-w-full cursor-pointer items-center gap-3 rounded-full border border-border bg-background/50 px-4 py-3 transition-colors hover:border-primary focus-within:ring-2 focus-within:ring-primary motion-reduce:transition-none',
+                            checked && 'border-primary bg-primary/10',
                             disabled && 'cursor-not-allowed opacity-60',
                           )}
                         >
@@ -423,9 +420,11 @@ function OnboardingInterestsEditor({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="profile-panel">
           <CardHeader>
-            <CardTitle>{t('onboarding.compatibility.languagesTitle')}</CardTitle>
+            <CardTitle className="text-xl">
+              {t('onboarding.compatibility.languagesTitle')}
+            </CardTitle>
             <CardDescription>
               {t('onboarding.compatibility.languagesDescription', { maximum: MAX_LANGUAGES })}
             </CardDescription>

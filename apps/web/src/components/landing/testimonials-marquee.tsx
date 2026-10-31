@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
+import { LandingMotionContext } from '@/components/landing/landing-motion'
 import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent } from '@/components/ui/card'
@@ -40,6 +41,7 @@ function usePrefersReducedMotion() {
  * over the row or when `prefers-reduced-motion: reduce` is active.
  */
 function MarqueeRow({ keys, direction }: { keys: readonly string[]; direction: 'left' | 'right' }) {
+  const { paused } = useContext(LandingMotionContext)
   const { t } = useTranslation()
 
   const trackRef = useRef<HTMLDivElement>(null)
@@ -51,7 +53,7 @@ function MarqueeRow({ keys, direction }: { keys: readonly string[]; direction: '
 
   useEffect(() => {
     const track = trackRef.current
-    if (!track || prefersReducedMotion) return
+    if (!track || prefersReducedMotion || paused) return
 
     // Initialise offset for right-scrolling rows so they start from the
     // "far" end and scroll toward 0.
@@ -95,7 +97,7 @@ function MarqueeRow({ keys, direction }: { keys: readonly string[]; direction: '
       window.cancelAnimationFrame(rafRef.current)
       previousTimestampRef.current = null
     }
-  }, [prefersReducedMotion, direction])
+  }, [prefersReducedMotion, direction, paused])
 
   return (
     <div
@@ -139,7 +141,7 @@ function TestimonialsMarquee() {
   return (
     <section
       id="community"
-      className="overflow-hidden bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+      className="landing-community overflow-hidden bg-black px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
       aria-labelledby="community-title"
     >
       <div className="mx-auto mb-12 max-w-7xl text-center sm:mb-16">

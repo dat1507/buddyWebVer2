@@ -90,10 +90,8 @@ function ProfileAvatar({ profile, name }: { profile: OwnProfile; name: string })
 function ProfileDetail({ label, value }: { label: string; value: string | null }) {
   const { t } = useTranslation()
   return (
-    <div className="space-y-1 rounded-xl border border-border/70 bg-background/60 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </dt>
+    <div className="space-y-1 rounded-2xl bg-muted/40 p-4">
+      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
       <dd className="text-sm font-semibold text-foreground">{value || t('profile.notAdded')}</dd>
     </div>
   )
@@ -210,7 +208,7 @@ function LanguageList({
       {preferences.languages.map(({ language_code, proficiency }) => (
         <li
           key={language_code}
-          className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/60 p-3"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-muted/40 p-3"
         >
           <span className="font-semibold">
             {labels.get(language_code) ?? language_code.toUpperCase()}
@@ -303,13 +301,10 @@ function ProfileView({ profile }: { profile: OwnProfile }) {
     <section className="min-w-0 space-y-6 py-6" aria-labelledby="profile-title">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <Typography
-            variant="small"
-            className="font-semibold uppercase tracking-[0.18em] text-vgu-orange"
-          >
+          <Typography variant="small" className="font-semibold text-primary">
             {t('profile.eyebrow')}
           </Typography>
-          <Typography as="h1" variant="h2" id="profile-title">
+          <Typography as="h1" variant="h3" id="profile-title">
             {t('profile.title')}
           </Typography>
           <Typography variant="muted" className="max-w-2xl text-base leading-7">
