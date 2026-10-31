@@ -1,5 +1,9 @@
 # Frontend implementation
 
+2026-10-31: [Final UI blocker disposition](UI_RELEASE_BLOCKERS_2026-10-31.md) and
+[unique security findings](UI_RELEASE_SECURITY_FINDINGS_2026-10-31.md). Local gates complete; scoped exceptions retained;
+exact branch publication/hosted CI and separate Production approval still pending. UI unchanged.
+
 2026-10-31: [Accepted UI pre-release verification](UI_PRE_RELEASE_2026-10-31.md). Filtered UI-only candidate;
 demo excluded, real TLS/Storage and affected regressions verified; NO-GO on existing gates/dev audits
 and absent exact-SHA hosted CI. No release; pre-existing Windows trust preserved.

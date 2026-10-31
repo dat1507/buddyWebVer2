@@ -1,5 +1,14 @@
 # Production status
 
+## 2026-10-31 — Final blocker task read-only trigger verification
+
+Vercel buddy-web-ver2 Production still tracks main with auto-domain assignment; Preview tracks
+all unassigned branches, no custom domain. Render stillLive642fc11/main, AutoDeployOff/PRPreviewsOff,
+pre-deploy override empty. No setting or deployment changed. Candidate remains local/unpublished;
+Production remains unchanged, no new runtime/health/data acceptance claimed. Preview API reveal
+required owner step-up and was cancelled; target remains unverified for authenticated acceptance.
+See final UI blocker report for scoped exceptions and exact publication permission boundary.
+
 ## 2026-10-31 — Dated read-only pre-release provider verification
 
 Vercel buddy-web-ver2 remains ProductionREADY e1a2cc59/main, apps/web/Vite/Node24/default commands;

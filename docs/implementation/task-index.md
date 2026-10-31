@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-31 **Task IDs:** 235
+**Generated:** 2026-10-31 **Task IDs:** 239
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -8,6 +8,10 @@ preserve all matching contract sections and cross-references from the legacy pla
 
 | Task                                                                    | Status                                                      | Priority           | Track               | Dependencies / source note                                                                                                                                                           |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`FE-UI-BLOCKERS-001`](tasks/FE-UI-BLOCKERS-001.md) | LOCAL COMPLETE / PUBLICATION APPROVAL PENDING | Owner-requested | release-maintenance | Compatible security fixes, scoped exceptions and CI push effects verified; no push. |
+| [`SEC-DEV-MINIMATCH-001`](tasks/SEC-DEV-MINIMATCH-001.md) | READY — FOLLOW-UP / NOT ASSIGNED | Owner-requested | release-maintenance | Scoped exception follow-up; separate implementation assignment required. |
+| [`TEST-AUTH-ADMIN-FIXTURES-001`](tasks/TEST-AUTH-ADMIN-FIXTURES-001.md) | READY — FOLLOW-UP / NOT ASSIGNED | Owner-requested | release-maintenance | Scoped exception follow-up; separate implementation assignment required. |
+| [`OPS-ALEMBIC-VERSION-LENGTH-001`](tasks/OPS-ALEMBIC-VERSION-LENGTH-001.md) | READY — FOLLOW-UP / NOT ASSIGNED | Owner-requested | release-maintenance | Scoped exception follow-up; separate implementation assignment required. |
 | [`FE-UI-RELEASE-001`](tasks/FE-UI-RELEASE-001.md) | VERIFICATION COMPLETE — NO-GO / RELEASE BLOCKED | Owner-assigned | frontend/release | UI-only candidate and local gates verified; existing gates/dev-audits and absent hosted candidate CI block release. |
 | [`FE-EXPLORE-WIDE-CARDS-001`](tasks/FE-EXPLORE-WIDE-CARDS-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Wide Explore More cards, responsive padding/icons, aligned actions, preserved routes/status/slider. |
 | [`FE-LANDING-RESOURCE-IMAGES-001`](tasks/FE-LANDING-RESOURCE-IMAGES-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | P1 | frontend | Four supplied resource photos, optimized WebP, 16:9 lazy loading/EN-DE alt text and responsive crop acceptance. |

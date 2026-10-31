@@ -1,5 +1,23 @@
 # Documentation migration validation
 
+## FE-UI-BLOCKERS-001 — 2026-10-31
+
+FE-UI-BLOCKERS-001 LOCAL COMPLETE / AWAITING CANDIDATE PUBLICATION PERMISSION.
+Frozen UI0a43d4e source unchanged; only3 dependency files plus current docs.833 frontend,1421 backend/
+37 opt-in skip +93 image, static/package/build PASS.23 production artifacts byte-identical to prior
+browser verification; full hosted candidate CI remains UNVERIFIED because no push authorized.
+Runtime audits0, Python dev0; npm dev14 entries are one minimatch advisory with scoped exception/
+follow-up. Existing ADMIN/fresh-install failures retained as Task2-authorized frontend-only exceptions.
+Exact924=833+91 exclusion reconciled by executed JSON. RenderOff; Vercelmain Production /otherbranches
+Preview freshly verified. No push/merge/deploy/data/provider/trust change. Stop for exact branch-only
+publication approval, then green hosted CI/Preview and separate Production approval. TASK_ID clear.
+
+Final full833/88 frontend112.46s and1421/37skip backend53.33s; image93. Full format corrected
+after package.json-only warning; both builds/scanner PASS. Exact identical23 artifact files preserve
+prior browser/a11y/integration validity. Original59 paths reviewed;266 application source hashes
+unchanged. Unique35 advisories assessed;34 remediated,1 minimatch scoped tooling exception.
+[Evidence/exceptions](../project-knowledge/frontend/UI_RELEASE_BLOCKERS_2026-10-31.md).
+
 ## FE-UI-RELEASE-001 — 2026-10-31 recovered closeout
 
 FE-UI-RELEASE-001 verification complete; NO-GO. Accepted c1e04e9 frozen, UI-only codex/ui-release-rc

@@ -1,12 +1,32 @@
 # Session handoff
 
+## Current blocker-resolution checkpoint — 2026-10-31
+
+FE-UI-BLOCKERS-001 LOCAL COMPLETE / AWAITING CANDIDATE PUBLICATION PERMISSION.
+Frozen UI0a43d4e source unchanged; only3 dependency files plus current docs.833 frontend,1421 backend/
+37 opt-in skip +93 image, static/package/build PASS.23 production artifacts byte-identical to prior
+browser verification; full hosted candidate CI remains UNVERIFIED because no push authorized.
+Runtime audits0, Python dev0; npm dev14 entries are one minimatch advisory with scoped exception/
+follow-up. Existing ADMIN/fresh-install failures retained as Task2-authorized frontend-only exceptions.
+Exact924=833+91 exclusion reconciled by executed JSON. RenderOff; Vercelmain Production /otherbranches
+Preview freshly verified. No push/merge/deploy/data/provider/trust change. Stop for exact branch-only
+publication approval, then green hosted CI/Preview and separate Production approval. TASK_ID clear.
+
+[Current final report](docs/project-knowledge/frontend/UI_RELEASE_BLOCKERS_2026-10-31.md).
+
 **Updated:** 2026-10-31 (Asia/Saigon)
 **TASK_ID:** NONE
-**Current mode:** Accepted UI candidate prepared / NO-GO / owner decisions required
+**Current mode:** Local UI gates complete / exact branch publication approval pending
 **Repository:** `C:\Users\phuoc\Downloads\buddyWebVer2`
 **Branch:** `codex/ui-release-rc`
 
-## Current pre-release checkpoint — 2026-10-31
+## Prior blocker assignment — 2026-10-31
+
+FE-UI-BLOCKERS-001 IN PROGRESS: owner authorizes scoped dependency remediation and justified
+existing migration/fixture release exceptions with follow-ups. Freeze UI; prepare local exact
+candidate/CI publication effects. No push or release; keep RenderOff. Read assigned task extract.
+
+## Previous pre-release checkpoint — 2026-10-31
 
 FE-UI-RELEASE-001 verification complete; NO-GO. Accepted c1e04e9 frozen, UI-only codex/ui-release-rc
 from freshly fetched origin/maine1a2cc59. Demo runtime and six unpublished chatbot commits excluded.

@@ -1,5 +1,14 @@
 # BuddyWebv2 lightweight implementation plan
 
+Latest2026-10-31: [Final UI blocker disposition](docs/project-knowledge/frontend/UI_RELEASE_BLOCKERS_2026-10-31.md).
+FE-UI-BLOCKERS-001 LOCAL COMPLETE; exact candidate branch publication approval pending. No push/
+release. Scoped migration/Admin/minimatch exceptions and three unassigned follow-ups recorded.
+TASK_ID clear; do not implement follow-ups or publish automatically. RenderOff.
+
+Current owner assignment: [FE-UI-BLOCKERS-001](docs/implementation/tasks/FE-UI-BLOCKERS-001.md)
+LOCAL COMPLETE. Compatible dev-dependency fixes and scoped exceptions verified; reconcile
+UI-only tests/scope; prepare exact hosted CI publication request. No push/merge/deploy; RenderOff.
+
 Latest2026-10-31: [Accepted UI pre-release NO-GO](docs/project-knowledge/frontend/UI_PRE_RELEASE_2026-10-31.md).
 Recovered verification complete; TLS/real Event checks PASS without trust changes. Task clear;
 await scoped remediation/publication decisions. No release or backend/Production change.
