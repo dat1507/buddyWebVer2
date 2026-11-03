@@ -1,3 +1,16 @@
+## EVENT-RECAP-RC-001 - 2026-11-04
+
+Local integration e77d718: frontend925/94 files PASS, backend1868 PASS/37 existing opt-in skips,
+Ruff/mypy328/ESLint/TS/Prettier PASS; fresh/actual0021 migration and API12 PASS, commit recovery3 PASS.
+Production frontend builds, wheel/sdist, actual non-root Docker image/Pillow13/liveness, runtime
+Python/dev and frontend runtime audits, CI YAML/Compose and demo exclusion PASS. Dev npm audit
+retains14 moderate entries/one existing minimatch advisory: FAIL, owner disposition required.
+No additional skips, retries or raised timeouts. Initial selector/host-contention failures and scoped
+follow-ups are explained in the [assessment](../project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+Prior18 responsive axe checks reused only for identical approved UI; hosted browser/CI UNVERIFIED.
+251 extracts /251 unique index links; current links/manifest/application-tree identity validated.
+Production capacity/quotas/backup and Preview isolation remain open. No push/deploy/Production writes.
+
 ## CHATBOT-ACCEPT-001 —2026-11-03
 
 Fresh build9 artifact hashes match served35e source; eight real browser EN/DE queries/citations,

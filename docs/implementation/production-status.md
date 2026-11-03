@@ -1,3 +1,26 @@
+## 2026-11-04 - Events Recap pre-release observations (read-only)
+
+This Nov3-4 session supersedes older pins only for the directly observed fields below.
+Vercel current Production metadata: READY/main/6851725362184af7c85828602b6c881f64374b60,
+deployment dpl_2bmuqvAyM1RnJrCZhVdupmMXBza3. Preview dashboard: all unassigned branches,
+no domains attached. Detailed team-scoped access403; default-scope inventory succeeded. Final
+Production branch configuration and Preview API target/isolation UNVERIFIED; reveal required owner
+verification and was cancelled. No verification email/code or provider setting change.
+Render directly observed live c0687ba8e1253189bd297f60f2d8e8f24e44ecca,
+deployment dep-dbkq3rm7bikc73fj9b6g, branchmain, rootapps/api, Dockerfile./Dockerfile, health
+/api/health/live, Auto-DeployOFF, selectedFree0.1CPU/512MB; no scaling, empty command/predeploy
+fields. Free metrics gated/no data; effectiveCPU label conflicts with selectedplan0.1 (metrics0.15).
+Actual baseline/peak memory/CPU/worker capacity UNVERIFIED. Outbound display4MB this month;
+remaining hours/egress UNVERIFIED. No runtime/load/functional Production acceptance inferred.
+Supabase read-only Alembic scalar:0021_restore_runtime_permissions. Organization planFree.
+Object metadata only:event-media4/964762bytes; profile-images5/1013678bytes, about1.89MiB total.
+These are not billed/remaining quota. Backup dashboard sign-in prevented availability verification;
+no full backup/disposable restore proof established. Vercel dashboard planHobby; usage unknown.
+Local migration/head0023, app compatibility, pressure and gates do not establish Production readiness.
+[Assessment, rollout and owner actions](../project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+Production NO-GO. No Production migration/data/config write, push, deployment, secret/account/billing
+change or cloud resource creation. Render Auto-Deploy remainsOFF.
+
 ## 2026-11-03 —Phase3.5.2 fresh read-only verification
 
 Vercel current aliasREADY/c64/dpl_9qn8NtQWwGGer9kNxQGn9QFkCyyK; retained prior5a deployment

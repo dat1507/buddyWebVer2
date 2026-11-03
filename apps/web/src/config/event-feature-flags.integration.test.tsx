@@ -78,11 +78,14 @@ function renderWithRouter(element: React.ReactNode, path = '/') {
 
 describe('independent Event feature-flag integration', () => {
   beforeEach(async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-31T00:00:00Z'))
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     cleanup()
     useAuthStore.getState().resetSession()
     vi.restoreAllMocks()
@@ -183,7 +186,7 @@ describe('independent Event feature-flag integration', () => {
     useAuthStore.getState().setAuthenticated(user)
     const { client } = renderWithRouter(<App />, '/user/events')
 
-    fireEvent.click(await screen.findByRole('link', { name: `View ${publicEvent.title} details` }))
+    fireEvent.click(await screen.findByRole('link', { name: `View details: ${publicEvent.title}` }))
     expect(await screen.findByRole('heading', { level: 1, name: publicEvent.title })).toBeVisible()
     expect(document.querySelector('[data-layout="user"]')).toBeNull()
     expect(readEvent).toHaveBeenCalledWith(EVENT_ID, 'en', expect.any(AbortSignal))

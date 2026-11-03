@@ -1,3 +1,15 @@
+## 2026-11-04 - EVENT-RECAP-RC-001 local preparation complete
+
+**TASK_ID: NONE.** Local candidate READY FOR HOSTED CI; publication BLOCKED until Preview API
+isolation/final trigger verification and specific owner approval. Production NO-GO.
+Approved 8/8 `bdcd082` UI is preserved. Integrated fresh main `6851725` into
+`codex/events-recap-rc`; tested source merge `e77d718` plus documentation/test-only completion.
+Frontend925 PASS, backend1868 PASS/37 existing skips, static/build/migration/runtime audits PASS.
+Existing dev audit advisory, backup/restore, quotas, Production upload capacity and hosted gates
+remain open. Read the [pre-release assessment](docs/project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+No push/main merge/deploy/Production write/provider change. Preserve Render Auto-Deploy OFF and
+all original worktrees. No implementation task is assigned; next is owner Preview-isolation evidence.
+
 ## 2026-11-03 — EVENT-RECAP-RC-001 assigned
 
 **TASK_ID:** EVENT-RECAP-RC-001. IN PROGRESS — LOCAL PRE-RELEASE ONLY.
@@ -10,7 +22,7 @@ deploy, Production mutation, new cloud resource or provider/billing change autho
 ## Latest Phase3.5.2 continuation —2026-11-03
 
 TASK_ID: NONE. CHATBOT-ACCEPT-001 local acceptance complete / hosted gates UNVERIFIED; NO-GO.
-Exact35e4ea0 browser/API core checks now pass; documentation-only successor on same integration
+Exact35e4ea0 browser/API core checks now pass; documentation/test-only successor on same integration
 branch. Fresh remote/Productionc64 unchanged, Render642 independently confirmed. Read
 [Phase3.5.2 findings](docs/project-knowledge/chatbot/PHASE_3_5_2.md). No push/deploy/cloud mutation.
 No further implementation assigned. Hosted trust/privacy/quota/rollback and exact CI still require

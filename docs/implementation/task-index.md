@@ -2,7 +2,7 @@
 
 | Task | Status |
 | --- | --- |
-| [EVENT-RECAP-RC-001](tasks/EVENT-RECAP-RC-001.md) | IN PROGRESS — LOCAL ONLY |
+| [EVENT-RECAP-RC-001](tasks/EVENT-RECAP-RC-001.md) | DONE - LOCAL RC / PUBLICATION BLOCKED / PRODUCTION NO-GO |
 
 # Latest local implementation
 
@@ -12,7 +12,7 @@
 
 # Task index
 
-**Generated:** 2026-11-03 **Task IDs:** 249
+**Generated:** 2026-11-04 **Task IDs:** 251
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
