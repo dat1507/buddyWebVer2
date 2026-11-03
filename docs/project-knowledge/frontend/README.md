@@ -119,3 +119,5 @@ History and acceptance: [About task](../../implementation/tasks/FE-LANDING-ABOUT
 [CTA task](../../implementation/tasks/FE-LANDING-CTA-001.md),
 [slideshow task](../../implementation/tasks/FE-LANDING-BG-002.md),
 [User Events task](../../implementation/tasks/FE-USER-EVENTS-001.md).
+
+- [Event navigation and Merchandise refinement — local review](EVENT_MERCH_REFINEMENT_2026-11-03.md)

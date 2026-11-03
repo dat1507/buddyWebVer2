@@ -753,3 +753,8 @@
     padding: 40px 24px;
   }
 }
+
+/* Keep the return anchor clear of the sticky navigation. */
+#events {
+  scroll-margin-top: 7rem;
+}

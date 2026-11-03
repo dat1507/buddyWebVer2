@@ -13,7 +13,7 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}
 
 interface EventDetailBackLink {
   label: string
-  to: '/' | '/user/events'
+  to: '/' | '/#events' | '/user/events'
 }
 
 function useEventDetailBackLink(): EventDetailBackLink {
@@ -22,7 +22,14 @@ function useEventDetailBackLink(): EventDetailBackLink {
   const sources = searchParams.getAll('from')
   return sources.length === 1 && sources[0] === 'user-dashboard'
     ? { label: t('eventDetail.backToEventDashboard'), to: '/user/events' }
-    : { label: t('eventDetail.back'), to: '/' }
+    : {
+        label: t(
+          sources.length === 1 && sources[0] === 'landing'
+            ? 'communityComingSoon.back'
+            : 'eventDetail.back',
+        ),
+        to: sources.length === 1 && sources[0] === 'landing' ? '/#events' : '/',
+      }
 }
 
 function EventNotFound({ backLink }: { backLink: EventDetailBackLink }) {

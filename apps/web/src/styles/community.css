@@ -188,3 +188,142 @@ body:has(.user-community) .session-controls button {
     min-height: 280px;
   }
 }
+
+/* Merchandise preview: decorative concepts without purchase controls. */
+.merchandise-page {
+  padding: clamp(48px, 7vw, 104px) 24px;
+  overflow: hidden;
+}
+.merchandise-shell {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 56px;
+}
+.merchandise-copy {
+  min-width: 0;
+}
+.merchandise-eyebrow {
+  color: #596057;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 32px;
+}
+.merchandise-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9e5cf;
+  color: #8d350b;
+  border: 1px solid #e8cbb1;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.merchandise-copy h1 {
+  font-size: clamp(2.25rem, 4.4vw, 4rem);
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+.merchandise-description {
+  color: #596057;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  margin: 24px 0 32px;
+  max-width: 500px;
+}
+.merchandise-art {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  border: 1px solid #d9d8ca;
+  border-radius: 40px;
+  background: #e5ebde;
+}
+.merchandise-orbit {
+  position: absolute;
+  inset: 9%;
+  border: 1px dashed #9cae96;
+  border-radius: 50%;
+}
+.merchandise-shirt {
+  position: absolute;
+  inset: 6% 20% 20% 0;
+  transform: rotate(-10deg);
+  color: #faf6ee;
+  filter: drop-shadow(0 12px 12px #25382f18);
+}
+.merchandise-shirt svg {
+  width: 100%;
+  height: 100%;
+  fill: #faf6ee;
+  stroke: #c8c6b8;
+}
+.merchandise-shirt span {
+  position: absolute;
+  top: 45%;
+  left: 40%;
+  color: #285443;
+  font-size: clamp(0.7rem, 1.2vw, 1rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.merchandise-bag {
+  position: absolute;
+  width: 49%;
+  height: 60%;
+  bottom: 11%;
+  right: 2%;
+  transform: rotate(10deg);
+}
+.merchandise-bag svg {
+  width: 100%;
+  height: 100%;
+  fill: #285443;
+  stroke: #285443;
+}
+.merchandise-bag span {
+  position: absolute;
+  top: 44%;
+  width: 100%;
+  text-align: center;
+  color: #faf6ee;
+  font-size: clamp(0.8rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.merchandise-star {
+  position: absolute;
+  top: 10%;
+  right: 10%;
+  font-size: 3rem;
+  color: #ae410b;
+}
+.merchandise-art-note {
+  position: absolute;
+  bottom: 5%;
+  width: 100%;
+  text-align: center;
+  color: #285443;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+@media (max-width: 850px) {
+  .merchandise-shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    max-width: 580px;
+  }
+  .merchandise-art {
+    width: 100%;
+    max-width: 460px;
+    justify-self: center;
+  }
+}

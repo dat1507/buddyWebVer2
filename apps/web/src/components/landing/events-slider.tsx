@@ -100,7 +100,7 @@ function EventSlide({
     >
       {slide.cta ? (
         <a
-          href={slide.cta.href}
+          href={`${slide.cta.href}?from=landing`}
           tabIndex={active && !clone ? 0 : -1}
           aria-label={`${slide.cta.label}: ${slide.title}`}
           className="group block rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-black"

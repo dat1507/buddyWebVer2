@@ -1,3 +1,10 @@
+## Current assignment — 2026-11-03
+
+TASK_ID: NONE. FE-EVENT-MERCH-001 DONE LOCAL / OWNER UI REVIEW PENDING.
+Branch codex/event-merch-refinement; review server5196, anonymous fixture only.
+[Task](docs/implementation/tasks/FE-EVENT-MERCH-001.md). Verification complete; local commit only;
+no push/merge/deploy/provider change. Older records below remain historical.
+
 # Session handoff
 
 ## Current blocker-resolution checkpoint — 2026-10-31

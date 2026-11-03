@@ -137,7 +137,10 @@ describe('EventsSlider', () => {
     renderSlider(events.slice(0, 1))
 
     const link = screen.getByRole('link', { name: 'View event: Recruitment' })
-    expect(link).toHaveAttribute('href', '/events/11111111-1111-4111-8111-111111111111')
+    expect(link).toHaveAttribute(
+      'href',
+      '/events/11111111-1111-4111-8111-111111111111?from=landing',
+    )
     expect(link).toHaveAttribute('tabindex', '0')
     expect(link).toHaveTextContent('Recruitment')
     expect(screen.queryByText('Meet the community.')).not.toBeInTheDocument()

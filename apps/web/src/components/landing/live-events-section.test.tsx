@@ -67,7 +67,7 @@ describe('FE-014B live Landing Event section', () => {
     renderLive({ listPublished })
 
     const link = await screen.findByRole('link', { name: 'View event: Live Buddy Day' })
-    expect(link).toHaveAttribute('href', event.cta?.href)
+    expect(link).toHaveAttribute('href', `${event.cta?.href}?from=landing`)
     expect(screen.getByRole('img', { name: event.imageAlt })).toHaveAttribute('src', event.imageUrl)
     expect(screen.queryByText(event.description ?? '')).not.toBeInTheDocument()
     expect(screen.queryByText(event.location ?? '')).not.toBeInTheDocument()

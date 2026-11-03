@@ -815,3 +815,10 @@ account was used. No Merchandise or Events Recap functionality is implied by the
   API bootstrap warning; no account/Production acceptance.
 - 234 task/index paths, focused links and whitespace validated. Unrelated TUN_9944.jpg deletion
   preserved and excluded from task commit. No push or Preview/Production deployment.
+
+## FE-EVENT-MERCH-001 — 2026-11-03
+
+Types/lint/focused format/build PASS;37 tests across5 files PASS. Browser18 cases,12 axe runs,
+EN/DE1440/768/390,0 violations/overflow/uncaught errors. Refresh/history/anchor/fallback/Dashboard
+target and reduced motion PASS. [Evidence](../project-knowledge/frontend/EVENT_MERCH_REFINEMENT_2026-11-03.md).
+No backend/Production operation; local anonymous fixtures only. Task-path coverage validated.

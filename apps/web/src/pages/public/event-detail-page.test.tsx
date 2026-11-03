@@ -88,6 +88,19 @@ describe('FE-031 Event detail page', () => {
     vi.clearAllMocks()
   })
 
+  it.each(['en', 'de'])(
+    'keeps Landing origin on a fresh %s URL load and remount',
+    async (language) => {
+      await i18n.changeLanguage(language)
+      const label = language === 'de' ? 'Zurück zu den Events' : 'Back to Events'
+      const view = renderEvent(`/events/${FIRST_ID}?from=landing`)
+      expect(await screen.findByRole('link', { name: label })).toHaveAttribute('href', '/#events')
+      view.unmount()
+      renderEvent(`/events/${FIRST_ID}?from=landing`)
+      expect(await screen.findByRole('link', { name: label })).toHaveAttribute('href', '/#events')
+    },
+  )
+
   it('loads a public direct URL independently of session bootstrap', async () => {
     useAuthStore.getState().startLoading()
     renderEvent()

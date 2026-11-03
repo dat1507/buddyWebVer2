@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-10-31 **Task IDs:** 239
+**Generated:** 2026-11-03 **Task IDs:** 240
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -247,3 +247,5 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`SEM-005`](tasks/SEM-005.md)                                           | DONE / PRESERVED                                            | -                  | semester            | SEM-004, AUTH-018, EVT-008; Backend + Database + Storage + Operations.                                                                                                               |
 | [`SEM-006`](tasks/SEM-006.md)                                           | DONE / PRESERVED                                            | -                  | semester            | SEM-005; Backend + Database + Storage + Operations.                                                                                                                                  |
 | [`SEM-007`](tasks/SEM-007.md)                                           | DONE / PRESERVED                                            | -                  | semester            | SEM-005/006, ADMIN-005; Frontend.                                                                                                                                                    |
+
+| [`FE-EVENT-MERCH-001`](tasks/FE-EVENT-MERCH-001.md) | DONE LOCAL / OWNER UI REVIEW PENDING | Owner-requested | frontend | Event return origin and Merchandise preview; local-only. |
