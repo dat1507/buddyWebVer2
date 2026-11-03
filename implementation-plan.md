@@ -1,3 +1,10 @@
+## 2026-11-03 — EVENT-RECAP-001 assigned
+
+**TASK_ID: EVENT-RECAP-001. IN PROGRESS.** Owner authorizes the complete Events Recap feature,
+sequential local implementation and commits on `codex/events-recap`, from approved `c64fe73`.
+[Task contract](docs/implementation/tasks/EVENT-RECAP-001.md). No push/merge/deploy or Production access.
+Original primary dirty work, unpublished main history and existing worktrees preserved.
+
 ## Current assignment — 2026-11-03
 
 TASK_ID: NONE. FE-EVENT-MERCH-001 DONE LOCAL / OWNER UI REVIEW PENDING.

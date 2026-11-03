@@ -1,3 +1,9 @@
+# Current assigned implementation
+
+| Task | Status |
+| --- | --- |
+| [EVENT-RECAP-001](tasks/EVENT-RECAP-001.md) | IN PROGRESS — LOCAL ONLY |
+
 # Task index
 
 **Generated:** 2026-11-03 **Task IDs:** 240
