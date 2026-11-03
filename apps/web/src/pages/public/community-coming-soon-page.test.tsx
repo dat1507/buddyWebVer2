@@ -7,6 +7,7 @@ import App from '@/App'
 import i18n from '@/i18n'
 import { useAuthStore } from '@/stores/auth-store'
 import { eventSliderRepository } from '@/features/events/repositories/event-slider-repository-provider'
+import * as recaps from '@/features/recaps/recaps'
 import { publicEventsClient } from '@/features/events/public-event'
 
 function renderPath(path: string) {
@@ -26,18 +27,19 @@ describe('public community Coming Soon routes', () => {
     await i18n.changeLanguage('en')
     useAuthStore.getState().clearSession()
     vi.spyOn(eventSliderRepository, 'listPublished').mockResolvedValue([])
+    vi.spyOn(recaps, 'fetchRecaps').mockResolvedValue({
+      items: [],
+      page: 1,
+      total: 0,
+      total_pages: 0,
+      years: [],
+      mosaic: [],
+      pending_cleanup: [],
+    })
   })
 
   it.each([
-    ['en', '/events/recap', 'Previous Events Recap', 'Coming Soon', 'Back to Events'],
     ['en', '/merchandise', 'VGU Buddy Merchandise', 'Coming Soon', 'Back to Events'],
-    [
-      'de',
-      '/events/recap',
-      'Rückblicke auf vergangene Events',
-      'Demnächst verfügbar',
-      'Zurück zu den Events',
-    ],
     ['de', '/merchandise', 'VGU Buddy Merchandise', 'Demnächst verfügbar', 'Zurück zu den Events'],
   ])(
     'loads %s direct %s without auth or Event detail requests',
@@ -45,7 +47,7 @@ describe('public community Coming Soon routes', () => {
       await i18n.changeLanguage(language)
       const readEvent = vi.spyOn(publicEventsClient, 'readEvent')
       renderPath(path)
-      expect(screen.getByRole('heading', { level: 1, name: title })).toBeVisible()
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeVisible()
       const main = screen.getByRole('main')
       expect(within(main).getByText(status)).toBeVisible()
       expect(within(main).getByRole('link', { name: back })).toHaveAttribute('href', '/#events')
@@ -75,11 +77,11 @@ describe('public community Coming Soon routes', () => {
         .map((a) => a.getAttribute('href')),
     ).toEqual(['/events/recap', '/merchandise'])
     for (const [action, title] of [
-      ['Explore Recaps', 'Previous Events Recap'],
+      ['Explore Recaps', 'Moments That Bring Us Together'],
       ['Explore Merchandise', 'VGU Buddy Merchandise'],
     ]) {
       fireEvent.click(screen.getByRole('link', { name: action }))
-      expect(screen.getByRole('heading', { level: 1, name: title })).toBeVisible()
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeVisible()
       fireEvent.click(screen.getByRole('link', { name: 'Back to Events' }))
       expect(screen.getByRole('region', { name: 'Explore More' })).toBeVisible()
     }

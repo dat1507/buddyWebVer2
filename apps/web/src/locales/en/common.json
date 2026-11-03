@@ -1631,6 +1631,7 @@
     "emptyAdmin": "No recaps yet. Create your first memory.",
     "uploadDone": "Upload queue complete.",
     "status": "Publication status",
-    "requiredPublish": "Publishing requires EN/DE titles, summaries, meaningful alt text and at least one photo."
+    "requiredPublish": "Publishing requires EN/DE titles, summaries, meaningful alt text and at least one photo.",
+    "photoUnavailable": "Photo temporarily unavailable"
   }
 }

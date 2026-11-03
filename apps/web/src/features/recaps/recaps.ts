@@ -36,6 +36,7 @@ export const recapListSchema = z.object({
   total_pages: z.number(),
   years: z.array(z.number()),
   mosaic: z.array(recapSchema).max(5),
+  pending_cleanup: z.array(z.string().uuid()).default([]),
 })
 export type RecapPhoto = z.infer<typeof photoSchema>
 export type Recap = z.infer<typeof recapSchema>

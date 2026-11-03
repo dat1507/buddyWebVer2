@@ -16,15 +16,11 @@ export function RecapImage({
 }) {
   const { t, i18n } = useTranslation()
   const ref = useRef<HTMLSpanElement>(null)
-  const [visible, setVisible] = useState(display)
+  const [visible, setVisible] = useState(display || !window.IntersectionObserver)
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const [retry, setRetry] = useState(0)
   useEffect(() => {
     if (visible || !ref.current) return
-    if (!window.IntersectionObserver) {
-      setVisible(true)
-      return
-    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -51,15 +47,19 @@ export function RecapImage({
   return (
     <span ref={ref} className={`recap-image ${display ? 'recap-image-full' : ''}`}>
       {failed ? (
-        <button
-          type="button"
-          onClick={() => {
-            setRetry((value) => value + 1)
-            setFailedUrl(null)
-          }}
-        >
-          {t('recaps.retryImage')}
-        </button>
+        display ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRetry((value) => value + 1)
+              setFailedUrl(null)
+            }}
+          >
+            {t('recaps.retryImage')}
+          </button>
+        ) : (
+          <span>{t('recaps.photoUnavailable')}</span>
+        )
       ) : query.data ? (
         <img
           src={query.data.url}
@@ -68,10 +68,13 @@ export function RecapImage({
           height={photo.height}
           loading={display ? 'eager' : 'lazy'}
           decoding="async"
-          onError={() => setFailedUrl(query.data!.url)}
+          onError={() => {
+            if (retry < 1) setRetry(1)
+            else setFailedUrl(query.data!.url)
+          }}
         />
       ) : (
-        <span className="recap-image-loading" aria-label={t('recaps.loading')} />
+        <span role="status" className="recap-image-loading" aria-label={t('recaps.loading')} />
       )}
     </span>
   )

@@ -1631,6 +1631,7 @@
     "emptyAdmin": "Noch keine Rückblicke. Erstelle die erste Erinnerung.",
     "uploadDone": "Alle Uploads wurden bearbeitet.",
     "status": "Veröffentlichungsstatus",
-    "requiredPublish": "Zur Veröffentlichung sind EN/DE-Titel, Kurzbeschreibungen, aussagekräftige Alternativtexte und mindestens ein Foto erforderlich."
+    "requiredPublish": "Zur Veröffentlichung sind EN/DE-Titel, Kurzbeschreibungen, aussagekräftige Alternativtexte und mindestens ein Foto erforderlich.",
+    "photoUnavailable": "Foto vorübergehend nicht verfügbar"
   }
 }

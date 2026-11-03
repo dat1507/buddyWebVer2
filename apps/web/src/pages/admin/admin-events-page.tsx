@@ -1,3 +1,4 @@
+import { AdminEventsTabs } from '@/features/recaps/admin-events-tabs'
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Plus, Search, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -239,6 +240,7 @@ function AdminEventsPage() {
 
   return (
     <section aria-labelledby={titleId} className="min-w-0 space-y-6 py-6">
+      <AdminEventsTabs />
       <header className="flex min-w-0 flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <Typography
