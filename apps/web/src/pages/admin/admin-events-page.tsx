@@ -166,7 +166,7 @@ function AdminEventsPage() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button asChild variant="outline" size="sm">
               <Link to={`/admin/events/${event.id}/edit`}>
-                {t('adminEvents.edit', { title: eventTitle(event) })}
+                {t('adminEvents.edit')}
               </Link>
             </Button>
             <Button
@@ -177,7 +177,7 @@ function AdminEventsPage() {
               onClick={() => requestDeletion(event)}
             >
               <Trash2 aria-hidden="true" />
-              {t('adminEvents.delete.action', { title: eventTitle(event) })}
+              {t('adminEvents.delete.action')}
             </Button>
           </div>
         ),
