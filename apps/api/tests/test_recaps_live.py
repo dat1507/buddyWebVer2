@@ -373,6 +373,18 @@ async def acceptance(url: str) -> None:
                     },
                 )
             ).status_code == 422
+            linked = await admin.post("/api/admin/recaps", json={"related_event_id": str(event_id)})
+            assert linked.status_code == 201
+            linked_recap = linked.json()
+            event_path = f"/api/admin/events/{event_id}"
+            assert (await admin.delete(event_path, params={"version": 1})).status_code == 409
+            assert (
+                await admin.delete(
+                    f"/api/admin/recaps/{linked_recap['id']}",
+                    params={"version": linked_recap["version"]},
+                )
+            ).status_code == 200
+            assert (await admin.delete(event_path, params={"version": 1})).status_code == 200
             # Pagination has no lifetime record cap; each page is stable and disjoint.
             for index in range(10):
                 new = await admin.post("/api/admin/recaps", json={"title_en": f"History {index}"})

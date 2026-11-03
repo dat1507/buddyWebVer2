@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.recap import Recap
@@ -20,13 +20,21 @@ class RecapEventRelations:
         return None
 
     async def detach_for_delete(self, session: AsyncSession, event_id: UUID) -> None:
-        # Keep historical provenance, including deleted recap tombstones, instead of silently
-        # converting restricted Event content into a standalone public recap.
+        # Never silently convert an active restricted recap into standalone public content.
         related = await session.scalar(
-            select(Recap.id).where(Recap.related_event_id == event_id).limit(1)
+            select(Recap.id)
+            .where(Recap.related_event_id == event_id, Recap.deleted_at.is_(None))
+            .limit(1)
         )
         if related is not None:
             raise EventDependencyConflictError("Event has related recap records.")
+        # Deleted recap tombstones cannot be republished; detach their obsolete FK so deleting
+        # a recap does not permanently block the original Event's existing deletion workflow.
+        await session.execute(
+            update(Recap)
+            .where(Recap.related_event_id == event_id, Recap.deleted_at.is_not(None))
+            .values(related_event_id=None)
+        )
 
 
 RECAP_EVENT_RELATIONS = RecapEventRelations()

@@ -42,6 +42,18 @@ export type RecapPhoto = z.infer<typeof photoSchema>
 export type Recap = z.infer<typeof recapSchema>
 export type RecapList = z.infer<typeof recapListSchema>
 export const isUuid = (id: string | undefined): id is string => z.uuid().safeParse(id).success
+export function relatedEventDate(instant: string | null, timezone: string): string | null {
+  if (!instant) return null
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(instant))
+  return ['year', 'month', 'day']
+    .map((type) => parts.find((part) => part.type === type)!.value)
+    .join('-')
+}
 export const localized = (value: { [key: string]: unknown }, field: string, de: boolean) =>
   String(value[`${field}_${de ? 'de' : 'en'}`] || value[`${field}_${de ? 'en' : 'de'}`] || '')
 

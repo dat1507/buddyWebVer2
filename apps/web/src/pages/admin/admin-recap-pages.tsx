@@ -14,6 +14,7 @@ import {
   isUuid,
   localized,
   mutateRecap,
+  relatedEventDate,
   recapSchema,
   type Recap,
 } from '@/features/recaps/recaps'
@@ -487,7 +488,7 @@ function RecapEditor({ initial }: { initial: Recap }) {
                         title_de: related.title_de,
                         summary_en: related.description_en?.slice(0, 1000) ?? null,
                         summary_de: related.description_de?.slice(0, 1000) ?? null,
-                        event_date: related.start_date?.slice(0, 10) ?? null,
+                        event_date: relatedEventDate(related.start_date, related.timezone),
                       }
                     : {}),
                 })
