@@ -401,6 +401,7 @@
     "caption": "Veranstaltungsübersicht",
     "unavailable": "Nicht angegeben",
     "create": "Veranstaltung erstellen",
+    "editLabel": "Bearbeiten",
     "edit": "{{title}} bearbeiten",
     "ends": "Endet {{date}}",
     "error": "Die Veranstaltungsliste konnte nicht geladen werden.",
@@ -408,6 +409,7 @@
     "empty": "Es sind keine Veranstaltungen vorhanden.",
     "noResults": "Keine Veranstaltungen entsprechen diesen Filtern.",
     "delete": {
+      "label": "Löschen",
       "action": "{{title}} löschen",
       "title": "Veranstaltung löschen?",
       "description": "{{title}} dauerhaft löschen? Dies kann nicht rückgängig gemacht werden. Veranstaltungen mit aktiven Anmeldungen oder einer veröffentlichten Nachbereitung können nicht gelöscht werden.",

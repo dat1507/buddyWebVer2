@@ -165,8 +165,11 @@ function AdminEventsPage() {
         cell: (event) => (
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button asChild variant="outline" size="sm">
-              <Link to={`/admin/events/${event.id}/edit`}>
-                {t('adminEvents.edit')}
+              <Link
+                to={`/admin/events/${event.id}/edit`}
+                aria-label={t('adminEvents.edit', { title: eventTitle(event) })}
+              >
+                {t('adminEvents.editLabel')}
               </Link>
             </Button>
             <Button
@@ -174,10 +177,11 @@ function AdminEventsPage() {
               variant="destructive"
               size="sm"
               disabled={deleteEvent.isPending}
+              aria-label={t('adminEvents.delete.action', { title: eventTitle(event) })}
               onClick={() => requestDeletion(event)}
             >
               <Trash2 aria-hidden="true" />
-              {t('adminEvents.delete.action')}
+              {t('adminEvents.delete.label')}
             </Button>
           </div>
         ),

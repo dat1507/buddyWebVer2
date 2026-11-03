@@ -401,6 +401,7 @@
     "caption": "Event inventory",
     "unavailable": "Not provided",
     "create": "Create Event",
+    "editLabel": "Edit",
     "edit": "Edit {{title}}",
     "ends": "Ends {{date}}",
     "error": "The Event list could not be loaded.",
@@ -408,6 +409,7 @@
     "empty": "There are no Events to show.",
     "noResults": "No Events match these filters.",
     "delete": {
+      "label": "Delete",
       "action": "Delete {{title}}",
       "title": "Delete Event?",
       "description": "Permanently delete {{title}}? This cannot be undone. Events with active registrations or a published recap cannot be deleted.",

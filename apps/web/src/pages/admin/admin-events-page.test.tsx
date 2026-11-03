@@ -125,7 +125,9 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
       'href',
       `/admin/events/${publishedEvent.id}/edit`,
     )
-    expect(screen.getByRole('button', { name: 'Delete Buddy Day' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Edit Buddy Day' })).toHaveTextContent(/^Edit$/)
+    expect(screen.getByRole('button', { name: 'Delete Buddy Day' })).toHaveTextContent(/^Delete$/)
+    expect(table).not.toHaveTextContent('{{title}}')
     expect(screen.queryByText(/object.key|created.by/i)).not.toBeInTheDocument()
   })
 
@@ -278,5 +280,8 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
     expect(screen.getByRole('table', { name: 'Veranstaltungsübersicht' })).toBeVisible()
     expect(screen.getByText('Veröffentlicht')).toBeVisible()
     expect(screen.getByText('Abgesagt')).toBeVisible()
+    expect(await screen.findByRole('link', { name: 'Buddy Day bearbeiten' })).toHaveTextContent(/^Bearbeiten$/)
+    expect(screen.getByRole('button', { name: 'Buddy Day löschen' })).toHaveTextContent(/^Löschen$/)
+    expect(screen.getByRole('table')).not.toHaveTextContent('{{title}}')
   })
 })
