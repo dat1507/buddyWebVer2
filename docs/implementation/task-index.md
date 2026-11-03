@@ -1,8 +1,8 @@
-# Current assigned implementation
+# Latest local implementation
 
 | Task | Status |
 | --- | --- |
-| [EVENT-RECAP-001](tasks/EVENT-RECAP-001.md) | IN PROGRESS — LOCAL ONLY |
+| [EVENT-RECAP-001](tasks/EVENT-RECAP-001.md) | DONE — LOCAL VERIFIED / OWNER REVIEW |
 
 # Task index
 

@@ -1,3 +1,7 @@
+2026-11-03: [Events Recap local implementation, verification and review](../frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Dedicated private recap persistence, hardened derivatives, public gallery and Admin CMS; Alembic 0023
+and version-column fix verified locally only. No release or Production schema change.
+
 # Database, migrations and integrity
 
 PostgreSQL stores private application tables in `app_private`, accessed through SQLAlchemy.

@@ -1,3 +1,17 @@
+## EVENT-RECAP-001 — 2026-11-03 local verification
+
+Full frontend 90 files / 838 PASS, final focused 10 PASS. Backend focused Event/media/API initially
+117 PASS; final image/privacy/cancellation regressions 92 PASS; corrected migration/offline/live
+API 12 PASS; final Event deletion integration 33 PASS. Strict backend typing 140 source files,
+frontend lint/TypeScript/format/build and backend Ruff PASS. One new offline-SQL formatting defect
+was fixed and affected migration gates rerun. No outstanding known failure.
+Real local API/PostgreSQL/Supabase browser workflow 29 PASS + four injected failure paths PASS;
+18 EN/DE ×1440/768/390 axe cases zero violations. Six loaded final public screenshots, keyboard/focus,
+reduced motion and no-overflow verification. Evidence and limitations are in the
+[review report](../project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Task-path coverage: 241 extracts / 241 unique index links, no missing/extra/duplicates.
+Legacy archive preserved. No Production operation, push, merge or deployment.
+
 # Documentation migration validation
 
 ## FE-UI-BLOCKERS-001 — 2026-10-31

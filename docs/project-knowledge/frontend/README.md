@@ -1,3 +1,7 @@
+2026-11-03: [Events Recap local implementation, verification and review](EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Dedicated private recap persistence, hardened derivatives, public gallery and Admin CMS; Alembic 0023
+and version-column fix verified locally only. No release or Production schema change.
+
 # Frontend implementation
 
 2026-10-31: [Final UI blocker disposition](UI_RELEASE_BLOCKERS_2026-10-31.md) and
