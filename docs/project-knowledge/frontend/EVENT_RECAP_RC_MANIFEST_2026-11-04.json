@@ -7,6 +7,10 @@
   "final_candidate": "Commit containing this manifest; exact SHA in delivery. Final successor only changes docs and existing flag-test clock/selector.",
   "included_commits_before_final_successor": [
     {
+      "sha": "006a070449e0ca83771a358a3aa86cec3c2cb8fa",
+      "title": "Record Recap release gates and stabilize existing Events flag regression fixture"
+    },
+    {
       "sha": "e77d7182c30397c134c939b1057d3d73b41d675d",
       "title": "Integrate approved Events Recap with current main and harden upload commit recovery"
     },
