@@ -1,3 +1,12 @@
+## CHATBOT-ACCEPT-001 —2026-11-03
+
+Fresh build9 artifact hashes match served35e source; eight real browser EN/DE queries/citations,
+EN/DE1440/768/390/320 settled bounds, reduced motion, mobile focus/inert, three open/close cycles,
+network retry/OFF503/ON recovery and German429 cooldown verified locally. Prior unchanged full
+1,855 backend/37skip and920 frontend results reused. No source fix or expensive rerun. Hosted
+facts/gaps and physical-device/SR/keyboard/cooldown-expiry limits explicit in
+[Phase3.5.2](../project-knowledge/chatbot/PHASE_3_5_2.md). Registry249 paths; no push/deploy.
+
 # Documentation migration validation
 
 ## CHATBOT-INTEGRATE-001 —2026-11-03

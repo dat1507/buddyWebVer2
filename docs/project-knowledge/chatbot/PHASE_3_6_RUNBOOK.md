@@ -1,5 +1,9 @@
 # Phase 3.6 — proposed release and rollback runbook
 
+2026-11-03 newer continuation: [Phase3.5.2](PHASE_3_5_2.md) closes exact-candidate core browser
+acceptance. Updated sixteen-gate matrix and precise owner acceptance checklist are authoritative;
+Production remains NO-GO. Prior evidence below remains historical; no push/deploy authorized.
+
 ## Current candidate continuation —2026-11-03
 
 [Phase3.5.1](PHASE_3_5_1.md) closes safe Git integration and the actual local Linux artifact gap.

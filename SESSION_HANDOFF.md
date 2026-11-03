@@ -1,3 +1,13 @@
+## Latest Phase3.5.2 continuation —2026-11-03
+
+TASK_ID: NONE. CHATBOT-ACCEPT-001 local acceptance complete / hosted gates UNVERIFIED; NO-GO.
+Exact35e4ea0 browser/API core checks now pass; documentation-only successor on same integration
+branch. Fresh remote/Productionc64 unchanged, Render642 independently confirmed. Read
+[Phase3.5.2 findings](docs/project-knowledge/chatbot/PHASE_3_5_2.md). No push/deploy/cloud mutation.
+No further implementation assigned. Hosted trust/privacy/quota/rollback and exact CI still require
+acceptance/explicit authorization; device/SR and exhaustive keyboard/cooldown-expiry pending.
+Older checkpoints below remain historical; do not repeat passed suites without source changes.
+
 # Latest continuation —2026-11-03 Phase3.5.1
 
 TASK_ID: NONE. CHATBOT-INTEGRATE-001 local integration complete / Production NO-GO.

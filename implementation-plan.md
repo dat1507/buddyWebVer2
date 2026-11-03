@@ -1,3 +1,13 @@
+## Latest Phase3.5.2 continuation —2026-11-03
+
+TASK_ID: NONE. CHATBOT-ACCEPT-001 local acceptance complete / hosted gates UNVERIFIED; NO-GO.
+Exact35e4ea0 browser/API core checks now pass; documentation-only successor on same integration
+branch. Fresh remote/Productionc64 unchanged, Render642 independently confirmed. Read
+[Phase3.5.2 findings](docs/project-knowledge/chatbot/PHASE_3_5_2.md). No push/deploy/cloud mutation.
+No further implementation assigned. Hosted trust/privacy/quota/rollback and exact CI still require
+acceptance/explicit authorization; device/SR and exhaustive keyboard/cooldown-expiry pending.
+Older checkpoints below remain historical; do not repeat passed suites without source changes.
+
 ## Current assignment — 2026-11-03
 
 TASK_ID: NONE. FE-EVENT-MERCH-001 DONE LOCAL / OWNER UI REVIEW PENDING.
@@ -45,7 +55,7 @@ VERIFICATION COMPLETE / NO-GO. Accepted c1e04e9 frozen; isolated UI-only candida
 Local evidence complete; existing gates/dev-audits and absent hosted candidate CI block release.
 Keep Render Auto-Deploy OFF.
 
-**Plan version:** 1.46
+**Plan version:** 1.47
 **Updated:** 2026-11-03
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`

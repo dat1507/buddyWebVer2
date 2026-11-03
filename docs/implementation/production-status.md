@@ -1,3 +1,12 @@
+## 2026-11-03 —Phase3.5.2 fresh read-only verification
+
+Vercel current aliasREADY/c64/dpl_9qn8NtQWwGGer9kNxQGn9QFkCyyK; retained prior5a deployment
+ dpl_EU19m7DJSsrbHNc2CvAZVX53LusX independentlyREADY. Rollback eligibility listing403, unverified.
+Render settings/Compute: Live642fc11, apps/api/./Dockerfile, empty command override, health
+/api/health/live, AutoDeployOff/PRPreviewsOff, Free0.1CPU/512MB/no scaling. No settings changed.
+Worker/env/proxy guarantees/provider log retention/actual quotas/backend rollback remain unknown.
+No new Production runtime/data acceptance. [Findings](../project-knowledge/chatbot/PHASE_3_5_2.md).
+
 # Production status
 
 ## 2026-11-03 — later same-day frontend observation

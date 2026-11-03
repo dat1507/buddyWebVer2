@@ -1,5 +1,9 @@
 # Phase 3.1 — public knowledge and local retrieval
 
+2026-11-03 newer continuation: [Phase3.5.2](PHASE_3_5_2.md) closes exact-candidate core browser
+acceptance. Updated sixteen-gate matrix and precise owner acceptance checklist are authoritative;
+Production remains NO-GO. Prior evidence below remains historical; no push/deploy authorized.
+
 ## Phase3.5.1 continuation —2026-11-03
 
 [Current integration/gate report](PHASE_3_5_1.md) supersedes the old integration/Linux blocker below:
