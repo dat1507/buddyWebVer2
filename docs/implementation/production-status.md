@@ -6,6 +6,15 @@ Render settings/Compute: Live642fc11, apps/api/./Dockerfile, empty command overr
 /api/health/live, AutoDeployOff/PRPreviewsOff, Free0.1CPU/512MB/no scaling. No settings changed.
 Worker/env/proxy guarantees/provider log retention/actual quotas/backend rollback remain unknown.
 No new Production runtime/data acceptance. [Findings](../project-knowledge/chatbot/PHASE_3_5_2.md).
+## 2026-11-03 — Recap cost metadata observation (read-only)
+
+Connected Supabase organization metadata directly returned `plan=free`, `tier=tier_free`.
+The installed connector exposes no account Storage/egress usage endpoint: used/remaining quota,
+current bandwidth and overage controls remain UNVERIFIED. Vercel team inventory provided no billing
+baseline; current Vercel/Render capacity is not verified by this task. No Production business data
+was queried, and no deployment, cloud resource, secret, provider configuration or migration changed.
+Recap implementation and Alembic 0023 exist only on local `codex/events-recap`; this is not a release.
+[Local evidence and quota-check instructions](../project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
 
 # Production status
 

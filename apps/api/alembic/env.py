@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import MutableMapping
-from typing import Literal
+from typing import Any, Literal
 
-from sqlalchemy import pool
+from alembic.ddl.postgresql import PostgresqlImpl
+from sqlalchemy import String, Table, pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -18,6 +19,22 @@ from app.models import Base
 config = context.config
 
 target_metadata = Base.metadata
+
+
+class BuddyPostgresqlImpl(PostgresqlImpl):
+    """Preserve published revision IDs beyond Alembic's default 32 characters."""
+
+    __dialect__ = "postgresql"
+
+    def version_table_impl(self, **kw: Any) -> Table:
+        version_table = super().version_table_impl(**kw)
+        version_table.c.version_num.type = String(128)
+        return version_table
+
+
+_VERSION_CAPACITY_SQL = (
+    "ALTER TABLE IF EXISTS public.alembic_version ALTER COLUMN version_num TYPE VARCHAR(128)"
+)
 
 type ObjectType = Literal[
     "schema",
@@ -71,11 +88,14 @@ def run_migrations_offline() -> None:
     )
 
     with context.begin_transaction():
+        context.execute(_VERSION_CAPACITY_SQL)
         context.run_migrations()
 
 
 def do_run_migrations(connection: Connection) -> None:
     """Configure and run migrations on a synchronous connection facade."""
+    with connection.begin():
+        connection.exec_driver_sql(_VERSION_CAPACITY_SQL)
     context.configure(
         connection=connection,
         target_metadata=target_metadata,

@@ -1,3 +1,15 @@
+# Current release preparation
+
+| Task | Status |
+| --- | --- |
+| [EVENT-RECAP-RC-001](tasks/EVENT-RECAP-RC-001.md) | IN PROGRESS — LOCAL ONLY |
+
+# Latest local implementation
+
+| Task | Status |
+| --- | --- |
+| [EVENT-RECAP-001](tasks/EVENT-RECAP-001.md) | DONE — LOCAL VERIFIED / OWNER REVIEW |
+
 # Task index
 
 **Generated:** 2026-11-03 **Task IDs:** 249

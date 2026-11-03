@@ -1,3 +1,12 @@
+## 2026-11-03 — EVENT-RECAP-RC-001 assigned
+
+**TASK_ID:** EVENT-RECAP-RC-001. IN PROGRESS — LOCAL PRE-RELEASE ONLY.
+Owner approves all eight UI/function categories of frozen `bdcd082` on `codex/events-recap`.
+Integrate in `codex/events-recap-rc` from freshly fetched `origin/main` `6851725`.
+Preserve newer Admin labels and main's existing gated-OFF chatbot bytes; no unrelated implementation.
+Read [task contract](docs/implementation/tasks/EVENT-RECAP-RC-001.md). No push, merge to main,
+deploy, Production mutation, new cloud resource or provider/billing change authorized.
+
 ## Latest Phase3.5.2 continuation —2026-11-03
 
 TASK_ID: NONE. CHATBOT-ACCEPT-001 local acceptance complete / hosted gates UNVERIFIED; NO-GO.
@@ -17,6 +26,29 @@ Prior a1aa protected; original HEADs/indexes intact.256 hashes matched before co
 doc updates; final251 same/five newer docs and one new task retained. No task-owned push/deploy.
 Read docs/project-knowledge/chatbot/PHASE_3_5_1.md and the current Phase3.6 gate/runbook before release.
 No follow-up is assigned. Hosted trust/privacy/CI and finalc64 browser acceptance remain unverified.
+## 2026-11-03 — EVENT-RECAP-001 local completion
+
+**TASK_ID:** NONE. **EVENT-RECAP-001: DONE — LOCAL VERIFIED / OWNER REVIEW.**
+The complete public Recap gallery/detail and Admin CMS are implemented in isolated worktree
+`.local/worktrees/events-recap`, branch `codex/events-recap`, from approved `c64fe73`.
+Implementation checkpoints: `a6eb554`, `6d49854`, `2644781`, `536fcb1`.
+Full frontend 838/90 PASS; final focused 10 PASS; backend image/security 92, migration/live 12,
+and final Event/API 33 PASS; strict typing 140 source files, lint/format/build PASS.
+Real local PostgreSQL + Supabase Storage browser workflow 29 PASS, four failure paths PASS,
+18 EN/DE responsive accessibility cases with zero violations; screenshots visually reviewed.
+[Review, architecture, costs and restart instructions](docs/project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Review: https://127.0.0.1:5197/events/recap . Supabase organization plan Free directly confirmed;
+current remaining Storage/egress/Render capacity UNVERIFIED. No new cloud resources, provider
+changes, Production data access, Production migration, push, merge or deployment. Preserve Render
+Auto-Deploy OFF. Primary dirty work, unrelated commits and worktrees preserved.
+Next: owner local review. Release and any Production operation require a separate request.
+
+## 2026-11-03 — EVENT-RECAP-001 assigned
+
+**TASK_ID: EVENT-RECAP-001. IN PROGRESS.** Owner authorizes the complete Events Recap feature,
+sequential local implementation and commits on `codex/events-recap`, from approved `c64fe73`.
+[Task contract](docs/implementation/tasks/EVENT-RECAP-001.md). No push/merge/deploy or Production access.
+Original primary dirty work, unpublished main history and existing worktrees preserved.
 
 ## Current assignment — 2026-11-03
 

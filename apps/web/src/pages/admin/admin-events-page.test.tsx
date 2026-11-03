@@ -278,9 +278,11 @@ describe('ADMIN-006 guarded Admin Event inventory', () => {
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     expect(await screen.findByRole('heading', { name: 'Veranstaltungsverwaltung' })).toBeVisible()
     expect(screen.getByRole('table', { name: 'Veranstaltungsübersicht' })).toBeVisible()
-    expect(screen.getByText('Veröffentlicht')).toBeVisible()
-    expect(screen.getByText('Abgesagt')).toBeVisible()
-    expect(await screen.findByRole('link', { name: 'Buddy Day bearbeiten' })).toHaveTextContent(/^Bearbeiten$/)
+    expect(await within(screen.getByRole('table')).findByText('Veröffentlicht')).toBeVisible()
+    expect(await within(screen.getByRole('table')).findByText('Abgesagt')).toBeVisible()
+    expect(await screen.findByRole('link', { name: 'Buddy Day bearbeiten' })).toHaveTextContent(
+      /^Bearbeiten$/,
+    )
     expect(screen.getByRole('button', { name: 'Buddy Day löschen' })).toHaveTextContent(/^Löschen$/)
     expect(screen.getByRole('table')).not.toHaveTextContent('{{title}}')
   })
