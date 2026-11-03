@@ -46,6 +46,7 @@ from app.services.events import (
     update_event_draft,
 )
 from app.services.image_storage import ImageStorageService
+from app.services.recap_relations import RECAP_EVENT_RELATIONS
 
 _PRIVATE_HEADERS: Final = {
     "Cache-Control": "private, no-store",
@@ -265,7 +266,9 @@ async def delete_admin_event(
 ) -> EventDeleteResponse:
     """Delete an eligible Event atomically, then attempt non-transactional object cleanup."""
     try:
-        plan = await delete_event(session, current_admin, event_id, version=version)
+        plan = await delete_event(
+            session, current_admin, event_id, version=version, relations=RECAP_EVENT_RELATIONS
+        )
         await record_audit_log(
             session,
             current_admin,

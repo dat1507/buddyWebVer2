@@ -25,6 +25,8 @@ from app.api.matching import router as matching_router
 from app.api.profile import router as profile_router
 from app.api.profile_catalogs import router as profile_catalogs_router
 from app.api.profile_photos import router as profile_photos_router
+from app.api.recaps import admin_router as admin_recaps_router
+from app.api.recaps import public_router as recaps_router
 from app.core.config import (
     AuthConfigurationError,
     DatabaseConfigurationError,
@@ -70,6 +72,8 @@ app.add_middleware(
 )
 
 app.include_router(health_router)
+app.include_router(recaps_router)
+app.include_router(admin_recaps_router)
 app.include_router(auth_router)
 app.include_router(events_router)
 app.include_router(event_media_router)

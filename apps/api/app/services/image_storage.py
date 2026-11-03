@@ -459,6 +459,17 @@ class ImageStorageService:
             height=prepared.height,
         )
 
+    async def upload_prepared_image(
+        self, reference: StorageObjectRef, prepared: PreparedImage
+    ) -> None:
+        """Store trusted upload-time derivatives; never accept this DTO from an API payload."""
+        if not 1 <= prepared.byte_size == len(prepared.content) <= MAX_IMAGE_BYTES:
+            raise ImageValidationError("Prepared image byte size is invalid.")
+        _validate_dimensions(prepared.width, prepared.height)
+        if reference.bucket is not ImageBucket.EVENT_MEDIA or prepared.mime_type != "image/webp":
+            raise ImageValidationError("Derivative target is invalid.")
+        await self._transport.upload(reference, prepared.content, prepared.mime_type)
+
     async def delete_image(self, reference: StorageObjectRef) -> None:
         await self._transport.delete(reference)
 
@@ -527,12 +538,18 @@ def prepare_image(
     original_name: str,
     declared_content_type: str,
     content: bytes,
+    maximum_output_dimension: int | None = None,
 ) -> PreparedImage:
     """Verify, fully decode and metadata-free re-encode one supported image."""
     if not content:
         raise ImageValidationError("Image file is empty.")
     if len(content) > MAX_IMAGE_BYTES:
         raise ImageValidationError("Image file exceeds the 5 MiB limit.")
+    if (
+        maximum_output_dimension is not None
+        and not 1 <= maximum_output_dimension <= MAX_IMAGE_DIMENSION
+    ):
+        raise ImageValidationError("Output image bound is invalid.")
 
     extension = _validate_file_name(original_name)
     mime_type = declared_content_type.strip().casefold()
@@ -563,6 +580,12 @@ def prepare_image(
                 normalized = ImageOps.exif_transpose(decoded)
                 width, height = normalized.size
                 _validate_dimensions(width, height)
+                if maximum_output_dimension is not None:
+                    normalized.thumbnail(
+                        (maximum_output_dimension, maximum_output_dimension),
+                        Image.Resampling.LANCZOS,
+                    )
+                    width, height = normalized.size
                 prepared_content = _encode_without_metadata(normalized, expected_format[0])
     except ImageValidationError:
         raise
