@@ -1,0 +1,274 @@
+[
+  {
+    "id": "website-overview",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/routes/user-routes.ts"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/api/app/services/invitation_acceptance.py"
+      }
+    ],
+    "en": {
+      "questions": ["How does BuddyWeb work?", "What can I do on BuddyWeb?"],
+      "answer": "Register and sign in, then complete your profile. Buddy Matching shows compatible eligible peers; invitations let you request a connection. An accepted invitation creates a Buddy relationship and conversation. Events depend on the enabled site features. The assistant and campus dashboard routes remain placeholders.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie funktioniert BuddyWeb?",
+        "Was kann ich auf BuddyWeb machen?"
+      ],
+      "answer": "Registriere dich, melde dich an und vervollständige dein Profil. Buddy Matching zeigt passende berechtigte Mitstudierende; per Einladung kannst du eine Verbindung anfragen. Eine angenommene Einladung erstellt eine Buddy-Beziehung und einen Chat. Events hängen von aktivierten Website-Funktionen ab. Assistant und Campus im Dashboard sind noch Platzhalter.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-register",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/public/user-registration-page.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How do I register?",
+        "How can I create a BuddyWeb account?",
+        "How can a user register?"
+      ],
+      "answer": "Open /register, enter your email and password, accept the required consent, and submit. After successful registration the website takes you to /login. Sign in to set up your profile and manage email verification.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie registriere ich mich?",
+        "Wie erstelle ich ein BuddyWeb-Konto?",
+        "Wie melde ich mich an?"
+      ],
+      "answer": "Öffne /register, gib E-Mail-Adresse und Passwort ein, erteile die erforderliche Einwilligung und sende das Formular ab. Nach erfolgreicher Registrierung führt die Website zu /login. Melde dich an, um dein Profil einzurichten und deine E-Mail zu bestätigen.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-verification",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/public/email-verification-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/settings-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/api/app/services/email_verification.py"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How do I verify my email?",
+        "How can I register and verify an email?",
+        "What if my verification link expires?"
+      ],
+      "answer": "Register at /register, then sign in. Manage email verification in /user/settings, request a verification email, and open its link while signed in to the matching account. Confirm on the verification page. Links are single-use and expire after 15 minutes; request a new link if needed.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie bestätige ich meine E-Mail?",
+        "Wie kann ich mich registrieren und meine E-Mail bestätigen?",
+        "Was mache ich bei einem abgelaufenen Bestätigungslink?"
+      ],
+      "answer": "Registriere dich unter /register und melde dich an. Verwalte die E-Mail-Bestätigung unter /user/settings, fordere eine Bestätigungs-E-Mail an und öffne den Link, während du im zugehörigen Konto angemeldet bist. Bestätige auf der Verifizierungsseite. Links sind einmalig und 15 Minuten gültig; fordere bei Bedarf einen neuen an.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-matching",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/api/app/services/matching_eligibility.py"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/api/app/services/matching_scoring.py"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/matching-page.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How does Buddy Matching work?",
+        "How do recommendations work?",
+        "How can I find a Buddy?"
+      ],
+      "answer": "Verify your email, complete your profile and opt in to matching. On /user/matching, eligible peers are ranked using shared interests, activities, availability and languages. Compatibility is a recommendation, not an automatic assignment. Send an invitation to request a connection.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie funktioniert Buddy Matching?",
+        "Wie funktionieren Empfehlungen?",
+        "Wie finde ich einen Buddy?"
+      ],
+      "answer": "Bestätige deine E-Mail, vervollständige dein Profil und aktiviere Matching. Unter /user/matching werden berechtigte Mitstudierende anhand gemeinsamer Interessen, Aktivitäten, Verfügbarkeit und Sprachen sortiert. Kompatibilität ist eine Empfehlung, keine automatische Zuweisung. Sende eine Einladung, um eine Verbindung anzufragen.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-invitations",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/matching-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/api/app/services/invitation_acceptance.py"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How do I send an invitation?",
+        "How can users send invitations?",
+        "How do I invite a student?"
+      ],
+      "answer": "On /user/matching, choose Send Invitation on a recommendation and submit the invitation dialog. Existing pending invitations can disable sending another. The recipient may accept or decline; acceptance creates the Buddy relationship and conversation. The chatbot cannot check an individual invitation.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie sende ich eine Einladung?",
+        "Wie können Nutzer Einladungen senden?",
+        "Wie lade ich jemanden ein?"
+      ],
+      "answer": "Wähle unter /user/matching bei einer Empfehlung Send Invitation und sende den Einladungsdialog ab. Eine bereits offene Einladung kann eine weitere verhindern. Empfangende können annehmen oder ablehnen; die Annahme erstellt die Buddy-Beziehung und den Chat. Der Chatbot kann einzelne Einladungen nicht prüfen.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-view-profile",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/matching-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/features/matching/recommendation-profile-dialog.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How do I view another student profile?",
+        "How can I view another student's profile?",
+        "How do I open View Profile?"
+      ],
+      "answer": "On a recommendation card in /user/matching, choose View Profile to open the selected student detail dialog. It shows only the allowed profile information and compatibility explanation. This chatbot cannot open or retrieve a student profile for you.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie sehe ich das Profil eines anderen Studierenden?",
+        "Wie öffne ich View Profile?"
+      ],
+      "answer": "Wähle auf einer Empfehlungskarte unter /user/matching View Profile, um den Profildialog zu öffnen. Er zeigt nur freigegebene Profilinformationen und die Kompatibilitätserklärung. Dieser Chatbot kann kein Studierendenprofil für dich öffnen oder abrufen.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-events",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/user-events-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/routes/user-routes.ts"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/features/events/event-slider.ts"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where can I find events?",
+        "Where are upcoming events?",
+        "How do I register for an event?"
+      ],
+      "answer": "Use Events on the home page. When public Events are enabled, the signed-in Events tab uses the same first five entries as the home slider. View Details opens an event; Register appears only when an enabled registration link exists. The chatbot does not fetch live events or register you.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo finde ich Events?",
+        "Wo finde ich Veranstaltungen?",
+        "Wie melde ich mich für eine Veranstaltung an?"
+      ],
+      "answer": "Nutze Events auf der Startseite. Wenn öffentliche Events aktiviert sind, zeigt der Events-Tab nach der Anmeldung dieselben ersten fünf Einträge wie der Slider. View Details öffnet ein Event; Register erscheint nur bei aktiviertem Anmeldelink. Der Chatbot ruft keine aktuellen Events ab und meldet dich nicht an.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "website-buddy-chat",
+    "category": "buddyweb-guide",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/pages/user/current-buddy-route-page.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/features/matching/invitation-sections.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How do I chat with my Buddy?",
+        "Where can I start chatting?"
+      ],
+      "answer": "After an invitation is accepted, use My Buddy at /user/buddy or Start chatting from an accepted invitation. Conversations are for authorized participants. The chatbot cannot read or send private messages.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie chatte ich mit meinem Buddy?",
+        "Wo kann ich einen Chat starten?"
+      ],
+      "answer": "Nutze nach einer angenommenen Einladung My Buddy unter /user/buddy oder Start chatting bei einer angenommenen Einladung. Chats sind nur für berechtigte Teilnehmende zugänglich. Der Chatbot kann private Nachrichten weder lesen noch senden.",
+      "keywords": []
+    }
+  }
+]

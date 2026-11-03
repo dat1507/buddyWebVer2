@@ -1,0 +1,36 @@
+[
+  {
+    "id": "buddy-help",
+    "category": "faq",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/layout/footer.tsx"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/landing/benefits-grid.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where can I get help?",
+        "How can I contact the Buddy team?",
+        "What is the Buddy contact email?"
+      ],
+      "answer": "For Buddy Program questions, the BuddyWeb footer provides Contact Us at vgubuddy@vgu.edu.vn. For university services, use Campus Resources to reach the relevant official service.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo bekomme ich Hilfe?",
+        "Wie kontaktiere ich das Buddy-Team?",
+        "Wie lautet die Buddy-Kontaktadresse?"
+      ],
+      "answer": "Bei Fragen zum Buddy Program findest du im BuddyWeb-Footer Contact Us mit vgubuddy@vgu.edu.vn. Für Universitätsdienste führt Campus Resources zur jeweiligen offiziellen Stelle.",
+      "keywords": []
+    }
+  }
+]

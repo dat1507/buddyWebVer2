@@ -1,0 +1,27 @@
+[
+  {
+    "id": "vgu-overview",
+    "category": "vgu",
+    "status": "verified_official",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "VGU institutional introduction",
+        "reference": "https://icsud.vgu.edu.vn/about-us/"
+      }
+    ],
+    "en": {
+      "questions": ["What is VGU?", "What is Vietnamese-German University?"],
+      "answer": "Vietnamese-German University (VGU) is a public university in Vietnam established in 2008 through cooperation between Vietnam and Germany. See the official VGU website for study information.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Was ist VGU?",
+        "Was ist die Vietnamese-German University?"
+      ],
+      "answer": "Die Vietnamese-German University (VGU) ist eine öffentliche Universität in Vietnam, die 2008 durch die Zusammenarbeit Vietnams und Deutschlands gegründet wurde. Studieninformationen findest du auf der offiziellen VGU-Website.",
+      "keywords": []
+    }
+  }
+]

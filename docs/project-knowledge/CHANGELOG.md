@@ -1,5 +1,7 @@
 # Reconstructed technical milestones
 
+2026-11-03 local milestone: [safe chatbot integration](chatbot/PHASE_3_5_1.md) onto current approved UI/security5a, protected priora1aa, actual Linux artifact and local regressions. No push/deploy; hosted proxy/logging/CI gates remain open.
+
 Dates below are Git commit dates unless explicitly attributed to an operations record.
 Commits are local Git evidence; inspect with `git show <sha>`. This log does not assign
 personal authorship or imply deployment on commit date. Detailed behavior lives in

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "dormitory-information",
+    "category": "accommodation",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/landing/benefits-grid.tsx"
+      },
+      {
+        "title": "VGU Dormitory portal",
+        "reference": "https://dorm.vgu.edu.vn/"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where can I find dormitory information?",
+        "How can I contact the dormitory service?"
+      ],
+      "answer": "BuddyWeb links to the official Dormitory Service at https://dorm.vgu.edu.vn/. Check that service for current applications, room availability and fees. Historical room prices and check-in deadlines have not been confirmed for this prototype.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo finde ich Wohnheiminformationen?",
+        "Wie erreiche ich den Wohnheimservice?"
+      ],
+      "answer": "BuddyWeb verlinkt den offiziellen Dormitory Service unter https://dorm.vgu.edu.vn/. Dort findest du aktuelle Auskünfte zu Anträgen, freien Zimmern und Gebühren. Historische Zimmerpreise und Check-in-Fristen sind für diesen Prototyp nicht bestätigt.",
+      "keywords": []
+    }
+  }
+]

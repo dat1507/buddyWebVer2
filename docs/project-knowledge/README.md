@@ -1,5 +1,7 @@
 # BuddyWebv2 technical knowledge base
 
+2026-11-03 incremental scope: [Phase3.5.1 chatbot integration](chatbot/PHASE_3_5_1.md), local candidate on approvedc64; Production NO-GO. Historical global audit checkpoint below is unchanged.
+
 Audited 2026-10-17 (Asia/Saigon). Source baseline:
 `794a1a4530f3770f4e67b2863ebf658c8c0078d2` on `main` (211 reachable commits).
 This is a documentation audit, not a fresh runtime or Production acceptance.

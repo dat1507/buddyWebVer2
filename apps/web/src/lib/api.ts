@@ -11,6 +11,7 @@ type ApiErrorCode =
   | 'configuration'
   | 'cancelled'
   | 'csrf'
+  | 'timeout'
 
 type InvitationApiErrorReason =
   | 'INVITATION_MESSAGE_TOO_MANY_WORDS'
@@ -113,22 +114,32 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
     throw new ApiError(0, 'configuration')
   }
   const method = options.method ?? 'GET'
-  if (method !== 'GET' && !options.csrfToken) throw new ApiError(0, 'csrf')
+  // This one public POST is a stateless read; never send session cookies or acquire CSRF.
+  // All other mutation paths retain the existing credential/CSRF contract.
+  const publicChatbot = path === '/chatbot/query' && method === 'POST'
+  if (method !== 'GET' && !publicChatbot && !options.csrfToken) throw new ApiError(0, 'csrf')
   const controller = new AbortController()
   const abort = () => controller.abort()
   if (options.signal?.aborted) abort()
   options.signal?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(abort, 15_000)
+  let timedOut = false
+  const timeout = setTimeout(
+    () => {
+      timedOut = true
+      abort()
+    },
+    publicChatbot ? 8_000 : 15_000,
+  )
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
       method,
-      credentials: 'include',
-      cache: path.startsWith('/auth/') ? 'no-store' : 'default',
+      credentials: publicChatbot ? 'omit' : 'include',
+      cache: publicChatbot || path.startsWith('/auth/') ? 'no-store' : 'default',
       headers: {
         Accept: 'application/json',
         ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
         ...(options.binaryBody === undefined ? {} : { 'Content-Type': options.contentType! }),
-        ...(method === 'GET' ? {} : { 'X-CSRF-Token': options.csrfToken! }),
+        ...(method === 'GET' || publicChatbot ? {} : { 'X-CSRF-Token': options.csrfToken! }),
       },
       body:
         options.binaryBody ??
@@ -180,7 +191,10 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
     }
   } catch (error) {
     if (error instanceof ApiError) throw error
-    throw new ApiError(0, options.signal?.aborted ? 'cancelled' : 'network')
+    throw new ApiError(
+      0,
+      options.signal?.aborted ? 'cancelled' : publicChatbot && timedOut ? 'timeout' : 'network',
+    )
   } finally {
     clearTimeout(timeout)
     options.signal?.removeEventListener('abort', abort)

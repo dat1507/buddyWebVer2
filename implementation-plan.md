@@ -7,6 +7,26 @@ no push/merge/deploy/provider change. Older records below remain historical.
 
 # BuddyWebv2 lightweight implementation plan
 
+## Phase3.5.1 completed locally —2026-11-03
+
+**TASK_ID:** NONE. CHATBOT-INTEGRATE-001 DONE — LOCAL VERIFIED / PRODUCTION NO-GO.
+Candidate codex/chatbot-phase35-integration starts from approved origin/mainc64; one focused local
+integration commit, unpushed. Prior a1aa protected by codex/chatbot-phase35-preserved. All seven
+original worktree HEADs/indexes preserved; initial256 hashes matched, final251 same/five external
+newer documentation versions retained. Local main9ec unchanged.
+Current UI/Pillow13/Zod4.6.6/locks/CI retained; exact knowledge bytes unchanged. Actual production
+Linux image/probe PASS; final backend1,855 PASS/37 opt-in SKIP, frontend 920 PASS; static/build/wheel/
+runtime audits and bounded HTTP gates PASS. Actual hosted peer/header trust, logging/retention,
+exact candidate CI/rollback eligibility/quota acceptance and finalc64 EN/DE/device/SR browser checks
+are UNVERIFIED. Browser control ended before screenshots; no Production acceptance is inferred.
+No push/deploy/cloud/data/env/account mutation, inference or paid resource. Keep chatbot flags/AI OFF.
+
+Read [current integration report](docs/project-knowledge/chatbot/PHASE_3_5_1.md),
+[task](docs/implementation/tasks/CHATBOT-INTEGRATE-001.md) and
+[future runbook](docs/project-knowledge/chatbot/PHASE_3_6_RUNBOOK.md). No task is assigned next.
+Do not start an old READY follow-up or publish automatically. Earlier records below are historical.
+
+
 Latest2026-10-31: [Final UI blocker disposition](docs/project-knowledge/frontend/UI_RELEASE_BLOCKERS_2026-10-31.md).
 FE-UI-BLOCKERS-001 LOCAL COMPLETE; exact candidate branch publication approval pending. No push/
 release. Scoped migration/Admin/minimatch exceptions and three unassigned follow-ups recorded.
@@ -25,8 +45,8 @@ VERIFICATION COMPLETE / NO-GO. Accepted c1e04e9 frozen; isolated UI-only candida
 Local evidence complete; existing gates/dev-audits and absent hosted candidate CI block release.
 Keep Render Auto-Deploy OFF.
 
-**Plan version:** 1.37
-**Updated:** 2026-10-17
+**Plan version:** 1.46
+**Updated:** 2026-11-03
 **Legacy archive:** `implementation_plan_vgu_buddy.md`
 **Task registry:** `docs/implementation/task-index.md`
 **Phase 2 roadmap:** `docs/implementation/phase-2-roadmap.md`

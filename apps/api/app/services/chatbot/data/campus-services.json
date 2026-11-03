@@ -1,0 +1,90 @@
+[
+  {
+    "id": "campus-resources",
+    "category": "campus-services",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/landing/benefits-grid.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "What services are available at VGU?",
+        "Where can I find campus services?",
+        "What campus resources are linked?"
+      ],
+      "answer": "BuddyWeb links to the VGU Library, Sports Complex, International Office and Dormitory Service in Campus Resources on the home page. Open the official service page for current rules, availability and contacts.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Welche Dienste gibt es an der VGU?",
+        "Wo finde ich Campus-Dienste?",
+        "Welche Campus-Angebote sind verlinkt?"
+      ],
+      "answer": "BuddyWeb verlinkt auf der Startseite unter Campus Resources die VGU Library, den Sports Complex, das International Office und den Dormitory Service. Aktuelle Regeln, Verfügbarkeit und Kontakte findest du auf den offiziellen Seiten.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "library-services",
+    "category": "campus-services",
+    "status": "verified_official",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "VGU Library print-copy-scan services",
+        "reference": "https://library.vgu.edu.vn/print-copy-scan-services/"
+      }
+    ],
+    "en": {
+      "questions": [
+        "What library services are available?",
+        "How can I print at the library?",
+        "Where can I print documents?"
+      ],
+      "answer": "VGU Library provides printing, copying and scanning. Ask library staff to add credit before printing or copying. Check the official service page for current charges: https://library.vgu.edu.vn/print-copy-scan-services/. Contact: library@vgu.edu.vn.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Welche Bibliotheksdienste gibt es?",
+        "Wie kann ich in der Bibliothek drucken?",
+        "Wo kann ich Dokumente drucken?"
+      ],
+      "answer": "Die VGU Library bietet Drucken, Kopieren und Scannen an. Bitte das Bibliothekspersonal vor dem Drucken oder Kopieren, Guthaben aufzuladen. Aktuelle Gebühren: https://library.vgu.edu.vn/print-copy-scan-services/. Kontakt: library@vgu.edu.vn.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "international-help",
+    "category": "campus-services",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/landing/benefits-grid.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where is the International Office website?",
+        "Where can international students get help?"
+      ],
+      "answer": "Use the International Office link in BuddyWeb Campus Resources: https://vgu.edu.vn/international-office. Confirm current contacts and appointment arrangements there; this prototype does not confirm historical room numbers or office hours.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo finde ich die Website des International Office?",
+        "Wo bekommen internationale Studierende Hilfe?"
+      ],
+      "answer": "Nutze den Link zum International Office unter Campus Resources: https://vgu.edu.vn/international-office. Prüfe dort aktuelle Kontakte und Terminvereinbarungen; historische Raumnummern und Sprechzeiten sind hier nicht bestätigt.",
+      "keywords": []
+    }
+  }
+]

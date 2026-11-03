@@ -1,0 +1,63 @@
+[
+  {
+    "id": "buddy-program-overview",
+    "category": "buddy-program",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/locales/en/common.json"
+      },
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/routes/user-routes.ts"
+      }
+    ],
+    "en": {
+      "questions": [
+        "What is the VGU Buddy Program?",
+        "What does the Buddy Program do?"
+      ],
+      "answer": "BuddyWeb presents the VGU Buddy community as a way to connect with compatible peers, discover shared interests and build friendships. Website matching and invitations support these connections. Ask the program team about institutional participation rules.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Was ist das VGU Buddy Program?",
+        "Was macht das Buddy Program?"
+      ],
+      "answer": "BuddyWeb stellt die VGU-Buddy-Gemeinschaft als Möglichkeit vor, passende Mitstudierende und gemeinsame Interessen zu finden und Freundschaften aufzubauen. Matching und Einladungen auf der Website unterstützen das. Teilnahmebedingungen erfährst du beim Programmteam.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "buddy-participation",
+    "category": "buddy-program",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/layout/footer.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "How can I join the Buddy Program?",
+        "How can students participate in the Buddy Program?",
+        "How do I participate in the Buddy Program?"
+      ],
+      "answer": "For current Buddy Program participation or recruitment requirements, contact the team through Contact Us on BuddyWeb: vgubuddy@vgu.edu.vn. Creating a website account alone does not confirm admission to the program.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wie kann ich am Buddy Program teilnehmen?",
+        "Wie können Studierende am Buddy Program teilnehmen?"
+      ],
+      "answer": "Aktuelle Bedingungen für die Teilnahme oder Bewerbung beim Buddy Program erfährst du über Contact Us auf BuddyWeb: vgubuddy@vgu.edu.vn. Ein Website-Konto allein bestätigt keine Aufnahme in das Programm.",
+      "keywords": []
+    }
+  }
+]

@@ -39,6 +39,10 @@ dev = [
 where = ["."]
 include = ["app*"]
 
+[tool.setuptools.package-data]
+"app.services.chatbot" = ["data/*.json", "sources/systemPrompt.txt", "instructions.md"]
+"app.services.chatbot.evaluation" = ["cases.json"]
+
 [tool.alembic]
 script_location = "%(here)s/alembic"
 prepend_sys_path = ["."]

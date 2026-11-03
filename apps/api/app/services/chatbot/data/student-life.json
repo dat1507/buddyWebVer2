@@ -1,0 +1,30 @@
+[
+  {
+    "id": "sports-information",
+    "category": "student-life",
+    "status": "verified_code",
+    "verified_on": "2026-10-22",
+    "sources": [
+      {
+        "title": "Implemented BuddyWeb source (local main)",
+        "reference": "apps/web/src/components/landing/benefits-grid.tsx"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where can I find sports information?",
+        "Where is the Sports Complex website?"
+      ],
+      "answer": "Open Sports Hall in BuddyWeb Campus Resources to reach https://vgu.edu.vn/sports-complex. Check the official service for current schedules, registration and fees; historical pool prices and opening hours are not confirmed here.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo finde ich Sportinformationen?",
+        "Wo ist die Website des Sports Complex?"
+      ],
+      "answer": "Öffne Sports Hall unter Campus Resources auf BuddyWeb: https://vgu.edu.vn/sports-complex. Aktuelle Zeiten, Anmeldung und Gebühren erfährst du beim offiziellen Dienst; historische Poolpreise und Öffnungszeiten sind hier nicht bestätigt.",
+      "keywords": []
+    }
+  }
+]

@@ -1,3 +1,13 @@
+# Latest continuation —2026-11-03 Phase3.5.1
+
+TASK_ID: NONE. CHATBOT-INTEGRATE-001 local integration complete / Production NO-GO.
+Active candidate codex/chatbot-phase35-integration, final parent current Production/origin-main c64.
+The earlier Event/Merchandise handoff below is preserved history; its source is retained unchanged.
+Prior a1aa protected; original HEADs/indexes intact.256 hashes matched before concurrent external
+doc updates; final251 same/five newer docs and one new task retained. No task-owned push/deploy.
+Read docs/project-knowledge/chatbot/PHASE_3_5_1.md and the current Phase3.6 gate/runbook before release.
+No follow-up is assigned. Hosted trust/privacy/CI and finalc64 browser acceptance remain unverified.
+
 ## Current assignment — 2026-11-03
 
 TASK_ID: NONE. FE-EVENT-MERCH-001 DONE LOCAL / OWNER UI REVIEW PENDING.
@@ -6,6 +16,26 @@ Branch codex/event-merch-refinement; review server5196, anonymous fixture only.
 no push/merge/deploy/provider change. Older records below remain historical.
 
 # Session handoff
+
+## Phase3.5.1 completed locally —2026-11-03
+
+**TASK_ID:** NONE. CHATBOT-INTEGRATE-001 DONE — LOCAL VERIFIED / PRODUCTION NO-GO.
+Candidate codex/chatbot-phase35-integration starts from approved origin/mainc64; one focused local
+integration commit, unpushed. Prior a1aa protected by codex/chatbot-phase35-preserved. All seven
+original worktree HEADs/indexes preserved; initial256 hashes matched, final251 same/five external
+newer documentation versions retained. Local main9ec unchanged.
+Current UI/Pillow13/Zod4.6.6/locks/CI retained; exact knowledge bytes unchanged. Actual production
+Linux image/probe PASS; final backend1,855 PASS/37 opt-in SKIP, frontend 920 PASS; static/build/wheel/
+runtime audits and bounded HTTP gates PASS. Actual hosted peer/header trust, logging/retention,
+exact candidate CI/rollback eligibility/quota acceptance and finalc64 EN/DE/device/SR browser checks
+are UNVERIFIED. Browser control ended before screenshots; no Production acceptance is inferred.
+No push/deploy/cloud/data/env/account mutation, inference or paid resource. Keep chatbot flags/AI OFF.
+
+Read [current integration report](docs/project-knowledge/chatbot/PHASE_3_5_1.md),
+[task](docs/implementation/tasks/CHATBOT-INTEGRATE-001.md) and
+[future runbook](docs/project-knowledge/chatbot/PHASE_3_6_RUNBOOK.md). No task is assigned next.
+Do not start an old READY follow-up or publish automatically. Earlier records below are historical.
+
 
 ## Current blocker-resolution checkpoint — 2026-10-31
 

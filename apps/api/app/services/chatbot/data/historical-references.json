@@ -1,0 +1,81 @@
+[
+  {
+    "id": "legacy-d9-food",
+    "category": "student-life",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical student guide (systemPrompt.txt)",
+        "reference": "historical:systemPrompt.txt#L235-L248"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where can I find food near D9 Gate?",
+        "Are there restaurants outside the campus?",
+        "Where can I eat near VGU?",
+        "Where can I find food near campus?",
+        "Where are restaurants near VGU?",
+        "Where can I eat outside D9 Gate?",
+        "Does the student guide mention food near D9 Gate?",
+        "Where can I get food near VGU?",
+        "Are there food vendors outside campus?"
+      ],
+      "answer": "The previous student guide mentions restaurants outside D9 Gate and street food just outside the campus, including rice dishes and noodles. This historical information has not been recently verified; please check locally for current locations and availability.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo kann ich in der Nähe des D9-Tors essen?",
+        "Gibt es Restaurants in der Nähe der VGU?",
+        "Wo kann ich nahe der VGU essen?",
+        "Wo finde ich Essen beim D9-Tor?",
+        "Gibt es Restaurants außerhalb des Campus?",
+        "Wo kann ich in Campusnähe essen?"
+      ],
+      "answer": "Der frühere Studierendenleitfaden nennt Restaurants außerhalb des D9-Tors und Streetfood direkt außerhalb des Campus, darunter Reisgerichte und Nudeln. Diese historischen Angaben wurden nicht aktuell bestätigt; bitte prüfe Standorte und Verfügbarkeit vor Ort.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-laundry",
+    "category": "student-life",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical student guide (systemPrompt.txt)",
+        "reference": "historical:systemPrompt.txt#L420-L421"
+      }
+    ],
+    "en": {
+      "questions": [
+        "Where is the laundry service?",
+        "Is there a place to wash clothes near campus?",
+        "Does the student guide mention EVA Laundry?",
+        "Where can I do laundry near VGU?",
+        "Where is EVA Laundry?",
+        "Is there a laundry service near campus?",
+        "Where can I wash clothes?",
+        "Where is the laundry near D9 Street?",
+        "Where can I find a laundry service?"
+      ],
+      "answer": "The previous student guide mentions EVA Laundry, a laundry place next to an automobile repair shop, and a cheap food place on D9 Street under its Laundry section. Their current locations and laundry availability have not been confirmed; please check locally before relying on these historical references.",
+      "keywords": []
+    },
+    "de": {
+      "questions": [
+        "Wo finde ich einen Wäscheservice?",
+        "Gibt es eine Wäscherei in der Nähe des Campus?",
+        "Wo kann ich meine Kleidung waschen?",
+        "Wo ist EVA Laundry?",
+        "Wo kann ich in der Nähe der VGU Wäsche waschen?",
+        "Erwähnt der Studierendenleitfaden EVA Laundry?",
+        "Wo ist der Wäscheservice?"
+      ],
+      "answer": "Der frühere Studierendenleitfaden nennt im Abschnitt „Laundry“ EVA Laundry, eine Wäscherei neben einer Autowerkstatt und ein günstiges Lokal an der D9 Street. Aktuelle Standorte und Waschmöglichkeiten sind nicht bestätigt; bitte prüfe diese historischen Hinweise vor Ort.",
+      "keywords": []
+    }
+  }
+]

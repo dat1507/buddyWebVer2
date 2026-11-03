@@ -15,6 +15,8 @@ from app.api.admin_users import router as admin_users_router
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
 from app.api.chat_realtime import router as chat_realtime_router
+from app.api.chatbot import ChatbotProtectionMiddleware
+from app.api.chatbot import router as chatbot_router
 from app.api.event_media import admin_router as admin_event_media_router
 from app.api.event_media import public_router as event_media_router
 from app.api.event_sliders import router as event_sliders_router
@@ -25,6 +27,7 @@ from app.api.matching import router as matching_router
 from app.api.profile import router as profile_router
 from app.api.profile_catalogs import router as profile_catalogs_router
 from app.api.profile_photos import router as profile_photos_router
+from app.core.chatbot import close_chatbot_runtime
 from app.core.config import (
     AuthConfigurationError,
     DatabaseConfigurationError,
@@ -48,6 +51,7 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     await dispose_database_engine()
     await close_redis_client()
     close_auth_rate_limiter()
+    close_chatbot_runtime()
 
 
 app = FastAPI(
@@ -59,6 +63,7 @@ app = FastAPI(
 
 cors_settings = get_cors_settings()
 app.add_middleware(AuthRateLimitMiddleware)
+app.add_middleware(ChatbotProtectionMiddleware)
 app.add_middleware(ApiObservabilityMiddleware)
 app.add_middleware(
     CORSMiddleware,
@@ -86,6 +91,7 @@ app.include_router(matching_router)
 app.include_router(chat_router)
 app.include_router(chat_realtime_router)
 app.include_router(maintenance_router)
+app.include_router(chatbot_router)
 
 
 @app.exception_handler(RequestValidationError)

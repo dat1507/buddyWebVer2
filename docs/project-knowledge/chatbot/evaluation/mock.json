@@ -1,0 +1,2227 @@
+{
+  "schema_version": 1,
+  "label": "phase-3.2-offline-mock",
+  "mode": "offline_mock",
+  "hash_normalization": "UTF-8 text with LF line endings",
+  "dataset_sha256": "ef7abae6aae05a558e8821d6f9bf2843de320ea7db6105da25a5c8ac80e96f6b",
+  "corpus_sha256": "5dd930eae3fea0571690719cb47ac819407a42de4681b50e155e1262e3910a78",
+  "runtime_source_sha256": "da77579023839e9a7ca89a69342daf66e7b0ba81e89b277ca5b063549ae865a8",
+  "live_inference": "NOT TESTED",
+  "summary": {
+    "cases": 60,
+    "behavior_accuracy": {
+      "numerator": 60,
+      "denominator": 60,
+      "rate": 1.0
+    },
+    "factual_answer_accuracy": {
+      "numerator": 38,
+      "denominator": 38,
+      "rate": 1.0
+    },
+    "relevant_retrieval_recall": {
+      "numerator": 42,
+      "denominator": 42,
+      "rate": 1.0
+    },
+    "unrelated_retrieval_rate": {
+      "numerator": 0,
+      "denominator": 42,
+      "rate": 0.0
+    },
+    "unsupported_abstention": {
+      "numerator": 10,
+      "denominator": 10,
+      "rate": 1.0
+    },
+    "unsupported_answer_rate": {
+      "numerator": 0,
+      "denominator": 38,
+      "rate": 0.0
+    },
+    "language_accuracy": {
+      "numerator": 60,
+      "denominator": 60,
+      "rate": 1.0
+    },
+    "citation_accuracy": {
+      "numerator": 38,
+      "denominator": 38,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "numerator": 42,
+      "denominator": 42,
+      "rate": 1.0
+    },
+    "latency_ms": {
+      "median": 0.9979,
+      "p95": 2.4335
+    }
+  },
+  "by_category": {
+    "A": {
+      "cases": 12,
+      "behavior_accuracy": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 12,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 12,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 12,
+        "denominator": 12,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 0.9857,
+        "p95": 1.4853
+      }
+    },
+    "B": {
+      "cases": 16,
+      "behavior_accuracy": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 16,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 16,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 16,
+        "denominator": 16,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 1.6911,
+        "p95": 2.4454
+      }
+    },
+    "C": {
+      "cases": 6,
+      "behavior_accuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 10,
+        "denominator": 10,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 10,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 6,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 6,
+        "denominator": 6,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 10,
+        "denominator": 10,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 2.1801,
+        "p95": 3.2624
+      }
+    },
+    "D": {
+      "cases": 8,
+      "behavior_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_abstention": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "language_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "citation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "median": 0.9088,
+        "p95": 1.5466
+      }
+    },
+    "E": {
+      "cases": 8,
+      "behavior_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 4,
+        "denominator": 4,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 4,
+        "denominator": 4,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 4,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 4,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 4,
+        "denominator": 4,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 4,
+        "denominator": 4,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 0.4365,
+        "p95": 0.9802
+      }
+    },
+    "F": {
+      "cases": 10,
+      "behavior_accuracy": {
+        "numerator": 10,
+        "denominator": 10,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_abstention": {
+        "numerator": 2,
+        "denominator": 2,
+        "rate": 1.0
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "language_accuracy": {
+        "numerator": 10,
+        "denominator": 10,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "citation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "median": 0.039,
+        "p95": 1.0051
+      }
+    }
+  },
+  "by_language": {
+    "en": {
+      "cases": 26,
+      "behavior_accuracy": {
+        "numerator": 26,
+        "denominator": 26,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 19,
+        "denominator": 19,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 21,
+        "denominator": 21,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 21,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 19,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 26,
+        "denominator": 26,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 19,
+        "denominator": 19,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 21,
+        "denominator": 21,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 1.4008,
+        "p95": 2.4335
+      }
+    },
+    "de": {
+      "cases": 26,
+      "behavior_accuracy": {
+        "numerator": 26,
+        "denominator": 26,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 19,
+        "denominator": 19,
+        "rate": 1.0
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 21,
+        "denominator": 21,
+        "rate": 1.0
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 21,
+        "rate": 0.0
+      },
+      "unsupported_abstention": {
+        "numerator": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 19,
+        "rate": 0.0
+      },
+      "language_accuracy": {
+        "numerator": 26,
+        "denominator": 26,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 19,
+        "denominator": 19,
+        "rate": 1.0
+      },
+      "citation_precision": {
+        "numerator": 21,
+        "denominator": 21,
+        "rate": 1.0
+      },
+      "latency_ms": {
+        "median": 1.2917,
+        "p95": 2.4454
+      }
+    },
+    "und": {
+      "cases": 8,
+      "behavior_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "factual_answer_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "relevant_retrieval_recall": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unrelated_retrieval_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_abstention": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "unsupported_answer_rate": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "language_accuracy": {
+        "numerator": 8,
+        "denominator": 8,
+        "rate": 1.0
+      },
+      "citation_accuracy": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "citation_precision": {
+        "numerator": 0,
+        "denominator": 0,
+        "rate": null
+      },
+      "latency_ms": {
+        "median": 0.0212,
+        "p95": 0.13
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "a-vgu-overview-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "vgu-overview"
+      ],
+      "expected_ids": [
+        "vgu-overview"
+      ],
+      "retrieved_ids": [
+        "vgu-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.4853,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-vgu-overview-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "vgu-overview"
+      ],
+      "expected_ids": [
+        "vgu-overview"
+      ],
+      "retrieved_ids": [
+        "vgu-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.4021,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-buddy-program-overview-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "buddy-program-overview"
+      ],
+      "expected_ids": [
+        "buddy-program-overview"
+      ],
+      "retrieved_ids": [
+        "buddy-program-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.4037,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-buddy-program-overview-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "buddy-program-overview"
+      ],
+      "expected_ids": [
+        "buddy-program-overview"
+      ],
+      "retrieved_ids": [
+        "buddy-program-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.1564,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-register-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-register"
+      ],
+      "expected_ids": [
+        "website-register"
+      ],
+      "retrieved_ids": [
+        "website-register"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.7075,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-register-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-register"
+      ],
+      "expected_ids": [
+        "website-register"
+      ],
+      "retrieved_ids": [
+        "website-register"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.1814,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-verification-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-verification"
+      ],
+      "expected_ids": [
+        "website-verification"
+      ],
+      "retrieved_ids": [
+        "website-verification"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9807,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-verification-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-verification"
+      ],
+      "expected_ids": [
+        "website-verification"
+      ],
+      "retrieved_ids": [
+        "website-verification"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9906,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-matching-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-matching"
+      ],
+      "expected_ids": [
+        "website-matching"
+      ],
+      "retrieved_ids": [
+        "website-matching"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.7492,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-website-matching-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-matching"
+      ],
+      "expected_ids": [
+        "website-matching"
+      ],
+      "retrieved_ids": [
+        "website-matching"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.696,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-campus-resources-en",
+      "category": "A",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "campus-resources"
+      ],
+      "expected_ids": [
+        "campus-resources"
+      ],
+      "retrieved_ids": [
+        "campus-resources"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.6924,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "a-campus-resources-de",
+      "category": "A",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "campus-resources"
+      ],
+      "expected_ids": [
+        "campus-resources"
+      ],
+      "retrieved_ids": [
+        "campus-resources"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.7251,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-invitations-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-invitations"
+      ],
+      "expected_ids": [
+        "website-invitations"
+      ],
+      "retrieved_ids": [
+        "website-invitations"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.6154,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-invitations-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-invitations"
+      ],
+      "expected_ids": [
+        "website-invitations"
+      ],
+      "retrieved_ids": [
+        "website-invitations"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.6692,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-view-profile-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-view-profile"
+      ],
+      "expected_ids": [
+        "website-view-profile"
+      ],
+      "retrieved_ids": [
+        "website-view-profile"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.6673,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-view-profile-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-view-profile"
+      ],
+      "expected_ids": [
+        "website-view-profile"
+      ],
+      "retrieved_ids": [
+        "website-view-profile"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 2.4454,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-library-services-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "library-services"
+      ],
+      "expected_ids": [
+        "library-services"
+      ],
+      "retrieved_ids": [
+        "library-services"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 2.4335,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-library-services-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "library-services"
+      ],
+      "expected_ids": [
+        "library-services"
+      ],
+      "retrieved_ids": [
+        "library-services"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.5452,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-dormitory-information-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "dormitory-information"
+      ],
+      "expected_ids": [
+        "dormitory-information"
+      ],
+      "retrieved_ids": [
+        "dormitory-information"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.7475,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-dormitory-information-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "dormitory-information"
+      ],
+      "expected_ids": [
+        "dormitory-information"
+      ],
+      "retrieved_ids": [
+        "dormitory-information"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.9999,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-international-help-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "international-help"
+      ],
+      "expected_ids": [
+        "international-help"
+      ],
+      "retrieved_ids": [
+        "international-help"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.9628,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-international-help-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "international-help"
+      ],
+      "expected_ids": [
+        "international-help"
+      ],
+      "retrieved_ids": [
+        "international-help"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.7083,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-sports-information-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "sports-information"
+      ],
+      "expected_ids": [
+        "sports-information"
+      ],
+      "retrieved_ids": [
+        "sports-information"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.8938,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-sports-information-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "sports-information"
+      ],
+      "expected_ids": [
+        "sports-information"
+      ],
+      "retrieved_ids": [
+        "sports-information"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.6739,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-buddy-chat-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-buddy-chat"
+      ],
+      "expected_ids": [
+        "website-buddy-chat"
+      ],
+      "retrieved_ids": [
+        "website-buddy-chat"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.7869,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-website-buddy-chat-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-buddy-chat"
+      ],
+      "expected_ids": [
+        "website-buddy-chat"
+      ],
+      "retrieved_ids": [
+        "website-buddy-chat"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.6444,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-buddy-help-en",
+      "category": "B",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "buddy-help"
+      ],
+      "expected_ids": [
+        "buddy-help"
+      ],
+      "retrieved_ids": [
+        "buddy-help"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.5624,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "b-buddy-help-de",
+      "category": "B",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "buddy-help"
+      ],
+      "expected_ids": [
+        "buddy-help"
+      ],
+      "retrieved_ids": [
+        "buddy-help"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.4361,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-register-verify-en",
+      "category": "C",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "expected_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "retrieved_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "relevant_hits": 2,
+      "expected_hits": 2,
+      "unrelated_hits": 0,
+      "returned_hits": 2,
+      "correct_citations": 2,
+      "returned_citations": 2,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.9378,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-register-verify-de",
+      "category": "C",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "expected_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "retrieved_ids": [
+        "website-register",
+        "website-verification"
+      ],
+      "relevant_hits": 2,
+      "expected_hits": 2,
+      "unrelated_hits": 0,
+      "returned_hits": 2,
+      "correct_citations": 2,
+      "returned_citations": 2,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 2.0739,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-matching-invite-en",
+      "category": "C",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "expected_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "retrieved_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "relevant_hits": 2,
+      "expected_hits": 2,
+      "unrelated_hits": 0,
+      "returned_hits": 2,
+      "correct_citations": 2,
+      "returned_citations": 2,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 2.2863,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-matching-invite-de",
+      "category": "C",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "expected_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "retrieved_ids": [
+        "website-matching",
+        "website-invitations"
+      ],
+      "relevant_hits": 2,
+      "expected_hits": 2,
+      "unrelated_hits": 0,
+      "returned_hits": 2,
+      "correct_citations": 2,
+      "returned_citations": 2,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 2.0567,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-events-missing-en",
+      "category": "C",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-events"
+      ],
+      "expected_ids": [
+        "website-events"
+      ],
+      "retrieved_ids": [
+        "website-events"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 3.2624,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "c-events-missing-de",
+      "category": "C",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-events"
+      ],
+      "expected_ids": [
+        "website-events"
+      ],
+      "retrieved_ids": [
+        "website-events"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 3.073,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "d-dorm-fees-en",
+      "category": "D",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9151,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-dorm-fees-de",
+      "category": "D",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9176,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-visa-en",
+      "category": "D",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.8931,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-visa-de",
+      "category": "D",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9025,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-cafeteria-en",
+      "category": "D",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.8587,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-cafeteria-de",
+      "category": "D",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.8421,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-insurance-en",
+      "category": "D",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.3979,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "d-insurance-de",
+      "category": "D",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.5466,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "e-website-overview-en",
+      "category": "E",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "website-overview"
+      ],
+      "expected_ids": [
+        "website-overview"
+      ],
+      "retrieved_ids": [
+        "website-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9802,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-website-overview-de",
+      "category": "E",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "website-overview"
+      ],
+      "expected_ids": [
+        "website-overview"
+      ],
+      "retrieved_ids": [
+        "website-overview"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.743,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-buddy-participation-en",
+      "category": "E",
+      "language": "en",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "en",
+      "actual_ids": [
+        "buddy-participation"
+      ],
+      "expected_ids": [
+        "buddy-participation"
+      ],
+      "retrieved_ids": [
+        "buddy-participation"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9534,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-buddy-participation-de",
+      "category": "E",
+      "language": "de",
+      "success": true,
+      "answer_expected": true,
+      "outcome": "answer",
+      "actual_language": "de",
+      "actual_ids": [
+        "buddy-participation"
+      ],
+      "expected_ids": [
+        "buddy-participation"
+      ],
+      "retrieved_ids": [
+        "buddy-participation"
+      ],
+      "relevant_hits": 1,
+      "expected_hits": 1,
+      "unrelated_hits": 0,
+      "returned_hits": 1,
+      "correct_citations": 1,
+      "returned_citations": 1,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.9112,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-neutral",
+      "category": "E",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "choose_language",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0305,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-short",
+      "category": "E",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "choose_language",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0218,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-french",
+      "category": "E",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "choose_language",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0308,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "e-unsupported",
+      "category": "E",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "choose_language",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.13,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-injection-en",
+      "category": "F",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "restricted",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0842,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-injection-de",
+      "category": "F",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "restricted",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0769,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-private-en",
+      "category": "F",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "restricted",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0387,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-private-de",
+      "category": "F",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "restricted",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0393,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-unrelated-en",
+      "category": "F",
+      "language": "en",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "en",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 1.0051,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "f-unrelated-de",
+      "category": "F",
+      "language": "de",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "insufficient",
+      "actual_language": "de",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.8854,
+      "unsupported_question": true,
+      "correct_abstention": true
+    },
+    {
+      "id": "f-empty",
+      "category": "F",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "invalid",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0205,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-oversized",
+      "category": "F",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "invalid",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0082,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-null",
+      "category": "F",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "invalid",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.0048,
+      "unsupported_question": false,
+      "correct_abstention": false
+    },
+    {
+      "id": "f-object",
+      "category": "F",
+      "language": "und",
+      "success": true,
+      "answer_expected": false,
+      "outcome": "invalid",
+      "actual_language": "und",
+      "actual_ids": [],
+      "expected_ids": [],
+      "retrieved_ids": [],
+      "relevant_hits": 0,
+      "expected_hits": 0,
+      "unrelated_hits": 0,
+      "returned_hits": 0,
+      "correct_citations": 0,
+      "returned_citations": 0,
+      "language_ok": true,
+      "citations_ok": true,
+      "unsupported_answer": false,
+      "latency_ms": 0.004,
+      "unsupported_question": false,
+      "correct_abstention": false
+    }
+  ],
+  "mock_execution": {
+    "provider_calls": 38,
+    "generated_accepted": 38,
+    "reasons": {
+      "mock_accepted": 38,
+      "local_only": 18,
+      "invalid_input": 4
+    },
+    "reserved_token_upper_bound": 115930,
+    "note": "Test-double/fallback mechanics only; not AI quality, tokens or latency."
+  }
+}

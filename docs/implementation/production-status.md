@@ -1,5 +1,26 @@
 # Production status
 
+## 2026-11-03 — later same-day frontend observation
+
+Fresh Vercel public alias metadata: ProductionREADY/mainc64fe73e17fedd8d92046bbc7beeedd0a22e2646,
+deployment dpl_9qn8NtQWwGGer9kNxQGn9QFkCyyK. Remote main independently resolves to the same commit;
+remote-tracking reflog records an external push during local chatbot validation. This supersedes
+initial5a frontend metadata below. The chatbot task performed no push or deployment and carried its
+local candidate forward to this current baseline, retaining Event/Merchandise changes. Render and
+all unverified infrastructure gates remain as observed below; no fresh runtime acceptance claimed.
+
+## 2026-11-03 — current hosting metadata, read-only
+
+Vercel public Production alias: READY/main5a7bb90, buddy-web-ver2,
+dpl_EU19m7DJSsrbHNc2CvAZVX53LusX. Render vgu-buddy-api-production: Docker/Free,
+Live642fc11/main, dep-dbhhnpp42hec73cgjsu0; AutoDeployOFF/PRPreviewsOFF. Settings:
+root apps/api, ./Dockerfile, context `.`, empty command/predeploy overrides, /api/health/live.
+Direct connector/dashboard metadata only; no deploy/edit/env reveal/log inspection or Production
+runtime/health/account/data acceptance. Peer chain/header sanitization, effective worker/env,
+platform logging/retention, quotas and rollback eligibility remain UNVERIFIED. Local integrated
+candidate is unpushed; **Production NO-GO**. [Current gate report](../project-knowledge/chatbot/PHASE_3_5_1.md).
+Older e1a2cc59 frontend metadata below is historical, superseded by this directly verified5a.
+
 ## 2026-10-31 — Final blocker task read-only trigger verification
 
 Vercel buddy-web-ver2 Production still tracks main with auto-domain assignment; Preview tracks

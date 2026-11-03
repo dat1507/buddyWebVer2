@@ -11,3 +11,6 @@ dist
 build
 *.egg-info
 tests
+
+# Local chatbot/test evidence must never enter Docker build contexts.
+.local

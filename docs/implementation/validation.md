@@ -1,5 +1,20 @@
 # Documentation migration validation
 
+## CHATBOT-INTEGRATE-001 —2026-11-03
+
+Local integration complete/Production NO-GO. Final exact UTF-8 Linux backend1,855 PASS/37 opt-in SKIP,
+frontend 920 PASS/91 files; focused494 backend/101 frontend. Ruff/mypy318/TS/ESLint/Prettier,ON-OFF
+builds/wheel/pip integrity/runtime audits PASS. Actual Docker Python3.12.14/uid10001/Pillow13/37pins,
+exact canonical/JSON/package source and unrelated-cwd CLI PASS; AI/socket direct guards0.
+38 actual isolated HTTP requests exercise EN/DE/invalid/CORS/spoof/429/no-store/admission/health;
+7 original HEADs/indexes preserved; initially256 matching hashes, final251 same/five external newer
+documentation versions plus one new task retained;248 unique task paths. EN4width citation/Escape/focus
+browser evidence on initial5a; finalc64 browser/German/screenshot/device/SR incomplete after
+browser URL-verification stop.
+Hosted trust/logging/exact CI/rollback/quota acceptance UNVERIFIED; no push/deploy/cloud mutation.
+[Results/limits](../project-knowledge/chatbot/PHASE_3_5_1.md),
+[commands](../project-knowledge/chatbot/PHASE_3_5_1_COMMANDS.md). Older evidence remains historical.
+
 ## FE-UI-BLOCKERS-001 — 2026-10-31
 
 FE-UI-BLOCKERS-001 LOCAL COMPLETE / AWAITING CANDIDATE PUBLICATION PERMISSION.

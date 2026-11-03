@@ -23,6 +23,11 @@ custom settings, copy `.env.example` to `.env.local`; see the
 
 ## Commands
 
+Local [Phase 3.4 chatbot](../../docs/project-knowledge/chatbot/PHASE_3_4.md) adds a default-OFF
+public/USER floating widget over the existing retrieval API. The guide has exact paired backend/
+frontend commands, `VITE_CHATBOT_ENABLED` setup, tests, accessibility and deployment limits.
+No provider inference, private-data tools or persistent chatbot history are enabled.
+
 | Command                                   | Purpose                                        |
 | ----------------------------------------- | ---------------------------------------------- |
 | `npm run dev`                             | Start the Vite development server              |

@@ -15,5 +15,15 @@
     "task": "FE-EXPLORE-WIDE-CARDS-001",
     "base_commit": "6da21ac",
     "scope": "Explore More presentation, focused status assertion and knowledge/control-plane delta; unrelated root image deletion excluded; original historical audit checkpoint retained"
-  }
+  },
+  "incremental_reviews": [
+    {
+      "date": "2026-11-03",
+      "task": "CHATBOT-INTEGRATE-001",
+      "base_commit": "c64fe73e17fedd8d92046bbc7beeedd0a22e2646",
+      "scope": "Selective chatbot integration and focused Git/Linux/runtime/security/UI gate review; historical global audit checkpoint unchanged",
+      "report": "chatbot/PHASE_3_5_1.md",
+      "production_mutation": false
+    }
+  ]
 }

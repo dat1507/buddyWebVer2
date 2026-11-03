@@ -21,6 +21,7 @@ import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
 import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
 import { adminEventsEnabled, publicEventsEnabled } from '@/config/launch-scope'
+import { ChatbotEntry } from '@/features/chatbot/chatbot-entry'
 
 function App() {
   return (
@@ -102,6 +103,7 @@ function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <ChatbotEntry />
     </>
   )
 }

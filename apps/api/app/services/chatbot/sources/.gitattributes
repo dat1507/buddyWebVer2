@@ -1,0 +1,2 @@
+# Preserve the imported owner source bytes, including original whitespace.
+systemPrompt.txt -text -whitespace

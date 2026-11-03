@@ -1,5 +1,11 @@
 # VGU Buddy API
 
+2026-11-01 chatbot note: [Phase 3.5 readiness](../../docs/project-knowledge/chatbot/PHASE_3_5.md)
+records local security/runtime/artifact verification and RELEASE NO-GO pending current-release
+integration/hosting gates. Container raw access logs are disabled; structured metadata remains.
+CLI uses UTF-8 input/output and the canonical guide plus verified supplementary FAQs; older Phase 3.1
+prototype descriptions below are historical. No chatbot release is authorized by this note.
+
 FastAPI backend for the VGU Student Companion Platform.
 
 ## Local setup
@@ -22,6 +28,16 @@ uvicorn app.main:app --reload
 
 FastAPI exposes its interactive documentation at `/docs` and its OpenAPI schema at
 `/openapi.json`.
+
+## Local chatbot
+
+Local Phase 3.1 chatbot: pipe one public-information question into
+`python -m app.services.chatbot` from this directory. It returns a bounded JSON answer with
+references, using packaged EN/DE FAQs only. See the [prototype guide](../../docs/project-knowledge/chatbot/README.md).
+Phase 3.3 also provides `POST /api/chatbot/query`, default OFF, using that same retrieval service.
+See the [API guide](../../docs/project-knowledge/chatbot/PHASE_3_3.md) for PowerShell start/call
+commands, typed sources, feature flags, bounded process-local limits and verification results.
+No AI provider or private-data tool is enabled; no chatbot deployment is authorized by this task.
 
 ## Credentialed CORS
 

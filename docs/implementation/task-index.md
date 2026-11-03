@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-11-03 **Task IDs:** 240
+**Generated:** 2026-11-03 **Task IDs:** 248
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -8,6 +8,14 @@ preserve all matching contract sections and cross-references from the legacy pla
 
 | Task                                                                    | Status                                                      | Priority           | Track               | Dependencies / source note                                                                                                                                                           |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`CHATBOT-INTEGRATE-001`](tasks/CHATBOT-INTEGRATE-001.md) | DONE — LOCAL VERIFIED / PRODUCTION NO-GO | Owner-assigned | chatbot | Safe current-UI/security integration and release gate closure; no push/deploy. |
+| [`CHATBOT-READY-001`](tasks/CHATBOT-READY-001.md) | LOCAL REVIEW COMPLETE — RELEASE NO-GO | Owner-assigned | chatbot | Phase3.5 log/UTF-8 fixes;1851 backend/101 frontend, static/artifact/browser/load checks. Detached old main snapshot; current UI/security integration and actual proxy/edge/Linux release gates unresolved. |
+| [`CHATBOT-SOURCE-001`](tasks/CHATBOT-SOURCE-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot | Canonical guide/atomic reload, owner/conflict provenance, EN/DE intent retrieval; 1838 backend, final 208 source/CLI, 100 frontend tests and package/browser/update checks. |
+| [`CHATBOT-REFINE-001`](tasks/CHATBOT-REFINE-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot | Two qualified D9/laundry references; accessible transitions/mobile scroll; 1774 backend, 95 focused frontend, 82 layout tests and static/package/browser/motion checks. |
+| [`CHATBOT-UI-001`](tasks/CHATBOT-UI-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot | Default-OFF public/USER widget, EN/DE, real retrieval API, bounded state and accessible mobile/desktop; 904 frontend / final 89 focused tests, static/build and browser checks. |
+| [`CHATBOT-API-001`](tasks/CHATBOT-API-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot | Default-OFF public retrieval POST, safe sources, bounded local resources; 68 API/1717 non-live backend tests and 14 loopback checks; unchanged corpus, AI OFF. |
+| [`CHATBOT-EVAL-001`](tasks/CHATBOT-EVAL-001.md) | PARTIAL — OFFLINE COMPLETE / LIVE AI BLOCKED | Owner-assigned | chatbot | 60-case benchmark/harness, measured normalization/multi-question fixes; 234 tests; unchanged corpus; provider eligibility/compliance unresolved. |
+| [`CHATBOT-KB-001`](tasks/CHATBOT-KB-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot | Phase 3.1 public knowledge/EN-DE FAQ, local retrieval/CLI, disabled providers and source/compliance audit; 147 tests and package/static checks pass. |
 | [`FE-UI-BLOCKERS-001`](tasks/FE-UI-BLOCKERS-001.md) | LOCAL COMPLETE / PUBLICATION APPROVAL PENDING | Owner-requested | release-maintenance | Compatible security fixes, scoped exceptions and CI push effects verified; no push. |
 | [`SEC-DEV-MINIMATCH-001`](tasks/SEC-DEV-MINIMATCH-001.md) | READY — FOLLOW-UP / NOT ASSIGNED | Owner-requested | release-maintenance | Scoped exception follow-up; separate implementation assignment required. |
 | [`TEST-AUTH-ADMIN-FIXTURES-001`](tasks/TEST-AUTH-ADMIN-FIXTURES-001.md) | READY — FOLLOW-UP / NOT ASSIGNED | Owner-requested | release-maintenance | Scoped exception follow-up; separate implementation assignment required. |

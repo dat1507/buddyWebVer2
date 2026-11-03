@@ -1,0 +1,200 @@
+[
+  {
+    "id": "legacy-cafeteria",
+    "category": "student-life",
+    "status": "conflicting",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["Does the cafeteria serve dinner?"],
+      "answer": "Historical source both says breakfast/lunch/dinner and says no dinner. Current meal service is unresolved.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Serviert die Mensa Abendessen?"],
+      "answer": "Die historische Quelle nennt Frühstück/Mittag-/Abendessen und zugleich kein Abendessen. Das aktuelle Angebot ist ungeklärt.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-passport",
+    "category": "faq",
+    "status": "conflicting",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["How long must my passport be valid?"],
+      "answer": "Historical source gives both twelve months on arrival and six months on entry. Do not infer a current visa requirement.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Wie lange muss mein Reisepass gültig sein?"],
+      "answer": "Die historische Quelle nennt zwölf Monate bei Ankunft und sechs Monate bei Einreise. Daraus folgt keine aktuelle Visabedingung.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-prices",
+    "category": "accommodation",
+    "status": "outdated",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["How much does a dorm room cost?"],
+      "answer": "Historical dorm ranges are 600,000–1,200,000 and 600,000–2,400,000 VND/person/month; guest house units differ. Not current quotes.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Wie viel kostet ein Wohnheimzimmer?"],
+      "answer": "Historische Wohnheimspannen: 600.000–1.200.000 und 600.000–2.400.000 VND/Person/Monat; Gästehausangaben haben andere Einheiten. Keine aktuellen Angebote.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-transport",
+    "category": "transportation",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["How much is the VGU bus?"],
+      "answer": "Historical bus routes, fares, departure times and taxi phone numbers require operator confirmation. Route Map Link has no URL; QR code is missing.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Wie viel kostet der VGU-Bus?"],
+      "answer": "Historische Buslinien, Preise, Abfahrten und Taxi-Telefonnummern benötigen eine Bestätigung der Anbieter. Route Map Link hat keine URL; der QR-Code fehlt.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-arrival",
+    "category": "faq",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["What visa do I need?"],
+      "answer": "Visa type, reference number, twelve-week document deadline, thirty-day lead time, customs and residence-registration claims need current official confirmation. Not immigration advice.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Welches Visum brauche ich?"],
+      "answer": "Visatyp, Referenznummer, Zwölf-Wochen-Frist, Dreißig-Tage-Vorlauf, Zoll- und Meldeangaben benötigen aktuelle amtliche Bestätigung. Keine Einwanderungsberatung.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-health",
+    "category": "student-life",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["Is health insurance required?"],
+      "answer": "Insurance, vaccines, malaria, clinic quality and free dorm medical service claims are unverified; do not use as medical or legal advice.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Ist eine Krankenversicherung erforderlich?"],
+      "answer": "Versicherung, Impfungen, Malaria, Klinikqualität und kostenlose Wohnheimversorgung sind unbestätigt; keine medizinische oder rechtliche Beratung.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-contacts",
+    "category": "campus-services",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["What is the current International Office email?"],
+      "answer": "Historical individual staff contacts, room numbers and office hours are not confirmed. Use current official service directories.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Wie lautet die aktuelle E-Mail des International Office?"],
+      "answer": "Historische persönliche Mitarbeitendenkontakte, Räume und Sprechzeiten sind nicht bestätigt. Nutze aktuelle offizielle Verzeichnisse.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-living-costs",
+    "category": "student-life",
+    "status": "outdated",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["How much does living in HCMC cost?"],
+      "answer": "Historical rents, meals, shops, SIM plans, delivery thresholds and sports prices have no current verification; one exchange rate is explicitly dated 02/06/2025.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Wie viel kostet das Leben in HCMC?"],
+      "answer": "Historische Mieten, Mahlzeiten, Läden, SIM-Tarife, Liefergrenzen und Sportpreise sind nicht aktuell bestätigt; ein Wechselkurs trägt ausdrücklich das Datum 02/06/2025.",
+      "keywords": []
+    }
+  },
+  {
+    "id": "legacy-campus-location",
+    "category": "vgu",
+    "status": "unverified",
+    "verified_on": null,
+    "sources": [
+      {
+        "title": "Historical systemPrompt.txt (unverified)",
+        "reference": "historical:systemPrompt.txt"
+      }
+    ],
+    "en": {
+      "questions": ["Is the campus in Binh Duong?"],
+      "answer": "Historical source uses Binh Duong and says not Ho Chi Minh City. Current VGU page footer uses Ho Chi Minh City; geographic versus administrative naming must be clarified.",
+      "keywords": []
+    },
+    "de": {
+      "questions": ["Liegt der Campus in Binh Duong?"],
+      "answer": "Die historische Quelle nennt Binh Duong und schließt Ho Chi Minh City aus. Der aktuelle VGU-Footer nennt Ho Chi Minh City; geografische und administrative Bezeichnungen müssen geklärt werden.",
+      "keywords": []
+    }
+  }
+]
