@@ -2,7 +2,8 @@ import '@/i18n'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import i18n from '@/i18n'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '@/features/recaps/recaps'
 import { RecapGalleryPage } from './recap-pages'
 vi.mock('@/features/recaps/recap-photo', () => ({ RecapImage: () => <img alt="Campus" /> }))
@@ -34,6 +35,9 @@ function mount() {
 }
 describe('Dynamic public recap gallery', () => {
   beforeEach(() => vi.restoreAllMocks())
+  afterEach(async () => {
+    await i18n.changeLanguage('en')
+  })
   it('uses a text hero and an honest empty state without fake photos', async () => {
     vi.spyOn(api, 'fetchRecaps').mockResolvedValue({
       items: [],
@@ -49,26 +53,22 @@ describe('Dynamic public recap gallery', () => {
     expect(screen.queryByRole('img')).toBeNull()
     expect(screen.getByRole('link', { name: 'Back to Events' })).toHaveAttribute('href', '/#events')
   })
-  it('loads a second nine-card page and resets pagination when a year is selected', async () => {
+  it('shows all ten recent cards on one page and filters by year', async () => {
     const list = vi.spyOn(api, 'fetchRecaps').mockImplementation(async (page) => ({
-      items:
-        page === 1
-          ? Array.from({ length: 9 }, (_, index) => ({
-              ...record,
-              id: `11111111-1111-4111-8111-11111111111${index}`,
-            }))
-          : [{ ...record, title_en: 'Older memory' }],
+      items: Array.from({ length: 10 }, (_, index) => ({
+        ...record,
+        id: `11111111-1111-4111-8111-1111111111${String(index).padStart(2, '0')}`,
+      })),
       mosaic: [],
       years: [2026, 2025],
       page,
       total: 10,
-      total_pages: 2,
+      total_pages: 1,
       pending_cleanup: [],
     }))
     mount()
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(9))
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
-    expect(await screen.findByRole('heading', { name: 'Older memory' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(10))
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
     fireEvent.change(screen.getByRole('combobox', { name: 'Year' }), { target: { value: '2025' } })
     await waitFor(() =>
       expect(list).toHaveBeenLastCalledWith(1, '2025', false, expect.any(AbortSignal)),
@@ -79,5 +79,25 @@ describe('Dynamic public recap gallery', () => {
     mount()
     expect(await screen.findByRole('alert')).toHaveTextContent('temporarily unavailable')
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+  it.each([
+    ['en', 'Explore More on Facebook'],
+    ['de', 'Mehr auf Facebook entdecken'],
+  ])('links to older memories safely in %s', async (language, label) => {
+    await i18n.changeLanguage(language)
+    vi.spyOn(api, 'fetchRecaps').mockResolvedValue({
+      items: [],
+      mosaic: [],
+      years: [],
+      page: 1,
+      total: 0,
+      total_pages: 0,
+      pending_cleanup: [],
+    })
+    mount()
+    const link = screen.getByRole('link', { name: label })
+    expect(link).toHaveAttribute('href', 'https://www.facebook.com/VGUBuddyProgram')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 })

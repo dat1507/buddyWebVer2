@@ -1,5 +1,18 @@
 {
   "chatbot": {
+    "title": "VGU Buddy Assistant",
+    "welcomeTitle": "Where shall we start?",
+    "suggestions": "Suggested questions",
+    "suggested": {
+      "register": {
+        "label": "Create an account",
+        "question": "How do I register?"
+      },
+      "matching": {
+        "label": "Find a Buddy",
+        "question": "How does Buddy Matching work?"
+      }
+    },
     "open": "Open VGU Buddy Assistant",
     "close": "Close assistant",
     "clear": "Clear conversation",
@@ -1677,6 +1690,11 @@
     "uploadDone": "Upload queue complete.",
     "status": "Publication status",
     "requiredPublish": "Publishing requires EN/DE titles, summaries, meaningful alt text and at least one photo.",
-    "photoUnavailable": "Photo temporarily unavailable"
+    "photoUnavailable": "Photo temporarily unavailable",
+    "retentionWarning": "Only the latest 10 published Recaps are retained. Publishing another permanently deletes the oldest published Recap and its gallery images. Drafts are unaffected.",
+    "evicted": "Automatically deleted older Recap: {{title}}.",
+    "moreMemories": "Looking for More Memories?",
+    "moreMemoriesDescription": "Discover older event memories from the VGU Buddy community on Facebook.",
+    "facebook": "Explore More on Facebook"
   }
 }

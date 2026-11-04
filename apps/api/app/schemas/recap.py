@@ -59,6 +59,12 @@ class PhotoResponse(PhotoEdit):
     sort_order: int
 
 
+class EvictedRecap(BaseModel):
+    id: UUID
+    title_en: str | None
+    title_de: str | None
+
+
 class RecapResponse(RecapContent):
     id: UUID
     version: int
@@ -66,6 +72,7 @@ class RecapResponse(RecapContent):
     thumbnail_id: UUID | None
     photos: list[PhotoResponse]
     cleanup_pending: bool = False
+    evicted_recaps: list[EvictedRecap] = Field(default_factory=list)
 
 
 class RecapListResponse(BaseModel):

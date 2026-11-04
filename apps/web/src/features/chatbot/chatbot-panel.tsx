@@ -1,6 +1,15 @@
 import { useEffect, useRef, useSyncExternalStore, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { ExternalLink, LoaderCircle, MessageCircle, RotateCcw, Send, X } from 'lucide-react'
+import {
+  ArrowUpRight,
+  BookOpen,
+  ExternalLink,
+  LoaderCircle,
+  MessageCircle,
+  RotateCcw,
+  Send,
+  X,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -156,13 +165,14 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
             <MessageCircle aria-hidden="true" size={22} />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 id={`${id}-title`}>VGU Buddy Assistant</h2>
+            <h2 id={`${id}-title`}>{t('chatbot.title')}</h2>
             <p>{t('chatbot.subtitle')}</p>
           </div>
           <Button
             type="button"
             size="icon"
             variant="ghost"
+            title={t('chatbot.clear')}
             aria-label={t('chatbot.clear')}
             onClick={chat.clear}
           >
@@ -172,6 +182,7 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
             type="button"
             size="icon"
             variant="ghost"
+            title={t('chatbot.close')}
             aria-label={t('chatbot.close')}
             onClick={onClose}
           >
@@ -187,9 +198,35 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
           aria-live={open ? 'polite' : 'off'}
           aria-relevant="additions text"
         >
-          <div className="chatbot-welcome">
+          <div className="chatbot-welcome" data-empty={chat.turns.length === 0}>
             <span className="chatbot-eyebrow">{t('chatbot.welcomeLabel')}</span>
-            <p>{t('chatbot.welcome')}</p>
+            {chat.turns.length === 0 ? (
+              <>
+                <h3>{t('chatbot.welcomeTitle')}</h3>
+                <p>{t('chatbot.welcome')}</p>
+                <div
+                  className="chatbot-suggestions"
+                  role="group"
+                  aria-label={t('chatbot.suggestions')}
+                >
+                  {(['register', 'matching'] as const).map((topic) => (
+                    <Button
+                      key={topic}
+                      type="button"
+                      variant="secondary"
+                      disabled={chat.pending || chat.retrySeconds > 0}
+                      onClick={() => {
+                        input.current?.focus({ preventScroll: true })
+                        void chat.send(t(`chatbot.suggested.${topic}.question`))
+                      }}
+                    >
+                      {t(`chatbot.suggested.${topic}.label`)}
+                      <ArrowUpRight size={16} aria-hidden="true" />
+                    </Button>
+                  ))}
+                </div>
+              </>
+            ) : null}
             <p className="chatbot-scope" id={`${id}-scope`}>
               {t('chatbot.scope')}
             </p>
@@ -211,7 +248,7 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
                   className="chatbot-answer"
                   lang={turn.reply.language === 'und' ? undefined : turn.reply.language}
                 >
-                  <span className="sr-only">VGU Buddy Assistant: </span>
+                  <span className="sr-only">{t('chatbot.title')}: </span>
                   {turn.reply.status === 'historical_reference' ? (
                     <span className="chatbot-historical">{t('chatbot.historical')}</span>
                   ) : null}
@@ -228,6 +265,7 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
                   {turn.reply.sources.length ? (
                     <details className="chatbot-sources">
                       <summary>
+                        <BookOpen size={14} aria-hidden="true" />
                         {t('chatbot.sources', { count: turn.reply.sources.length })}
                       </summary>
                       <ul>
@@ -343,10 +381,15 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
             <Button
               type="submit"
               size="icon"
+              variant="secondary"
               aria-label={t('chatbot.send')}
               disabled={chat.pending || chat.retrySeconds > 0 || !validQuestion(chat.draft)}
             >
-              <Send aria-hidden="true" />
+              {chat.pending ? (
+                <LoaderCircle className="motion-safe:animate-spin" aria-hidden="true" />
+              ) : (
+                <Send aria-hidden="true" />
+              )}
             </Button>
           </div>
           <div id={`${id}-hint`} className="chatbot-hint">

@@ -1,5 +1,18 @@
 {
   "chatbot": {
+    "title": "VGU Buddy Assistant",
+    "welcomeTitle": "Wo fangen wir an?",
+    "suggestions": "Fragevorschläge",
+    "suggested": {
+      "register": {
+        "label": "Konto erstellen",
+        "question": "Wie registriere ich mich?"
+      },
+      "matching": {
+        "label": "Buddy finden",
+        "question": "Wie funktioniert Buddy Matching?"
+      }
+    },
     "open": "VGU Buddy Assistant öffnen",
     "close": "Assistenten schließen",
     "clear": "Unterhaltung löschen",
@@ -1677,6 +1690,11 @@
     "uploadDone": "Alle Uploads wurden bearbeitet.",
     "status": "Veröffentlichungsstatus",
     "requiredPublish": "Zur Veröffentlichung sind EN/DE-Titel, Kurzbeschreibungen, aussagekräftige Alternativtexte und mindestens ein Foto erforderlich.",
-    "photoUnavailable": "Foto vorübergehend nicht verfügbar"
+    "photoUnavailable": "Foto vorübergehend nicht verfügbar",
+    "retentionWarning": "Nur die letzten 10 veröffentlichten Rückblicke bleiben erhalten. Eine weitere Veröffentlichung löscht den ältesten veröffentlichten Rückblick und seine Galeriebilder dauerhaft. Entwürfe bleiben erhalten.",
+    "evicted": "Älterer Rückblick automatisch gelöscht: {{title}}.",
+    "moreMemories": "Lust auf mehr Erinnerungen?",
+    "moreMemoriesDescription": "Entdecke ältere Veranstaltungserinnerungen der VGU Buddy-Community auf Facebook.",
+    "facebook": "Mehr auf Facebook entdecken"
   }
 }

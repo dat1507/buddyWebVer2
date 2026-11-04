@@ -1,3 +1,11 @@
+## 2026-11-04 - Rolling10 recovery addendum (local preparation only)
+
+Future0024 snapshots must include recaps.first_published_at and recap_media_cleanup durable object
+keys with the full app_private schema. Reconcile queued deletion intent and DB/media snapshot
+boundary before restarting any cleanup after restore. Rolling10 permanently evicts content; it
+is not a backup or an acceptance of reduced recovery assurance. Earlier0023 synthetic recovery
+evidence does not verify this new schema's actual Production recovery. No backup/restore executed.
+
 # Supabase Free off-site disaster recovery plan
 
 This plan covers the complete BuddyWebv2 application state that is not reproducible from source:

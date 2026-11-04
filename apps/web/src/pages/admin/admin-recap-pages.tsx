@@ -2,9 +2,10 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { RetentionNotice, EvictionNotice } from '@/features/recaps/retention-notice'
 import { AdminEventsTabs } from '@/features/recaps/admin-events-tabs'
 import { RecapImage } from '@/features/recaps/recap-photo'
 import { RecapStory } from '@/features/recaps/recap-story'
@@ -58,6 +59,11 @@ export function AdminRecapsPage() {
   const { t, i18n } = useTranslation()
   const [params, setParams] = useSearchParams()
   const page = Math.max(1, Number(params.get('page')) || 1)
+  const location = useLocation()
+  const feedback = location.state as {
+    evicted?: NonNullable<Recap['evicted_recaps']>
+    pending?: boolean
+  } | null
   const [cleanupError, setCleanupError] = useState(false)
   const query = useQuery({
     queryKey: ['private', 'recaps', page],
@@ -67,6 +73,8 @@ export function AdminRecapsPage() {
   return (
     <section className="min-w-0 space-y-6 py-6">
       <AdminEventsTabs recap />
+      <RetentionNotice />
+      <EvictionNotice items={feedback?.evicted ?? []} pending={feedback?.pending ?? false} />
       <header className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-3xl font-semibold">{t('recaps.recapTab')}</h1>
         <Button asChild>
@@ -175,6 +183,8 @@ function RecapEditor({ initial }: { initial: Recap }) {
   const lock = useRef(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [evicted, setEvicted] = useState<NonNullable<Recap['evicted_recaps']>>([])
+  const [evictionPending, setEvictionPending] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [deletion, setDeletion] = useState<'recap' | string | null>(null)
   const [eventPage, setEventPage] = useState(1)
@@ -219,6 +229,8 @@ function RecapEditor({ initial }: { initial: Recap }) {
     setBusy(true)
     setError(null)
     setNotice(null)
+    setEvicted([])
+    setEvictionPending(false)
     try {
       await action()
       await invalidate()
@@ -261,13 +273,21 @@ function RecapEditor({ initial }: { initial: Recap }) {
   const status = (value: Recap['status']) =>
     void execute(async () => {
       const result = await saveAll()
-      accept(
-        await mutateRecap(`/${result.id}/status`, 'PATCH', {
-          version: result.version,
-          status: value,
-        }),
-      )
-      setNotice('saved')
+      const published = await mutateRecap(`/${result.id}/status`, 'PATCH', {
+        version: result.version,
+        status: value,
+      })
+      const removed = published.evicted_recaps ?? []
+      if (removed.some((item) => item.id === result.id)) {
+        void navigate('/admin/events/recaps', {
+          state: { evicted: removed, pending: published.cleanup_pending },
+        })
+        return
+      }
+      accept(published)
+      setEvicted(removed)
+      setEvictionPending(published.cleanup_pending)
+      setNotice(removed.length ? null : 'saved')
     })
   const runUploads = (selected: Job[]) =>
     void execute(async () => {
@@ -403,6 +423,8 @@ function RecapEditor({ initial }: { initial: Recap }) {
         </p>
         <p className="mt-2 text-sm text-muted-foreground">{t('recaps.requiredPublish')}</p>
       </header>
+      <RetentionNotice />
+      <EvictionNotice items={evicted} pending={evictionPending} />
       {error && (
         <div role="alert" className="rounded-xl border border-destructive p-4">
           <p>{t(`recaps.${error}`)}</p>
@@ -426,7 +448,7 @@ function RecapEditor({ initial }: { initial: Recap }) {
           {t(`recaps.${notice}`)}
         </p>
       )}
-      {draft.cleanup_pending && (
+      {draft.cleanup_pending && !evicted.length && (
         <div role="status">
           <p>{t('recaps.cleanup')}</p>
           <Button

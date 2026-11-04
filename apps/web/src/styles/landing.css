@@ -13,11 +13,6 @@
   }
 }
 .landing-page {
-  --landing-paper: #faf6ee;
-  --landing-ink: #242a25;
-  --landing-muted: #596057;
-  --landing-orange: #ae410b;
-  --landing-line: #d9d8ca;
   --foreground: 132 8% 15%;
   --muted-foreground: 108 5% 36%;
   --ring: 21 88% 36%;
@@ -103,13 +98,13 @@
   padding-block: 14px;
   white-space: normal;
   text-align: center;
-  background: #ff8a45;
+  background: var(--landing-action);
   color: #242a25;
   box-shadow: none;
   border-radius: 999px;
 }
 .landing-page .landing-primary:hover {
-  background: #ff9d62;
+  background: var(--landing-action-hover);
 }
 .landing-text-link {
   min-height: 48px;

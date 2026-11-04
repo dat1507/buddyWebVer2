@@ -1,3 +1,14 @@
+## EVENT-RECAP-ROLLING-001 - 2026-11-04
+
+Fullfrontend936PASS/96files/0skip; fullbackend1879PASS/37existing opt-inSKIP/one pre-existing warning.
+Final cleanup404 hardening/new regression:27affectedPASS; final legacy overflow guard/backfill/live
+API3PASS. Fullstatic330typing/Ruff/TS/ESLint/Prettier/build/package/singlehead0024PASS, final focused
+static/package evidence inmanifest. Initial focused33frontend +2actualAdmin EN-DEworkflowPASS.
+Real local API/Postgres/Pillow/SupabaseStorage7PASS. No Production access. Existing runtime audits
+reused only for unchanged locks; development advisory remains. Browser disabled: no new visual/axe
+PASS claimed.255task/indexpaths/currentlinks/legacy/currentmain sharedbytes validated.
+[Full handoff](../project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+
 ## EVENT-RECAP-CI-ONLY-001 - 2026-11-04
 
 Local exact-branch git.deploymentEnabledfalse: patch check/application, semantic identity of all
@@ -31,6 +42,12 @@ follow-ups are explained in the [assessment](../project-knowledge/frontend/EVENT
 Prior18 responsive axe checks reused only for identical approved UI; hosted browser/CI UNVERIFIED.
 251 extracts /251 unique index links; current links/manifest/application-tree identity validated.
 Production capacity/quotas/backup and Preview isolation remain open. No push/deploy/Production writes.
+## CHATBOT-DESIGN-001 —2026-11-04 LOCAL PASS
+
+104 focused/5files, TypeScript/frontendESLint/focusedPrettier/Productionbuild PASS. EN/DE screenshots
+at1440/768/390/320, reduced-height390x420, Escape/Enter/Tab, reducedmotion, local retrieval/citations/
+503/retry/429 verified. No backend suite or Production mutation.250 taskpaths validated.
+[Scope and limits](../project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md).
 
 ## CHATBOT-ACCEPT-001 —2026-11-03
 

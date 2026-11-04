@@ -28,6 +28,15 @@ export const recapSchema = z.object({
   thumbnail_id: z.string().uuid().nullable(),
   photos: z.array(photoSchema).max(12),
   cleanup_pending: z.boolean(),
+  evicted_recaps: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        title_en: z.string().nullable(),
+        title_de: z.string().nullable(),
+      }),
+    )
+    .optional(),
 })
 export const recapListSchema = z.object({
   items: z.array(recapSchema),

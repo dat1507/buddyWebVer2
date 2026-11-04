@@ -65,7 +65,7 @@ def test_alembic_script_directory_is_loadable() -> None:
     )
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0023_recaps"]
+    assert script_directory.get_heads() == ["0024_recap_retention"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None

@@ -1,3 +1,23 @@
+## 2026-11-04 - Rolling10 + Facebook local completion
+
+TASK_ID: NONE. EVENT-RECAP-ROLLING-001 DONE LOCAL / NEW HOSTED CI REQUIRED / PRODUCTION NO-GO.
+Isolated codex/events-recap-rolling integrates approvedc742173 and freshmain6d32d1a. Permanent
+publication overflow deletion, durable media cleanup, original publication clock, Admin feedback
+and EN/DE Facebook section complete. New0024 head; full frontend936PASS, backend1879PASS/37oldskips,
+final affected27PASS + final legacy guard upgrade/live3PASS. Strict typing330/static/build/package
+PASS; real local HTTP/Pillow/Storage7PASS. Browser disabled in Work settings: visual review open.
+[Handoff, migration, costs, cleanup and review](docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+Reviewhttps://127.0.0.1:5198/events/recap, Admin /admin/events/recaps, synthetic credentials only
+in ignored .local/recap-review/login.json. Prior approvedRC and dirty recovery preparation preserved.
+No push/merge/deploy/Production operations. ExactnewSHA hostedCI/publication and separate
+recovery/capacity/advisory/Production approvals required; no task automatically assigned next.
+
+## 2026-11-04 - Rolling10 implementation assigned
+
+TASK_ID: EVENT-RECAP-ROLLING-001. Isolated codex/events-recap-rolling fromc742173 + main6d32d1a.
+[Task](docs/implementation/tasks/EVENT-RECAP-ROLLING-001.md). Permanent overflow deletion + durable
+cleanup, Admin notice and Facebook section; local only. Preserve recovery-prep/unpublished work.
+
 ## 2026-11-04 - local CI-only branch suppression complete
 
 TASK_ID: NONE. EVENT-RECAP-CI-ONLY-001 DONE LOCAL / READY FOR CI-ONLY PUBLICATION AUTHORIZATION.
@@ -55,6 +75,15 @@ Integrate in `codex/events-recap-rc` from freshly fetched `origin/main` `6851725
 Preserve newer Admin labels and main's existing gated-OFF chatbot bytes; no unrelated implementation.
 Read [task contract](docs/implementation/tasks/EVENT-RECAP-RC-001.md). No push, merge to main,
 deploy, Production mutation, new cloud resource or provider/billing change authorized.
+## Chatbot redesign complete —2026-11-04
+
+TASK_ID: NONE. CHATBOT-DESIGN-001 DONE — LOCAL VERIFIED / NOT PUSHED OR DEPLOYED.
+Branch codex/chatbot-ui-alignment from verified Production6851725; new AdminEvents preserved.
+104 focused tests/static/build and EN/DE1440/768/390/320 browser checks PASS. Warm shared public
+palette, suggestions/citations/composer polished; retrieval/backend/KB/AI/auth unchanged.
+Local review http://127.0.0.1:5204/ (loopback fixture8064). No further task assigned.
+[Evidence](docs/project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md). Original integration
+dirty release docs/unpublished commits remain untouched. Earlier archive checkpoints historical.
 
 ## Latest Phase3.5.2 continuation —2026-11-03
 

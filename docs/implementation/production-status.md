@@ -1,3 +1,13 @@
+## 2026-11-04 - Rolling10 local candidate, not a Production observation
+
+Publishedc742173 hostedCI remains evidence only for the previous feature. New isolated local
+candidate has0024 retention/outbox migration and permanent overflow deletion; requires new exact-SHA
+hostedCI before release. No Production schema/data/storage/provider access/change by this task.
+Owner initialSupabaseStorage quota evidence remains accepted for initialscope, with drafts/backlog/
+backup and egress monitoring. Actual recovery/headroom/performance remainBLOCKED/UNVERIFIED;
+no backup-assurance waiver. RenderAutoDeployOFF must remainOFF, Vercelmain still release boundary.
+[Local candidate/rollout gates](../project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+
 ## 2026-11-04 - local CI-only suppression read-only recheck
 
 Vercel project rootapps/web/Vite/Node24, no build/install override, ignored-buildAutomatic;
@@ -40,6 +50,12 @@ Local migration/head0023, app compatibility, pressure and gates do not establish
 [Assessment, rollout and owner actions](../project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
 Production NO-GO. No Production migration/data/config write, push, deployment, secret/account/billing
 change or cloud resource creation. Render Auto-Deploy remainsOFF.
+## 2026-11-04 —chatbot redesign baseline, read-only
+
+Authenticated Vercel www alias READY dpl_2bmuqvAyM1RnJrCZhVdupmMXBza3, main
+6851725362184af7c85828602b6c881f64374b60; fresh git ls-remote main matches. Local redesign
+is isolated from that source. No Production mutation or fresh backend-health acceptance in this task.
+[Local work](../project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md). Earlier NO-GO snapshots below historical.
 
 ## 2026-11-03 —Phase3.5.2 fresh read-only verification
 

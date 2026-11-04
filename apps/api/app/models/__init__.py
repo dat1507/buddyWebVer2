@@ -62,7 +62,7 @@ from app.models.profile_catalog import (
     ProfileInterest,
     ProfileLanguage,
 )
-from app.models.recap import Recap, RecapImage, RecapPhoto
+from app.models.recap import Recap, RecapImage, RecapMediaCleanup, RecapPhoto
 from app.models.refresh_session import RefreshSession
 from app.models.semester import (
     SEMESTER_BACKUP_RETENTION,
@@ -81,7 +81,10 @@ from app.models.transactional_outbox import TransactionalOutbox
 from app.models.user import User, UserRole
 
 __all__ = (
-    "Recap", "RecapImage", "RecapPhoto",
+    "Recap",
+    "RecapImage",
+    "RecapMediaCleanup",
+    "RecapPhoto",
     "Activity",
     "AuditLog",
     "Base",

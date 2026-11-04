@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import os
 from contextlib import asynccontextmanager
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -29,7 +29,9 @@ from app.services import recaps
 from app.services.image_storage import ImageStorageService, SupabaseStorageTransport
 from app.services.passwords import hash_password
 
-ORIGIN = "https://127.0.0.1:5197"
+ORIGIN = os.environ.get("RECAP_REVIEW_ORIGIN", "https://127.0.0.1:5197")
+if ORIGIN not in {"https://127.0.0.1:5197", "https://127.0.0.1:5198"}:
+    raise RuntimeError("Review origin must be loopback")
 private = Path("/workspace/.local/recap-review")
 url = make_url(os.environ["RECAP_TEST_DATABASE_URL"])
 if url.host != "buddy-recap-db" or url.database != "buddy_recap_local":
@@ -95,12 +97,8 @@ async def seed() -> None:
             (private / "login.json").write_text(
                 json.dumps({"email": user.email, "password": password})
             )
-        existing = await session.scalar(
-            select(Recap).where(
-                Recap.title_en == "Welcome to the Buddy community · local review",
-                Recap.deleted_at.is_(None),
-            )
-        )
+        # Never reseed ten published fixtures after the original welcome recap is evicted.
+        existing = await session.scalar(select(Recap.id).limit(1))
         if existing:
             return
         names = [
@@ -146,6 +144,7 @@ async def seed() -> None:
                 )
             await recaps.validate_publication(session, recap)
             recap.status = "PUBLISHED"
+            recap.first_published_at = datetime.now(UTC)
             await session.commit()
         (private / "public.json").write_text(
             json.dumps(

@@ -8,14 +8,15 @@ from typing import Literal, cast
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import and_, exists, extract, func, or_, select
+from sqlalchemy import and_, exists, extract, func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.models.event import Event, EventStatus, EventVisibility
-from app.models.recap import Recap, RecapImage, RecapPhoto
+from app.models.recap import Recap, RecapImage, RecapMediaCleanup, RecapPhoto
 from app.models.user import User
 from app.schemas.recap import (
+    EvictedRecap,
     PhotoOrderUpdate,
     PhotoResponse,
     RecapContent,
@@ -185,7 +186,12 @@ async def list_recaps(
     filtered = base.where(extract("year", Recap.event_date) == year) if year is not None else base
     total = await session.scalar(select(func.count()).select_from(filtered.subquery())) or 0
     order = (Recap.event_date.desc().nulls_last(), Recap.created_at.desc(), Recap.id.desc())
-    rows = list(await session.scalars(filtered.order_by(*order).offset((page - 1) * 9).limit(9)))
+    page_size = 9 if admin else 10
+    rows = list(
+        await session.scalars(
+            filtered.order_by(*order).offset((page - 1) * page_size).limit(page_size)
+        )
+    )
     mosaic_rows = (
         []
         if admin
@@ -207,7 +213,7 @@ async def list_recaps(
         items=await project_many(session, rows, cards=True, admin=admin),
         page=page,
         total=total,
-        total_pages=(total + 8) // 9,
+        total_pages=(total + page_size - 1) // page_size,
         years=[int(value) for value in years],
         mosaic=await project_many(session, mosaic_rows, cards=True),
         pending_cleanup=list(
@@ -221,6 +227,7 @@ async def list_recaps(
                 )
             )
         )
+        + list(await session.scalars(select(RecapMediaCleanup.recap_id).distinct()))
         if admin
         else [],
     )
@@ -439,3 +446,81 @@ async def mark_deleted(
         photo.sort_order = index
     touch(recap, actor)
     return changed
+
+
+async def lock_publication(session: AsyncSession) -> None:
+    """Serialize every status transition before row locks, across all backend processes."""
+    await session.execute(text("SELECT pg_advisory_xact_lock(7241901024)"))
+
+
+async def evict_overflow(session: AsyncSession, actor: User) -> list[EvictedRecap]:
+    """Caller holds publication lock. Stage hard deletes and durable cleanup atomically."""
+    published = list(
+        await session.scalars(
+            select(Recap)
+            .where(Recap.status == "PUBLISHED", Recap.deleted_at.is_(None))
+            .order_by(Recap.first_published_at.desc(), Recap.id.desc())
+            .offset(10)
+            .with_for_update()
+        )
+    )
+    result = []
+    for old in published:
+        result.append(EvictedRecap(id=old.id, title_en=old.title_en, title_de=old.title_de))
+        images = list(
+            await session.scalars(
+                select(RecapImage)
+                .join(RecapPhoto, RecapPhoto.id == RecapImage.photo_id)
+                .where(RecapPhoto.recap_id == old.id)
+            )
+        )
+        for image in images:
+            session.add(RecapMediaCleanup(recap_id=old.id, object_key=image.object_key))
+        # Remove cyclic thumbnail FK before CASCADE removes photos and image metadata.
+        old.thumbnail_id = None
+        await session.flush()
+        await audit(session, actor, old, "automatic_eviction")
+        await session.delete(old)
+        await session.flush()
+    return result
+
+
+async def cleanup_evicted(
+    session: AsyncSession, storage: ImageStorageService, recap_id: UUID
+) -> bool:
+    """Idempotent object deletion; no recap content/relationship needs to survive eviction."""
+    from app.models.event import EventMedia
+
+    rows = list(
+        await session.scalars(
+            select(RecapMediaCleanup).where(RecapMediaCleanup.recap_id == recap_id)
+        )
+    )
+    for row in rows:
+        # Fail closed if a key unexpectedly has another durable owner in this bucket.
+        if await session.scalar(
+            select(RecapImage.id).where(RecapImage.object_key == row.object_key)
+        ) or await session.scalar(
+            select(EventMedia.id).where(EventMedia.object_key == row.object_key)
+        ):
+            continue
+        # End read transaction before any network operation; keep job until delete succeeds.
+        key, identifier = row.object_key, row.id
+        await session.commit()
+        try:
+            await storage.delete_image(StorageObjectRef(ImageBucket.EVENT_MEDIA, key))
+        except StorageOperationError as error:
+            if error.status_code != 404:
+                continue
+        owned = await session.get(RecapMediaCleanup, identifier)
+        if owned is not None:
+            await session.delete(owned)
+        await session.commit()
+    pending = (
+        await session.scalar(
+            select(RecapMediaCleanup.id).where(RecapMediaCleanup.recap_id == recap_id).limit(1)
+        )
+        is not None
+    )
+    await session.commit()
+    return pending

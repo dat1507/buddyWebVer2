@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": { "deploymentEnabled": { "codex/events-recap-rc": false } },
+  "git": {
+    "deploymentEnabled": { "codex/events-recap-rc": false, "codex/events-recap-rolling": false }
+  },
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {

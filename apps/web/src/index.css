@@ -4,6 +4,14 @@
 
 @layer base {
   :root {
+    /* Shared public palette: Landing, Merchandise and the portaled assistant. */
+    --landing-paper: #faf6ee;
+    --landing-ink: #242a25;
+    --landing-muted: #596057;
+    --landing-orange: #ae410b;
+    --landing-line: #d9d8ca;
+    --landing-action: #ff8a45;
+    --landing-action-hover: #ff9d62;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;

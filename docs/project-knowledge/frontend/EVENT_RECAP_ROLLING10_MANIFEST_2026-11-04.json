@@ -1,0 +1,612 @@
+{
+  "date": "2026-11-04 Asia/Saigon",
+  "branch": "codex/events-recap-rolling",
+  "previous_rc": "c74217333d4935c0e16a77735593775741486fe8",
+  "integrated_main": "6d32d1a86e2fb87d24990355a14db91eb867a03e",
+  "final_sha": "Local feature commit containing this manifest; exact SHA in delivery, resolve with git rev-parse codex/events-recap-rolling",
+  "main_commits_beyond_previous_rc": [
+    {
+      "sha": "6d32d1a86e2fb87d24990355a14db91eb867a03e",
+      "title": "style(web): fix existing admin event test formatting"
+    },
+    {
+      "sha": "2a4f1754689e79a30be0cf90157128b817f4060c",
+      "title": "feat(chatbot): align floating assistant with public design system"
+    }
+  ],
+  "changed_files_vs_previous_rc": [
+    {
+      "status": "M",
+      "path": "SESSION_HANDOFF.md"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/alembic/versions/0024_recap_retention.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/api/recaps.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/models/__init__.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/models/recap.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/schemas/recap.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/services/recaps.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/scripts/recap_review.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/tests/test_migrations.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/tests/test_recap_retention_live.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/tests/test_recaps_live.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/scripts/review-recaps.mjs"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/chatbot/chatbot-panel.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/chatbot/chatbot-widget.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/chatbot/chatbot-widget.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/chatbot/chatbot.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/recaps/recaps.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/features/recaps/recaps.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/retention-notice.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/retention-notice.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/index.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/locales/de/common.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/locales/en/common.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/admin/admin-recap-pages.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/pages/admin/admin-recap-workflow.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/public/recap-pages.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/public/recap-pages.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/styles/landing.css"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/vercel.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/production-status.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/task-index.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/CHATBOT-DESIGN-001.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-ROLLING-001.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/validation.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/operations/supabase-free-offsite-dr.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/project-knowledge/chatbot/README.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_MANIFEST_2026-11-04.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/project-knowledge/frontend/README.md"
+    },
+    {
+      "status": "M",
+      "path": "implementation-plan.md"
+    }
+  ],
+  "complete_feature_delta_vs_main": [
+    {
+      "status": "M",
+      "path": ".github/workflows/ci.yml"
+    },
+    {
+      "status": "M",
+      "path": "SESSION_HANDOFF.md"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/alembic/env.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/alembic/versions/0023_recaps.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/alembic/versions/0024_recap_retention.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/api/admin_events.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/api/recaps.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/main.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/models/__init__.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/models/recap.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/schemas/recap.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/app/services/image_storage.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/services/recap_images.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/services/recap_relations.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/app/services/recaps.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/scripts/recap_review.py"
+    },
+    {
+      "status": "M",
+      "path": "apps/api/tests/test_migrations.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/tests/test_recap_images.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/tests/test_recap_retention_live.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/tests/test_recap_upload_commit.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/api/tests/test_recaps_live.py"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/scripts/review-recaps.mjs"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/App.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/config/event-feature-flags.integration.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/admin-events-tabs.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recap-photo.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recap-story.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recap-story.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recaps.css"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recaps.test.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/recaps.ts"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/retention-notice.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/features/recaps/retention-notice.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/locales/de/common.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/locales/en/common.json"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/admin/admin-events-page.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/admin/admin-events-page.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/pages/admin/admin-recap-pages.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/pages/admin/admin-recap-workflow.test.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/src/pages/public/community-coming-soon-page.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/pages/public/recap-pages.test.tsx"
+    },
+    {
+      "status": "A",
+      "path": "apps/web/src/pages/public/recap-pages.tsx"
+    },
+    {
+      "status": "M",
+      "path": "apps/web/vercel.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/production-status.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/task-index.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-001.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-CI-ONLY-001.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-PREFLIGHT-001.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-RC-001.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/implementation/tasks/EVENT-RECAP-ROLLING-001.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/implementation/validation.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/operations/events-recap-ci-only-proposal.patch"
+    },
+    {
+      "status": "M",
+      "path": "docs/operations/supabase-free-offsite-dr.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/project-knowledge/backend/README.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/project-knowledge/database/README.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_EVIDENCE_2026-11-04.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_RC_MANIFEST_2026-11-04.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md"
+    },
+    {
+      "status": "A",
+      "path": "docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_MANIFEST_2026-11-04.json"
+    },
+    {
+      "status": "M",
+      "path": "docs/project-knowledge/frontend/README.md"
+    },
+    {
+      "status": "M",
+      "path": "implementation-plan.md"
+    }
+  ],
+  "source_sha256": {
+    "apps/api/alembic/versions/0024_recap_retention.py": "fb14590df84c4a525c22dfa37a0b9cc675233183e3415aa9c95927373d8532a7",
+    "apps/api/app/api/recaps.py": "a99e56e8913636f1cb465fc96a3b481c1c3eb33895f7e7f1e00cb55fb8082f4e",
+    "apps/api/app/models/__init__.py": "db7a0470a43c669057e80c713247af95b0b62dbeb7b0f4bf7f694a8d330288a6",
+    "apps/api/app/models/recap.py": "5d1deea2757bc3a6d9c5f347ed8a7bbe416babbba5b74467c2d1007e9f5a47cc",
+    "apps/api/app/schemas/recap.py": "88d76486b4278085ed98c83fd3212d65a4c2fffb1c9b8e63b0ef84c06a526648",
+    "apps/api/app/services/recaps.py": "3243dd8de3ffc1e95c4f9e760e968ed95870af124144d856e07ce6dae7b66463",
+    "apps/api/scripts/recap_review.py": "abf6054f29dbcae555e649db19895d41e6eade82f294bdb3da582908502be9c6",
+    "apps/api/tests/test_migrations.py": "fc2cc5c902228eb39a20ba319f1833d056789399270bfa1b3802637f7567a962",
+    "apps/api/tests/test_recap_retention_live.py": "467e02c7180f60cd2fc80304b59db280172cc9bb3a4e5366b42584de7ecc536e",
+    "apps/api/tests/test_recaps_live.py": "d5774aff491a4a1f833a7c6f552cb1ed071d3373670860ee0f6a8762860b3325",
+    "apps/web/scripts/review-recaps.mjs": "45aeef46265ad9cc135b3ac2685a732fa3ae2c6a5f099dc59c3970e3eaf2e005",
+    "apps/web/src/features/chatbot/chatbot-panel.tsx": "e2b797c8be2ce357cbbe1d0e5e98c57fc10cc8dcbbbeb71f1450d8dfd7503a7f",
+    "apps/web/src/features/chatbot/chatbot-widget.test.tsx": "c0378016737d89cddf7dec4ca11d6a60fcf16430b572d9969ed5b8896296dc51",
+    "apps/web/src/features/chatbot/chatbot-widget.tsx": "38620b70f19406efc53bf82b6010783ee38da94846251243437422e27c6e1f91",
+    "apps/web/src/features/chatbot/chatbot.css": "5ab5d647594a996e458e86d73ccd22c7ea8b08d123a530f322fa8f60f44f1856",
+    "apps/web/src/features/recaps/recaps.css": "ed823227981e289a707fa8e0080de3bcbad8b7c7d78c8a9dd80597b66a1b43cd",
+    "apps/web/src/features/recaps/recaps.ts": "99e29e5b44b2a4251aa5203d3820895934f9726d72d81b12ba86a3eb04334504",
+    "apps/web/src/features/recaps/retention-notice.test.tsx": "dad025c1d1807ed84600938c97d338d83f3dac431fc5afaab198f3f23a17c119",
+    "apps/web/src/features/recaps/retention-notice.tsx": "af05b464d75fa9e9c2ea1bc52600e1738a42917bfa5f17a57ba8ad9db4f997c2",
+    "apps/web/src/index.css": "656b954027c7abffae7155776c50c8b1b1793a2d7b728b34bcb3df9c432dcc94",
+    "apps/web/src/locales/de/common.json": "6711314c551d7782b6cda96f443edae0b30497ed86abd8065f6cc4001f5302e5",
+    "apps/web/src/locales/en/common.json": "83edde0916a533b9265871c85a6a4939dfc5d6917f53a9b347d06cc2aab0d888",
+    "apps/web/src/pages/admin/admin-recap-pages.tsx": "067cac564b4f3308994063daf638f24423d5d3d0a92037c48942f0ebefcb9faf",
+    "apps/web/src/pages/admin/admin-recap-workflow.test.tsx": "1d05ee54bc972146f646aad44a4216c0d0dab2a65c160b47c13a2cb9875c04c3",
+    "apps/web/src/pages/public/recap-pages.test.tsx": "4b2fb96cef261e7b49f8f6ea44298a5253bf960b7fce59c42444a5324160529a",
+    "apps/web/src/pages/public/recap-pages.tsx": "6be47e8efb5d7f3799e4a1283318f81be8aca615ded4c9b832ec80410853b0c3",
+    "apps/web/src/styles/landing.css": "be51bff55008765c9f70b23b8387e2c517e8f7cb6cfd02a8b4412ea9ded92ba7",
+    "apps/web/vercel.json": "b412ccf40cd25726668f447bd20b236ddd35698af807265f7598ab1d7b199de6"
+  },
+  "verification": {
+    "frontend_full": {
+      "passed": 936,
+      "files": 96,
+      "failed": 0,
+      "skipped": 0
+    },
+    "backend_full_before_final_scoped_hardening": {
+      "passed": 1879,
+      "existing_skips": 37,
+      "warning": 1
+    },
+    "final_affected_after_cleanup_hardening": 27,
+    "final_upgrade_guard_and_live_api": 3,
+    "final_static": 330,
+    "focused_frontend": 33,
+    "actual_admin_en_de_workflow": 2,
+    "loopback_real_storage_api": {
+      "result": "PASS",
+      "checks": [
+        "initial10published",
+        "realPillowStorageUpload",
+        "automaticOldestDeletion",
+        "cleanupComplete",
+        "public404AndNewMediaCapabilityDenied",
+        "publicSinglePage10",
+        "republicationNoExtraEviction"
+      ],
+      "new_recap_id": "e64afb8b-dea6-42ef-8744-88ae6c0be49c",
+      "evicted_id": "df56f6f7-c7f5-42a9-88e8-c679676d4db4",
+      "local_review": "https://127.0.0.1:5198/events/recap",
+      "production_access": false
+    },
+    "web_static": [
+      {
+        "check": "format",
+        "exit": 0
+      },
+      {
+        "check": "lint",
+        "exit": 0
+      },
+      {
+        "check": "typecheck",
+        "exit": 0
+      },
+      {
+        "check": "build",
+        "exit": 0
+      }
+    ],
+    "backend_static_and_affected": [
+      {
+        "check": "lint",
+        "exit": 0
+      },
+      {
+        "check": "typing",
+        "exit": 0
+      },
+      {
+        "check": "affected-tests",
+        "exit": 0
+      },
+      {
+        "check": "package",
+        "exit": 0
+      }
+    ],
+    "browser": "UNVERIFIED - disabled in Work settings; no new responsive/axe claims",
+    "dependencies": "Unchanged locks, previous runtime audits reused; existing dev advisory remains",
+    "last_focused_static_package": [
+      {
+        "check": "typing",
+        "exit": 0
+      },
+      {
+        "check": "package",
+        "exit": 0
+      }
+    ]
+  },
+  "migration": {
+    "head": "0024_recap_retention",
+    "previous": "0023_recaps",
+    "cleanup_table": "app_private.recap_media_cleanup",
+    "legacy_overflow": "Fail closed before DDL if more than 10 published legacy rows; normal overflow handled atomically in API",
+    "legacy_clock": "earliest PUBLISHED audit, created_at fallback"
+  },
+  "invariants": {
+    "main_sha": "6d32d1a86e2fb87d24990355a14db91eb867a03e",
+    "approved_rc": "c74217333d4935c0e16a77735593775741486fe8",
+    "preserved_main_paths": [
+      "apps/api/app/services/event_media.py",
+      "apps/api/app/services/event_queries.py",
+      "apps/api/app/services/event_sliders.py",
+      "apps/api/requirements-dev.lock",
+      "apps/api/requirements.lock",
+      "apps/web/package-lock.json",
+      "apps/web/src/features/chatbot/chatbot-boundary.tsx",
+      "apps/web/src/features/chatbot/chatbot-client.test.ts",
+      "apps/web/src/features/chatbot/chatbot-client.ts",
+      "apps/web/src/features/chatbot/chatbot-entry.test.tsx",
+      "apps/web/src/features/chatbot/chatbot-entry.tsx",
+      "apps/web/src/features/chatbot/chatbot-panel.tsx",
+      "apps/web/src/features/chatbot/chatbot-widget.test.tsx",
+      "apps/web/src/features/chatbot/chatbot-widget.tsx",
+      "apps/web/src/features/chatbot/chatbot.css",
+      "apps/web/src/features/chatbot/use-chatbot-conversation.ts",
+      "apps/web/src/features/events/assets/christmas.jpg",
+      "apps/web/src/features/events/assets/club-fair-26.jpg",
+      "apps/web/src/features/events/assets/experience-day.jpg",
+      "apps/web/src/features/events/assets/halloween-new.jpg",
+      "apps/web/src/features/events/assets/recruitment-new.jpg",
+      "apps/web/src/features/events/data/static-upcoming-events.test.ts",
+      "apps/web/src/features/events/data/static-upcoming-events.ts",
+      "apps/web/src/features/events/event-slider.test.ts",
+      "apps/web/src/features/events/event-slider.ts",
+      "apps/web/src/features/events/mocks/mock-event-slider-repository.ts",
+      "apps/web/src/features/events/public-event.test.ts",
+      "apps/web/src/features/events/public-event.ts",
+      "apps/web/src/features/events/queries/use-event-sliders.ts",
+      "apps/web/src/features/events/queries/use-public-event.ts",
+      "apps/web/src/features/events/repositories/api-event-slider-repository.ts",
+      "apps/web/src/features/events/repositories/event-slider-repository-provider.ts",
+      "apps/web/src/features/events/repositories/event-slider-repository.ts",
+      "apps/web/src/pages/user/user-events-page.tsx",
+      "apps/web/src/styles/landing.css"
+    ],
+    "rc_worktree_clean": true,
+    "recovery_preparation_preserved": true
+  },
+  "publication": "No push, main merge, deployment or Production operations; exact new-SHA hosted CI required",
+  "production": "NO-GO; actual full recovery and capacity/performance acceptance open; no waiver",
+  "parent_commit": "c74217333d4935c0e16a77735593775741486fe8",
+  "main_alignment": "Reviewed current-main changes included in staged snapshot; no merge commit. Pending merge bookkeeping cleared without changing staged files.",
+  "source_sha256_basis": "SHA-256 of staged Git blob bytes (canonical line endings), not Windows working-copy line endings."
+}

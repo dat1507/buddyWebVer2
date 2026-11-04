@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from sqlalchemy import (
     CheckConstraint,
     Date,
+    DateTime,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -40,7 +41,14 @@ class Recap(Base):
             ondelete="RESTRICT",
         ),
         Index("ix_recaps_public_order", "status", "event_date", "created_at", "id"),
+        Index(
+            "ix_recaps_first_publication",
+            "first_published_at",
+            "id",
+            postgresql_where=text("status='PUBLISHED' AND deleted_at IS NULL"),
+        ),
     )
+    first_published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     related_event_id: Mapped[UUID | None] = mapped_column(
         Uuid, ForeignKey(f"{APPLICATION_SCHEMA}.events.id", ondelete="RESTRICT")
     )
@@ -108,3 +116,17 @@ class RecapImage(Base):
     byte_size: Mapped[int] = mapped_column(Integer)
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
+
+
+class RecapMediaCleanup(Base):
+    """Durable media deletion work survives permanent recap/photo removal."""
+
+    __tablename__ = "recap_media_cleanup"
+    __table_args__ = (
+        UniqueConstraint("object_key", name="uq_recap_cleanup_key"),
+        CheckConstraint("bucket = 'event-media'", name="ck_recap_cleanup_bucket"),
+        Index("ix_recap_cleanup_recap", "recap_id"),
+    )
+    recap_id: Mapped[UUID] = mapped_column(Uuid)
+    bucket: Mapped[str] = mapped_column(Text, default="event-media", server_default="event-media")
+    object_key: Mapped[str] = mapped_column(Text)

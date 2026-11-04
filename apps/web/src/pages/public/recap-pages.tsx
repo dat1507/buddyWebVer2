@@ -141,6 +141,19 @@ export function RecapGalleryPage() {
             </nav>
           )}
         </section>
+        <section className="recap-more-memories" aria-labelledby="more-memories-title">
+          <h2 id="more-memories-title">{t('recaps.moreMemories')}</h2>
+          <p>{t('recaps.moreMemoriesDescription')}</p>
+          <a
+            className="recap-pill"
+            href="https://www.facebook.com/VGUBuddyProgram"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t('recaps.facebook')}
+            <ArrowUpRight size={18} aria-hidden="true" />
+          </a>
+        </section>
       </div>
     </main>
   )

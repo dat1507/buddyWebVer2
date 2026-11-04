@@ -16,7 +16,7 @@ from app.api.dependencies import get_image_storage_service, require_role, requir
 from app.api.multipart import MultipartUploadError, read_multipart_image_upload
 from app.core.database import get_database_session
 from app.models import User, UserRole
-from app.models.recap import RecapImage, RecapPhoto
+from app.models.recap import Recap, RecapImage, RecapMediaCleanup, RecapPhoto
 from app.schemas.event import EventCoverUploadFields
 from app.schemas.recap import (
     PhotoOrderUpdate,
@@ -181,17 +181,38 @@ async def update_recap(
 
 @admin_router.patch("/{recap_id}/status", response_model=RecapResponse)
 async def status_recap(
-    recap_id: UUID, payload: RecapStatusUpdate, actor: Admin, csrf: Csrf, session: Session
+    recap_id: UUID,
+    payload: RecapStatusUpdate,
+    actor: Admin,
+    csrf: Csrf,
+    session: Session,
+    storage: Storage,
 ) -> RecapResponse:
+    from datetime import UTC, datetime
+
+    evicted = []
     async with transaction(session):
+        await service.lock_publication(session)
         recap = await service.get_recap(session, recap_id, admin=True, lock=True)
         service.require_version(recap, payload.version)
         if payload.status == "PUBLISHED":
             await service.validate_publication(session, recap)
+        changed = recap.status != payload.status
         recap.status = payload.status
-        service.touch(recap, actor)
-        await service.audit(session, actor, recap, "status")
+        if changed and payload.status == "PUBLISHED" and recap.first_published_at is None:
+            recap.first_published_at = datetime.now(UTC)
+        if changed:
+            service.touch(recap, actor)
+            await service.audit(session, actor, recap, "status")
+        await session.flush()
         result = await service.project(session, recap)
+        if changed and payload.status == "PUBLISHED":
+            evicted = await service.evict_overflow(session, actor)
+    result.evicted_recaps = evicted
+    for old in evicted:
+        result.cleanup_pending = (
+            await service.cleanup_evicted(session, storage, old.id) or result.cleanup_pending
+        )
     return result
 
 
@@ -308,6 +329,15 @@ async def delete_recap(
 async def retry_cleanup(
     recap_id: UUID, actor: Admin, csrf: Csrf, session: Session, storage: Storage
 ) -> RecapDeleteResponse:
+    if await session.scalar(
+        select(RecapMediaCleanup.id).where(RecapMediaCleanup.recap_id == recap_id).limit(1)
+    ):
+        return RecapDeleteResponse(
+            cleanup_pending=await service.cleanup_evicted(session, storage, recap_id)
+        )
+    if await session.get(Recap, recap_id) is None:
+        await session.commit()
+        return RecapDeleteResponse(cleanup_pending=False)
     recap = await service.get_recap(session, recap_id, admin=True, include_deleted=True, lock=True)
     await service.audit(session, actor, recap, "cleanup")
     return RecapDeleteResponse(
