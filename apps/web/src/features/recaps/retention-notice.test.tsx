@@ -13,7 +13,7 @@ const removed = [
 afterEach(async () => {
   await i18n.changeLanguage('en')
 })
-describe('Rolling10 publication feedback', () => {
+describe('Rolling9 publication feedback', () => {
   it.each(['en', 'de'])(
     'warns about permanent retention and identifies evicted memory in %s',
     async (language) => {
@@ -24,7 +24,7 @@ describe('Rolling10 publication feedback', () => {
           <EvictionNotice items={removed} pending={false} />
         </>,
       )
-      expect(screen.getByText(/10/)).toBeVisible()
+      expect(screen.getByText(/9/)).toBeVisible()
       expect(screen.getByRole('status')).toHaveTextContent(
         language === 'de' ? 'Willkommenstag' : 'Welcome Day',
       )

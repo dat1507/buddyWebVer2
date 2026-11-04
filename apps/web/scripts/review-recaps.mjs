@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('../', import.meta.url))
 const port = Number(process.env.RECAP_REVIEW_PORT || '5197')
 const apiPort = Number(process.env.RECAP_REVIEW_API_PORT || '8043')
-if (![5197, 5198].includes(port) || ![8043, 8044].includes(apiPort))
+if (![5197, 5198, 5199].includes(port) || ![8043, 8044, 8045].includes(apiPort))
   throw new Error('Review ports must be approved loopback ports')
 const apiTarget = `http://127.0.0.1:${apiPort}`
 process.env.VITE_API_URL = '/api'

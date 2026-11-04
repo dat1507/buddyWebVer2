@@ -1,3 +1,5 @@
+[Rolling 9 controlled release checkpoint](EVENT_RECAP_ROLLING9_2026-11-04.md) — local complete; hosted/provider/backup gates pending.
+
 2026-11-04: [Rolling10 permanent Recap retention and Facebook](EVENT_RECAP_ROLLING10_2026-11-04.md).
 Local verified/new0024/newexactCI required; ProductionNO-GO. Localreview5198, approved prior work
 preserved. [Changed paths and evidence](EVENT_RECAP_ROLLING10_MANIFEST_2026-11-04.json).

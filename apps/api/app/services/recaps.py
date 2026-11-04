@@ -186,7 +186,7 @@ async def list_recaps(
     filtered = base.where(extract("year", Recap.event_date) == year) if year is not None else base
     total = await session.scalar(select(func.count()).select_from(filtered.subquery())) or 0
     order = (Recap.event_date.desc().nulls_last(), Recap.created_at.desc(), Recap.id.desc())
-    page_size = 9 if admin else 10
+    page_size = 9
     rows = list(
         await session.scalars(
             filtered.order_by(*order).offset((page - 1) * page_size).limit(page_size)
@@ -460,7 +460,7 @@ async def evict_overflow(session: AsyncSession, actor: User) -> list[EvictedReca
             select(Recap)
             .where(Recap.status == "PUBLISHED", Recap.deleted_at.is_(None))
             .order_by(Recap.first_published_at.desc(), Recap.id.desc())
-            .offset(10)
+            .offset(9)
             .with_for_update()
         )
     )

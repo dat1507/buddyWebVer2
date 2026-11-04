@@ -30,7 +30,7 @@ from app.services.image_storage import ImageStorageService, SupabaseStorageTrans
 from app.services.passwords import hash_password
 
 ORIGIN = os.environ.get("RECAP_REVIEW_ORIGIN", "https://127.0.0.1:5197")
-if ORIGIN not in {"https://127.0.0.1:5197", "https://127.0.0.1:5198"}:
+if ORIGIN not in {"https://127.0.0.1:5197", "https://127.0.0.1:5198", "https://127.0.0.1:5199"}:
     raise RuntimeError("Review origin must be loopback")
 private = Path("/workspace/.local/recap-review")
 url = make_url(os.environ["RECAP_TEST_DATABASE_URL"])
@@ -97,7 +97,7 @@ async def seed() -> None:
             (private / "login.json").write_text(
                 json.dumps({"email": user.email, "password": password})
             )
-        # Never reseed ten published fixtures after the original welcome recap is evicted.
+        # Never reseed nine published fixtures after the original welcome recap is evicted.
         existing = await session.scalar(select(Recap.id).limit(1))
         if existing:
             return
@@ -111,7 +111,6 @@ async def seed() -> None:
             ("The start of something good", "Der Anfang von etwas Schönem"),
             ("Little moments, lasting memories", "Kleine Momente, bleibende Erinnerungen"),
             ("Exploring VGU together", "Gemeinsam die VGU entdecken"),
-            ("A chapter worth remembering", "Ein unvergessliches Kapitel"),
         ]
         sources = list(Path("/workspace/apps/web/src/assets/landing-backgrounds").glob("*.webp"))
         for index, (en, de) in enumerate(names):

@@ -215,7 +215,7 @@ async def publish(
         )
 
 
-@pytest.mark.parametrize("count", [0, 1, 9, 10, 11])
+@pytest.mark.parametrize("count", [0, 1, 8, 9, 10])
 def test_boundaries_and_public_removal(database: str, count: int) -> None:
     async def check() -> None:
         e, f, a, event, ids, keys, t, storage = await setup(database, count)
@@ -230,14 +230,14 @@ def test_boundaries_and_public_removal(database: str, count: int) -> None:
                 == count
             )
         result = await publish(f, a, storage, d)
-        removed = max(0, count + 1 - 10)
+        removed = max(0, count + 1 - 9)
         assert [x.id for x in result.evicted_recaps] == list(reversed(ids[:removed]))
         async with f() as s:
             assert await s.get(Recap, untouched) is not None
             assert await s.get(Event, event) is not None
             assert await s.scalar(
                 select(func.count()).select_from(Recap).where(Recap.status == "PUBLISHED")
-            ) == min(10, count + 1)
+            ) == min(9, count + 1)
             for old in ids[:removed]:
                 assert await s.get(Recap, old) is None
                 assert not await s.scalar(select(RecapPhoto.id).where(RecapPhoto.recap_id == old))
@@ -247,7 +247,7 @@ def test_boundaries_and_public_removal(database: str, count: int) -> None:
                 with pytest.raises(HTTPException):
                     await public_photo_url(old, uuid4(), s, storage)
             public = await recaps.list_recaps(s, page=1, year=None, admin=False)
-            assert public.total == min(10, count + 1) and len(public.items) == min(10, count + 1)
+            assert public.total == min(9, count + 1) and len(public.items) == min(9, count + 1)
         assert all((key not in t.objects) == (rid in ids[:removed]) for rid, key in keys)
         assert result.cleanup_pending is False
         await e.dispose()
@@ -257,7 +257,7 @@ def test_boundaries_and_public_removal(database: str, count: int) -> None:
 
 def test_edit_retry_and_original_publication_clock(database: str) -> None:
     async def check() -> None:
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
         async with f() as s:
             old = await s.get(Recap, ids[0])
             assert old is not None
@@ -289,7 +289,7 @@ def test_edit_retry_and_original_publication_clock(database: str) -> None:
                 await s.scalar(
                     select(func.count()).select_from(Recap).where(Recap.status == "PUBLISHED")
                 )
-                == 10
+                == 9
             )
         await e.dispose()
 
@@ -300,7 +300,7 @@ def test_failed_validation_and_atomic_rollback(
     database: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     async def check() -> None:
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
         bad = await draft(f, a, valid=False)
         with pytest.raises(HTTPException):
             await publish(f, a, storage, bad)
@@ -329,7 +329,7 @@ def test_failed_validation_and_atomic_rollback(
 
 def test_concurrency_and_durable_cleanup(database: str) -> None:
     async def check() -> None:
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
         async with f() as s:
             # Link to a draft Event only after publication, to prove eviction never deletes it.
             old = await s.get(Recap, ids[0])
@@ -352,7 +352,7 @@ def test_concurrency_and_durable_cleanup(database: str) -> None:
                 await s.scalar(
                     select(func.count()).select_from(Recap).where(Recap.status == "PUBLISHED")
                 )
-                == 10
+                == 9
             )
             assert await s.get(Event, event) is not None
             assert await s.scalar(select(func.count()).select_from(RecapMediaCleanup)) == 4
@@ -382,7 +382,7 @@ def test_concurrency_and_durable_cleanup(database: str) -> None:
 
 def test_timestamp_ties_use_uuid_not_event_date(database: str) -> None:
     async def check() -> None:
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
         async with f() as s:
             for id in ids:
                 r = await s.get(Recap, id)
@@ -402,7 +402,7 @@ def test_partial_cleanup_retry_and_republication_self_eviction(
     database: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     async def check() -> None:
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
         d = await draft(f, a)
         calls = 0
         real = t.delete
@@ -428,7 +428,7 @@ def test_partial_cleanup_retry_and_republication_self_eviction(
                 await retry_cleanup(ids[0], a, cast(CsrfTokenClaims, object()), s, storage)
             ).cleanup_pending
         # Original timestamp is retained through unpublish/republish. An older draft does not
-        # displace a newer memory: it can evict itself when it is the oldest of eleven.
+        # displace a newer memory: it can evict itself when it is the oldest of ten.
         async with f() as s:
             r = await s.get(Recap, ids[1])
             assert r is not None
@@ -445,7 +445,7 @@ def test_partial_cleanup_retry_and_republication_self_eviction(
                 await s.scalar(
                     select(func.count()).select_from(Recap).where(Recap.status == "PUBLISHED")
                 )
-                == 10
+                == 9
             )
         assert original is not None
         await e.dispose()
@@ -559,7 +559,7 @@ def test_storage_lost_delete_ack_then_not_found_finishes_queue(
     async def check() -> None:
         from app.services.image_storage import StorageOperationError
 
-        e, f, a, event, ids, keys, t, storage = await setup(database, 10)
+        e, f, a, event, ids, keys, t, storage = await setup(database, 9)
 
         async def uncertain(reference: StorageObjectRef) -> None:
             if reference.object_key not in t.objects:

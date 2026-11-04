@@ -1,3 +1,22 @@
+## 2026-11-04 — Rolling 9 local complete; provider safety boundary
+
+TASK_ID: EVENT-RECAP-ROLLING9-001. LOCAL IMPLEMENTATION COMPLETE; CI PUBLICATION BLOCKED pending
+current Render OFF/provider confirmation (browser disabled, no CLI credentials). Exact branch
+suppression is present; no push/deploy/export/migration. New candidate aligns latest main6d32d1a.
+27backend integration,23frontend +30Slider/Admin, strict330 typing/lint/build/package/format PASS.
+[Report and smallest owner actions](docs/project-knowledge/frontend/EVENT_RECAP_ROLLING9_2026-11-04.md).
+Review loopback5199/8045;9 published on one page, desktop3x3 CSS retained; visual review open.
+Production NO-GO: actual encrypted backup/Storage recovery evidence and exact export/migration
+permissions missing. Keep Render OFF; existing worktrees/unpublished recovery prep preserved.
+
+## 2026-11-04 — Rolling 9 controlled release assigned
+
+TASK_ID: EVENT-RECAP-ROLLING9-001. Isolated `codex/events-recap-rolling9` from
+`f8e09ef9ba69f97c3bd5a2a81a178f263fde7918`; freshly observed main `6d32d1a`.
+[Task](docs/implementation/tasks/EVENT-RECAP-ROLLING9-001.md). Implement nine, focused verification,
+local checkpoint, then safe CI-only publication. Production export, migration and writing tests
+require exact authorization and minimum backup evidence. Preserve all other worktrees and data.
+
 ## 2026-11-04 - Rolling10 + Facebook local completion
 
 TASK_ID: NONE. EVENT-RECAP-ROLLING-001 DONE LOCAL / NEW HOSTED CI REQUIRED / PRODUCTION NO-GO.

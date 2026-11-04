@@ -53,21 +53,21 @@ describe('Dynamic public recap gallery', () => {
     expect(screen.queryByRole('img')).toBeNull()
     expect(screen.getByRole('link', { name: 'Back to Events' })).toHaveAttribute('href', '/#events')
   })
-  it('shows all ten recent cards on one page and filters by year', async () => {
+  it('shows all nine recent cards on one page and filters by year', async () => {
     const list = vi.spyOn(api, 'fetchRecaps').mockImplementation(async (page) => ({
-      items: Array.from({ length: 10 }, (_, index) => ({
+      items: Array.from({ length: 9 }, (_, index) => ({
         ...record,
         id: `11111111-1111-4111-8111-1111111111${String(index).padStart(2, '0')}`,
       })),
       mosaic: [],
       years: [2026, 2025],
       page,
-      total: 10,
+      total: 9,
       total_pages: 1,
       pending_cleanup: [],
     }))
     mount()
-    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(10))
+    await waitFor(() => expect(screen.getAllByRole('article')).toHaveLength(9))
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
     fireEvent.change(screen.getByRole('combobox', { name: 'Year' }), { target: { value: '2025' } })
     await waitFor(() =>

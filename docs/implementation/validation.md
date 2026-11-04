@@ -1,3 +1,10 @@
+## EVENT-RECAP-ROLLING9-001 — 2026-11-04
+
+27backend integration PASS; strict330 typing/Ruff/package PASS.23frontend focused +30Slider/Admin
+PASS; final Prettier/ESLint/TS/build and demo exclusion17files/10markers PASS.0024 immutable.
+Loopback gallery9/onepage PASS. Browser disabled: visual/mobile acceptance open. No new full-suite
+claim; exact hostedCI required. [Evidence](../project-knowledge/frontend/EVENT_RECAP_ROLLING9_2026-11-04.md).
+
 ## EVENT-RECAP-ROLLING-001 - 2026-11-04
 
 Fullfrontend936PASS/96files/0skip; fullbackend1879PASS/37existing opt-inSKIP/one pre-existing warning.

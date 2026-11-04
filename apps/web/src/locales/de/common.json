@@ -1691,7 +1691,7 @@
     "status": "Veröffentlichungsstatus",
     "requiredPublish": "Zur Veröffentlichung sind EN/DE-Titel, Kurzbeschreibungen, aussagekräftige Alternativtexte und mindestens ein Foto erforderlich.",
     "photoUnavailable": "Foto vorübergehend nicht verfügbar",
-    "retentionWarning": "Nur die letzten 10 veröffentlichten Rückblicke bleiben erhalten. Eine weitere Veröffentlichung löscht den ältesten veröffentlichten Rückblick und seine Galeriebilder dauerhaft. Entwürfe bleiben erhalten.",
+    "retentionWarning": "Nur die letzten 9 veröffentlichten Rückblicke bleiben erhalten. Eine weitere Veröffentlichung löscht den ältesten veröffentlichten Rückblick und seine Galeriebilder dauerhaft. Entwürfe bleiben erhalten.",
     "evicted": "Älterer Rückblick automatisch gelöscht: {{title}}.",
     "moreMemories": "Lust auf mehr Erinnerungen?",
     "moreMemoriesDescription": "Entdecke ältere Veranstaltungserinnerungen der VGU Buddy-Community auf Facebook.",
