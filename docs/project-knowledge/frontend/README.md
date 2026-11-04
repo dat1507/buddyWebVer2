@@ -1,3 +1,7 @@
+2026-11-04: [Hosted CI safety preflight](EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Publication blocked on Preview isolation; validated CI-only suppression proposal unapplied pending
+owner authorization. Focused performance evidence explains CPU contention; Production NO-GO.
+
 2026-11-04: [Approved Recap pre-release assessment](EVENT_RECAP_PRE_RELEASE_2026-11-04.md) and
 [complete manifest](EVENT_RECAP_RC_MANIFEST_2026-11-04.json). Local RC ready for hosted CI;
 publication blocked on Preview isolation/approval; Production NO-GO on capacity/backup/hosted gates.

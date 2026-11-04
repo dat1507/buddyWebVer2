@@ -1,0 +1,701 @@
+{
+  "input_sha": "cdfc863503371ffef823f0a825162e7a1581c540",
+  "date": "2026-11-04 Asia/Saigon",
+  "performance": {
+    "0.1": {
+      "limits": {
+        "memory_bytes": 536870912,
+        "cpu": "0.1"
+      },
+      "process_peak_rss_mib": 292.77,
+      "phases": [
+        {
+          "phase": "cold_baseline",
+          "seconds": 7.498,
+          "cpu_delta": {
+            "usage_usec": 740337,
+            "user_usec": 672624,
+            "system_usec": 67713,
+            "nice_usec": 0,
+            "nr_periods": 74,
+            "nr_throttled": 74,
+            "throttled_usec": 7046720,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 2492.32,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 6.205,
+              "p95_ms": 97.61,
+              "max_ms": 97.61
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 398.63,
+              "p95_ms": 4503.13,
+              "max_ms": 4503.13
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 394.105,
+              "p95_ms": 4710.36,
+              "max_ms": 4710.36
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 390.99,
+              "p95_ms": 2499.4,
+              "max_ms": 2499.4
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 250.71500000000003,
+              "p95_ms": 2374.02,
+              "max_ms": 2374.02
+            }
+          }
+        },
+        {
+          "phase": "warm_baseline",
+          "seconds": 2.824,
+          "cpu_delta": {
+            "usage_usec": 284423,
+            "user_usec": 225979,
+            "system_usec": 58444,
+            "nice_usec": 0,
+            "nr_periods": 28,
+            "nr_throttled": 28,
+            "throttled_usec": 2790753,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 184.26,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 50.269999999999996,
+              "p95_ms": 96.24,
+              "max_ms": 96.24
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 403.62,
+              "p95_ms": 499.15,
+              "max_ms": 499.15
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 395.395,
+              "p95_ms": 492.04,
+              "max_ms": 492.04
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 391.31,
+              "p95_ms": 405.52,
+              "max_ms": 405.52
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 189.58,
+              "p95_ms": 295.41,
+              "max_ms": 295.41
+            }
+          }
+        },
+        {
+          "phase": "one_upload",
+          "seconds": 13.794,
+          "cpu_delta": {
+            "usage_usec": 1376345,
+            "user_usec": 958769,
+            "system_usec": 417576,
+            "nice_usec": 0,
+            "nr_periods": 138,
+            "nr_throttled": 138,
+            "throttled_usec": 21547330,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 953.72,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 101.66,
+              "p95_ms": 285.12,
+              "max_ms": 285.12
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 1051.615,
+              "p95_ms": 1397.49,
+              "max_ms": 1397.49
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 946.29,
+              "p95_ms": 1100.66,
+              "max_ms": 1100.66
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 849.86,
+              "p95_ms": 1300.6,
+              "max_ms": 1300.6
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 496.745,
+              "p95_ms": 590.97,
+              "max_ms": 590.97
+            }
+          }
+        },
+        {
+          "phase": "multiple_uploads",
+          "seconds": 15.7,
+          "cpu_delta": {
+            "usage_usec": 1565388,
+            "user_usec": 1332604,
+            "system_usec": 232784,
+            "nice_usec": 0,
+            "nr_periods": 157,
+            "nr_throttled": 157,
+            "throttled_usec": 30859458,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 3582.54,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 100.995,
+              "p95_ms": 202.27,
+              "max_ms": 202.27
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 1348.655,
+              "p95_ms": 7493.6,
+              "max_ms": 7493.6
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 1148.825,
+              "p95_ms": 2504.82,
+              "max_ms": 2504.82
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 1098.8700000000001,
+              "p95_ms": 6098.4,
+              "max_ms": 6098.4
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 847.53,
+              "p95_ms": 1901.56,
+              "max_ms": 1901.56
+            },
+            "busy_upload": {
+              "n": 8,
+              "p50_ms": 8895.535,
+              "p95_ms": 8985.12,
+              "max_ms": 8985.12
+            }
+          }
+        }
+      ],
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "scope": "local ASGI, real local DB, in-memory storage, max4096 image, default-OFF chatbot; not Production proof",
+      "image_size": [
+        4096,
+        4096
+      ],
+      "sample_note": "Six observations per read endpoint per phase; empirical p95 is maximum for n=6, not a stable SLO estimate. Eight competing authenticated upload requests when busy."
+    },
+    "1": {
+      "limits": {
+        "memory_bytes": 536870912,
+        "cpu": "1"
+      },
+      "process_peak_rss_mib": 292.67,
+      "phases": [
+        {
+          "phase": "cold_baseline",
+          "seconds": 0.797,
+          "cpu_delta": {
+            "usage_usec": 573792,
+            "user_usec": 528766,
+            "system_usec": 45025,
+            "nice_usec": 0,
+            "nr_periods": 8,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 270.6,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 5.105,
+              "p95_ms": 18.4,
+              "max_ms": 18.4
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 41.535,
+              "p95_ms": 456.09,
+              "max_ms": 456.09
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 36.515,
+              "p95_ms": 479.99,
+              "max_ms": 479.99
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 32.959999999999994,
+              "p95_ms": 262.39,
+              "max_ms": 262.39
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 21.955,
+              "p95_ms": 224.91,
+              "max_ms": 224.91
+            }
+          }
+        },
+        {
+          "phase": "warm_baseline",
+          "seconds": 0.278,
+          "cpu_delta": {
+            "usage_usec": 180882,
+            "user_usec": 141296,
+            "system_usec": 39585,
+            "nice_usec": 0,
+            "nr_periods": 3,
+            "nr_throttled": 0,
+            "throttled_usec": 0,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 25.59,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 5.79,
+              "p95_ms": 6.1,
+              "max_ms": 6.1
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 38.925,
+              "p95_ms": 42.99,
+              "max_ms": 42.99
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 33.21,
+              "p95_ms": 38.0,
+              "max_ms": 38.0
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 30.509999999999998,
+              "p95_ms": 32.52,
+              "max_ms": 32.52
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 17.355,
+              "p95_ms": 17.87,
+              "max_ms": 17.87
+            }
+          }
+        },
+        {
+          "phase": "one_upload",
+          "seconds": 1.193,
+          "cpu_delta": {
+            "usage_usec": 1157559,
+            "user_usec": 825579,
+            "system_usec": 331980,
+            "nice_usec": 0,
+            "nr_periods": 12,
+            "nr_throttled": 9,
+            "throttled_usec": 398959,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 71.44,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 5.41,
+              "p95_ms": 50.82,
+              "max_ms": 50.82
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 61.325,
+              "p95_ms": 87.27,
+              "max_ms": 87.27
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 54.735,
+              "p95_ms": 80.19,
+              "max_ms": 80.19
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 33.135000000000005,
+              "p95_ms": 75.96,
+              "max_ms": 75.96
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 17.435000000000002,
+              "p95_ms": 51.51,
+              "max_ms": 51.51
+            }
+          }
+        },
+        {
+          "phase": "multiple_uploads",
+          "seconds": 1.365,
+          "cpu_delta": {
+            "usage_usec": 1330135,
+            "user_usec": 1048824,
+            "system_usec": 281311,
+            "nice_usec": 0,
+            "nr_periods": 14,
+            "nr_throttled": 13,
+            "throttled_usec": 1110204,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 352.28,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 5.58,
+              "p95_ms": 19.86,
+              "max_ms": 19.86
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 88.655,
+              "p95_ms": 703.95,
+              "max_ms": 703.95
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 79.025,
+              "p95_ms": 114.04,
+              "max_ms": 114.04
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 73.14500000000001,
+              "p95_ms": 468.1,
+              "max_ms": 468.1
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 57.155,
+              "p95_ms": 86.79,
+              "max_ms": 86.79
+            },
+            "busy_upload": {
+              "n": 8,
+              "p50_ms": 806.4300000000001,
+              "p95_ms": 839.64,
+              "max_ms": 839.64
+            }
+          }
+        }
+      ],
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "scope": "local ASGI, real local DB, in-memory storage, max4096 image, default-OFF chatbot; not Production proof",
+      "image_size": [
+        4096,
+        4096
+      ],
+      "sample_note": "Six observations per read endpoint per phase; empirical p95 is maximum for n=6, not a stable SLO estimate. Eight competing authenticated upload requests when busy."
+    },
+    "0.1-small": {
+      "limits": {
+        "memory_bytes": 536870912,
+        "cpu": 0.1
+      },
+      "image_size": [
+        1600,
+        1600
+      ],
+      "process_peak_rss_mib": 172.76,
+      "phases": [
+        {
+          "phase": "cold_baseline",
+          "seconds": 6.603,
+          "cpu_delta": {
+            "usage_usec": 647332,
+            "user_usec": 588231,
+            "system_usec": 59101,
+            "nice_usec": 0,
+            "nr_periods": 64,
+            "nr_throttled": 64,
+            "throttled_usec": 6160758,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 2411.48,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 6.32,
+              "p95_ms": 81.18,
+              "max_ms": 81.18
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 345.79999999999995,
+              "p95_ms": 4281.86,
+              "max_ms": 4281.86
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 300.23,
+              "p95_ms": 4377.86,
+              "max_ms": 4377.86
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 380.21000000000004,
+              "p95_ms": 2102.72,
+              "max_ms": 2102.72
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 195.5,
+              "p95_ms": 1798.44,
+              "max_ms": 1798.44
+            }
+          }
+        },
+        {
+          "phase": "warm_baseline",
+          "seconds": 2.52,
+          "cpu_delta": {
+            "usage_usec": 253985,
+            "user_usec": 222638,
+            "system_usec": 31347,
+            "nice_usec": 0,
+            "nr_periods": 25,
+            "nr_throttled": 25,
+            "throttled_usec": 2450794,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 183.51,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 5.895,
+              "p95_ms": 93.08,
+              "max_ms": 93.08
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 393.91,
+              "p95_ms": 496.63,
+              "max_ms": 496.63
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 299.45000000000005,
+              "p95_ms": 492.14,
+              "max_ms": 492.14
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 338.88,
+              "p95_ms": 485.35,
+              "max_ms": 485.35
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 191.065,
+              "p95_ms": 200.92,
+              "max_ms": 200.92
+            }
+          }
+        },
+        {
+          "phase": "one_upload",
+          "seconds": 7.684,
+          "cpu_delta": {
+            "usage_usec": 769751,
+            "user_usec": 554792,
+            "system_usec": 214959,
+            "nice_usec": 0,
+            "nr_periods": 77,
+            "nr_throttled": 77,
+            "throttled_usec": 12783055,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 683.17,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 51.75,
+              "p95_ms": 100.72,
+              "max_ms": 100.72
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 850.8900000000001,
+              "p95_ms": 2270.38,
+              "max_ms": 2270.38
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 750.875,
+              "p95_ms": 1898.61,
+              "max_ms": 1898.61
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 697.4949999999999,
+              "p95_ms": 1703.89,
+              "max_ms": 1703.89
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 346.905,
+              "p95_ms": 1004.9,
+              "max_ms": 1004.9
+            }
+          }
+        },
+        {
+          "phase": "multiple_uploads",
+          "seconds": 10.691,
+          "cpu_delta": {
+            "usage_usec": 1064050,
+            "user_usec": 981139,
+            "system_usec": 82912,
+            "nice_usec": 0,
+            "nr_periods": 107,
+            "nr_throttled": 107,
+            "throttled_usec": 15451977,
+            "nr_bursts": 0,
+            "burst_usec": 0
+          },
+          "loop_max_lag_ms": 1880.85,
+          "endpoints": {
+            "/api/health/live": {
+              "n": 6,
+              "p50_ms": 6.24,
+              "p95_ms": 94.6,
+              "max_ms": 94.6
+            },
+            "/api/auth/me": {
+              "n": 6,
+              "p50_ms": 531.19,
+              "p95_ms": 7100.07,
+              "max_ms": 7100.07
+            },
+            "/api/admin/events": {
+              "n": 6,
+              "p50_ms": 501.995,
+              "p95_ms": 3794.12,
+              "max_ms": 3794.12
+            },
+            "/api/events": {
+              "n": 6,
+              "p50_ms": 504.95000000000005,
+              "p95_ms": 6194.41,
+              "max_ms": 6194.41
+            },
+            "/api/event-sliders": {
+              "n": 6,
+              "p50_ms": 444.12,
+              "p95_ms": 2498.02,
+              "max_ms": 2498.02
+            },
+            "busy_upload": {
+              "n": 8,
+              "p50_ms": 7944.16,
+              "p95_ms": 8190.46,
+              "max_ms": 8190.46
+            }
+          }
+        }
+      ],
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "scope": "local ASGI, real local DB, in-memory storage, max4096 image, default-OFF chatbot; not Production proof",
+      "sample_note": "Six observations per read endpoint per phase; empirical p95 is maximum for n=6, not a stable SLO estimate. Eight competing authenticated upload requests when busy."
+    }
+  },
+  "hosted_observations": {
+    "production_branch": "main",
+    "preview_tracking": "all unassigned branches, enabled",
+    "preview_domains": 0,
+    "root_directory": "apps/web",
+    "ignored_build_step": "Automatic",
+    "preview_api_target": "OWNER VERIFICATION REQUIRED, unknown",
+    "render_auto_deploy": "OFF",
+    "render_live_sha": "c0687ba8e1253189bd297f60f2d8e8f24e44ecca",
+    "render_plan": "Free 0.1 CPU /512 MB",
+    "environment_metadata": [
+      {
+        "key": "VITE_API_URL",
+        "targets": [
+          "production"
+        ],
+        "value": "NOT RECORDED"
+      },
+      {
+        "key": "VITE_API_URL",
+        "targets": [
+          "preview"
+        ],
+        "value": "NOT RECORDED"
+      },
+      {
+        "key": "VITE_CHATBOT_ENABLED",
+        "targets": [
+          "production"
+        ]
+      },
+      {
+        "key": "VITE_PUBLIC_EVENTS_ENABLED",
+        "targets": [
+          "production"
+        ]
+      },
+      {
+        "key": "VITE_ADMIN_EVENTS_ENABLED",
+        "targets": [
+          "production"
+        ]
+      },
+      {
+        "key": "VITE_EVENT_SLIDER_USE_MOCKS",
+        "targets": [
+          "production",
+          "preview"
+        ]
+      }
+    ]
+  },
+  "integrity": "Recorded apps/CI hashes match cdfc863; fresh origin/main6851725 is ancestor; approved feature bdcd082 clean; demo exclusion16 files/10 markers PASS"
+}

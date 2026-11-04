@@ -1,0 +1,9 @@
+--- a/apps/web/vercel.json
++++ b/apps/web/vercel.json
+@@ -1,5 +1,6 @@
+ {
+   "$schema": "https://openapi.vercel.sh/vercel.json",
++  "git": { "deploymentEnabled": { "codex/events-recap-rc": false } },
+   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+   "headers": [
+     {

@@ -1,3 +1,5 @@
+| [EVENT-RECAP-PREFLIGHT-001](tasks/EVENT-RECAP-PREFLIGHT-001.md) | DONE LOCAL - PUBLICATION BLOCKED / PRODUCTION NO-GO |
+
 # Current release preparation
 
 | Task | Status |
@@ -12,7 +14,7 @@
 
 # Task index
 
-**Generated:** 2026-11-04 **Task IDs:** 251
+**Generated:** 2026-11-04 **Task IDs:** 252
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and

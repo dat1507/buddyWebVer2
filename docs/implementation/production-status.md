@@ -1,3 +1,14 @@
+## 2026-11-04 - hosted CI preflight read-only settings verification
+
+Vercel dashboard directly confirms Production branchmain, Preview trackingON/all unassigned/no
+attached domains, apps/web root, Vite/Node24, no build/install override, ignored-buildAutomatic,
+unaffected-root skipON, no configured deployment checks. Metadata lists separate Production/Preview
+API entries but values encrypted; reveal requires owner verification, cancelled without sending code.
+Preview backend/database/Storage target isolation remains UNKNOWN. Render dashboard reconfirms
+livec0687ba and AutoDeployOFF, selectedFree0.1CPU/512MB. No settings changed. This observation does
+not verify actual worker/memory/CPU headroom or backup/quota gates. No Production traffic/load/data
+mutation. [Preflight](../project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+
 ## 2026-11-04 - Events Recap pre-release observations (read-only)
 
 This Nov3-4 session supersedes older pins only for the directly observed fields below.

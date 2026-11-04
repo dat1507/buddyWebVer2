@@ -1,3 +1,15 @@
+## EVENT-RECAP-PREFLIGHT-001 - 2026-11-04
+
+All recorded application/CI hashes match cdfc863; fresh origin/main6851725 is ancestor; featurebdcd
+clean; demo exclusion16 files/10 markers PASS. No completed full suites repeated. Three focused
+local performance comparisons at512MiB (0.1CPU4096px,1CPU4096px,0.1CPU1600px): six samples per
+read/phase, all200; eight busy uploads429; no OOM. Distributions/provenance/cold-work caveats in
+[assessment](../project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Productionbranchmain, automatic Previewallunassigned/no domains and RenderOFF directly verified.
+Preview API owner-verification gated; no code sent/value revealed. CI-only suppression proposal
+validated with git apply --check --ignore-space-change, NOT applied.252 task paths/index links,
+current links and whitespace validated. Documentation-only successor; no push/deploy/provider writes.
+
 ## EVENT-RECAP-RC-001 - 2026-11-04
 
 Local integration e77d718: frontend925/94 files PASS, backend1868 PASS/37 existing opt-in skips,

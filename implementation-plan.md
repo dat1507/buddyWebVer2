@@ -1,3 +1,22 @@
+## 2026-11-04 - hosted CI safety preflight complete
+
+TASK_ID: NONE. EVENT-RECAP-PREFLIGHT-001 DONE LOCAL / PUBLICATION BLOCKED; Production NO-GO.
+Inputcdfc863 clean and fresh main6851725 integrated. All application/CI hashes unchanged; completed
+full tests reused. Focused0.1/1 CPU and1600px comparisons show CPU throttling/cold-work/scheduling
+rather than OOM. Production branchmain and automatic all-unassigned Preview directly confirmed;
+Preview API target still owner-verification gated. RenderAutoDeployOFF reconfirmed.
+[Assessment and minimum CI-only remediation](docs/project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Branch-only Vercel suppression patch prepared/validated but NOT applied: explicit configuration
+permission is required by the owner's request. No push/deploy/Production/provider config mutation.
+Next: owner authorizes prepared suppression or establishes isolated Preview targets, then exact-SHA
+publication approval. This documentation successor has its own SHA; no hosted verification claimed.
+
+## 2026-11-04 - hosted CI preflight assigned
+
+TASK_ID: EVENT-RECAP-PREFLIGHT-001. Owner authorizes read-only hosted safety checks and focused local
+performance investigation/fixes. Input cdfc863, no push/deploy/Production/provider mutation.
+[Task](docs/implementation/tasks/EVENT-RECAP-PREFLIGHT-001.md).
+
 ## 2026-11-04 - EVENT-RECAP-RC-001 local preparation complete
 
 **TASK_ID: NONE.** Local candidate READY FOR HOSTED CI; publication BLOCKED until Preview API
