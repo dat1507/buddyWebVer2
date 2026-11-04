@@ -1,10 +1,19 @@
+## 2026-11-04 - Rolling10 recovery addendum (local preparation only)
+
+Future0024 snapshots must include recaps.first_published_at and recap_media_cleanup durable object
+keys with the full app_private schema. Reconcile queued deletion intent and DB/media snapshot
+boundary before restarting any cleanup after restore. Rolling10 permanently evicts content; it
+is not a backup or an acceptance of reduced recovery assurance. Earlier0023 synthetic recovery
+evidence does not verify this new schema's actual Production recovery. No backup/restore executed.
+
 # Supabase Free off-site disaster recovery plan
 
 This plan covers the complete BuddyWebv2 application state that is not reproducible from source:
 
 - every object and row in the application-owned `app_private` PostgreSQL schema;
 - the exact Alembic revision and application commit associated with the snapshot;
-- every object in the private `profile-images` and `semester-database-backups` buckets;
+- every object in the private `profile-images`, `event-media` and `semester-database-backups`
+  buckets, plus the existing public `event-slider-images` bucket;
 - a redacted inventory, byte counts and SHA-256 checksums.
 
 It deliberately excludes provider-managed Supabase schemas, Upstash ephemeral Pub/Sub state,
@@ -14,6 +23,13 @@ generated credentials.
 
 This is a prepared plan, not a claim that an off-site backup or restore rehearsal has occurred.
 No database, bucket, S3 key, off-site account, or scheduled runner was created during preparation.
+
+2026-11-04 Recap release-preparation correction: the prior Storage list omitted Event media and
+slider images. Include both in future snapshots; this correction does not establish that any
+previous backup captured them. After migration, the database scope must include `recaps`,
+`recap_photos` and `recap_images`, with exact object keys and both derivatives in `event-media`.
+Before release, an authorized operator must prove a complete encrypted pre-migration snapshot and
+successful disposable restore. Semester backups alone do not satisfy this gate.
 
 ## Credential model
 
@@ -88,6 +104,8 @@ Use a non-destructive **copy/download** into the same timestamped private direct
 
 ```text
 storage/profile-images/<exact object keys>
+storage/event-media/<exact object keys>
+storage/event-slider-images/<exact object keys>
 storage/semester-database-backups/<exact object keys>
 ```
 
@@ -131,12 +149,15 @@ production.
    `alembic stamp <recorded-revision>` reconstruct the missing `public.alembic_version` marker;
    never update that table manually or stamp around a mismatch. Run `alembic upgrade head` only if
    the target intentionally moves to a later reviewed revision.
-6. Recreate the private buckets, then upload to the exact keys with recorded MIME types. Reconcile
-   every object hash and confirm anonymous/public reads fail.
+6. Recreate the recorded bucket visibility, then upload to the exact keys with recorded MIME types.
+   Reconcile every object hash; confirm anonymous reads fail for private buckets and remain allowed
+   only for the intentionally public slider bucket. Verify Recap derivative ownership and thumbnail
+   foreign keys, with no signed URLs in the snapshot manifest.
 7. Recreate Vault/Cron, API provider configuration and Redis namespaces from runbooks with new
    secrets. Do not copy Vault ciphertext or Redis transient state.
 8. Run readiness, auth, profile/avatar, matching, invitation, chat, email, Admin and Semester
-   read-only/safe smoke tests. Record RPO/RTO and sanitized PASS/FAIL evidence.
+   read-only/safe smoke tests, plus Events, Slider and Recap media/publication checks when present in
+   the snapshot. Record RPO/RTO and sanitized PASS/FAIL evidence.
 9. Destroy the disposable target only after evidence is captured and the exact target identity is
    rechecked.
 

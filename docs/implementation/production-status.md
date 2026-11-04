@@ -1,3 +1,71 @@
+## 2026-11-04 — Expedited migration / backend deployment in progress
+
+Owner explicitly defers full backup, accepts lack of exact pre-release recovery checkpoint.
+Backup/recovery NOTPASS. Direct DBreadback:0024_recap_retention/version128/criticalcounts preserved,
+new4privateRLS tables empty. Backend stagea5aceb6 has hostedCI PASS and manual Renderdeploy
+started (dep-dbldt8s9v7es739ofvu0), not yet claimedlive. AutoDeployOFF. Frontendpromotion pending
+backendreadiness + integrationCI. [Evidence](../operations/events-recap-expedited-release-2026-11-04.md).
+
+## 2026-11-04 — Rolling9 task: GitHub metadata only, no Production mutation
+
+Fresh public GitHub metadata: main6d32d1a CI41762608191 success; latest Production deployment record
+7536457105 SHA6d32d1a at02:44:04Z. This is GitHub evidence, not direct Vercel READY/domain verification.
+Browser provider access disabled; current Render/DB/backup/headroom not newly observed. Owner Nov4
+quota and OFF policy retained. Local Rolling9 complete; no push/export/migration/deploy.
+[Release boundary](../project-knowledge/frontend/EVENT_RECAP_ROLLING9_2026-11-04.md).
+
+## 2026-11-04 - Rolling10 local candidate, not a Production observation
+
+Publishedc742173 hostedCI remains evidence only for the previous feature. New isolated local
+candidate has0024 retention/outbox migration and permanent overflow deletion; requires new exact-SHA
+hostedCI before release. No Production schema/data/storage/provider access/change by this task.
+Owner initialSupabaseStorage quota evidence remains accepted for initialscope, with drafts/backlog/
+backup and egress monitoring. Actual recovery/headroom/performance remainBLOCKED/UNVERIFIED;
+no backup-assurance waiver. RenderAutoDeployOFF must remainOFF, Vercelmain still release boundary.
+[Local candidate/rollout gates](../project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+
+## 2026-11-04 - local CI-only suppression read-only recheck
+
+Vercel project rootapps/web/Vite/Node24, no build/install override, ignored-buildAutomatic;
+Productionbranchmain, PreviewtrackingON/all unassigned/no domains directly rechecked. Render
+branchmain/livec0687ba/AutoDeployOFF rechecked. No provider setting changed. Local unpushed repo
+configuration now suppresses only codex/events-recap-rc automatic Git deployments; this is not
+observed hosted enforcement or a Production change. CI-only publication awaits exact-SHA owner
+authorization. Production NO-GO. [Evidence](../project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+
+## 2026-11-04 - hosted CI preflight read-only settings verification
+
+Vercel dashboard directly confirms Production branchmain, Preview trackingON/all unassigned/no
+attached domains, apps/web root, Vite/Node24, no build/install override, ignored-buildAutomatic,
+unaffected-root skipON, no configured deployment checks. Metadata lists separate Production/Preview
+API entries but values encrypted; reveal requires owner verification, cancelled without sending code.
+Preview backend/database/Storage target isolation remains UNKNOWN. Render dashboard reconfirms
+livec0687ba and AutoDeployOFF, selectedFree0.1CPU/512MB. No settings changed. This observation does
+not verify actual worker/memory/CPU headroom or backup/quota gates. No Production traffic/load/data
+mutation. [Preflight](../project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+
+## 2026-11-04 - Events Recap pre-release observations (read-only)
+
+This Nov3-4 session supersedes older pins only for the directly observed fields below.
+Vercel current Production metadata: READY/main/6851725362184af7c85828602b6c881f64374b60,
+deployment dpl_2bmuqvAyM1RnJrCZhVdupmMXBza3. Preview dashboard: all unassigned branches,
+no domains attached. Detailed team-scoped access403; default-scope inventory succeeded. Final
+Production branch configuration and Preview API target/isolation UNVERIFIED; reveal required owner
+verification and was cancelled. No verification email/code or provider setting change.
+Render directly observed live c0687ba8e1253189bd297f60f2d8e8f24e44ecca,
+deployment dep-dbkq3rm7bikc73fj9b6g, branchmain, rootapps/api, Dockerfile./Dockerfile, health
+/api/health/live, Auto-DeployOFF, selectedFree0.1CPU/512MB; no scaling, empty command/predeploy
+fields. Free metrics gated/no data; effectiveCPU label conflicts with selectedplan0.1 (metrics0.15).
+Actual baseline/peak memory/CPU/worker capacity UNVERIFIED. Outbound display4MB this month;
+remaining hours/egress UNVERIFIED. No runtime/load/functional Production acceptance inferred.
+Supabase read-only Alembic scalar:0021_restore_runtime_permissions. Organization planFree.
+Object metadata only:event-media4/964762bytes; profile-images5/1013678bytes, about1.89MiB total.
+These are not billed/remaining quota. Backup dashboard sign-in prevented availability verification;
+no full backup/disposable restore proof established. Vercel dashboard planHobby; usage unknown.
+Local migration/head0023, app compatibility, pressure and gates do not establish Production readiness.
+[Assessment, rollout and owner actions](../project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+Production NO-GO. No Production migration/data/config write, push, deployment, secret/account/billing
+change or cloud resource creation. Render Auto-Deploy remainsOFF.
 ## 2026-11-04 —chatbot redesign baseline, read-only
 
 Authenticated Vercel www alias READY dpl_2bmuqvAyM1RnJrCZhVdupmMXBza3, main
@@ -13,6 +81,15 @@ Render settings/Compute: Live642fc11, apps/api/./Dockerfile, empty command overr
 /api/health/live, AutoDeployOff/PRPreviewsOff, Free0.1CPU/512MB/no scaling. No settings changed.
 Worker/env/proxy guarantees/provider log retention/actual quotas/backend rollback remain unknown.
 No new Production runtime/data acceptance. [Findings](../project-knowledge/chatbot/PHASE_3_5_2.md).
+## 2026-11-03 — Recap cost metadata observation (read-only)
+
+Connected Supabase organization metadata directly returned `plan=free`, `tier=tier_free`.
+The installed connector exposes no account Storage/egress usage endpoint: used/remaining quota,
+current bandwidth and overage controls remain UNVERIFIED. Vercel team inventory provided no billing
+baseline; current Vercel/Render capacity is not verified by this task. No Production business data
+was queried, and no deployment, cloud resource, secret, provider configuration or migration changed.
+Recap implementation and Alembic 0023 exist only on local `codex/events-recap`; this is not a release.
+[Local evidence and quota-check instructions](../project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
 
 # Production status
 

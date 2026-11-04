@@ -1,3 +1,5 @@
+import { lazy, Suspense, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router'
 
 import { AdminLayout } from '@/components/layout/admin-layout'
@@ -23,6 +25,35 @@ import { userRoutes } from '@/routes/user-routes'
 import { adminEventsEnabled, publicEventsEnabled } from '@/config/launch-scope'
 import { ChatbotEntry } from '@/features/chatbot/chatbot-entry'
 
+const RecapGalleryPage = lazy(() =>
+  import('@/pages/public/recap-pages').then((module) => ({ default: module.RecapGalleryPage })),
+)
+const RecapDetailPage = lazy(() =>
+  import('@/pages/public/recap-pages').then((module) => ({ default: module.RecapDetailPage })),
+)
+const AdminRecapsPage = lazy(() =>
+  import('@/pages/admin/admin-recap-pages').then((module) => ({ default: module.AdminRecapsPage })),
+)
+const AdminRecapEditorPage = lazy(() =>
+  import('@/pages/admin/admin-recap-pages').then((module) => ({
+    default: module.AdminRecapEditorPage,
+  })),
+)
+function RecapBoundary({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
+  return (
+    <Suspense
+      fallback={
+        <p role="status" className="p-8">
+          {t('recaps.loading')}
+        </p>
+      }
+    >
+      {children}
+    </Suspense>
+  )
+}
+
 function App() {
   return (
     <>
@@ -34,7 +65,22 @@ function App() {
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
           <Route path="verify-email" element={<EmailVerificationPage />} />
-          <Route path="events/recap" element={<CommunityComingSoonPage feature="recap" />} />
+          <Route
+            path="events/recap"
+            element={
+              <RecapBoundary>
+                <RecapGalleryPage />
+              </RecapBoundary>
+            }
+          />
+          <Route
+            path="events/recap/:recapId"
+            element={
+              <RecapBoundary>
+                <RecapDetailPage />
+              </RecapBoundary>
+            }
+          />
           <Route path="merchandise" element={<CommunityComingSoonPage feature="merchandise" />} />
           {publicEventsEnabled ? (
             <Route path="events/:eventId" element={<EventDetailPage />} />
@@ -92,6 +138,38 @@ function App() {
             {adminEventsEnabled ? (
               <>
                 <Route path="events/new" element={<AdminEventCreatePage />} />
+                <Route
+                  path="events/recaps"
+                  element={
+                    <RecapBoundary>
+                      <AdminRecapsPage />
+                    </RecapBoundary>
+                  }
+                />
+                <Route
+                  path="events/recaps/new"
+                  element={
+                    <RecapBoundary>
+                      <AdminRecapEditorPage />
+                    </RecapBoundary>
+                  }
+                />
+                <Route
+                  path="events/recaps/:recapId/edit"
+                  element={
+                    <RecapBoundary>
+                      <AdminRecapEditorPage />
+                    </RecapBoundary>
+                  }
+                />
+                <Route
+                  path="events/recaps/:recapId/preview"
+                  element={
+                    <RecapBoundary>
+                      <AdminRecapEditorPage preview />
+                    </RecapBoundary>
+                  }
+                />
                 <Route path="events/:eventId/edit" element={<AdminEventEditPage />} />
               </>
             ) : (

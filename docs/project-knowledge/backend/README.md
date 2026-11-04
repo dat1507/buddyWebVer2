@@ -1,3 +1,10 @@
+2026-11-04: [Recap pre-release gates and conditional rollback](../frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+Local migration/runtime gates PASS; Production backup/capacity/hosted acceptance remain open.
+
+2026-11-03: [Events Recap local implementation, verification and review](../frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Dedicated private recap persistence, hardened derivatives, public gallery and Admin CMS; Alembic 0023
+and version-column fix verified locally only. No release or Production schema change.
+
 # Backend implementation
 
 [main.py](../../../apps/api/app/main.py) registers FastAPI routers, exact-origin credentialed

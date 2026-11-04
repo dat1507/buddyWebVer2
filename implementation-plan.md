@@ -1,3 +1,112 @@
+## 2026-11-04 — Expedited Rolling9 Production integration candidate
+
+TASK_ID: EVENT-RECAP-ROLLING9-001. IN PROGRESS. Owner explicitly defers full pre-release backup;
+[OPS-PRODUCTION-BACKUP-001](docs/implementation/tasks/OPS-PRODUCTION-BACKUP-001.md) DEFERRED —
+OWNER-ACCEPTED RISK, not backup/recoveryPASS. No full backup or Hyper-V setup this release.
+Production migration0021->0024 verified with critical row counts unchanged and new tables empty/RLS.
+Backend-only main a5aceb6e0d5033846d2980dd953ca6e607774939 has hostedCI41792045021 PASS; manual
+Render deploydep-dbldt8s9v7es739ofvu0 is in progress with AutoDeployOFF. New frontend NOT promoted yet.
+This integration preserves all approved9049f44 application/CI bytes and currentmain ancestry;
+only release/deferred-task docs added. Publish via protected existingRCbranch for exact-SHA CI,
+then promote main ONLY after backendlive/API checks and candidateCI PASS. No destructive rollback.
+[Release evidence](docs/operations/events-recap-expedited-release-2026-11-04.md).
+
+## 2026-11-04 — Rolling 9 local complete; provider safety boundary
+
+TASK_ID: EVENT-RECAP-ROLLING9-001. LOCAL IMPLEMENTATION COMPLETE; CI PUBLICATION BLOCKED pending
+current Render OFF/provider confirmation (browser disabled, no CLI credentials). Exact branch
+suppression is present; no push/deploy/export/migration. New candidate aligns latest main6d32d1a.
+27backend integration,23frontend +30Slider/Admin, strict330 typing/lint/build/package/format PASS.
+[Report and smallest owner actions](docs/project-knowledge/frontend/EVENT_RECAP_ROLLING9_2026-11-04.md).
+Review loopback5199/8045;9 published on one page, desktop3x3 CSS retained; visual review open.
+Production NO-GO: actual encrypted backup/Storage recovery evidence and exact export/migration
+permissions missing. Keep Render OFF; existing worktrees/unpublished recovery prep preserved.
+
+## 2026-11-04 — Rolling 9 controlled release assigned
+
+TASK_ID: EVENT-RECAP-ROLLING9-001. Isolated `codex/events-recap-rolling9` from
+`f8e09ef9ba69f97c3bd5a2a81a178f263fde7918`; freshly observed main `6d32d1a`.
+[Task](docs/implementation/tasks/EVENT-RECAP-ROLLING9-001.md). Implement nine, focused verification,
+local checkpoint, then safe CI-only publication. Production export, migration and writing tests
+require exact authorization and minimum backup evidence. Preserve all other worktrees and data.
+
+## 2026-11-04 - Rolling10 + Facebook local completion
+
+TASK_ID: NONE. EVENT-RECAP-ROLLING-001 DONE LOCAL / NEW HOSTED CI REQUIRED / PRODUCTION NO-GO.
+Isolated codex/events-recap-rolling integrates approvedc742173 and freshmain6d32d1a. Permanent
+publication overflow deletion, durable media cleanup, original publication clock, Admin feedback
+and EN/DE Facebook section complete. New0024 head; full frontend936PASS, backend1879PASS/37oldskips,
+final affected27PASS + final legacy guard upgrade/live3PASS. Strict typing330/static/build/package
+PASS; real local HTTP/Pillow/Storage7PASS. Browser disabled in Work settings: visual review open.
+[Handoff, migration, costs, cleanup and review](docs/project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+Reviewhttps://127.0.0.1:5198/events/recap, Admin /admin/events/recaps, synthetic credentials only
+in ignored .local/recap-review/login.json. Prior approvedRC and dirty recovery preparation preserved.
+No push/merge/deploy/Production operations. ExactnewSHA hostedCI/publication and separate
+recovery/capacity/advisory/Production approvals required; no task automatically assigned next.
+
+## 2026-11-04 - Rolling10 implementation assigned
+
+TASK_ID: EVENT-RECAP-ROLLING-001. Isolated codex/events-recap-rolling fromc742173 + main6d32d1a.
+[Task](docs/implementation/tasks/EVENT-RECAP-ROLLING-001.md). Permanent overflow deletion + durable
+cleanup, Admin notice and Facebook section; local only. Preserve recovery-prep/unpublished work.
+
+## 2026-11-04 - local CI-only branch suppression complete
+
+TASK_ID: NONE. EVENT-RECAP-CI-ONLY-001 DONE LOCAL / READY FOR CI-ONLY PUBLICATION AUTHORIZATION.
+Exact RC branchfalse added only in apps/web/vercel.json. Main/defaulttrue and all prior config,
+application/CI/locks unchanged. Official git schema fragment, branch matching, format/build/demo
+exclusion PASS. Productionmain, Previewallunassigned/no domains and RenderAutoDeployOFF rechecked.
+[Assessment and changed-file list](docs/project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+One local commit only. No push/Preview/deploy/cloud settings or Production operation. Next owner
+must separately authorize final exact-SHA push of codex/events-recap-rc for GitHubCI only.
+Production NO-GO; actual hosted CI/enforcement remains unobserved until authorized publication.
+
+## 2026-11-04 - local CI-only branch suppression assigned
+
+TASK_ID: EVENT-RECAP-CI-ONLY-001. Explicit owner authorization: local exact-branch Vercel suppression,
+focused checks and one local commit only. No push/deploy/Preview/provider settings change.
+[Task](docs/implementation/tasks/EVENT-RECAP-CI-ONLY-001.md). Inputc92e644 clean.
+
+## 2026-11-04 - hosted CI safety preflight complete
+
+TASK_ID: NONE. EVENT-RECAP-PREFLIGHT-001 DONE LOCAL / PUBLICATION BLOCKED; Production NO-GO.
+Inputcdfc863 clean and fresh main6851725 integrated. All application/CI hashes unchanged; completed
+full tests reused. Focused0.1/1 CPU and1600px comparisons show CPU throttling/cold-work/scheduling
+rather than OOM. Production branchmain and automatic all-unassigned Preview directly confirmed;
+Preview API target still owner-verification gated. RenderAutoDeployOFF reconfirmed.
+[Assessment and minimum CI-only remediation](docs/project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Branch-only Vercel suppression patch prepared/validated but NOT applied: explicit configuration
+permission is required by the owner's request. No push/deploy/Production/provider config mutation.
+Next: owner authorizes prepared suppression or establishes isolated Preview targets, then exact-SHA
+publication approval. This documentation successor has its own SHA; no hosted verification claimed.
+
+## 2026-11-04 - hosted CI preflight assigned
+
+TASK_ID: EVENT-RECAP-PREFLIGHT-001. Owner authorizes read-only hosted safety checks and focused local
+performance investigation/fixes. Input cdfc863, no push/deploy/Production/provider mutation.
+[Task](docs/implementation/tasks/EVENT-RECAP-PREFLIGHT-001.md).
+
+## 2026-11-04 - EVENT-RECAP-RC-001 local preparation complete
+
+**TASK_ID: NONE.** Local candidate READY FOR HOSTED CI; publication BLOCKED until Preview API
+isolation/final trigger verification and specific owner approval. Production NO-GO.
+Approved 8/8 `bdcd082` UI is preserved. Integrated fresh main `6851725` into
+`codex/events-recap-rc`; tested source merge `e77d718` plus documentation/test-only completion.
+Frontend925 PASS, backend1868 PASS/37 existing skips, static/build/migration/runtime audits PASS.
+Existing dev audit advisory, backup/restore, quotas, Production upload capacity and hosted gates
+remain open. Read the [pre-release assessment](docs/project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+No push/main merge/deploy/Production write/provider change. Preserve Render Auto-Deploy OFF and
+all original worktrees. No implementation task is assigned; next is owner Preview-isolation evidence.
+
+
+## 2026-11-03 — EVENT-RECAP-RC-001 assigned
+
+**TASK_ID:** EVENT-RECAP-RC-001. IN PROGRESS — LOCAL PRE-RELEASE ONLY.
+Owner approves all eight UI/function categories of frozen `bdcd082` on `codex/events-recap`.
+Integrate in `codex/events-recap-rc` from freshly fetched `origin/main` `6851725`.
+Preserve newer Admin labels and main's existing gated-OFF chatbot bytes; no unrelated implementation.
+Read [task contract](docs/implementation/tasks/EVENT-RECAP-RC-001.md). No push, merge to main,
+deploy, Production mutation, new cloud resource or provider/billing change authorized.
 ## Chatbot redesign complete —2026-11-04
 
 TASK_ID: NONE. CHATBOT-DESIGN-001 DONE — LOCAL VERIFIED / NOT PUSHED OR DEPLOYED.
@@ -17,6 +126,29 @@ branch. Fresh remote/Productionc64 unchanged, Render642 independently confirmed.
 No further implementation assigned. Hosted trust/privacy/quota/rollback and exact CI still require
 acceptance/explicit authorization; device/SR and exhaustive keyboard/cooldown-expiry pending.
 Older checkpoints below remain historical; do not repeat passed suites without source changes.
+## 2026-11-03 — EVENT-RECAP-001 local completion
+
+**TASK_ID:** NONE. **EVENT-RECAP-001: DONE — LOCAL VERIFIED / OWNER REVIEW.**
+The complete public Recap gallery/detail and Admin CMS are implemented in isolated worktree
+`.local/worktrees/events-recap`, branch `codex/events-recap`, from approved `c64fe73`.
+Implementation checkpoints: `a6eb554`, `6d49854`, `2644781`, `536fcb1`.
+Full frontend 838/90 PASS; final focused 10 PASS; backend image/security 92, migration/live 12,
+and final Event/API 33 PASS; strict typing 140 source files, lint/format/build PASS.
+Real local PostgreSQL + Supabase Storage browser workflow 29 PASS, four failure paths PASS,
+18 EN/DE responsive accessibility cases with zero violations; screenshots visually reviewed.
+[Review, architecture, costs and restart instructions](docs/project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Review: https://127.0.0.1:5197/events/recap . Supabase organization plan Free directly confirmed;
+current remaining Storage/egress/Render capacity UNVERIFIED. No new cloud resources, provider
+changes, Production data access, Production migration, push, merge or deployment. Preserve Render
+Auto-Deploy OFF. Primary dirty work, unrelated commits and worktrees preserved.
+Next: owner local review. Release and any Production operation require a separate request.
+
+## 2026-11-03 — EVENT-RECAP-001 assigned
+
+**TASK_ID: EVENT-RECAP-001. IN PROGRESS.** Owner authorizes the complete Events Recap feature,
+sequential local implementation and commits on `codex/events-recap`, from approved `c64fe73`.
+[Task contract](docs/implementation/tasks/EVENT-RECAP-001.md). No push/merge/deploy or Production access.
+Original primary dirty work, unpublished main history and existing worktrees preserved.
 
 ## Current assignment — 2026-11-03
 

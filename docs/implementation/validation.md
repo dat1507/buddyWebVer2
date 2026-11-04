@@ -1,3 +1,62 @@
+## Expedited Rolling9 integration — 2026-11-04
+
+All application+CI Git tree bytes match approved9049f44. Backendstage hostedCI41792045021 PASS.
+New migration transport synthetic-only check PASS:legacy0021/32char->0024/128char,critical seedrows
+preserved,repeatapplication failsclosed. Production readback matches expected0024/privateRLS and
+unchangedcriticalcounts. Candidate hostedCI/Production checks pending; no backup/recoveryPASS.
+[Evidence](../operations/events-recap-expedited-release-2026-11-04.md).
+
+## EVENT-RECAP-ROLLING9-001 — 2026-11-04
+
+27backend integration PASS; strict330 typing/Ruff/package PASS.23frontend focused +30Slider/Admin
+PASS; final Prettier/ESLint/TS/build and demo exclusion17files/10markers PASS.0024 immutable.
+Loopback gallery9/onepage PASS. Browser disabled: visual/mobile acceptance open. No new full-suite
+claim; exact hostedCI required. [Evidence](../project-knowledge/frontend/EVENT_RECAP_ROLLING9_2026-11-04.md).
+
+## EVENT-RECAP-ROLLING-001 - 2026-11-04
+
+Fullfrontend936PASS/96files/0skip; fullbackend1879PASS/37existing opt-inSKIP/one pre-existing warning.
+Final cleanup404 hardening/new regression:27affectedPASS; final legacy overflow guard/backfill/live
+API3PASS. Fullstatic330typing/Ruff/TS/ESLint/Prettier/build/package/singlehead0024PASS, final focused
+static/package evidence inmanifest. Initial focused33frontend +2actualAdmin EN-DEworkflowPASS.
+Real local API/Postgres/Pillow/SupabaseStorage7PASS. No Production access. Existing runtime audits
+reused only for unchanged locks; development advisory remains. Browser disabled: no new visual/axe
+PASS claimed.255task/indexpaths/currentlinks/legacy/currentmain sharedbytes validated.
+[Full handoff](../project-knowledge/frontend/EVENT_RECAP_ROLLING10_2026-11-04.md).
+
+## EVENT-RECAP-CI-ONLY-001 - 2026-11-04
+
+Local exact-branch git.deploymentEnabledfalse: patch check/application, semantic identity of all
+other config, official git-property schema fragment, matcher/precedence matrix, Prettier, production
+build and demo exclusion16/10PASS. Whole schema upstream draft inconsistency documented; no full
+schemaPASS claim. Frontend/backend/CI hashes unchanged; no full suites repeated.253 task/index links,
+current docs links and whitespace validated. READY for separately authorized CI-only push, no hosted
+execution observed; Production NO-GO. [Report](../project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+
+## EVENT-RECAP-PREFLIGHT-001 - 2026-11-04
+
+All recorded application/CI hashes match cdfc863; fresh origin/main6851725 is ancestor; featurebdcd
+clean; demo exclusion16 files/10 markers PASS. No completed full suites repeated. Three focused
+local performance comparisons at512MiB (0.1CPU4096px,1CPU4096px,0.1CPU1600px): six samples per
+read/phase, all200; eight busy uploads429; no OOM. Distributions/provenance/cold-work caveats in
+[assessment](../project-knowledge/frontend/EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Productionbranchmain, automatic Previewallunassigned/no domains and RenderOFF directly verified.
+Preview API owner-verification gated; no code sent/value revealed. CI-only suppression proposal
+validated with git apply --check --ignore-space-change, NOT applied.252 task paths/index links,
+current links and whitespace validated. Documentation-only successor; no push/deploy/provider writes.
+
+## EVENT-RECAP-RC-001 - 2026-11-04
+
+Local integration e77d718: frontend925/94 files PASS, backend1868 PASS/37 existing opt-in skips,
+Ruff/mypy328/ESLint/TS/Prettier PASS; fresh/actual0021 migration and API12 PASS, commit recovery3 PASS.
+Production frontend builds, wheel/sdist, actual non-root Docker image/Pillow13/liveness, runtime
+Python/dev and frontend runtime audits, CI YAML/Compose and demo exclusion PASS. Dev npm audit
+retains14 moderate entries/one existing minimatch advisory: FAIL, owner disposition required.
+No additional skips, retries or raised timeouts. Initial selector/host-contention failures and scoped
+follow-ups are explained in the [assessment](../project-knowledge/frontend/EVENT_RECAP_PRE_RELEASE_2026-11-04.md).
+Prior18 responsive axe checks reused only for identical approved UI; hosted browser/CI UNVERIFIED.
+251 extracts /251 unique index links; current links/manifest/application-tree identity validated.
+Production capacity/quotas/backup and Preview isolation remain open. No push/deploy/Production writes.
 ## CHATBOT-DESIGN-001 —2026-11-04 LOCAL PASS
 
 104 focused/5files, TypeScript/frontendESLint/focusedPrettier/Productionbuild PASS. EN/DE screenshots
@@ -13,6 +72,19 @@ network retry/OFF503/ON recovery and German429 cooldown verified locally. Prior 
 1,855 backend/37skip and920 frontend results reused. No source fix or expensive rerun. Hosted
 facts/gaps and physical-device/SR/keyboard/cooldown-expiry limits explicit in
 [Phase3.5.2](../project-knowledge/chatbot/PHASE_3_5_2.md). Registry249 paths; no push/deploy.
+## EVENT-RECAP-001 — 2026-11-03 local verification
+
+Full frontend 90 files / 838 PASS, final focused 10 PASS. Backend focused Event/media/API initially
+117 PASS; final image/privacy/cancellation regressions 92 PASS; corrected migration/offline/live
+API 12 PASS; final Event deletion integration 33 PASS. Strict backend typing 140 source files,
+frontend lint/TypeScript/format/build and backend Ruff PASS. One new offline-SQL formatting defect
+was fixed and affected migration gates rerun. No outstanding known failure.
+Real local API/PostgreSQL/Supabase browser workflow 29 PASS + four injected failure paths PASS;
+18 EN/DE ×1440/768/390 axe cases zero violations. Six loaded final public screenshots, keyboard/focus,
+reduced motion and no-overflow verification. Evidence and limitations are in the
+[review report](../project-knowledge/frontend/EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Task-path coverage: 241 extracts / 241 unique index links, no missing/extra/duplicates.
+Legacy archive preserved. No Production operation, push, merge or deployment.
 
 # Documentation migration validation
 

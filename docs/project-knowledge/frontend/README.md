@@ -1,3 +1,24 @@
+[Rolling 9 controlled release checkpoint](EVENT_RECAP_ROLLING9_2026-11-04.md) — local complete; hosted/provider/backup gates pending.
+
+2026-11-04: [Rolling10 permanent Recap retention and Facebook](EVENT_RECAP_ROLLING10_2026-11-04.md).
+Local verified/new0024/newexactCI required; ProductionNO-GO. Localreview5198, approved prior work
+preserved. [Changed paths and evidence](EVENT_RECAP_ROLLING10_MANIFEST_2026-11-04.json).
+
+2026-11-04: [Local exact-branch CI-only suppression](EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+READY for separate exact-SHA branch push authorization; no Preview/deploy/Production change.
+
+2026-11-04: [Hosted CI safety preflight](EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
+Publication blocked on Preview isolation; validated CI-only suppression proposal unapplied pending
+owner authorization. Focused performance evidence explains CPU contention; Production NO-GO.
+
+2026-11-04: [Approved Recap pre-release assessment](EVENT_RECAP_PRE_RELEASE_2026-11-04.md) and
+[complete manifest](EVENT_RECAP_RC_MANIFEST_2026-11-04.json). Local RC ready for hosted CI;
+publication blocked on Preview isolation/approval; Production NO-GO on capacity/backup/hosted gates.
+
+2026-11-03: [Events Recap local implementation, verification and review](EVENT_RECAP_LOCAL_REVIEW_2026-11-03.md).
+Dedicated private recap persistence, hardened derivatives, public gallery and Admin CMS; Alembic 0023
+and version-column fix verified locally only. No release or Production schema change.
+
 # Frontend implementation
 
 2026-10-31: [Final UI blocker disposition](UI_RELEASE_BLOCKERS_2026-10-31.md) and

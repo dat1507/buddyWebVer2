@@ -1,6 +1,29 @@
+| [OPS-PRODUCTION-BACKUP-001](tasks/OPS-PRODUCTION-BACKUP-001.md) | DEFERRED — OWNER-ACCEPTED RISK |
+
+| [EVENT-RECAP-ROLLING9-001](tasks/EVENT-RECAP-ROLLING9-001.md) | LOCAL COMPLETE / HOSTED PUBLICATION BLOCKED |
+
+| [EVENT-RECAP-ROLLING-001](tasks/EVENT-RECAP-ROLLING-001.md) | DONE LOCAL - NEW HOSTED CI REQUIRED / PRODUCTION NO-GO |
+
+| [EVENT-RECAP-CI-ONLY-001](tasks/EVENT-RECAP-CI-ONLY-001.md) | DONE LOCAL - READY FOR CI-ONLY PUSH AUTHORIZATION |
+
+| [EVENT-RECAP-PREFLIGHT-001](tasks/EVENT-RECAP-PREFLIGHT-001.md) | DONE LOCAL - PUBLICATION BLOCKED / PRODUCTION NO-GO |
+
+# Current release preparation
+
+| Task | Status |
+| --- | --- |
+| [EVENT-RECAP-RC-001](tasks/EVENT-RECAP-RC-001.md) | DONE - LOCAL RC / PUBLICATION BLOCKED / PRODUCTION NO-GO |
+
+# Latest local implementation
+
+| Task | Status |
+| --- | --- |
+| [EVENT-RECAP-001](tasks/EVENT-RECAP-001.md) | DONE — LOCAL VERIFIED / OWNER REVIEW |
+
 # Task index
 
-**Generated:** 2026-11-04 **Task IDs:** 250
+**Generated:** 2026-11-04 **Task IDs:** 257
+**Generated:** 2026-11-04 **Task IDs:** 257
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
