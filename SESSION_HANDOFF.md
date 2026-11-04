@@ -1,3 +1,13 @@
+## Chatbot redesign complete —2026-11-04
+
+TASK_ID: NONE. CHATBOT-DESIGN-001 DONE — LOCAL VERIFIED / NOT PUSHED OR DEPLOYED.
+Branch codex/chatbot-ui-alignment from verified Production6851725; new AdminEvents preserved.
+104 focused tests/static/build and EN/DE1440/768/390/320 browser checks PASS. Warm shared public
+palette, suggestions/citations/composer polished; retrieval/backend/KB/AI/auth unchanged.
+Local review http://127.0.0.1:5204/ (loopback fixture8064). No further task assigned.
+[Evidence](docs/project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md). Original integration
+dirty release docs/unpublished commits remain untouched. Earlier archive checkpoints historical.
+
 ## Latest Phase3.5.2 continuation —2026-11-03
 
 TASK_ID: NONE. CHATBOT-ACCEPT-001 local acceptance complete / hosted gates UNVERIFIED; NO-GO.

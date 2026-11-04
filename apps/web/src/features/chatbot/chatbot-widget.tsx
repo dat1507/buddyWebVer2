@@ -53,6 +53,8 @@ function ChatbotWidget() {
         type="button"
         className="chatbot-launcher"
         size="icon"
+        variant="secondary"
+        title={t(open ? 'chatbot.close' : 'chatbot.open')}
         aria-label={t(open ? 'chatbot.close' : 'chatbot.open')}
         aria-expanded={open}
         aria-controls={open ? id : undefined}

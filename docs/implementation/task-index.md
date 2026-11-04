@@ -1,6 +1,6 @@
 # Task index
 
-**Generated:** 2026-11-03 **Task IDs:** 249
+**Generated:** 2026-11-04 **Task IDs:** 250
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and
@@ -8,6 +8,7 @@ preserve all matching contract sections and cross-references from the legacy pla
 
 | Task                                                                    | Status                                                      | Priority           | Track               | Dependencies / source note                                                                                                                                                           |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`CHATBOT-DESIGN-001`](tasks/CHATBOT-DESIGN-001.md) | DONE — LOCAL VERIFIED / NOT DEPLOYED | Owner-assigned | chatbot/frontend | Latest Production6851725; shared warm palette, accessible EN/DE UI;104 focused tests/browser widths PASS. Local commit only. |
 | [`CHATBOT-ACCEPT-001`](tasks/CHATBOT-ACCEPT-001.md) | LOCAL ACCEPTANCE COMPLETE / HOSTED GATES UNVERIFIED — NO-GO | Owner-assigned | chatbot | Exact35e browser/API core verified; hosted trust/privacy/quota/rollback and remote CI open; no push/deploy. |
 | [`CHATBOT-INTEGRATE-001`](tasks/CHATBOT-INTEGRATE-001.md) | DONE — LOCAL VERIFIED / PRODUCTION NO-GO | Owner-assigned | chatbot | Safe current-UI/security integration and release gate closure; no push/deploy. |
 | [`CHATBOT-READY-001`](tasks/CHATBOT-READY-001.md) | LOCAL REVIEW COMPLETE — RELEASE NO-GO | Owner-assigned | chatbot | Phase3.5 log/UTF-8 fixes;1851 backend/101 frontend, static/artifact/browser/load checks. Detached old main snapshot; current UI/security integration and actual proxy/edge/Linux release gates unresolved. |

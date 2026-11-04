@@ -49,6 +49,44 @@ describe('chatbot independent-question UI', () => {
     vi.useRealTimers()
   })
 
+  it.each([
+    ['en', 'Create an account', 'How do I register?'],
+    ['de', 'Buddy finden', 'Wie funktioniert Buddy Matching?'],
+  ])(
+    'submits the %s localized suggestion through the existing transport',
+    async (locale, label, question) => {
+      await i18n.changeLanguage(locale)
+      render(<Widget />)
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: locale === 'en' ? 'Open VGU Buddy Assistant' : 'VGU Buddy Assistant öffnen',
+        }),
+      )
+      const suggestion = await screen.findByRole('button', { name: label })
+      expect(fetch).not.toHaveBeenCalled()
+      fireEvent.click(suggestion)
+      await screen.findByText(answer.answer)
+      expect(fetch).toHaveBeenCalledOnce()
+      expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ question })
+      expect(screen.getByRole('textbox')).toHaveFocus()
+      expect(
+        screen.queryByRole('group', { name: /Suggested questions|Fragevorschläge/ }),
+      ).not.toBeInTheDocument()
+    },
+  )
+
+  it('keeps suggested questions blocked after clearing a rate-limited conversation', async () => {
+    fetch.mockImplementationOnce(async () => json({}, 429, { 'Retry-After': '60' }))
+    render(<Widget />)
+    await open()
+    fireEvent.click(screen.getByRole('button', { name: 'Create an account' }))
+    await screen.findByText(/A few too many questions/)
+    fireEvent.click(screen.getByRole('button', { name: 'Clear conversation' }))
+    expect(screen.getByRole('button', { name: 'Create an account' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Find a Buddy' })).toBeDisabled()
+    expect(fetch).toHaveBeenCalledOnce()
+  })
+
   it('starts closed without requests, focuses input, uses non-modal desktop semantics and restores focus', async () => {
     render(
       <StrictMode>

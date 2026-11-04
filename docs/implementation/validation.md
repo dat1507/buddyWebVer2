@@ -1,3 +1,10 @@
+## CHATBOT-DESIGN-001 —2026-11-04 LOCAL PASS
+
+104 focused/5files, TypeScript/frontendESLint/focusedPrettier/Productionbuild PASS. EN/DE screenshots
+at1440/768/390/320, reduced-height390x420, Escape/Enter/Tab, reducedmotion, local retrieval/citations/
+503/retry/429 verified. No backend suite or Production mutation.250 taskpaths validated.
+[Scope and limits](../project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md).
+
 ## CHATBOT-ACCEPT-001 —2026-11-03
 
 Fresh build9 artifact hashes match served35e source; eight real browser EN/DE queries/citations,

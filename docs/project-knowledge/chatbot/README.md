@@ -1,3 +1,7 @@
+2026-11-04 [Chatbot UI alignment](UI_ALIGNMENT_2026-11-04.md): local-only redesign from current
+Production6851725;104 focused tests/static/build/browser PASS. No push/deploy; older release gaps below
+are historical and are not the current UI implementation status.
+
 # Phase 3.1 — public knowledge and local retrieval
 
 2026-11-03 newer continuation: [Phase3.5.2](PHASE_3_5_2.md) closes exact-candidate core browser

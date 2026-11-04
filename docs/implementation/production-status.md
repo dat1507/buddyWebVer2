@@ -1,3 +1,10 @@
+## 2026-11-04 —chatbot redesign baseline, read-only
+
+Authenticated Vercel www alias READY dpl_2bmuqvAyM1RnJrCZhVdupmMXBza3, main
+6851725362184af7c85828602b6c881f64374b60; fresh git ls-remote main matches. Local redesign
+is isolated from that source. No Production mutation or fresh backend-health acceptance in this task.
+[Local work](../project-knowledge/chatbot/UI_ALIGNMENT_2026-11-04.md). Earlier NO-GO snapshots below historical.
+
 ## 2026-11-03 —Phase3.5.2 fresh read-only verification
 
 Vercel current aliasREADY/c64/dpl_9qn8NtQWwGGer9kNxQGn9QFkCyyK; retained prior5a deployment

@@ -1,5 +1,18 @@
 {
   "chatbot": {
+    "title": "VGU Buddy Assistant",
+    "welcomeTitle": "Where shall we start?",
+    "suggestions": "Suggested questions",
+    "suggested": {
+      "register": {
+        "label": "Create an account",
+        "question": "How do I register?"
+      },
+      "matching": {
+        "label": "Find a Buddy",
+        "question": "How does Buddy Matching work?"
+      }
+    },
     "open": "Open VGU Buddy Assistant",
     "close": "Close assistant",
     "clear": "Clear conversation",
