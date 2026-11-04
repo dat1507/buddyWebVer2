@@ -1,3 +1,5 @@
+| [EVENT-RECAP-CI-ONLY-001](tasks/EVENT-RECAP-CI-ONLY-001.md) | DONE LOCAL - READY FOR CI-ONLY PUSH AUTHORIZATION |
+
 | [EVENT-RECAP-PREFLIGHT-001](tasks/EVENT-RECAP-PREFLIGHT-001.md) | DONE LOCAL - PUBLICATION BLOCKED / PRODUCTION NO-GO |
 
 # Current release preparation
@@ -14,7 +16,7 @@
 
 # Task index
 
-**Generated:** 2026-11-04 **Task IDs:** 252
+**Generated:** 2026-11-04 **Task IDs:** 253
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and

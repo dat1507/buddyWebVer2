@@ -1,3 +1,12 @@
+## 2026-11-04 - local CI-only suppression read-only recheck
+
+Vercel project rootapps/web/Vite/Node24, no build/install override, ignored-buildAutomatic;
+Productionbranchmain, PreviewtrackingON/all unassigned/no domains directly rechecked. Render
+branchmain/livec0687ba/AutoDeployOFF rechecked. No provider setting changed. Local unpushed repo
+configuration now suppresses only codex/events-recap-rc automatic Git deployments; this is not
+observed hosted enforcement or a Production change. CI-only publication awaits exact-SHA owner
+authorization. Production NO-GO. [Evidence](../project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+
 ## 2026-11-04 - hosted CI preflight read-only settings verification
 
 Vercel dashboard directly confirms Production branchmain, Preview trackingON/all unassigned/no

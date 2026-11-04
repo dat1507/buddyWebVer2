@@ -1,3 +1,20 @@
+## 2026-11-04 - local CI-only branch suppression complete
+
+TASK_ID: NONE. EVENT-RECAP-CI-ONLY-001 DONE LOCAL / READY FOR CI-ONLY PUBLICATION AUTHORIZATION.
+Exact RC branchfalse added only in apps/web/vercel.json. Main/defaulttrue and all prior config,
+application/CI/locks unchanged. Official git schema fragment, branch matching, format/build/demo
+exclusion PASS. Productionmain, Previewallunassigned/no domains and RenderAutoDeployOFF rechecked.
+[Assessment and changed-file list](docs/project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+One local commit only. No push/Preview/deploy/cloud settings or Production operation. Next owner
+must separately authorize final exact-SHA push of codex/events-recap-rc for GitHubCI only.
+Production NO-GO; actual hosted CI/enforcement remains unobserved until authorized publication.
+
+## 2026-11-04 - local CI-only branch suppression assigned
+
+TASK_ID: EVENT-RECAP-CI-ONLY-001. Explicit owner authorization: local exact-branch Vercel suppression,
+focused checks and one local commit only. No push/deploy/Preview/provider settings change.
+[Task](docs/implementation/tasks/EVENT-RECAP-CI-ONLY-001.md). Inputc92e644 clean.
+
 ## 2026-11-04 - hosted CI safety preflight complete
 
 TASK_ID: NONE. EVENT-RECAP-PREFLIGHT-001 DONE LOCAL / PUBLICATION BLOCKED; Production NO-GO.

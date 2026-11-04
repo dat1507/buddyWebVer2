@@ -1,3 +1,12 @@
+## EVENT-RECAP-CI-ONLY-001 - 2026-11-04
+
+Local exact-branch git.deploymentEnabledfalse: patch check/application, semantic identity of all
+other config, official git-property schema fragment, matcher/precedence matrix, Prettier, production
+build and demo exclusion16/10PASS. Whole schema upstream draft inconsistency documented; no full
+schemaPASS claim. Frontend/backend/CI hashes unchanged; no full suites repeated.253 task/index links,
+current docs links and whitespace validated. READY for separately authorized CI-only push, no hosted
+execution observed; Production NO-GO. [Report](../project-knowledge/frontend/EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+
 ## EVENT-RECAP-PREFLIGHT-001 - 2026-11-04
 
 All recorded application/CI hashes match cdfc863; fresh origin/main6851725 is ancestor; featurebdcd

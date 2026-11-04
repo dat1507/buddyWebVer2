@@ -1,3 +1,6 @@
+2026-11-04: [Local exact-branch CI-only suppression](EVENT_RECAP_CI_ONLY_SUPPRESSION_2026-11-04.md).
+READY for separate exact-SHA branch push authorization; no Preview/deploy/Production change.
+
 2026-11-04: [Hosted CI safety preflight](EVENT_RECAP_HOSTED_PREFLIGHT_2026-11-04.md).
 Publication blocked on Preview isolation; validated CI-only suppression proposal unapplied pending
 owner authorization. Focused performance evidence explains CPU contention; Production NO-GO.
