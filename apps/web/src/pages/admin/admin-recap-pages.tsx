@@ -174,6 +174,7 @@ function FilePreview({ file }: { file: File }) {
 
 function RecapEditor({ initial }: { initial: Recap }) {
   const { t } = useTranslation()
+  const { recapId } = useParams()
   const navigate = useNavigate()
   const cache = useQueryClient()
   const [draft, setDraft] = useState(initial)
@@ -268,7 +269,7 @@ function RecapEditor({ initial }: { initial: Recap }) {
     void execute(async () => {
       const result = await saveAll()
       setNotice('saved')
-      if (!draft.id) void navigate(`/admin/events/recaps/${result.id}/edit`, { replace: true })
+      if (!recapId) void navigate(`/admin/events/recaps/${result.id}/edit`, { replace: true })
     })
   const status = (value: Recap['status']) =>
     void execute(async () => {
@@ -292,6 +293,19 @@ function RecapEditor({ initial }: { initial: Recap }) {
   const runUploads = (selected: Job[]) =>
     void execute(async () => {
       let current = saved.current
+      // Selection is available on new/edited drafts. Persist content and photo edits before
+      // sending bytes, so every request uses the saved recap ID and current version.
+      try {
+        if (!current.id || dirty) current = await saveAll()
+      } catch (reason) {
+        setJobs((all) =>
+          all.map((item) =>
+            selected.some((job) => job.id === item.id) ? { ...item, state: 'failed' } : item,
+          ),
+        )
+        throw reason
+      }
+      let failed = false
       for (const job of selected) {
         setJobs((all) =>
           all.map((item) => (item.id === job.id ? { ...item, state: 'uploading' } : item)),
@@ -326,7 +340,11 @@ function RecapEditor({ initial }: { initial: Recap }) {
           setJobs((all) =>
             all.map((item) => (item.id === job.id ? { ...item, state: 'complete' } : item)),
           )
-        } catch {
+        } catch (reason) {
+          failed = true
+          setError(
+            reason instanceof ApiError && reason.status === 409 ? 'conflict' : 'uploadFailed',
+          )
           setJobs((all) =>
             all.map((item) => (item.id === job.id ? { ...item, state: 'failed' } : item)),
           )
@@ -340,10 +358,13 @@ function RecapEditor({ initial }: { initial: Recap }) {
           }
         }
       }
-      setNotice('uploadDone')
+      if (!failed) setNotice('uploadDone')
+      // Keep failed jobs visible for retry; move to the persisted editor after success.
+      if (!failed && !recapId)
+        void navigate(`/admin/events/recaps/${current.id}/edit`, { replace: true })
     })
   const addFiles = (files: FileList | null) => {
-    if (!files || busy || dirty || !draft.id) return
+    if (!files?.length || lock.current) return
     const selected = Array.from(files)
     if (
       draft.photos.length + selected.length > 12 ||
@@ -575,15 +596,25 @@ function RecapEditor({ initial }: { initial: Recap }) {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple
-              disabled={busy || dirty || !draft.id || draft.photos.length >= 12}
+              disabled={busy || draft.photos.length >= 12}
               className="block max-w-full text-sm"
+              aria-describedby="recap-upload-hint"
               onChange={(event: ChangeEvent<HTMLInputElement>) => {
                 addFiles(event.target.files)
                 event.target.value = ''
               }}
             />
           </label>
-          <p className="mt-3 text-sm text-muted-foreground">{t('recaps.uploadHint')}</p>
+          <p id="recap-upload-hint" className="mt-3 text-sm text-muted-foreground">
+            {t('recaps.uploadHint')}
+          </p>
+          {busy &&
+            jobs.some((job) => job.state === 'queued') &&
+            !jobs.some((job) => job.state === 'uploading') && (
+              <p role="status" className="mt-3 text-sm">
+                {t('recaps.uploadPreparing')}
+              </p>
+            )}
         </div>
         <ul className="space-y-2" aria-live="polite">
           {jobs.map((job) => (
@@ -603,11 +634,7 @@ function RecapEditor({ initial }: { initial: Recap }) {
                 />
               </div>
               {job.state === 'failed' && (
-                <Button
-                  variant="outline"
-                  disabled={busy || dirty}
-                  onClick={() => runUploads([job])}
-                >
+                <Button variant="outline" disabled={busy} onClick={() => runUploads([job])}>
                   {t('recaps.retry')}
                 </Button>
               )}
