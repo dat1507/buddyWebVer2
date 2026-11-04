@@ -1,3 +1,5 @@
+| [FE-RECAP-EDITORIAL-001](tasks/FE-RECAP-EDITORIAL-001.md) | LOCAL COMPLETE — OWNER VISUAL REVIEW PENDING |
+
 | [OPS-PRODUCTION-BACKUP-001](tasks/OPS-PRODUCTION-BACKUP-001.md) | DEFERRED — OWNER-ACCEPTED RISK |
 
 | [EVENT-RECAP-ROLLING9-001](tasks/EVENT-RECAP-ROLLING9-001.md) | LOCAL COMPLETE / HOSTED PUBLICATION BLOCKED |
@@ -22,8 +24,8 @@
 
 # Task index
 
-**Generated:** 2026-11-04 **Task IDs:** 257
-**Generated:** 2026-11-04 **Task IDs:** 257
+**Generated:** 2026-11-04 **Task IDs:** 258
+**Generated:** 2026-11-04 **Task IDs:** 258
 
 Use the lightweight plan for current priority, then open only the selected task extract. Extracts
 preserve all matching contract sections and cross-references from the legacy plan. `SUPERSEDED` and

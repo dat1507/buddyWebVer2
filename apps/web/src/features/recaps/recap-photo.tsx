@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { localized, photoUrl, type RecapPhoto } from './recaps'
@@ -8,11 +8,13 @@ export function RecapImage({
   photo,
   display = false,
   admin = false,
+  fallback,
 }: {
   recapId: string
   photo: RecapPhoto
   display?: boolean
   admin?: boolean
+  fallback?: ReactNode
 }) {
   const { t, i18n } = useTranslation()
   const ref = useRef<HTMLSpanElement>(null)
@@ -57,6 +59,11 @@ export function RecapImage({
           >
             {t('recaps.retryImage')}
           </button>
+        ) : fallback ? (
+          <>
+            {fallback}
+            <span className="sr-only">{t('recaps.photoUnavailable')}</span>
+          </>
         ) : (
           <span>{t('recaps.photoUnavailable')}</span>
         )
@@ -74,7 +81,14 @@ export function RecapImage({
           }}
         />
       ) : (
-        <span role="status" className="recap-image-loading" aria-label={t('recaps.loading')} />
+        <>
+          {fallback}
+          <span
+            role="status"
+            className={fallback ? 'sr-only' : 'recap-image-loading'}
+            aria-label={t('recaps.loading')}
+          />
+        </>
       )}
     </span>
   )

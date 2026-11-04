@@ -145,19 +145,13 @@ export function RecapStory({ recap, admin = false }: { recap: Recap; admin?: boo
             }).format(new Date(`${recap.event_date}T12:00:00Z`))}
           </time>
         )}
-        <p>{localized(recap, 'summary', de)}</p>
       </header>
-      {recap.photos.length > 0 && (
-        <section aria-labelledby="recap-highlights">
-          <h2 id="recap-highlights">{t('recaps.highlights')}</h2>
-          <div className="recap-highlights" data-count={Math.min(5, recap.photos.length)}>
-            {recap.photos.slice(0, 5).map((_, index) => photoButton(index))}
-          </div>
-        </section>
-      )}
-      {localized(recap, 'editorial', de) && (
-        <p className="recap-editorial">{localized(recap, 'editorial', de)}</p>
-      )}
+      <div className="recap-detail-copy">
+        <p>{localized(recap, 'summary', de)}</p>
+        {localized(recap, 'editorial', de) && (
+          <p className="recap-editorial">{localized(recap, 'editorial', de)}</p>
+        )}
+      </div>
       <section aria-labelledby="recap-gallery">
         <div className="recap-section-heading">
           <h2 id="recap-gallery">{t('recaps.gallery')}</h2>

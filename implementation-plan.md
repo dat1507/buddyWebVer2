@@ -1,3 +1,20 @@
+## 2026-11-04 — Recap editorial UI local complete; owner review pending
+
+TASK_ID: FE-RECAP-EDITORIAL-001. Branch codex/recap-editorial-ui, based on7176e09 upload fix.
+Image-led Explore More cards + one centered ordered Recap gallery implemented. 47 focused tests,
+TS/ESLint/Prettier/build PASS; 16 EN/DE cases at1440/768/390/320 no overflow; keyboard/lightbox,
+focus/44px targets/reduced motion verified. Protected backend/Admin/upload/Slider/config unchanged.
+[Review evidence](docs/project-knowledge/frontend/RECAP_EDITORIAL_UI_2026-11-04.md).
+Local preview http://127.0.0.1:5194/.local/ui-review.html (synthetic only). Owner acceptance pending.
+NO PUSH, MERGE, DEPLOY or Production mutation. Preserve all work; backup remains deferred.
+
+## 2026-11-04 — Local Recap editorial UI assigned
+
+TASK_ID: FE-RECAP-EDITORIAL-001. Owner authorizes Explore More image-led cards, unified gallery and
+centered details on codex/recap-editorial-ui, based on deployed7176e09. Local commit/review only;
+NO PUSH, MERGE, DEPLOY or Production data changes. Preserve upload fix and existing work.
+Task: [FE-RECAP-EDITORIAL-001](docs/implementation/tasks/FE-RECAP-EDITORIAL-001.md).
+
 ## 2026-11-04 — Expedited Rolling9 Production integration candidate
 
 TASK_ID: EVENT-RECAP-ROLLING9-001. IN PROGRESS. Owner explicitly defers full pre-release backup;

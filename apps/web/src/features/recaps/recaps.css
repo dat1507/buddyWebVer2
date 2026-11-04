@@ -42,8 +42,7 @@
   font-weight: 600;
   letter-spacing: -0.03em;
 }
-.recap-hero p:not(.recap-eyebrow),
-.recap-detail-header > p:last-child {
+.recap-hero p:not(.recap-eyebrow) {
   font-size: 1.1rem;
   line-height: 1.85;
   max-width: 650px;
@@ -207,38 +206,35 @@
   opacity: 0.45;
 }
 .recap-detail-header {
-  max-width: 800px;
-  margin: 3rem 0 4rem;
+  max-width: 1000px;
+  margin: 3.5rem auto 2rem;
+  text-align: center;
 }
-.recap-detail-header > p:last-child {
-  margin-top: 1rem;
+.recap-detail-header h1 {
+  overflow-wrap: anywhere;
+}
+.recap-detail-copy {
+  max-width: 760px;
+  margin-inline: auto;
+  text-align: left;
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.recap-detail-copy p {
   white-space: pre-line;
+}
+.recap-detail-copy p + p {
+  margin-top: 1.5rem;
 }
 .recap-detail section {
   margin: 3.5rem 0;
+  padding-top: 2.5rem;
+  border-top: 1px solid hsl(var(--border));
 }
-.recap-highlights {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-.recap-highlights figure {
-  grid-column: span 2;
+.recap-photo-grid figure {
   min-width: 0;
-}
-.recap-highlights figure:nth-child(-n + 2) {
-  grid-column: span 3;
-}
-.recap-highlights[data-count='1'] figure {
-  grid-column: span 6;
-  max-width: 800px;
-}
-.recap-highlights[data-count='3'] figure:last-child {
-  grid-column: 2 / 6;
-}
-.recap-highlights[data-count='4'] figure {
-  grid-column: span 3;
+  overflow-wrap: anywhere;
 }
 .recap-photo-button {
   display: block;
@@ -346,31 +342,22 @@
   .recap-mosaic > a:nth-child(-n + 2) {
     height: 145px;
   }
-  .recap-card-grid {
+  .recap-card-grid,
+  .recap-photo-grid {
     grid-template-columns: 1fr;
   }
   .recap-photo-grid {
     gap: 0.75rem;
   }
   .recap-detail-header {
-    margin: 2rem 0;
+    margin: 2rem auto 1.5rem;
   }
-  .recap-highlights {
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+  .recap-detail-header h1 {
+    font-size: clamp(2rem, 7vw, 3rem);
   }
-  .recap-highlights figure,
-  .recap-highlights figure:nth-child(-n + 2),
-  .recap-highlights[data-count] figure {
-    grid-column: span 1;
-  }
-  .recap-highlights figure:first-child,
-  .recap-highlights[data-count='1'] figure,
-  .recap-highlights[data-count='3'] figure:first-child {
-    grid-column: span 2;
-  }
-  .recap-highlights[data-count='3'] figure:last-child {
-    grid-column: span 1;
+  .recap-detail section {
+    margin-block: 2.5rem;
+    padding-top: 2rem;
   }
 }
 

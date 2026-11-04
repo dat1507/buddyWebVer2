@@ -1,6 +1,8 @@
-import { ArrowLeft, CalendarDays, Shirt, ShoppingBag, Sparkles } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ShoppingBag, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
+
+import { MerchandiseArtwork } from '@/features/merchandise/merchandise-artwork'
 
 import { Button } from '@/components/ui/button'
 import { Typography } from '@/components/ui/typography'
@@ -36,23 +38,7 @@ function CommunityComingSoonPage({ feature }: { feature: 'recap' | 'merchandise'
               </Link>
             </Button>
           </div>
-          <div className="merchandise-art" aria-hidden="true">
-            <div className="merchandise-orbit" />
-            <div className="merchandise-shirt">
-              <Shirt strokeWidth={1.15} />
-              <span>BUDDY</span>
-            </div>
-            <div className="merchandise-bag">
-              <ShoppingBag strokeWidth={1.15} />
-              <span>
-                VGU
-                <br />
-                BUDDY
-              </span>
-            </div>
-            <span className="merchandise-star">✦</span>
-            <span className="merchandise-art-note">MEET · CONNECT · BELONG</span>
-          </div>
+          <MerchandiseArtwork />
         </div>
       </main>
     )
