@@ -314,6 +314,7 @@
     "empty": "There are no student accounts to show.",
     "noResults": "No student accounts match this search.",
     "viewDetails": "View details for {{name}}",
+    "viewDetailsLabel": "View details",
     "search": {
       "label": "Search users",
       "placeholder": "Email, full name, or display name",
@@ -630,6 +631,7 @@
     "notShared": "Not shared",
     "majorNotShared": "Major not shared",
     "viewDetails": "View details for {{name}}",
+    "viewDetailsLabel": "View details",
     "privacyNotice": "Only the matching-safe participant profile is shown. Account, authentication, message, and storage details are excluded.",
     "status": {
       "yes": "Yes",

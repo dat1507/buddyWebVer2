@@ -294,10 +294,11 @@ function AdminMatchingPage() {
             variant="outline"
             size="sm"
             onClick={() => setSelectedProfileId(participant.profile_id)}
-          >
-            {t('adminMatching.viewDetails', {
+            aria-label={t('adminMatching.viewDetails', {
               name: displayName(participant.display_name, t('adminMatching.unnamed')),
             })}
+          >
+            {t('adminMatching.viewDetailsLabel')}
           </Button>
         ),
       },

@@ -185,7 +185,9 @@ describe('ADMIN-V2-002 guarded matching monitoring UI', () => {
 
   it('opens a localized read-only participant detail with profile preferences', async () => {
     renderApp()
-    fireEvent.click(await screen.findByRole('button', { name: 'View details for Linh Nguyen' }))
+    const details = await screen.findByRole('button', { name: 'View details for Linh Nguyen' })
+    expect(details).toHaveTextContent(/^View details$/)
+    fireEvent.click(details)
     expect(
       await screen.findByRole('heading', { name: 'Participant matching profile' }),
     ).toBeVisible()
@@ -201,6 +203,9 @@ describe('ADMIN-V2-002 guarded matching monitoring UI', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Zuordnungsmonitoring' }),
     ).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'Details für Linh Nguyen anzeigen' }),
+    ).toHaveTextContent(/^Details anzeigen$/)
     await waitFor(() =>
       expect(readParticipantDetail).toHaveBeenLastCalledWith(
         expect.objectContaining({ profileId, locale: 'de' }),

@@ -152,7 +152,9 @@ describe('ADMIN-013 guarded Admin user detail page', () => {
 
   it('navigates list to detail and back while keeping Users selected', async () => {
     renderApp('/admin/users')
-    fireEvent.click(await screen.findByRole('link', { name: 'View details for Ada' }))
+    const details = await screen.findByRole('link', { name: 'View details for Ada' })
+    expect(details).toHaveTextContent(/^View details$/)
+    fireEvent.click(details)
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Ada' })).toBeVisible()
     expect(readUserDetail).toHaveBeenCalledWith(expect.objectContaining({ userId }))

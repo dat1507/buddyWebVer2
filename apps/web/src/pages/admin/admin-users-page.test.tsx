@@ -211,6 +211,9 @@ describe('ADMIN-012 guarded Admin User Management page', () => {
     await screen.findByText('ada@example.com')
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     const heading = await screen.findByRole('heading', { name: 'Benutzerverwaltung' })
+    expect(screen.getByRole('link', { name: /Details für Ada anzeigen/ })).toHaveTextContent(
+      /^Details anzeigen$/,
+    )
     expect(heading).toBeVisible()
     expect(heading).toHaveClass('break-words', 'text-3xl', 'sm:text-4xl')
     expect(screen.getByRole('searchbox', { name: 'Benutzer suchen' })).toHaveAttribute(

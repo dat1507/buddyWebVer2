@@ -314,6 +314,7 @@
     "empty": "Es sind keine Studierendenkonten vorhanden.",
     "noResults": "Keine Studierendenkonten entsprechen dieser Suche.",
     "viewDetails": "Details für {{name}} anzeigen",
+    "viewDetailsLabel": "Details anzeigen",
     "search": {
       "label": "Benutzer suchen",
       "placeholder": "E-Mail, vollständiger Name oder Anzeigename",
@@ -630,6 +631,7 @@
     "notShared": "Nicht angegeben",
     "majorNotShared": "Studiengang nicht angegeben",
     "viewDetails": "Details für {{name}} anzeigen",
+    "viewDetailsLabel": "Details anzeigen",
     "privacyNotice": "Es wird nur das für die Zuordnung freigegebene Profil angezeigt. Konto-, Authentifizierungs-, Nachrichten- und Speicherdetails sind ausgeschlossen.",
     "status": {
       "yes": "Ja",

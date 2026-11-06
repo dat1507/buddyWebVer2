@@ -146,7 +146,12 @@ function AdminUsersPage() {
             user.profile?.display_name?.trim() || user.profile?.full_name?.trim() || user.email
           return (
             <Button asChild variant="outline" size="sm">
-              <Link to={`/admin/users/${user.id}`}>{t('adminUsers.viewDetails', { name })}</Link>
+              <Link
+                to={`/admin/users/${user.id}`}
+                aria-label={t('adminUsers.viewDetails', { name })}
+              >
+                {t('adminUsers.viewDetailsLabel')}
+              </Link>
             </Button>
           )
         },
