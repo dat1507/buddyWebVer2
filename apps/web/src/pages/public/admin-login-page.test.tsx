@@ -93,7 +93,7 @@ describe('AdminLoginPage', () => {
     fireEvent.change(screen.getByLabelText('Admin password'), { target: { value: 'secret' } })
     fireEvent.click(screen.getByRole('button', { name: 'Continue to administration' }))
 
-    expect(await screen.findByText('Admin overview')).toBeVisible()
+    expect(await screen.findByText('User management')).toBeVisible()
     expect(login).toHaveBeenCalledWith(
       { email: 'admin@vgu.edu.vn', password: 'secret' },
       { requiredRole: 'ADMIN' },
@@ -112,3 +112,7 @@ describe('AdminLoginPage', () => {
     expect(screen.getByRole('button', { name: 'Zur Verwaltung fortfahren' })).toBeVisible()
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

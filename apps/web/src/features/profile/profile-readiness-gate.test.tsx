@@ -148,8 +148,8 @@ describe('FE-038 profile readiness routing', () => {
     useAuthStore.getState().setAuthenticated({ ...user, role: 'ADMIN' })
     renderApp('/login')
 
-    expect(await screen.findByText('Admin overview')).toBeVisible()
-    expect(screen.getByTestId('location')).toHaveTextContent('/admin/dashboard')
+    expect(await screen.findByText('User management')).toBeVisible()
+    expect(screen.getByTestId('location')).toHaveTextContent('/admin/users')
     expect(authenticatedJson).not.toHaveBeenCalled()
   })
 
@@ -228,3 +228,7 @@ describe('FE-038 profile readiness routing', () => {
     ])
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

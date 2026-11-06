@@ -199,7 +199,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
         target: { value: 'fixture password' },
       })
       fireEvent.click(mainButton(adminPage ? 'Continue to administration' : 'Sign in'))
-      expect(await screen.findByText('Admin overview')).toBeVisible()
+      expect(await screen.findByText('User management')).toBeVisible()
       expect(useAuthStore.getState()).toMatchObject({
         status: 'authenticated',
         user: admin,
@@ -279,3 +279,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     expect(screen.getByRole('button', { name: 'Erneut versuchen' })).toBeEnabled()
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))
