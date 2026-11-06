@@ -1,3 +1,7 @@
+2026-11-06: [Admin Navigation Cleanup — ADMIN-NAV-CLEANUP-001](../../implementation/tasks/ADMIN-NAV-CLEANUP-001.md).
+Local verified; three guarded legacy redirects and shared desktop/mobile menu cleanup. Backend/data
+preserved; local-only commit, no publication/deployment. Browser fixture limitations documented.
+
 [Rolling 9 controlled release checkpoint](EVENT_RECAP_ROLLING9_2026-11-04.md) â€” local complete; hosted/provider/backup gates pending.
 
 2026-11-04: [Rolling10 permanent Recap retention and Facebook](EVENT_RECAP_ROLLING10_2026-11-04.md).

@@ -1,3 +1,12 @@
+## 2026-11-06 — ADMIN-NAV-CLEANUP-001 DONE — LOCAL VERIFIED
+
+Owner-assigned frontend-only cleanup complete on isolated codex/admin-navigation-cleanup from c4f6227.
+Announcements/Campus/Analytics removed; three ADMIN-guarded legacy URLs replace to Overview.
+Existing Events flag, active/focus styles, placeholders/backend/data preserved. ON42/OFF41 focused
+tests and frontend static/build gates PASS. Local synthetic browser verification and limits recorded
+in [task evidence](docs/implementation/tasks/ADMIN-NAV-CLEANUP-001.md). Local commit only;
+no push/main merge/deployment or Production mutation. No further implementation assigned.
+
 ## 2026-11-04 â€” Recap editorial UI local complete; owner review pending
 
 TASK_ID: FE-RECAP-EDITORIAL-001. Branch codex/recap-editorial-ui, based on7176e09 upload fix.

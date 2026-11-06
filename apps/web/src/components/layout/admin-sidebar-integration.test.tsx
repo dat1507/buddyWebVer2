@@ -23,10 +23,7 @@ const modules = [
   ['Overview', 'dashboard', 'Admin overview'],
   ['Users', 'users', 'User management'],
   ...(adminEventsEnabled ? ([['Events', 'events', 'Event management']] as const) : []),
-  ['Announcements', 'announcements', 'Announcements'],
   ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
-  ['Campus', 'campus', 'Campus management'],
-  ['Analytics', 'analytics', 'Analytics'],
   ['Audit Log', 'audit-log', 'Audit log'],
   ['Settings', 'settings', 'Admin settings'],
 ] as const
@@ -96,6 +93,34 @@ describe('ADMIN-002 guarded App navigation', () => {
     },
   )
 
+  it.each(['announcements', 'campus', 'analytics'])('redirects legacy %s to Overview', (path) => {
+    useAuthStore.getState().setAuthenticated(admin)
+    renderApp(`/admin/${path}?old=true#legacy`)
+    expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard')
+    const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
+    expect(within(nav).queryByRole('link', { name: /Announcements|Campus|Analytics/ })).toBeNull()
+    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
+  })
+
+  it.each(['announcements', 'campus', 'analytics'])(
+    'preserves anonymous and USER guards for %s',
+    (path) => {
+      useAuthStore.getState().clearSession()
+      renderApp(`/admin/${path}`)
+      expect(screen.getByTestId('location').textContent).toBe('/adminLogin')
+      expectNoMenu()
+      cleanup()
+      useAuthStore.getState().setAuthenticated({ ...admin, role: 'USER' })
+      renderApp(`/admin/${path}`)
+      expect(screen.getByTestId('location').textContent).toBe('/')
+      expectNoMenu()
+    },
+  )
+
   it('opens the delivered read-only Matching monitoring page', async () => {
     fetch.mockImplementation(async (url) => {
       if (String(url).endsWith('/admin/matching/stats')) {
@@ -135,7 +160,7 @@ describe('ADMIN-002 guarded App navigation', () => {
 
   it('translates the menu with the actual language toggle while preserving route and session', async () => {
     useAuthStore.getState().setAuthenticated(admin)
-    renderApp('/admin/announcements?view=published#items')
+    renderApp('/admin/settings?view=published#items')
     const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
     const user = useAuthStore.getState().user
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
@@ -146,21 +171,16 @@ describe('ADMIN-002 guarded App navigation', () => {
       'Zuordnung',
       'Semester',
       ...(adminEventsEnabled ? ['Veranstaltungen'] : []),
-      'Mitteilungen',
       'Wissensdatenbank',
-      'Campus',
-      'Analysen',
       'Audit-Protokoll',
       'Einstellungen',
     ]
     labels.forEach((name) => expect(within(nav).getByRole('link', { name })).toBeVisible())
-    expect(within(nav).getByRole('link', { name: 'Mitteilungen' })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Einstellungen' })).toHaveAttribute(
       'aria-current',
       'page',
     )
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/admin/announcements?view=published#items',
-    )
+    expect(screen.getByTestId('location').textContent).toBe('/admin/settings?view=published#items')
     expect(useAuthStore.getState().user).toBe(user)
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -215,14 +235,12 @@ describe('ADMIN-002 guarded App navigation', () => {
       resolveMe(json(admin))
     })
     const nav = await screen.findByRole('navigation', { name: 'Administrator navigation' })
-    expect(within(nav).getByRole('link', { name: 'Announcements' })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
       'aria-current',
       'page',
     )
-    expect(screen.getByRole('heading', { name: 'Announcements' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe(
-      '/admin/announcements?view=published#items',
-    )
+    expect(screen.getByRole('heading', { name: 'Admin overview' })).toBeVisible()
+    expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard')
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',

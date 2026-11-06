@@ -1,3 +1,12 @@
+## ADMIN-NAV-CLEANUP-001 — 2026-11-06
+
+Four focused Admin layout/navigation suites ON42/OFF41 PASS; TypeScript, targeted ESLint/Prettier,
+production build PASS (existing chunk advisory). Initial sandbox temp ENOENT recovered with local
+TEMP/TMP. Brave synthetic API only: EN/DE desktop1600/mobile390 menu/no overflow, eight keyboard
+destinations, three guarded legacy redirects, refresh/Back/Forward/replacement and distinct focus
+verified. Mobile pointer/real backend acceptance unverified. No Production access or mutation.
+[Detailed scope, evidence and review](tasks/ADMIN-NAV-CLEANUP-001.md). Task-path coverage validated.
+
 ## FE-RECAP-EDITORIAL-001 â€” 2026-11-04 local verification
 
 47 focused tests/7 files PASS. Affected ESLint/Prettier, TypeScript, default and enabled-feature

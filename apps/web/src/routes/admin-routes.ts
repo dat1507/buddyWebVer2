@@ -2,12 +2,9 @@ import type { ComponentType } from 'react'
 import {
   BookOpen,
   CalendarDays,
-  ChartNoAxesCombined,
   ClipboardList,
-  GraduationCap,
   HeartHandshake,
   LayoutDashboard,
-  Megaphone,
   Settings,
   RotateCcwKey,
   Users,
@@ -78,31 +75,10 @@ const adminRoutes: readonly AdminRoute[] = [
       ] satisfies readonly AdminRoute[])
     : []),
   {
-    path: 'announcements',
-    title: 'Announcements',
-    labelKey: 'adminNavigation.announcements',
-    Icon: Megaphone,
-    kind: 'placeholder',
-  },
-  {
     path: 'knowledge-base',
     title: 'Knowledge base',
     labelKey: 'adminNavigation.knowledgeBase',
     Icon: BookOpen,
-    kind: 'placeholder',
-  },
-  {
-    path: 'campus',
-    title: 'Campus management',
-    labelKey: 'adminNavigation.campus',
-    Icon: GraduationCap,
-    kind: 'placeholder',
-  },
-  {
-    path: 'analytics',
-    title: 'Analytics',
-    labelKey: 'adminNavigation.analytics',
-    Icon: ChartNoAxesCombined,
     kind: 'placeholder',
   },
   {

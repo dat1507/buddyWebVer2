@@ -122,6 +122,9 @@ function App() {
         <Route element={<RoleGuard requiredRole="ADMIN" loginPath="/adminLogin" />}>
           <Route path="admin" element={<AdminLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
+            {['announcements', 'campus', 'analytics'].map((path) => (
+              <Route key={path} path={path} element={<Navigate to="/admin/dashboard" replace />} />
+            ))}
             {adminRoutes.map((route) => (
               <Route
                 key={route.path}

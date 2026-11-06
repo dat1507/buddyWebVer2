@@ -67,11 +67,7 @@ describe('ADMIN-001 guarded App and session integration', () => {
 
   it.each([
     ['/admin', '/admin/dashboard', 'Admin overview'],
-    [
-      '/admin/announcements?view=details#entry',
-      '/admin/announcements?view=details#entry',
-      'Announcements',
-    ],
+    ['/admin/announcements?view=details#entry', '/admin/dashboard', 'Admin overview'],
   ])('renders verified ADMIN route %s with one content main', (path, destination, title) => {
     useAuthStore.getState().setAuthenticated(admin)
     renderApp(path)

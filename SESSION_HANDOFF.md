@@ -1,3 +1,14 @@
+## 2026-11-06 — Admin navigation cleanup locally complete
+
+TASK_ID: NONE. ADMIN-NAV-CLEANUP-001 DONE — LOCAL VERIFIED on codex/admin-navigation-cleanup,
+isolated from the original dirty worktree; base c4f6227322792f7dba6d6b0db3cdef18852ab055.
+Three menu entries removed; exact guarded legacy paths replace to /admin/dashboard. Active/focus
+implementation unchanged. ON42/OFF41 focused tests, types/lint/format/build PASS; local synthetic
+browser EN/DE desktop/mobile, keyboard/history/refresh verified; mobile pointer acceptance unverified.
+[Task and evidence](docs/implementation/tasks/ADMIN-NAV-CLEANUP-001.md). Preview localhost5197;
+synthetic API5198. Local commit only; no push/merge/deploy/Production change. Original work preserved.
+Commit reference: single containing commit on codex/admin-navigation-cleanup; resolve with git log -1.
+
 ## 2026-11-04 â€” Recap editorial UI local complete; owner review pending
 
 TASK_ID: FE-RECAP-EDITORIAL-001. Branch codex/recap-editorial-ui, based on7176e09 upload fix.
