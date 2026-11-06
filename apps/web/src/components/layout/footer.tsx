@@ -1,6 +1,9 @@
 import type { SVGProps } from 'react'
-import { Mail } from 'lucide-react'
+import { ArrowUp, Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import { useAuthStore } from '@/stores/auth-store'
+import '@/styles/public-community.css'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 
@@ -37,12 +40,14 @@ const socialLinks = [
 
 function Footer() {
   const { t } = useTranslation()
+  const status = useAuthStore((state) => state.status)
+  const role = useAuthStore((state) => state.role)
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer id="contact" className="scroll-mt-20 border-t border-white/10 bg-zinc-950">
+    <footer id="contact" className="community-footer scroll-mt-24">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:gap-24">
+        <div className="footer-grid grid gap-10">
           <div>
             <a
               href="/#home"
@@ -54,7 +59,8 @@ function Footer() {
             </a>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-zinc-400">
-              {t('footer.description')}
+              {t('footer.tagline')}
+              <span className="mt-3 block text-sm">{t('footer.description')}</span>
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -73,6 +79,34 @@ function Footer() {
             </div>
           </div>
 
+          <nav aria-labelledby="footer-explore-heading" className="footer-links">
+            <h2 id="footer-explore-heading">{t('footer.explore')}</h2>
+            {[
+              ['home', 'home'],
+              ['events', 'events'],
+              ['about', 'about'],
+              ['features', 'features'],
+            ].map(([id, key]) => (
+              <a key={id} href={`/#${id}`}>
+                {t(`nav.${key}`)}
+              </a>
+            ))}
+          </nav>
+          <nav aria-labelledby="footer-community-heading" className="footer-links">
+            <h2 id="footer-community-heading">{t('footer.community')}</h2>
+            <a href="/#community">{t('nav.community')}</a>
+            {status === 'authenticated' ? (
+              <a href={role === 'ADMIN' ? '/admin/dashboard' : '/user/dashboard'}>
+                {t('nav.openWorkspace')}
+              </a>
+            ) : (
+              <a href="/login">{t('nav.userLogin')}</a>
+            )}
+            <h2 className="mt-6">{t('footer.information')}</h2>
+            <a href="/documents/vgu-buddy-survival-book.pdf" target="_blank" rel="noreferrer">
+              {t('nav.surbook')}
+            </a>
+          </nav>
           <div className="min-w-0" aria-labelledby="footer-contact-heading">
             <h2 id="footer-contact-heading" className="text-lg font-semibold text-zinc-100">
               {t('footer.getInTouch')}
@@ -91,10 +125,14 @@ function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-8 text-center">
+        <div className="footer-bottom mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-8">
           <p className="text-sm leading-6 text-zinc-400">
             {t('footer.copyright', { year: currentYear })}
           </p>
+          <a href="/#home" className="inline-flex min-h-11 items-center gap-2">
+            {t('footer.backToTop')}
+            <ArrowUp aria-hidden="true" className="size-4" />
+          </a>
         </div>
       </div>
     </footer>

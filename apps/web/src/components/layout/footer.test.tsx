@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Footer } from '@/components/layout/footer'
 import i18n from '@/i18n'
 
-describe('Minimal Branding Footer', () => {
+describe('Dark forest community footer', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('en')
   })
@@ -12,11 +12,11 @@ describe('Minimal Branding Footer', () => {
     vi.useRealTimers()
   })
 
-  it('replaces duplicated navigation and Support with Get in Touch', () => {
+  it('provides existing navigation and contact destinations', () => {
     render(<Footer />)
     const footer = screen.getByRole('contentinfo')
     expect(footer).toHaveAttribute('id', 'contact')
-    expect(within(footer).queryByRole('navigation')).not.toBeInTheDocument()
+    expect(within(footer).getAllByRole('navigation')).toHaveLength(2)
     expect(within(footer).queryByText('Quick Links')).not.toBeInTheDocument()
     expect(within(footer).queryByText('Support')).not.toBeInTheDocument()
     expect(
@@ -38,7 +38,7 @@ describe('Minimal Branding Footer', () => {
     expect(contact).toHaveFocus()
     expect(screen.getByText('vgubuddy@vgu.edu.vn')).toBeVisible()
     expect(footer.querySelector('form, button')).toBeNull()
-    expect(within(footer).getAllByRole('link')).toHaveLength(4)
+    expect(within(footer).getAllByRole('link')).toHaveLength(12)
   })
 
   it('preserves the logo and exact secure social destinations', () => {

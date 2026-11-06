@@ -118,7 +118,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
     expect(
       screen.getByRole('heading', {
         level: 2,
-        name: 'Ready to Transform Your University Experience?',
+        name: 'Your next connection starts here.',
       }),
     ).toBeVisible()
   })
@@ -144,7 +144,7 @@ describe('LandingPage (FE-019 Assembly)', () => {
     expect(
       screen.getByRole('heading', {
         level: 2,
-        name: 'Bereit, dein Unileben zu transformieren?',
+        name: 'Hier beginnt deine nächste Begegnung.',
       }),
     ).toBeVisible()
   })

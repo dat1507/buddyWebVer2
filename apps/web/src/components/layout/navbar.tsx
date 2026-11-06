@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ExternalLink, Menu, UserPlus, UserRound, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
+import { LogoutAction } from '@/features/auth/session-controls'
+import '@/styles/public-community.css'
 
 import vguBuddyLogo from '@/assets/vgu-buddy-logo.png'
 import { LanguageToggle } from '@/components/layout/language-toggle'
@@ -24,6 +26,14 @@ const survivalBookPath = '/documents/vgu-buddy-survival-book.pdf'
 
 function Navbar() {
   const { t } = useTranslation()
+  const { pathname, hash } = useLocation()
+  const [activeHash, setActiveHash] = useState(hash || '#home')
+
+  useEffect(() => {
+    const update = () => setActiveHash(window.location.hash || '#home')
+    window.addEventListener('hashchange', update)
+    return () => window.removeEventListener('hashchange', update)
+  }, [])
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSignInMenuOpen, setIsSignInMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -115,8 +125,8 @@ function Navbar() {
   const closeMenu = () => setIsMenuOpen(false)
 
   return (
-    <header className="public-navigation sticky top-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="public-navigation community-navigation sticky top-0 z-50">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <a
           href="/#home"
           className="flex min-w-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
@@ -136,6 +146,9 @@ function Navbar() {
             <a
               key={item.href}
               href={item.href}
+              aria-current={
+                pathname === '/' && item.href === `/${hash || activeHash}` ? 'location' : undefined
+              }
               className="rounded-md px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
             >
               {t(item.translationKey)}
@@ -158,20 +171,23 @@ function Navbar() {
           </div>
 
           {status === 'authenticated' ? (
-            <Button
-              asChild
-              variant="outline"
-              className="navigation-desktop-account hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 xl:inline-flex"
-            >
-              <Link to={workspacePath}>
-                <UserRound aria-hidden="true" className="size-4" />
-                {t('nav.openWorkspace')}
-                <UnreadBadge
-                  count={workspaceUnreadCount}
-                  label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
-                />
-              </Link>
-            </Button>
+            <div className="navigation-desktop-account hidden items-center gap-2 xl:flex">
+              <Button
+                asChild
+                variant="outline"
+                className="workspace-action hidden gap-2 border-white/15 bg-white/[0.04] text-zinc-100 hover:border-orange-500/50 hover:bg-orange-500/10 hover:text-orange-300 xl:inline-flex"
+              >
+                <Link to={workspacePath}>
+                  <UserRound aria-hidden="true" className="size-4" />
+                  {t('nav.openWorkspace')}
+                  <UnreadBadge
+                    count={workspaceUnreadCount}
+                    label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
+                  />
+                </Link>
+              </Button>
+              <LogoutAction className="navigation-logout min-h-11 gap-2" />
+            </div>
           ) : (
             <div className="navigation-desktop-account relative hidden xl:block">
               <Button
@@ -276,6 +292,11 @@ function Navbar() {
                 <a
                   key={item.href}
                   href={item.href}
+                  aria-current={
+                    pathname === '/' && item.href === `/${hash || activeHash}`
+                      ? 'location'
+                      : undefined
+                  }
                   className="rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                   onClick={closeMenu}
                 >
@@ -295,18 +316,24 @@ function Navbar() {
 
               <div className="mt-4 space-y-1 border-t border-white/10 pt-4">
                 {status === 'authenticated' ? (
-                  <Link
-                    to={workspacePath}
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-                    onClick={closeMenu}
-                  >
-                    <UserRound aria-hidden="true" className="size-4" />
-                    {t('nav.openWorkspace')}
-                    <UnreadBadge
-                      count={workspaceUnreadCount}
-                      label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
+                  <>
+                    <Link
+                      to={workspacePath}
+                      className="flex items-center gap-3 rounded-lg px-4 py-3 text-base font-medium text-zinc-200 transition-colors hover:bg-white/5 hover:text-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                      onClick={closeMenu}
+                    >
+                      <UserRound aria-hidden="true" className="size-4" />
+                      {t('nav.openWorkspace')}
+                      <UnreadBadge
+                        count={workspaceUnreadCount}
+                        label={t('chat.unreadMessages', { count: workspaceUnreadCount })}
+                      />
+                    </Link>
+                    <LogoutAction
+                      className="navigation-logout min-h-11 w-full justify-start gap-3 px-4"
+                      onLogout={closeMenu}
                     />
-                  </Link>
+                  </>
                 ) : (
                   <>
                     <Link

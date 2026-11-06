@@ -178,9 +178,10 @@
     "testimonial12": "In my first year, I have already recognized the VGU Buddy Program as a young, enthusiastic, and energetic club. That is the reason why I want to be an essential member of this organization. Hopefully, I can earn many experiences and memories here."
   },
   "cta": {
-    "title": "Ready to Transform Your University Experience?",
-    "subtitle": "Join thousands of VGU students who are already making the most of their university journey.",
-    "join": "Join the Community"
+    "title": "Your next connection starts here.",
+    "subtitle": "Meet new people. Create lasting memories.",
+    "join": "Join the Community",
+    "eyebrow": "YOUR CAMPUS. YOUR COMMUNITY."
   },
   "auth": {
     "guard": {
@@ -1543,7 +1544,12 @@
     "copyright": "© {{year}} VGU Buddy Program. All rights reserved. | Available in English & German",
     "getInTouch": "Get in Touch",
     "contactDescription": "Have questions or suggestions? We'd love to hear from you.",
-    "contactUs": "Contact Us"
+    "contactUs": "Contact Us",
+    "tagline": "Making student life better, together.",
+    "explore": "Explore",
+    "community": "Community",
+    "information": "Information",
+    "backToTop": "Back to top"
   },
   "howItWorks": {
     "eyebrow": "How It Works",

@@ -21,17 +21,11 @@ describe('CtaSection', () => {
   it('renders section title and subtitle', () => {
     renderCtaSection()
 
-    expect(
-      screen.getByRole('heading', { name: 'Ready to Transform Your University Experience?' }),
-    ).toBeVisible()
-    expect(
-      screen.getByText(
-        'Join thousands of VGU students who are already making the most of their university journey.',
-      ),
-    ).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Your next connection starts here.' })).toBeVisible()
+    expect(screen.getByText('Meet new people. Create lasting memories.')).toBeVisible()
   })
 
-  it('renders one centered registration action without demo UI', () => {
+  it('renders one spotlight registration action without demo UI', () => {
     const { container } = renderCtaSection()
 
     const joinLink = screen.getByRole('link', { name: 'Join the Community' })
@@ -40,11 +34,11 @@ describe('CtaSection', () => {
     expect(joinLink).toBeVisible()
     expect(joinLink).toHaveAttribute('href', '/register')
     expect(joinLink).toHaveClass('w-full', 'sm:w-auto')
-    expect(actions).toHaveClass('flex', 'justify-center')
+    expect(actions).toHaveClass('landing-cta-copy')
     expect(actions).not.toHaveClass('gap-4', 'sm:gap-5')
     expect(screen.queryByRole('button', { name: 'Watch Demo' })).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(container.querySelector('video')).not.toBeInTheDocument()
+    expect(container.querySelector('video, img, figure')).not.toBeInTheDocument()
   })
 
   it('renders German content after language switch', async () => {
@@ -52,12 +46,10 @@ describe('CtaSection', () => {
     renderCtaSection()
 
     expect(
-      screen.getByRole('heading', { name: 'Bereit, dein Unileben zu transformieren?' }),
+      screen.getByRole('heading', { name: 'Hier beginnt deine nächste Begegnung.' }),
     ).toBeVisible()
     expect(
-      screen.getByText(
-        'Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.',
-      ),
+      screen.getByText('Lerne neue Leute kennen. Schaffe bleibende Erinnerungen.'),
     ).toBeVisible()
     expect(screen.getByRole('link', { name: 'Community beitreten' })).toHaveAttribute(
       'href',

@@ -1,3 +1,7 @@
+## 2026-11-06 â€” Landing Production release candidate
+
+TASK_ID: FE-LANDING-COMMUNITY-UI-001. Owner approved the Landing UI and authorized the Production release. This candidate integrates b162882 onto 90a208f. Production deployment and public smoke are pending verification. [Task and evidence](docs/implementation/tasks/FE-LANDING-COMMUNITY-UI-001.md).
+
 ## 2026-11-06 — Admin navigation cleanup locally complete
 
 TASK_ID: NONE. ADMIN-NAV-CLEANUP-001 DONE — LOCAL VERIFIED on codex/admin-navigation-cleanup,

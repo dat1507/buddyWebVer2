@@ -1,3 +1,5 @@
+- [Approved Landing Header, community CTA and forest Footer](LANDING_COMMUNITY_UI_2026-11-06.md)
+
 2026-11-06: [Admin Navigation Cleanup — ADMIN-NAV-CLEANUP-001](../../implementation/tasks/ADMIN-NAV-CLEANUP-001.md).
 Local verified; three guarded legacy redirects and shared desktop/mobile menu cleanup. Backend/data
 preserved; local-only commit, no publication/deployment. Browser fixture limitations documented.

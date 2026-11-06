@@ -1,3 +1,7 @@
+## FE-LANDING-COMMUNITY-UI-001 â€” Approved Landing verification
+
+The approved source passed 20 focused tests, 111 browser and interaction checks, eight accessibility audits, TypeScript, ESLint, Prettier and build. The preceding Header and synthetic logout pass remains recorded in the [Landing evidence](../project-knowledge/frontend/LANDING_COMMUNITY_UI_2026-11-06.md). Release candidate and Production checks are separate.
+
 ## ADMIN-NAV-CLEANUP-001 — 2026-11-06
 
 Four focused Admin layout/navigation suites ON42/OFF41 PASS; TypeScript, targeted ESLint/Prettier,

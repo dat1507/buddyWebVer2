@@ -178,9 +178,10 @@
     "testimonial12": "Bereits in meinem ersten Jahr habe ich das VGU Buddy-Programm als jungen, enthusiastischen und dynamischen Club kennengelernt. Deshalb möchte ich ein wichtiges Mitglied dieser Organisation werden. Ich hoffe, ich kann hier viele Erfahrungen sammeln und Erinnerungen festhalten."
   },
   "cta": {
-    "title": "Bereit, dein Unileben zu transformieren?",
-    "subtitle": "Schließe dich tausenden VGU-Studierenden an, die bereits das Beste aus ihrem Studium machen.",
-    "join": "Community beitreten"
+    "title": "Hier beginnt deine nächste Begegnung.",
+    "subtitle": "Lerne neue Leute kennen. Schaffe bleibende Erinnerungen.",
+    "join": "Community beitreten",
+    "eyebrow": "DEIN CAMPUS. DEINE COMMUNITY."
   },
   "auth": {
     "guard": {
@@ -1543,7 +1544,12 @@
     "copyright": "© {{year}} VGU Buddy Program. Alle Rechte vorbehalten. | Verfügbar auf Englisch & Deutsch",
     "getInTouch": "Kontakt aufnehmen",
     "contactDescription": "Hast du Fragen oder Anregungen? Wir freuen uns auf deine Nachricht.",
-    "contactUs": "Kontaktiere uns"
+    "contactUs": "Kontaktiere uns",
+    "tagline": "Gemeinsam das Unileben besser machen.",
+    "explore": "Entdecken",
+    "community": "Community",
+    "information": "Informationen",
+    "backToTop": "Nach oben"
   },
   "howItWorks": {
     "eyebrow": "So funktioniert’s",

@@ -1,3 +1,7 @@
+## 2026-11-06 â€” FE-LANDING-COMMUNITY-UI-001 owner accepted
+
+The Warm Minimal Header, integrated Sign out, muted palette, Dark Forest Spotlight CTA, forest Footer and responsive EN/DE passed local review. The owner authorized an isolated release onto current main. Production verification is pending. [Task](docs/implementation/tasks/FE-LANDING-COMMUNITY-UI-001.md).
+
 ## 2026-11-06 — ADMIN-NAV-CLEANUP-001 DONE — LOCAL VERIFIED
 
 Owner-assigned frontend-only cleanup complete on isolated codex/admin-navigation-cleanup from c4f6227.
