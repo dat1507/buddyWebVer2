@@ -1,23 +1,26 @@
 """Read-only Admin aggregate regressions."""
 
+from collections.abc import Callable
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql.base import PGDialect
+from sqlalchemy.engine.interfaces import Dialect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.admin_statistics import count_admin_events, count_admin_users
 
 
 @pytest.mark.anyio
-async def test_aggregate_predicates():
+async def test_aggregate_predicates() -> None:
+    dialect_factory = cast(Callable[[], Dialect], PGDialect)
     session = MagicMock(spec=AsyncSession)
     session.scalar = AsyncMock(return_value=7)
     assert (await count_admin_users(cast(AsyncSession, session))).total_users == 7
     sql = str(
         session.scalar.call_args.args[0].compile(
-            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+            dialect=dialect_factory(), compile_kwargs={"literal_binds": True}
         )
     )
     assert "'USER'" in sql and "deleted_at IS NULL" in sql
@@ -29,7 +32,7 @@ async def test_aggregate_predicates():
     assert (result.published_events, result.upcoming_events) == (4, 2)
     sql = str(
         session.execute.call_args.args[0].compile(
-            dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
+            dialect=dialect_factory(), compile_kwargs={"literal_binds": True}
         )
     )
     assert "'PUBLISHED'" in sql and "published_at IS NOT NULL" in sql
@@ -40,7 +43,7 @@ async def test_aggregate_predicates():
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("path", ["users", "events"])
-async def test_guard_and_private_counts(path, monkeypatch):
+async def test_guard_and_private_counts(path: str, monkeypatch: pytest.MonkeyPatch) -> None:
     from datetime import UTC, datetime
 
     from httpx2 import ASGITransport, AsyncClient
@@ -87,7 +90,7 @@ async def test_guard_and_private_counts(path, monkeypatch):
 
 
 @pytest.mark.anyio
-async def test_real_counts_on_isolated_sqlite():
+async def test_real_counts_on_isolated_sqlite() -> None:
     from datetime import UTC, datetime, timedelta
 
     from sqlalchemy import create_engine
