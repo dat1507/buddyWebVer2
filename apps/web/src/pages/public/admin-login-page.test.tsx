@@ -45,6 +45,8 @@ describe('AdminLoginPage', () => {
     expect(document.querySelector('a[href="/login"]')).not.toBeInTheDocument()
     expect(document.querySelector('a[href="/adminLogin"]')).not.toBeInTheDocument()
     expect(document.querySelector('[name="role"]')).not.toBeInTheDocument()
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
   })
 
   it('validates required credentials and focuses the first invalid field', () => {

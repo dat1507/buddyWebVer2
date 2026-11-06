@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -41,6 +41,16 @@ describe('LandingPage (FE-019 Assembly)', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(screen.queryByText('Upcoming events could not be loaded.')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the public User Login link in the Landing Page footer', () => {
+    renderLandingPage()
+
+    const footer = screen.getByRole('contentinfo')
+    expect(within(footer).getByRole('link', { name: 'User login' })).toHaveAttribute(
+      'href',
+      '/login',
+    )
   })
 
   it('renders all 6 landing sections in the correct sequence within <main>', () => {

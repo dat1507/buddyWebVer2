@@ -9,6 +9,7 @@ import { Typography } from '@/components/ui/typography'
 import { cn } from '@/lib/utils'
 import { AdminLoginDeniedError, sessionClient } from '@/features/auth/session-client'
 import { useAuthSubmission } from '@/features/auth/use-auth-submission'
+import { useScrollToTop } from '@/hooks/use-scroll-to-top'
 import { useAuthStore } from '@/stores/auth-store'
 
 type AdminLoginField = 'email' | 'password'
@@ -18,6 +19,7 @@ const inputClassName =
   'h-11 w-full rounded-md border border-amber-300/20 bg-black/50 px-10 text-base text-white outline-none transition placeholder:text-zinc-600 hover:border-amber-300/35 focus-visible:border-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/35'
 
 function AdminLoginPage() {
+  useScrollToTop()
   const { t } = useTranslation()
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
@@ -94,7 +96,7 @@ function AdminLoginPage() {
 
   return (
     <main
-      className="relative isolate flex min-h-[calc(100svh-4rem)] items-center justify-center overflow-hidden bg-zinc-950 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+      className="relative isolate flex min-h-svh items-center justify-center overflow-hidden bg-zinc-950 px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
       data-auth-surface="admin"
     >
       <div

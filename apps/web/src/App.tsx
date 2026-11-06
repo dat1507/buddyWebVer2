@@ -59,9 +59,9 @@ function App() {
     <>
       <SessionControls />
       <Routes>
+        <Route path="adminLogin" element={<AdminLoginPage />} />
         <Route element={<PublicLayout />}>
           <Route index element={<LandingPage />} />
-          <Route path="adminLogin" element={<AdminLoginPage />} />
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
           <Route path="verify-email" element={<EmailVerificationPage />} />
