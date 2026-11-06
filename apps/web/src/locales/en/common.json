@@ -292,19 +292,6 @@
     "next": "Next",
     "page": "Page {{current}} of {{total}}"
   },
-  "adminOverview": {
-    "title": "Admin overview",
-    "description": "Statistics are not available yet.",
-    "unavailable": "Not available",
-    "metrics": {
-      "totalUsers": "Total Users",
-      "activeMatches": "Active Matches",
-      "publishedEvents": "Published Events",
-      "aiQueriesToday": "AI Queries Today",
-      "unmatchedStudents": "Unmatched Students",
-      "upcomingEvents": "Upcoming Events"
-    }
-  },
   "adminUsers": {
     "title": "User management",
     "description": "Review student accounts and profile status using the coordinator-safe account summary.",
@@ -791,7 +778,6 @@
   "adminNavigation": {
     "label": "Administrator navigation",
     "scaffoldHint": "Module pages are under development.",
-    "overview": "Overview",
     "users": "Users",
     "matching": "Matching",
     "semesters": "Semesters",
@@ -1706,5 +1692,16 @@
     "moreMemories": "Looking for More Memories?",
     "moreMemoriesDescription": "Discover older event memories from the VGU Buddy community on Facebook.",
     "facebook": "Explore More on Facebook"
+  },
+  "adminStatistics": {
+    "title": "Statistics",
+    "totalUsers": "Total Users",
+    "publishedEvents": "Published Events",
+    "upcomingEvents": "Upcoming Events",
+    "loading": "Loading statistics…",
+    "error": "Statistics could not be loaded.",
+    "stale": "Refresh failed. Showing previously loaded statistics.",
+    "updated": "Last updated: {{time}}",
+    "refresh": "Refresh"
   }
 }

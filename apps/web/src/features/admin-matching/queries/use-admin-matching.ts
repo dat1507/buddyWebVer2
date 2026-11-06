@@ -1,3 +1,5 @@
+import { statisticsPolling } from '@/features/admin-statistics'
+import { useAuthStore } from '@/stores/auth-store'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import {
@@ -25,7 +27,12 @@ const adminMatchingQueryKeys = {
 }
 
 function useAdminMatchingStats() {
+  const enabled = useAuthStore(
+    (state) => state.status === 'authenticated' && state.role === 'ADMIN',
+  )
   return useQuery({
+    ...statisticsPolling,
+    enabled,
     queryKey: adminMatchingQueryKeys.stats,
     queryFn: ({ signal }) => adminMatchingClient.readStats(signal),
     meta: { private: true },

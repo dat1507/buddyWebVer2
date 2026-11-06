@@ -1,3 +1,10 @@
+## 2026-11-06 - Admin Dashboard restructuring local implementation
+
+TASK_ID: ADMIN-DASHBOARD-RESTRUCTURE-001. Local-only branch codex/admin-dashboard-restructure-stats from b63655f.
+Overview removed, Users default, private Users/Event aggregates and 60s stats polling implemented.
+Browser/PostgreSQL acceptance remains open. [Task and local review](docs/implementation/tasks/ADMIN-DASHBOARD-RESTRUCTURE-001.md).
+No push/merge/deployment. Continue focused acceptance only after recorded gates; preserve existing work.
+
 ## 2026-11-06 — Landing Production release candidate
 
 TASK_ID: FE-LANDING-COMMUNITY-UI-001. Owner approved the Landing UI and authorized the Production release. This candidate integrates b162882 onto 90a208f. Production deployment and public smoke are pending verification. [Task and evidence](docs/implementation/tasks/FE-LANDING-COMMUNITY-UI-001.md).

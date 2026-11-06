@@ -4,14 +4,12 @@ import {
   CalendarDays,
   ClipboardList,
   HeartHandshake,
-  LayoutDashboard,
   Settings,
   RotateCcwKey,
   Users,
   type LucideIcon,
 } from 'lucide-react'
 
-import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
@@ -29,15 +27,6 @@ type AdminRoute = {
 // Part 20's canonical module paths share navigation and page-delivery metadata.
 // Replace a placeholder only when its page task is accepted.
 const adminRoutes: readonly AdminRoute[] = [
-  {
-    path: 'dashboard',
-    title: 'Admin overview',
-    labelKey: 'adminNavigation.overview',
-    Icon: LayoutDashboard,
-    end: true,
-    kind: 'page',
-    Component: AdminOverviewPage,
-  },
   {
     path: 'users',
     title: 'User management',

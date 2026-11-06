@@ -232,7 +232,9 @@ describe('ADMIN-V2-002 guarded matching monitoring UI', () => {
     await act(async () => {
       await Promise.all([client.invalidateQueries(), client.refetchQueries()])
     })
-    expect(await screen.findByText('Matching statistics could not be loaded.')).toBeVisible()
+    expect(
+      await screen.findByText('Refresh failed. Showing previously loaded statistics.'),
+    ).toBeVisible()
     expect(screen.getByText('Matching participants could not be loaded.')).toBeVisible()
     expect(screen.queryByText(/password|SQL/i)).not.toBeInTheDocument()
 

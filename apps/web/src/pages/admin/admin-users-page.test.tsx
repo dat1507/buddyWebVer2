@@ -58,6 +58,11 @@ describe('ADMIN-012 guarded Admin User Management page', () => {
   const readUsers = vi.spyOn(adminUsersClient, 'readUsers')
 
   beforeEach(async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ total_users: 45, observed_at: '2026-11-06T00:00:00Z' }), {
+        status: 200,
+      }),
+    )
     await i18n.changeLanguage('en')
     useAuthStore.getState().resetSession()
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -174,7 +179,7 @@ describe('ADMIN-012 guarded Admin User Management page', () => {
   it('shows only a safe error and retries successfully', async () => {
     readUsers.mockReset().mockRejectedValueOnce(new Error('database password leaked'))
     renderApp()
-    expect(await screen.findByRole('alert')).toHaveTextContent('The user list could not be loaded.')
+    expect(await screen.findByText('The user list could not be loaded.')).toBeVisible()
     expect(screen.queryByText(/database password/i)).not.toBeInTheDocument()
 
     readUsers.mockResolvedValueOnce(userPage())

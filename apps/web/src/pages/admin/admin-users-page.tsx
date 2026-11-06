@@ -1,3 +1,5 @@
+import { AdminStatistics } from '@/components/ui/admin-statistics'
+import { useAdminUserStatistics } from '@/features/admin-statistics'
 import { useEffect, useId, useMemo, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +34,7 @@ function StatusBadge({ positive, label }: { positive: boolean; label: string }) 
 }
 
 function AdminUsersPage() {
+  const statistics = useAdminUserStatistics()
   const { t, i18n } = useTranslation()
   const titleId = useId()
   const searchId = useId()
@@ -174,6 +177,10 @@ function AdminUsersPage() {
           {t('adminUsers.description')}
         </Typography>
       </header>
+      <AdminStatistics
+        query={statistics}
+        metrics={[{ label: t('adminStatistics.totalUsers'), value: statistics.data?.total_users }]}
+      />
 
       <div className="min-w-0 space-y-1">
         <label htmlFor={searchId} className="text-sm font-medium">

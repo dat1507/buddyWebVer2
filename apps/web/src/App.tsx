@@ -1,3 +1,4 @@
+import { AdminEventStatisticsPage } from '@/pages/admin/admin-event-statistics-page'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, Route, Routes } from 'react-router'
@@ -121,9 +122,9 @@ function App() {
 
         <Route element={<RoleGuard requiredRole="ADMIN" loginPath="/adminLogin" />}>
           <Route path="admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            {['announcements', 'campus', 'analytics'].map((path) => (
-              <Route key={path} path={path} element={<Navigate to="/admin/dashboard" replace />} />
+            <Route index element={<Navigate to="users" replace />} />
+            {['dashboard', 'announcements', 'campus', 'analytics'].map((path) => (
+              <Route key={path} path={path} element={<Navigate to="/admin/users" replace />} />
             ))}
             {adminRoutes.map((route) => (
               <Route
@@ -140,6 +141,7 @@ function App() {
             ))}
             {adminEventsEnabled ? (
               <>
+                <Route path="events/statistics" element={<AdminEventStatisticsPage />} />
                 <Route path="events/new" element={<AdminEventCreatePage />} />
                 <Route
                   path="events/recaps"

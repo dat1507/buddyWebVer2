@@ -189,12 +189,12 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
                 ? 'Dashboard'
                 : 'Übersicht'
               : language === 'en'
-                ? 'Admin overview'
-                : 'Administrationsübersicht',
+                ? 'User management'
+                : 'User management',
         }),
       ).toBeVisible()
       expect(location()).toEqual({
-        pathname: role === 'USER' ? '/user/dashboard' : '/admin/dashboard',
+        pathname: role === 'USER' ? '/user/dashboard' : '/admin/users',
         search: '',
         hash: '',
         state: null,
@@ -222,7 +222,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       renderApp()
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'User management',
         }),
       ).toBeVisible()
       expect(fetch).not.toHaveBeenCalled()
@@ -284,9 +284,9 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
 
     submit()
 
-    expect(await screen.findByRole('heading', { name: 'Admin overview' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'User management' })).toBeVisible()
     expect(location()).toEqual({
-      pathname: '/admin/dashboard',
+      pathname: '/admin/users',
       search: '',
       hash: '',
       state: null,
@@ -491,7 +491,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'User management',
         }),
       ).toBeVisible()
       expect(useAuthStore.getState().user?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
@@ -522,7 +522,7 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
       }
       expect(
         await screen.findByRole('heading', {
-          name: role === 'USER' ? 'Dashboard' : 'Admin overview',
+          name: role === 'USER' ? 'Dashboard' : 'User management',
         }),
       ).toBeVisible()
       expect(fetch).toHaveBeenCalledTimes(2)
@@ -567,8 +567,12 @@ describe('AUTH-022 actual User login + client + guarded routing', () => {
     } finally {
       await act(async () => me.resolve(json(user)))
     }
-    expect(await screen.findByText('Admin overview')).toBeVisible()
+    expect(await screen.findByText('User management')).toBeVisible()
     expect(document.querySelector('[data-layout="user"]')).toBeNull()
     expect(fetch).toHaveBeenCalledTimes(5)
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

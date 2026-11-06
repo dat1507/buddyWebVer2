@@ -1,3 +1,9 @@
+## 2026-11-06 - ADMIN-DASHBOARD-RESTRUCTURE-001 LOCAL IMPLEMENTATION / ACCEPTANCE OPEN
+
+Owner Task02B restructuring implemented in isolated branch. Users default, Overview removed,
+Users/Events private aggregates and Matching refresh. [Contract/evidence](docs/implementation/tasks/ADMIN-DASHBOARD-RESTRUCTURE-001.md).
+Local-only commit; browser acceptance open. No release authorization.
+
 ## 2026-11-06 — FE-LANDING-COMMUNITY-UI-001 owner accepted
 
 The Warm Minimal Header, integrated Sign out, muted palette, Dark Forest Spotlight CTA, forest Footer and responsive EN/DE passed local review. The owner authorized an isolated release onto current main. Production verification is pending. [Task](docs/implementation/tasks/FE-LANDING-COMMUNITY-UI-001.md).

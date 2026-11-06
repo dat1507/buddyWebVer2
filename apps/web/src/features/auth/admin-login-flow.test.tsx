@@ -164,11 +164,11 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
       expect(
         await screen.findByRole('heading', {
           level: 1,
-          name: language === 'en' ? 'Admin overview' : 'Administrationsübersicht',
+          name: language === 'en' ? 'User management' : 'User management',
         }),
       ).toBeVisible()
       expect(location()).toEqual({
-        pathname: '/admin/dashboard',
+        pathname: '/admin/users',
         search: '',
         hash: '',
         state: null,
@@ -282,7 +282,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
       useAuthStore.getState().setAuthenticated({ ...user, role })
       renderApp()
       if (role === 'USER') await expectDenial()
-      else expect(await screen.findByText('Admin overview')).toBeVisible()
+      else expect(await screen.findByText('User management')).toBeVisible()
       expect(useAuthStore.getState()).toMatchObject({ status: 'authenticated', role })
       expect(fetch).not.toHaveBeenCalled()
     },
@@ -358,7 +358,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
     submit()
     expect(await screen.findByRole('alert')).toBeVisible()
     fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: 'Try again' }))
-    expect(await screen.findByText('Admin overview')).toBeVisible()
+    expect(await screen.findByText('User management')).toBeVisible()
     expect(fetch.mock.calls[5][1]).toMatchObject({ headers: { 'X-CSRF-Token': 'retry' } })
     expect(fetch).toHaveBeenCalledTimes(6)
   })
@@ -457,8 +457,8 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
       await act(async () => logout.resolve(revoked()))
     }
     await act(async () => next)
-    expect(await screen.findByText('Admin overview')).toBeVisible()
-    expect(location().pathname).toBe('/admin/dashboard')
+    expect(await screen.findByText('User management')).toBeVisible()
+    expect(location().pathname).toBe('/admin/users')
     expect(useAuthStore.getState().user?.id).toBe('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
     expect(screen.queryByText('Not authorized as an administrator.')).not.toBeInTheDocument()
     expect(paths()).toEqual([
@@ -534,7 +534,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
     } finally {
       await act(async () => logout.resolve(revoked()))
     }
-    expect(await screen.findByText('Admin overview')).toBeVisible()
+    expect(await screen.findByText('User management')).toBeVisible()
     expect(queryClient.getQueryData(['event-sliders', 'en'])).toEqual(['public'])
     expect(paths()).toEqual(['csrf/session', 'logout', 'csrf/session', 'csrf', 'login'])
   })
@@ -550,7 +550,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
     } finally {
       await act(async () => me.resolve(json({ ...user, role })))
     }
-    if (role === 'ADMIN') expect(await screen.findByText('Admin overview')).toBeVisible()
+    if (role === 'ADMIN') expect(await screen.findByText('User management')).toBeVisible()
     else await expectDenial()
     expect(fetch).toHaveBeenCalledTimes(2)
   })
@@ -576,3 +576,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
     expect(fetch).toHaveBeenCalledTimes(4)
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

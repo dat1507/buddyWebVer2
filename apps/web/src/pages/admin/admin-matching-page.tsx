@@ -92,11 +92,23 @@ function StatisticsSection({ query }: { query: ReturnType<typeof useAdminMatchin
           </span>
         ) : null}
       </div>
+      {query.isError && query.data ? (
+        <div>
+          <p role="alert">{t('adminStatistics.stale')}</p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void query.refetch({ cancelRefetch: false })}
+          >
+            {t('adminMatching.retry')}
+          </Button>
+        </div>
+      ) : null}
       {query.isPending ? (
         <Card className="p-6 shadow-none">
           <p role="status">{t('adminMatching.statistics.loading')}</p>
         </Card>
-      ) : query.isError ? (
+      ) : query.isError && !query.data ? (
         <Card className="border-destructive/40 p-6 shadow-none">
           <div className="space-y-3">
             <p role="alert">{t('adminMatching.statistics.error')}</p>

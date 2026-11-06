@@ -66,8 +66,8 @@ describe('ADMIN-001 guarded App and session integration', () => {
   }
 
   it.each([
-    ['/admin', '/admin/dashboard', 'Admin overview'],
-    ['/admin/announcements?view=details#entry', '/admin/dashboard', 'Admin overview'],
+    ['/admin', '/admin/users', 'User management'],
+    ['/admin/announcements?view=details#entry', '/admin/users', 'User management'],
   ])('renders verified ADMIN route %s with one content main', (path, destination, title) => {
     useAuthStore.getState().setAuthenticated(admin)
     renderApp(path)
@@ -166,3 +166,7 @@ describe('ADMIN-001 guarded App and session integration', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

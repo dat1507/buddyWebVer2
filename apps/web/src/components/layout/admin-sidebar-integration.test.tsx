@@ -20,7 +20,6 @@ const admin = {
 }
 const json = (value: unknown, status = 200) => new Response(JSON.stringify(value), { status })
 const modules = [
-  ['Overview', 'dashboard', 'Admin overview'],
   ['Users', 'users', 'User management'],
   ...(adminEventsEnabled ? ([['Events', 'events', 'Event management']] as const) : []),
   ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
@@ -93,20 +92,23 @@ describe('ADMIN-002 guarded App navigation', () => {
     },
   )
 
-  it.each(['announcements', 'campus', 'analytics'])('redirects legacy %s to Overview', (path) => {
-    useAuthStore.getState().setAuthenticated(admin)
-    renderApp(`/admin/${path}?old=true#legacy`)
-    expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard')
-    const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
-    expect(within(nav).queryByRole('link', { name: /Announcements|Campus|Analytics/ })).toBeNull()
-    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
-  })
+  it.each(['dashboard', 'announcements', 'campus', 'analytics'])(
+    'redirects legacy %s to Overview',
+    (path) => {
+      useAuthStore.getState().setAuthenticated(admin)
+      renderApp(`/admin/${path}?old=true#legacy`)
+      expect(screen.getByTestId('location').textContent).toBe('/admin/users')
+      const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
+      expect(within(nav).queryByRole('link', { name: /Announcements|Campus|Analytics/ })).toBeNull()
+      expect(within(nav).getByRole('link', { name: 'Users' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+      expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
+    },
+  )
 
-  it.each(['announcements', 'campus', 'analytics'])(
+  it.each(['dashboard', 'announcements', 'campus', 'analytics'])(
     'preserves anonymous and USER guards for %s',
     (path) => {
       useAuthStore.getState().clearSession()
@@ -166,7 +168,6 @@ describe('ADMIN-002 guarded App navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     expect(await screen.findByRole('navigation', { name: 'Administrationsnavigation' })).toBe(nav)
     const labels = [
-      'Übersicht',
       'Benutzer',
       'Zuordnung',
       'Semester',
@@ -214,11 +215,8 @@ describe('ADMIN-002 guarded App navigation', () => {
     useAuthStore.getState().setAuthenticated(admin)
     renderApp()
     const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
-    expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard')
-    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
+    expect(screen.getByTestId('location').textContent).toBe('/admin/users')
+    expect(within(nav).getByRole('link', { name: 'Users' })).toHaveAttribute('aria-current', 'page')
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
   })
 
@@ -235,15 +233,16 @@ describe('ADMIN-002 guarded App navigation', () => {
       resolveMe(json(admin))
     })
     const nav = await screen.findByRole('navigation', { name: 'Administrator navigation' })
-    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(screen.getByRole('heading', { name: 'Admin overview' })).toBeVisible()
-    expect(screen.getByTestId('location').textContent).toBe('/admin/dashboard')
+    expect(within(nav).getByRole('link', { name: 'Users' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('heading', { name: 'User management' })).toBeVisible()
+    expect(screen.getByTestId('location').textContent).toBe('/admin/users')
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
       'http://localhost:8000/api/auth/me',
     ])
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

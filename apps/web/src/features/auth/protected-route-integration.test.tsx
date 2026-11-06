@@ -103,7 +103,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     ['/user/dashboard', '/login', 'Welcome back'],
     ['/user/profile?view=details#photo', '/login', 'Welcome back'],
     ['/admin', '/adminLogin', 'Administration access'],
-    ['/admin/dashboard', '/adminLogin', 'Administration access'],
+    ['/admin/users', '/adminLogin', 'Administration access'],
     ['/admin/audit-log', '/adminLogin', 'Administration access'],
   ])(
     'anonymous direct navigation to %s redirects to %s before mounting the layout',
@@ -145,7 +145,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
 
   it.each([
     ['/user', '/user/dashboard', 'USER', 'Dashboard'],
-    ['/admin', '/admin/dashboard', 'ADMIN', 'Admin overview'],
+    ['/admin', '/admin/users', 'ADMIN', 'User management'],
   ])(
     'verified identity at %s keeps the existing dashboard index navigation',
     async (path, dashboard, role, title) => {
@@ -252,3 +252,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
     expect(useAuthStore.getState().status).toBe('unauthenticated')
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))

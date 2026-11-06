@@ -1,3 +1,16 @@
+## ADMIN-DASHBOARD-RESTRUCTURE-001 - 2026-11-06 local verification
+
+Events ON: 12 focused files /157 tests PASS. Extra dashboard redirect/guard cases then pass in
+21-test sidebar suite. Events OFF:4 files /20 tests PASS. Coverage includes private cache cleanup,
+EN/DE cards, guarded defaults, tabs, stale statistics, real Users/Matching table flows and fake-timer
+minute refresh/hidden pause/focus resume/logout. Frontend typecheck, affected ESLint/Prettier,
+Production build PASS. Existing large-chunk advisory remains.
+Backend:16 focused tests PASS, including real isolated SQLite aggregate counts, SQL predicate
+assertions and 401/403/private endpoint responses. Ruff and focused mypy4 files PASS. SQLite
+Python3.12 datetime-adapter deprecation warnings only. Sandboxed pytest stalled; isolated backend
+checks succeeded outside sandbox. PostgreSQL full application/browser desktop/mobile/overflow/
+console acceptance UNVERIFIED. No Production mutation or release. [Task](tasks/ADMIN-DASHBOARD-RESTRUCTURE-001.md).
+
 ## FE-LANDING-COMMUNITY-UI-001 — Approved Landing verification
 
 The approved source passed 20 focused tests, 111 browser and interaction checks, eight accessibility audits, TypeScript, ESLint, Prettier and build. The preceding Header and synthetic logout pass remains recorded in the [Landing evidence](../project-knowledge/frontend/LANDING_COMMUNITY_UI_2026-11-06.md). Release candidate and Production checks are separate.

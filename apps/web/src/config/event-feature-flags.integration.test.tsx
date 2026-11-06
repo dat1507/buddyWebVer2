@@ -4,7 +4,6 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
-import { AdminOverviewPage } from '@/pages/admin/admin-overview-page'
 import { LandingPage } from '@/pages/public/landing-page'
 import { adminEventsEnabled, publicEventsEnabled } from '@/config/launch-scope'
 import { adminEventsClient } from '@/features/admin-events/admin-events'
@@ -97,11 +96,6 @@ describe('independent Event feature-flag integration', () => {
     expect(adminRoutes.some(({ path }) => path === 'events')).toBe(adminEventsEnabled)
     expect(userRoutes.some(({ path }) => path === 'events')).toBe(publicEventsEnabled)
     expect(userNavigationItems.some(({ id }) => id === 'events')).toBe(publicEventsEnabled)
-
-    render(<AdminOverviewPage />)
-    const overview = screen.getByRole('region', { name: 'Admin overview' })
-    expect(within(overview).queryByText('Published Events') !== null).toBe(adminEventsEnabled)
-    expect(within(overview).queryByText('Upcoming Events') !== null).toBe(adminEventsEnabled)
   })
 
   it('uses the API-backed Landing section only when the public flag is on', async () => {

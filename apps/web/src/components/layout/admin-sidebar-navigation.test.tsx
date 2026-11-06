@@ -7,7 +7,6 @@ import { adminEventsEnabled } from '@/config/launch-scope'
 import i18n from '@/i18n'
 
 const paths = [
-  'dashboard',
   'users',
   'matching',
   'semesters',
@@ -21,7 +20,6 @@ const locales = [
     'en',
     'Administrator navigation',
     [
-      'Overview',
       'Users',
       'Matching',
       'Semesters',
@@ -35,7 +33,6 @@ const locales = [
     'de',
     'Administrationsnavigation',
     [
-      'Übersicht',
       'Benutzer',
       'Zuordnung',
       'Semester',
@@ -75,7 +72,6 @@ describe('ADMIN-002 module navigation', () => {
   )
 
   it.each([
-    ['/admin/dashboard?period=week#summary', 'Overview'],
     ['/admin/users/123/edit?tab=roles#form', 'Users'],
     ['/admin/events/123/edit', adminEventsEnabled ? 'Events' : null],
     ['/admin/events/new', adminEventsEnabled ? 'Events' : null],

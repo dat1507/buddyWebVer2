@@ -292,19 +292,6 @@
     "next": "Weiter",
     "page": "Seite {{current}} von {{total}}"
   },
-  "adminOverview": {
-    "title": "Administrationsübersicht",
-    "description": "Statistiken sind noch nicht verfügbar.",
-    "unavailable": "Nicht verfügbar",
-    "metrics": {
-      "totalUsers": "Benutzer insgesamt",
-      "activeMatches": "Aktive Zuordnungen",
-      "publishedEvents": "Veröffentlichte Veranstaltungen",
-      "aiQueriesToday": "KI-Anfragen heute",
-      "unmatchedStudents": "Studierende ohne Zuordnung",
-      "upcomingEvents": "Bevorstehende Veranstaltungen"
-    }
-  },
   "adminUsers": {
     "title": "Benutzerverwaltung",
     "description": "Studierendenkonten und Profilstatus anhand der für die Koordination freigegebenen Zusammenfassung prüfen.",
@@ -791,7 +778,6 @@
   "adminNavigation": {
     "label": "Administrationsnavigation",
     "scaffoldHint": "Die Modulseiten befinden sich in Entwicklung.",
-    "overview": "Übersicht",
     "users": "Benutzer",
     "matching": "Zuordnung",
     "semesters": "Semester",
@@ -1706,5 +1692,16 @@
     "moreMemories": "Lust auf mehr Erinnerungen?",
     "moreMemoriesDescription": "Entdecke ältere Veranstaltungserinnerungen der VGU Buddy-Community auf Facebook.",
     "facebook": "Mehr auf Facebook entdecken"
+  },
+  "adminStatistics": {
+    "title": "Statistik",
+    "totalUsers": "Benutzer insgesamt",
+    "publishedEvents": "Veröffentlichte Veranstaltungen",
+    "upcomingEvents": "Bevorstehende Veranstaltungen",
+    "loading": "Statistik wird geladen…",
+    "error": "Statistik konnte nicht geladen werden.",
+    "stale": "Aktualisierung fehlgeschlagen. Die bisherigen Werte werden angezeigt.",
+    "updated": "Zuletzt aktualisiert: {{time}}",
+    "refresh": "Aktualisieren"
   }
 }

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Link, MemoryRouter, Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -90,3 +91,7 @@ describe('ADMIN-001 AdminLayout shell', () => {
     expect(screen.getByRole('complementary', { name: 'Administrator workspace' })).toBe(sidebar)
   })
 })
+
+vi.mock('@/pages/admin/admin-users-page', () => ({
+  AdminUsersPage: () => <h1>User management</h1>,
+}))
