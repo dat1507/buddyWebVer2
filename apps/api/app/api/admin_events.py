@@ -16,6 +16,7 @@ from app.api.dependencies import (
 )
 from app.core.database import get_database_session
 from app.models import EventPhase, EventStatus, User, UserRole
+from app.schemas.admin_statistics import AdminEventStatistics
 from app.schemas.event import (
     AdminEventListResponse,
     AdminEventResponse,
@@ -30,6 +31,7 @@ from app.services.admin_event_queries import (
     get_admin_event_detail,
     list_admin_events,
 )
+from app.services.admin_statistics import count_admin_events
 from app.services.audit_logs import record_audit_log
 from app.services.csrf import CsrfTokenClaims
 from app.services.events import (
@@ -86,6 +88,17 @@ def _map_domain_error(error: Exception) -> HTTPException:
     if isinstance(error, EventAccessError):
         return _error(status.HTTP_403_FORBIDDEN, "Insufficient permissions.")
     raise error
+
+
+@router.get("/stats", response_model=AdminEventStatistics)
+async def read_statistics(
+    response: Response,
+    _current_admin: Annotated[User, Depends(require_admin)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> AdminEventStatistics:
+    """Return bounded aggregates for authenticated administrators."""
+    _mark_private(response)
+    return await count_admin_events(session)
 
 
 @router.get("", response_model=AdminEventListResponse)

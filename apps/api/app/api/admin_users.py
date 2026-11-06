@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import require_role
 from app.core.database import get_database_session
 from app.models import User, UserRole
+from app.schemas.admin_statistics import AdminUserStatistics
 from app.schemas.admin_user import AdminUserDetail, AdminUserListResponse
+from app.services.admin_statistics import count_admin_users
 from app.services.admin_users import get_admin_user_detail, list_admin_users
 from app.services.audit_logs import record_audit_log
 
@@ -29,6 +31,17 @@ router = APIRouter(
 def _mark_private(response: Response) -> None:
     for name, value in _NO_STORE_HEADERS.items():
         response.headers[name] = value
+
+
+@router.get("/stats", response_model=AdminUserStatistics)
+async def read_statistics(
+    response: Response,
+    _current_admin: Annotated[User, Depends(require_admin)],
+    session: Annotated[AsyncSession, Depends(get_database_session)],
+) -> AdminUserStatistics:
+    """Return bounded aggregates for authenticated administrators."""
+    _mark_private(response)
+    return await count_admin_users(session)
 
 
 @router.get("", response_model=AdminUserListResponse)
