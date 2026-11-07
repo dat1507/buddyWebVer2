@@ -103,7 +103,7 @@ describe('ADMIN-001 guarded App and session integration', () => {
     expect(screen.getByTestId('location').textContent).toBe('/')
     expectNoAdminShell()
     expect(useAuthStore.getState().role).toBe('USER')
-    expect(fetch).not.toHaveBeenCalled()
+    expect(fetch.mock.calls.every(([url]) => String(url).endsWith('/public/site-theme'))).toBe(true)
   })
 
   it('waits for final me verification after refresh before rendering a reload deep link', async () => {
@@ -136,19 +136,25 @@ describe('ADMIN-001 guarded App and session integration', () => {
   it.each([204, 503])(
     'removes the shell on CSRF logout even when the response is %s',
     async (status) => {
-      fetch
-        .mockResolvedValueOnce(json({ csrf_token: 'session-csrf' }))
-        .mockResolvedValueOnce(json(admin))
-        .mockResolvedValueOnce(status === 204 ? new Response(null, { status }) : json({}, status))
+      fetch.mockImplementation(async (url) => {
+        const path = String(url)
+        if (path.endsWith('/auth/csrf/session')) return json({ csrf_token: 'session-csrf' })
+        if (path.endsWith('/auth/me')) return json(admin)
+        if (path.endsWith('/admin/site-theme')) return json({ theme: 'default' })
+        if (path.endsWith('/auth/logout'))
+          return status === 204 ? new Response(null, { status }) : json({}, status)
+        return json({}, 404)
+      })
       renderApp('/admin/settings', true)
       expect(await screen.findByRole('main', { name: 'Administrator content' })).toBeVisible()
       fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
       expectNoAdminShell()
       expect(await screen.findByRole('heading', { name: 'Administration access' })).toBeVisible()
-      await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3))
+      const authCalls = () => fetch.mock.calls.filter(([url]) => String(url).includes('/auth/'))
+      await waitFor(() => expect(authCalls()).toHaveLength(3))
       expect(useAuthStore.getState().user).toBeNull()
       expect(screen.getByTestId('location').textContent).toBe('/adminLogin')
-      const logout = fetch.mock.calls[2][1]
+      const logout = authCalls().find(([url]) => String(url).endsWith('/auth/logout'))?.[1]
       expect(logout).toMatchObject({ method: 'POST', credentials: 'include' })
       expect(new Headers(logout?.headers).get('X-CSRF-Token')).toBe('session-csrf')
     },

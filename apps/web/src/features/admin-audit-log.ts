@@ -10,6 +10,7 @@ export const auditCategories = [
   'matching',
   'semesters',
   'knowledge',
+  'settings',
   'other',
 ] as const
 export const auditPeriods = ['today', 'week', 'month', 'custom'] as const
@@ -30,6 +31,7 @@ const activity = z
       'profile_photo',
       'semester_operation',
       'managed_faq',
+      'site_theme',
       'other',
     ]),
     resource_id: z.uuid().nullable(),

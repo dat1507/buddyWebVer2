@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+import { AdminSettingsPage } from '@/pages/admin/admin-settings-page'
 import { AdminAuditLogPage } from '@/pages/admin/admin-audit-log-page'
 import { AdminKnowledgePage } from '@/pages/admin/admin-knowledge-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
@@ -86,7 +87,8 @@ const adminRoutes: readonly AdminRoute[] = [
     title: 'Admin settings',
     labelKey: 'adminNavigation.settings',
     Icon: Settings,
-    kind: 'placeholder',
+    kind: 'page',
+    Component: AdminSettingsPage,
   },
 ]
 

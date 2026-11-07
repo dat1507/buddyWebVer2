@@ -14,7 +14,9 @@ from app.api.dependencies import require_role
 from app.core.database import get_database_session
 from app.models import AuditLog, User, UserRole
 
-Category = Literal["events", "recaps", "users", "matching", "semesters", "knowledge", "other"]
+Category = Literal[
+    "events", "recaps", "users", "matching", "semesters", "knowledge", "settings", "other"
+]
 Period = Literal["today", "week", "month", "custom"]
 Resource = Literal[
     "event",
@@ -23,12 +25,14 @@ Resource = Literal[
     "profile_photo",
     "semester_operation",
     "managed_faq",
+    "site_theme",
     "other",
 ]
 AuditStatus = Literal["DRAFT", "PUBLISHED", "CANCELLED", "ARCHIVED"]
 
 _ACTIONS = frozenset(
     {
+        "site_theme.publish",
         "knowledge.create",
         "knowledge.update",
         "knowledge.publish",
@@ -64,6 +68,7 @@ _RESOURCES: dict[str, Resource] = {
     "profile_photo": "profile_photo",
     "semester_operation": "semester_operation",
     "managed_faq": "managed_faq",
+    "site_theme": "site_theme",
 }
 _STATUSES: dict[str, AuditStatus] = {
     "DRAFT": "DRAFT",
@@ -90,6 +95,7 @@ _category = case(
     (AuditLog.resource_type == "recap", "recaps"),
     (AuditLog.resource_type == "semester_operation", "semesters"),
     (AuditLog.resource_type == "managed_faq", "knowledge"),
+    (AuditLog.resource_type == "site_theme", "settings"),
     else_="other",
 )
 

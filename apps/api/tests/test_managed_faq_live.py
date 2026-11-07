@@ -66,7 +66,7 @@ def test_managed_faq_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
     asyncio.run(database_command(base, "CREATE DATABASE " + name))
     try:
         migrate(url, "0024_recap_retention")
-        migrate(url, "head")
+        migrate(url, "0025_managed_faq")
         asyncio.run(acceptance(url, monkeypatch))
     finally:
         asyncio.run(database_command(base, "DROP DATABASE " + name))

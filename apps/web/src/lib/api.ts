@@ -135,6 +135,7 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
   // This one public POST is a stateless read; never send session cookies or acquire CSRF.
   // All other mutation paths retain the existing credential/CSRF contract.
   const publicChatbot = path === '/chatbot/query' && method === 'POST'
+  const publicSiteTheme = path === '/public/site-theme' && method === 'GET'
   if (method !== 'GET' && !publicChatbot && !options.csrfToken) throw new ApiError(0, 'csrf')
   const controller = new AbortController()
   const abort = () => controller.abort()
@@ -151,8 +152,8 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
       method,
-      credentials: publicChatbot ? 'omit' : 'include',
-      cache: publicChatbot || path.startsWith('/auth/') ? 'no-store' : 'default',
+      credentials: publicChatbot || publicSiteTheme ? 'omit' : 'include',
+      cache: publicChatbot || publicSiteTheme || path.startsWith('/auth/') ? 'no-store' : 'default',
       headers: {
         Accept: 'application/json',
         ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),

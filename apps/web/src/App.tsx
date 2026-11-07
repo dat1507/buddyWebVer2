@@ -1,7 +1,7 @@
 import { AdminEventStatisticsPage } from '@/pages/admin/admin-event-statistics-page'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 
 import { AdminLayout } from '@/components/layout/admin-layout'
 import { PublicLayout } from '@/components/layout/public-layout'
@@ -24,6 +24,8 @@ import { ProfileReadinessGate } from '@/features/profile/profile-readiness-gate'
 import { adminRoutes } from '@/routes/admin-routes'
 import { userRoutes } from '@/routes/user-routes'
 import { adminEventsEnabled, publicEventsEnabled } from '@/config/launch-scope'
+import { useSiteTheme } from '@/features/site-theme/site-theme'
+import { SiteThemeBoundary } from '@/features/site-theme/site-theme-boundary'
 import { ChatbotEntry } from '@/features/chatbot/chatbot-entry'
 
 const RecapGalleryPage = lazy(() =>
@@ -55,13 +57,29 @@ function RecapBoundary({ children }: { children: ReactNode }) {
   )
 }
 
+function UserSideNotFound() {
+  const theme = useSiteTheme()
+  return (
+    <div data-site-theme={theme}>
+      <NotFoundPage />
+    </div>
+  )
+}
+
 function App() {
+  const { pathname } = useLocation()
   return (
     <>
       <SessionControls />
       <Routes>
         <Route path="adminLogin" element={<AdminLoginPage />} />
-        <Route element={<PublicLayout />}>
+        <Route
+          element={
+            <SiteThemeBoundary>
+              <PublicLayout />
+            </SiteThemeBoundary>
+          }
+        >
           <Route index element={<LandingPage />} />
           <Route path="login" element={<UserLoginPage />} />
           <Route path="register" element={<UserRegistrationPage />} />
@@ -91,7 +109,14 @@ function App() {
         </Route>
 
         <Route element={<RoleGuard requiredRole="USER" />}>
-          <Route path="user" element={<UserLayout />}>
+          <Route
+            path="user"
+            element={
+              <SiteThemeBoundary>
+                <UserLayout />
+              </SiteThemeBoundary>
+            }
+          >
             <Route index element={<Navigate to="dashboard" replace />} />
             {userRoutes.map((route) => {
               const page =
@@ -184,7 +209,18 @@ function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<NotFoundPage />} />
+        <Route
+          path="*"
+          element={
+            /^\/admin(?:login)?(?:\/|$)/i.test(pathname) ? (
+              <NotFoundPage />
+            ) : (
+              <SiteThemeBoundary>
+                <UserSideNotFound />
+              </SiteThemeBoundary>
+            )
+          }
+        />
       </Routes>
       <ChatbotEntry />
     </>

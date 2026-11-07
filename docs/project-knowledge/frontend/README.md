@@ -1,3 +1,5 @@
+- [Seasonal Theme Management and local preview](../../implementation/tasks/ADMIN-SEASONAL-THEME-001.md)
+
 - [Approved Landing Header, community CTA and forest Footer](LANDING_COMMUNITY_UI_2026-11-06.md)
 
 2026-11-06: [Admin Navigation Cleanup — ADMIN-NAV-CLEANUP-001](../../implementation/tasks/ADMIN-NAV-CLEANUP-001.md).

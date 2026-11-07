@@ -1705,6 +1705,61 @@
     "updated": "Last updated: {{time}}",
     "refresh": "Refresh"
   },
+  "siteTheme": {
+    "settings": "Admin settings",
+    "title": "Landing & User Appearance",
+    "description": "Choose the appearance visitors and students see across BuddyWeb.",
+    "loading": "Loading published theme…",
+    "loadError": "The published theme could not be loaded.",
+    "retry": "Try again",
+    "choices": "Theme presets",
+    "published": "Published",
+    "unpublished": "{{theme}} is selected and has not been published.",
+    "active": "Currently published: {{theme}}.",
+    "preview": "Preview selected theme",
+    "previewHint": "These examples use sample content. Previewing a preset does not change the live site.",
+    "previewPages": "Preview screens",
+    "publish": "Publish theme",
+    "confirmTitle": "Publish this theme?",
+    "confirmDescription": "Publish {{theme}} across public pages and the student workspace. Visitors will see it on their next refresh.",
+    "cancel": "Cancel",
+    "publishing": "Publishing…",
+    "success": "{{theme}} is now published.",
+    "publishError": "The theme could not be published. Try again.",
+    "presets": {
+      "default": {
+        "name": "Default",
+        "description": "Original BuddyWeb. Warm paper and familiar orange accents."
+      },
+      "halloween": {
+        "name": "Halloween",
+        "description": "Spooky Night. Violet surfaces, pumpkin accents, and a quiet moonlit sky."
+      },
+      "christmas": {
+        "name": "Christmas",
+        "description": "Winter Celebration. Cream and evergreen with red and gold ornaments."
+      },
+      "summer": {
+        "name": "Summer",
+        "description": "Sunny Campus. Ocean blue, turquoise, and sunlit waves."
+      }
+    },
+    "sample": {
+      "landing": "Landing page",
+      "login": "Login / Register",
+      "dashboard": "User Dashboard",
+      "kicker": "VGU community",
+      "landingTitle": "Find your people",
+      "landingCopy": "Meet students and explore campus life together.",
+      "landingAction": "Explore campus",
+      "loginTitle": "Welcome back",
+      "loginCopy": "Sign in to your BuddyWeb account.",
+      "loginAction": "Sign in",
+      "dashboardTitle": "Your Buddy journey",
+      "dashboardCopy": "Find a buddy and see what’s happening on campus.",
+      "dashboardAction": "Explore matching"
+    }
+  },
   "auditLog": {
     "title": "Audit Log",
     "description": "See who did what and when across BuddyWeb.",
@@ -1746,7 +1801,8 @@
       "matching": "Matching",
       "semesters": "Semesters",
       "other": "Other",
-      "knowledge": "Knowledge Base"
+      "knowledge": "Knowledge Base",
+      "settings": "Settings"
     },
     "periods": {
       "today": "Today",
@@ -1761,7 +1817,8 @@
       "profile_photo": "Profile photo",
       "semester_operation": "Semester operation",
       "other": "Other",
-      "managed_faq": "Managed FAQ"
+      "managed_faq": "Managed FAQ",
+      "site_theme": "Site theme"
     },
     "statuses": {
       "DRAFT": "Draft",
@@ -1795,6 +1852,7 @@
       "semester_restore_execute": "Ran a semester restore",
       "knowledge_create": "Created a FAQ draft",
       "knowledge_update": "Updated a FAQ draft",
+      "site_theme_publish": "Published the site theme",
       "knowledge_publish": "Published a FAQ",
       "knowledge_unpublish": "Unpublished a FAQ",
       "knowledge_restore": "Restored a FAQ revision"

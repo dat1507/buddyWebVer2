@@ -76,9 +76,11 @@ describe('ADMIN-002 guarded App navigation', () => {
     async (label, path, title) => {
       if (path === 'audit-log') {
         fetch.mockImplementation(async (url) =>
-          String(url).includes('/actors?')
-            ? json({ items: [], has_more: false })
-            : json({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 }),
+          String(url).endsWith('/admin/site-theme')
+            ? json({ theme: 'default' })
+            : String(url).includes('/actors?')
+              ? json({ items: [], has_more: false })
+              : json({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 }),
         )
       }
       if (path === 'knowledge-base')
@@ -99,7 +101,13 @@ describe('ADMIN-002 guarded App navigation', () => {
       expect(useAuthStore.getState().role).toBe('ADMIN')
       if (path === 'audit-log') {
         expect(await screen.findByText('No activity matches these filters.')).toBeVisible()
-        expect(new Set(fetch.mock.calls.map(([url]) => String(url)))).toEqual(
+        expect(
+          new Set(
+            fetch.mock.calls
+              .map(([url]) => String(url))
+              .filter((url) => url.includes('/admin/audit-logs')),
+          ),
+        ).toEqual(
           new Set([
             'http://localhost:8000/api/admin/audit-logs?page=1&period=month',
             'http://localhost:8000/api/admin/audit-logs/actors?page=1',
@@ -173,7 +181,13 @@ describe('ADMIN-002 guarded App navigation', () => {
       'page',
     )
     await waitFor(() => expect(fetch.mock.calls.length).toBeGreaterThanOrEqual(2))
-    expect(new Set(fetch.mock.calls.map(([url]) => String(url).replace(/\?.*$/, '')))).toEqual(
+    expect(
+      new Set(
+        fetch.mock.calls
+          .map(([url]) => String(url).replace(/\?.*$/, ''))
+          .filter((url) => url.includes('/admin/matching/')),
+      ),
+    ).toEqual(
       new Set([
         'http://localhost:8000/api/admin/matching/stats',
         'http://localhost:8000/api/admin/matching/participants',
@@ -204,7 +218,7 @@ describe('ADMIN-002 guarded App navigation', () => {
     )
     expect(screen.getByTestId('location').textContent).toBe('/admin/settings?view=published#items')
     expect(useAuthStore.getState().user).toBe(user)
-    expect(fetch).not.toHaveBeenCalled()
+    expect(fetch.mock.calls.every(([url]) => String(url).endsWith('/admin/site-theme'))).toBe(true)
   })
 
   it.each(['unknown', 'loading'] as const)('hides the new route menu during %s', (status) => {
@@ -229,7 +243,7 @@ describe('ADMIN-002 guarded App navigation', () => {
     expect(screen.getByTestId('location').textContent).toBe('/')
     expectNoMenu()
     expect(useAuthStore.getState().role).toBe('USER')
-    expect(fetch).not.toHaveBeenCalled()
+    expect(fetch.mock.calls.every(([url]) => String(url).endsWith('/public/site-theme'))).toBe(true)
   })
 
   it('redirects the Admin index to Overview with exactly one current link', () => {

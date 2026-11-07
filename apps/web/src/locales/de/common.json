@@ -1705,6 +1705,61 @@
     "updated": "Zuletzt aktualisiert: {{time}}",
     "refresh": "Aktualisieren"
   },
+  "siteTheme": {
+    "settings": "Admin-Einstellungen",
+    "title": "Erscheinungsbild für Website und Studierende",
+    "description": "Wählen Sie das Erscheinungsbild für Besucher und Studierende auf BuddyWeb.",
+    "loading": "Veröffentlichtes Design wird geladen…",
+    "loadError": "Das veröffentlichte Design konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "choices": "Designvorlagen",
+    "published": "Veröffentlicht",
+    "unpublished": "{{theme}} ist ausgewählt und noch nicht veröffentlicht.",
+    "active": "Aktuell veröffentlicht: {{theme}}.",
+    "preview": "Ausgewähltes Design ansehen",
+    "previewHint": "Die Beispiele verwenden Beispieldaten. Die Vorschau ändert die öffentliche Website nicht.",
+    "previewPages": "Vorschauseiten",
+    "publish": "Design veröffentlichen",
+    "confirmTitle": "Dieses Design veröffentlichen?",
+    "confirmDescription": "{{theme}} für öffentliche Seiten und den Studierendenbereich veröffentlichen. Beim nächsten Laden sehen Besucher das neue Design.",
+    "cancel": "Abbrechen",
+    "publishing": "Wird veröffentlicht…",
+    "success": "{{theme}} ist jetzt veröffentlicht.",
+    "publishError": "Das Design konnte nicht veröffentlicht werden. Versuchen Sie es erneut.",
+    "presets": {
+      "default": {
+        "name": "Standard",
+        "description": "Das ursprüngliche BuddyWeb mit warmen Papiertönen und vertrauten orangefarbenen Akzenten."
+      },
+      "halloween": {
+        "name": "Halloween",
+        "description": "Gruselnacht mit violetten Flächen, Kürbisakzenten und ruhigem Mondlicht."
+      },
+      "christmas": {
+        "name": "Weihnachten",
+        "description": "Winterfest mit Creme, Tannengrün und roten und goldenen Ornamenten."
+      },
+      "summer": {
+        "name": "Sommer",
+        "description": "Sonniger Campus mit Ozeanblau, Türkis und Wellen im Sonnenlicht."
+      }
+    },
+    "sample": {
+      "landing": "Startseite",
+      "login": "Anmelden / Registrieren",
+      "dashboard": "Studierendenbereich",
+      "kicker": "VGU-Gemeinschaft",
+      "landingTitle": "Finde deine Leute",
+      "landingCopy": "Lerne Studierende kennen und entdecke das Campusleben.",
+      "landingAction": "Campus entdecken",
+      "loginTitle": "Willkommen zurück",
+      "loginCopy": "Melde dich mit deinem BuddyWeb-Konto an.",
+      "loginAction": "Anmelden",
+      "dashboardTitle": "Dein Weg zum Buddy",
+      "dashboardCopy": "Finde einen Buddy und entdecke aktuelle Campusangebote.",
+      "dashboardAction": "Matching entdecken"
+    }
+  },
   "auditLog": {
     "title": "Aktivitätsprotokoll",
     "description": "Sehen Sie, wer wann welche Aktion in BuddyWeb ausgeführt hat.",
@@ -1746,7 +1801,8 @@
       "matching": "Zuordnung",
       "semesters": "Semester",
       "other": "Sonstiges",
-      "knowledge": "Wissensdatenbank"
+      "knowledge": "Wissensdatenbank",
+      "settings": "Einstellungen"
     },
     "periods": {
       "today": "Heute",
@@ -1761,7 +1817,8 @@
       "profile_photo": "Profilfoto",
       "semester_operation": "Semesteraktion",
       "other": "Sonstiges",
-      "managed_faq": "Verwaltete FAQ"
+      "managed_faq": "Verwaltete FAQ",
+      "site_theme": "Website-Design"
     },
     "statuses": {
       "DRAFT": "Entwurf",
@@ -1795,6 +1852,7 @@
       "semester_restore_execute": "Semesterwiederherstellung ausgeführt",
       "knowledge_create": "FAQ-Entwurf erstellt",
       "knowledge_update": "FAQ-Entwurf bearbeitet",
+      "site_theme_publish": "Website-Design veröffentlicht",
       "knowledge_publish": "FAQ veröffentlicht",
       "knowledge_unpublish": "FAQ zurückgezogen",
       "knowledge_restore": "FAQ-Version wiederhergestellt"

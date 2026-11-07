@@ -1,3 +1,7 @@
+## ADMIN-SEASONAL-THEME-001 - 2026-11-08 local verification
+
+Real PostgreSQL 17.11, migration 0026 and theme authorization/publication/audit passed. Browser verified four palettes, EN/DE, desktop and 390/320px, local publish/refresh/restore, Admin isolation and chatbot portal. [Verification and limitations](tasks/ADMIN-SEASONAL-THEME-001.md).
+
 ## ADMIN-CHATBOT-KB-001 - 2026-11-07 local verification
 
 164 backend and 96 frontend focused tests passed. Disposable PostgreSQL 17 migration and lifecycle passed, including two independent retrieval snapshots refreshing within 16 seconds, a simulated outage and invalid snapshot fallback. EN/DE browser lifecycle and two-Admin conflict recovery passed with the real local API at desktop, 390px and 320px. Focused lint/type/format, web build and API wheel passed. [Evidence and review steps](tasks/ADMIN-CHATBOT-KB-001.md). No Production change.

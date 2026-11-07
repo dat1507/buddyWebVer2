@@ -1,3 +1,7 @@
+## 2026-11-08 - Seasonal themes ready for local owner review
+
+TASK_ID: ADMIN-SEASONAL-THEME-001. Implemented on codex/seasonal-theme-management from 59558c0. Four presets, local preview, Admin publication, migration 0026 and audit verified locally. Owner visual acceptance pending. [Task and startup](docs/implementation/tasks/ADMIN-SEASONAL-THEME-001.md).
+
 ## 2026-11-07 - Admin-managed chatbot knowledge base
 
 TASK_ID: ADMIN-CHATBOT-KB-001. Implemented and verified locally; ready for owner acceptance.
