@@ -14,15 +14,26 @@ from app.api.dependencies import require_role
 from app.core.database import get_database_session
 from app.models import AuditLog, User, UserRole
 
-Category = Literal["events", "recaps", "users", "matching", "semesters", "other"]
+Category = Literal["events", "recaps", "users", "matching", "semesters", "knowledge", "other"]
 Period = Literal["today", "week", "month", "custom"]
 Resource = Literal[
-    "event", "recap", "student_profile", "profile_photo", "semester_operation", "other"
+    "event",
+    "recap",
+    "student_profile",
+    "profile_photo",
+    "semester_operation",
+    "managed_faq",
+    "other",
 ]
 AuditStatus = Literal["DRAFT", "PUBLISHED", "CANCELLED", "ARCHIVED"]
 
 _ACTIONS = frozenset(
     {
+        "knowledge.create",
+        "knowledge.update",
+        "knowledge.publish",
+        "knowledge.unpublish",
+        "knowledge.restore",
         "event.create",
         "event.update",
         "event.delete",
@@ -52,6 +63,7 @@ _RESOURCES: dict[str, Resource] = {
     "student_profile": "student_profile",
     "profile_photo": "profile_photo",
     "semester_operation": "semester_operation",
+    "managed_faq": "managed_faq",
 }
 _STATUSES: dict[str, AuditStatus] = {
     "DRAFT": "DRAFT",
@@ -77,6 +89,7 @@ _category = case(
     (AuditLog.resource_type == "event", "events"),
     (AuditLog.resource_type == "recap", "recaps"),
     (AuditLog.resource_type == "semester_operation", "semesters"),
+    (AuditLog.resource_type == "managed_faq", "knowledge"),
     else_="other",
 )
 
@@ -252,7 +265,7 @@ async def list_audit_logs(
                 category=row.category,
                 resource_type=resource,
                 resource_id=row.resource_id
-                if resource in {"event", "recap", "semester_operation"}
+                if resource in {"event", "recap", "semester_operation", "managed_faq"}
                 else None,
                 before_status=before,
                 after_status=after,

@@ -53,7 +53,8 @@
     "ownerGuide": "Owner-provided guide (systemPrompt.txt)",
     "conflicted": "Conflicting source information",
     "sourceLines": "Lines {{start}}–{{end}}",
-    "sourceVersion": "Source {{version}}"
+    "sourceVersion": "Source {{version}}",
+    "managedFaq": "Admin-managed FAQ"
   },
   "nav": {
     "home": "Home",
@@ -1744,7 +1745,8 @@
       "users": "Users",
       "matching": "Matching",
       "semesters": "Semesters",
-      "other": "Other"
+      "other": "Other",
+      "knowledge": "Knowledge Base"
     },
     "periods": {
       "today": "Today",
@@ -1758,7 +1760,8 @@
       "student_profile": "Student profile",
       "profile_photo": "Profile photo",
       "semester_operation": "Semester operation",
-      "other": "Other"
+      "other": "Other",
+      "managed_faq": "Managed FAQ"
     },
     "statuses": {
       "DRAFT": "Draft",
@@ -1789,7 +1792,124 @@
       "recap_cleanup": "Ran recap cleanup",
       "recap_automatic_eviction": "Automatically removed an older recap",
       "semester_reset_execute": "Ran a semester reset",
-      "semester_restore_execute": "Ran a semester restore"
+      "semester_restore_execute": "Ran a semester restore",
+      "knowledge_create": "Created a FAQ draft",
+      "knowledge_update": "Updated a FAQ draft",
+      "knowledge_publish": "Published a FAQ",
+      "knowledge_unpublish": "Unpublished a FAQ",
+      "knowledge_restore": "Restored a FAQ revision"
+    }
+  },
+  "kb": {
+    "title": "Knowledge Base",
+    "description": "Manage the public FAQs used by the BuddyWeb chatbot.",
+    "confirmAction": "Confirm",
+    "sections": "Knowledge Base sections",
+    "faqs": "FAQs",
+    "references": "Reference Sources",
+    "category": "Category",
+    "allCategories": "All categories",
+    "publication": "Publication status",
+    "allStatuses": "All statuses",
+    "search": "Search FAQs",
+    "new": "New FAQ",
+    "edit": "Edit FAQ",
+    "close": "Close editor",
+    "empty": "No managed FAQs match these filters.",
+    "untitled": "Untitled FAQ",
+    "managed": "Admin-managed",
+    "builtin": "Built-in FAQ",
+    "guide": "Canonical student guide",
+    "guideDescription": "The chatbot treats this guide as a separate reference source.",
+    "replace": "Draft a replacement",
+    "replacing": "Linked built-in FAQ: {{id}}",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{number}}",
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again.",
+    "retry": "Try again",
+    "save": "Save draft",
+    "saved": "Changes saved.",
+    "reload": "Open latest saved draft",
+    "reloaded": "Latest saved draft loaded.",
+    "evidence": "Evidence classification",
+    "policy": "Use public, low-risk information and a stable VGU source. A source link alone does not verify a claim.",
+    "question": "Main question",
+    "aliases": "Alternative questions, one per line",
+    "answer": "Answer",
+    "sourceTitle": "Source title",
+    "sourceUrl": "Public VGU source URL",
+    "preview": "Preview",
+    "testQuestion": "Test question",
+    "history": "Revision history",
+    "author": "Author reference: {{id}}",
+    "revision": "Draft revision {{number}}",
+    "publishedRevision": "Public revision {{number}}",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "restoreDraft": "Restore as draft",
+    "restorePublic": "Restore and publish",
+    "cancel": "Cancel",
+    "languages": {
+      "en": "English",
+      "de": "German"
+    },
+    "categories": {
+      "vgu": "VGU",
+      "buddy-program": "Buddy Program",
+      "student-life": "Student life",
+      "campus-services": "Campus services",
+      "transportation": "Transport",
+      "accommodation": "Accommodation",
+      "buddyweb-guide": "BuddyWeb guide",
+      "faq": "General FAQ"
+    },
+    "statuses": {
+      "draft": "Draft only",
+      "published": "Published",
+      "pending": "Published with draft changes",
+      "unpublished": "Unpublished"
+    },
+    "evidenceTypes": {
+      "unsupported": "Insufficient evidence",
+      "conflicting": "Conflicting evidence",
+      "admin_managed": "Admin-provided public information"
+    },
+    "selected": {
+      "draft": "Draft selected",
+      "existing": "Existing source selected",
+      "fallback": "No reliable match"
+    },
+    "citations": {
+      "verified_code": "Code verified",
+      "verified_official": "Officially verified",
+      "owner_provided": "Owner-provided guide",
+      "conflicted": "Conflicting guide evidence",
+      "historical_reference": "Historical reference",
+      "admin_managed": "Admin-managed FAQ"
+    },
+    "confirm": {
+      "publish": "This saved revision will become available to chatbot visitors after refresh.",
+      "unpublish": "The chatbot will stop using this managed FAQ. A linked built-in FAQ will be available again.",
+      "restoreDraft": "Copy this revision into a new draft. The public answer stays as it is.",
+      "restorePublic": "Copy this revision and make it the chatbot’s public version after refresh."
+    },
+    "errors": {
+      "unsafe_source": "Use a stable HTTPS address on vgu.edu.vn without query parameters.",
+      "unsafe_content": "Remove private details, credentials, markup and links from the FAQ text.",
+      "evidence_required": "Choose Admin-provided public information and supply a public source before publishing.",
+      "bilingual_required": "Add a nonempty question and answer in both languages. Remove empty alternative questions.",
+      "high_risk": "This topic needs separate verification and cannot be published as an Admin-managed FAQ.",
+      "alias_conflict": "A question overlaps with an existing FAQ. Change the question or link the intended built-in FAQ.",
+      "builtin_conflict": "A replacement already exists for this built-in FAQ. Open it from the FAQ list.",
+      "retrieval_conflict": "Existing retrieval rules may select a different source. Preview each proposed question and revise it.",
+      "stale_version": "Another Admin saved a newer version. Copy any unsaved edits before opening the latest draft.",
+      "publication_limit": "The publication limit has been reached.",
+      "invalid_builtin": "Select a valid built-in FAQ.",
+      "confirmation_required": "Confirm the change before making it public.",
+      "validation": "Check the entered values and the limits for questions and answers.",
+      "conflict": "The saved publication state changed. Reopen the current FAQ."
     }
   }
 }

@@ -57,12 +57,14 @@ const responseSchema = z
           .object({
             entry_id: z.string().regex(/^[a-z][a-z0-9-]{2,79}$/),
             title: z.enum([
+              'Admin-managed FAQ',
               'BuddyWeb guide',
               'VGU public information',
               'Historical student guide (systemPrompt.txt)',
               'Owner-provided guide (systemPrompt.txt)',
             ]),
             verification_status: z.enum([
+              'admin_managed',
               'verified_code',
               'verified_official',
               'historical_reference',
@@ -128,11 +130,16 @@ const responseSchema = z
                   source.title === 'Historical student guide (systemPrompt.txt)' &&
                   source.references.length === 0 &&
                   ['legacy-d9-food', 'legacy-laundry'].includes(source.entry_id)
-                : source.verified_on !== null &&
-                  source.title ===
-                    (source.verification_status === 'verified_code'
-                      ? 'BuddyWeb guide'
-                      : 'VGU public information'))),
+                : source.verification_status === 'admin_managed'
+                  ? source.verified_on === null &&
+                    source.title === 'Admin-managed FAQ' &&
+                    /^managed-[a-f0-9]{32}-r[1-9][0-9]*$/.test(source.entry_id) &&
+                    source.references.length === 1
+                  : source.verified_on !== null &&
+                    source.title ===
+                      (source.verification_status === 'verified_code'
+                        ? 'BuddyWeb guide'
+                        : 'VGU public information'))),
       ),
   )
 
@@ -152,5 +159,5 @@ const chatbotClient = {
   },
 }
 
-export { chatbotClient, codePoints, validQuestion }
+export { chatbotClient, codePoints, responseSchema, validQuestion }
 export type { ChatbotAnswer }

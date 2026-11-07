@@ -1,10 +1,10 @@
 """Public chatbot DTOs: source IDs and approved URLs, never repository file paths."""
 
 from datetime import date
-from typing import Literal
+from typing import Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.services.chatbot.models import (
     MAX_ANSWER,
@@ -65,19 +65,37 @@ class PublicReference(Contract):
 class PublicCitation(Contract):
     entry_id: str = Field(pattern=r"^[a-z][a-z0-9-]{2,79}$")
     title: Literal[
+        "Admin-managed FAQ",
         "BuddyWeb guide",
         "VGU public information",
         "Historical student guide (systemPrompt.txt)",
         "Owner-provided guide (systemPrompt.txt)",
     ]
     verification_status: Literal[
-        "verified_code", "verified_official", "historical_reference", "owner_provided", "conflicted"
+        "verified_code",
+        "verified_official",
+        "historical_reference",
+        "owner_provided",
+        "conflicted",
+        "admin_managed",
     ]
     verified_on: date | None
     references: tuple[PublicReference, ...] = Field(max_length=5)
     provenance: SourceProvenance | None = Field(
         default=None, exclude_if=lambda value: value is None
     )
+
+    @model_validator(mode="after")
+    def managed_provenance(self) -> Self:
+        if (self.title == "Admin-managed FAQ") != (self.verification_status == "admin_managed"):
+            raise ValueError("Managed citations require their own evidence classification.")
+        if self.verification_status == "admin_managed" and (
+            self.verified_on is not None or self.provenance is not None or len(self.references) != 1
+        ):
+            raise ValueError(
+                "Managed citations require one public reference and no verification claim."
+            )
+        return self
 
 
 class ChatbotResponse(Contract):

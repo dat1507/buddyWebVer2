@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 
 import { AdminAuditLogPage } from '@/pages/admin/admin-audit-log-page'
+import { AdminKnowledgePage } from '@/pages/admin/admin-knowledge-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
@@ -69,7 +70,8 @@ const adminRoutes: readonly AdminRoute[] = [
     title: 'Knowledge base',
     labelKey: 'adminNavigation.knowledgeBase',
     Icon: BookOpen,
-    kind: 'placeholder',
+    kind: 'page',
+    Component: AdminKnowledgePage,
   },
   {
     path: 'audit-log',

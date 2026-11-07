@@ -11,7 +11,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.chatbot import ChatbotResponse, ErrorCode, public_answer
+from app.core.managed_faq_cache import ManagedFaqCache
+from app.schemas.chatbot import ChatbotResponse, ErrorCode
+from app.services.chatbot.managed import ManagedFaq, answer_with_managed
 from app.services.chatbot.service import ChatbotService
 
 
@@ -107,6 +109,7 @@ class ChatbotRuntime:
         )
         self._service_lock = threading.Lock()
         self.service: ChatbotService | None = None
+        self.managed = ManagedFaqCache()
 
     def admit(self, identifier: str) -> Lease:
         now = time.monotonic()
@@ -132,13 +135,17 @@ class ChatbotRuntime:
             raise ChatbotFailure(503, "overloaded", 1)
         return Lease(self._slots)
 
-    def _work(self, question: str) -> ChatbotResponse | None:
+    def _work(
+        self,
+        question: str,
+        entries: tuple[ManagedFaq, ...] = (),
+    ) -> ChatbotResponse | None:
         try:
             with self._service_lock:
                 if self.service is None:
                     self.service = ChatbotService()
                 service = self.service
-            result = public_answer(service.ask(question))
+            result = answer_with_managed(service, question, entries)
             if len(result.model_dump_json().encode("utf-8")) > 16384:
                 return None
             return result
@@ -146,8 +153,13 @@ class ChatbotRuntime:
             # Never propagate user text, paths, provider diagnostics or internal exceptions.
             return None
 
-    def submit(self, question: str, lease: Lease) -> Future[ChatbotResponse | None]:
-        future = self._executor.submit(self._work, question)
+    def submit(
+        self,
+        question: str,
+        lease: Lease,
+        entries: tuple[ManagedFaq, ...] = (),
+    ) -> Future[ChatbotResponse | None]:
+        future = self._executor.submit(self._work, question, entries)
         lease.transfer(future)
         return future
 

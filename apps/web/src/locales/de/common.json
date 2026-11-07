@@ -53,7 +53,8 @@
     "ownerGuide": "Bereitgestellter Leitfaden (systemPrompt.txt)",
     "conflicted": "Widersprüchliche Quellenangaben",
     "sourceLines": "Zeilen {{start}}–{{end}}",
-    "sourceVersion": "Quelle {{version}}"
+    "sourceVersion": "Quelle {{version}}",
+    "managedFaq": "Verwaltete FAQ"
   },
   "nav": {
     "home": "Startseite",
@@ -1744,7 +1745,8 @@
       "users": "Benutzer",
       "matching": "Zuordnung",
       "semesters": "Semester",
-      "other": "Sonstiges"
+      "other": "Sonstiges",
+      "knowledge": "Wissensdatenbank"
     },
     "periods": {
       "today": "Heute",
@@ -1758,7 +1760,8 @@
       "student_profile": "Studierendenprofil",
       "profile_photo": "Profilfoto",
       "semester_operation": "Semesteraktion",
-      "other": "Sonstiges"
+      "other": "Sonstiges",
+      "managed_faq": "Verwaltete FAQ"
     },
     "statuses": {
       "DRAFT": "Entwurf",
@@ -1789,7 +1792,124 @@
       "recap_cleanup": "Rückblickbereinigung ausgeführt",
       "recap_automatic_eviction": "Älteren Rückblick automatisch entfernt",
       "semester_reset_execute": "Semester zurückgesetzt",
-      "semester_restore_execute": "Semesterwiederherstellung ausgeführt"
+      "semester_restore_execute": "Semesterwiederherstellung ausgeführt",
+      "knowledge_create": "FAQ-Entwurf erstellt",
+      "knowledge_update": "FAQ-Entwurf bearbeitet",
+      "knowledge_publish": "FAQ veröffentlicht",
+      "knowledge_unpublish": "FAQ zurückgezogen",
+      "knowledge_restore": "FAQ-Version wiederhergestellt"
+    }
+  },
+  "kb": {
+    "title": "Wissensdatenbank",
+    "description": "Verwalten Sie öffentliche FAQ für den BuddyWeb-Chatbot.",
+    "confirmAction": "Bestätigen",
+    "sections": "Bereiche der Wissensdatenbank",
+    "faqs": "FAQ",
+    "references": "Referenzquellen",
+    "category": "Kategorie",
+    "allCategories": "Alle Kategorien",
+    "publication": "Veröffentlichungsstatus",
+    "allStatuses": "Alle Status",
+    "search": "FAQ suchen",
+    "new": "Neue FAQ",
+    "edit": "FAQ bearbeiten",
+    "close": "Editor schließen",
+    "empty": "Keine verwalteten FAQ entsprechen diesen Filtern.",
+    "untitled": "FAQ ohne Titel",
+    "managed": "Von Admins verwaltet",
+    "builtin": "Integrierte FAQ",
+    "guide": "Maßgeblicher Studierendenleitfaden",
+    "guideDescription": "Der Chatbot verwendet diesen Leitfaden als separate Referenzquelle.",
+    "replace": "Ersatz entwerfen",
+    "replacing": "Verknüpfte integrierte FAQ: {{id}}",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {{number}}",
+    "loading": "Wird geladen…",
+    "error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "save": "Entwurf speichern",
+    "saved": "Änderungen gespeichert.",
+    "reload": "Aktuellsten gespeicherten Entwurf öffnen",
+    "reloaded": "Aktuellster gespeicherter Entwurf geladen.",
+    "evidence": "Quellenbewertung",
+    "policy": "Verwenden Sie öffentliche, unkritische Informationen und eine dauerhafte VGU-Quelle. Ein Quellenlink allein bestätigt keine Aussage.",
+    "question": "Hauptfrage",
+    "aliases": "Alternative Fragen, eine pro Zeile",
+    "answer": "Antwort",
+    "sourceTitle": "Quellentitel",
+    "sourceUrl": "Öffentliche VGU-Quellenadresse",
+    "preview": "Vorschau",
+    "testQuestion": "Testfrage",
+    "history": "Versionsverlauf",
+    "author": "Autorenreferenz: {{id}}",
+    "revision": "Entwurfsversion {{number}}",
+    "publishedRevision": "Öffentliche Version {{number}}",
+    "publish": "Veröffentlichen",
+    "unpublish": "Veröffentlichung zurückziehen",
+    "restoreDraft": "Als Entwurf wiederherstellen",
+    "restorePublic": "Wiederherstellen und veröffentlichen",
+    "cancel": "Abbrechen",
+    "languages": {
+      "en": "Englisch",
+      "de": "Deutsch"
+    },
+    "categories": {
+      "vgu": "VGU",
+      "buddy-program": "Buddy-Programm",
+      "student-life": "Studierendenleben",
+      "campus-services": "Campus-Dienste",
+      "transportation": "Verkehr",
+      "accommodation": "Unterkunft",
+      "buddyweb-guide": "BuddyWeb-Leitfaden",
+      "faq": "Allgemeine FAQ"
+    },
+    "statuses": {
+      "draft": "Nur Entwurf",
+      "published": "Veröffentlicht",
+      "pending": "Veröffentlicht mit Entwurfsänderungen",
+      "unpublished": "Zurückgezogen"
+    },
+    "evidenceTypes": {
+      "unsupported": "Unzureichende Belege",
+      "conflicting": "Widersprüchliche Belege",
+      "admin_managed": "Öffentliche Angaben der Administration"
+    },
+    "selected": {
+      "draft": "Entwurf ausgewählt",
+      "existing": "Bestehende Quelle ausgewählt",
+      "fallback": "Keine verlässliche Übereinstimmung"
+    },
+    "citations": {
+      "verified_code": "Durch Code bestätigt",
+      "verified_official": "Offiziell bestätigt",
+      "owner_provided": "Bereitgestellter Leitfaden",
+      "conflicted": "Widersprüchliche Leitfadenangaben",
+      "historical_reference": "Historische Referenz",
+      "admin_managed": "Verwaltete FAQ"
+    },
+    "confirm": {
+      "publish": "Nach der Aktualisierung kann der Chatbot diese gespeicherte Version verwenden.",
+      "unpublish": "Der Chatbot verwendet diese verwaltete FAQ nicht mehr. Eine verknüpfte integrierte FAQ ist wieder verfügbar.",
+      "restoreDraft": "Diese Version wird in einen neuen Entwurf kopiert. Die öffentliche Antwort bleibt bestehen.",
+      "restorePublic": "Diese Version wird kopiert und nach der Aktualisierung öffentlich verwendet."
+    },
+    "errors": {
+      "unsafe_source": "Verwenden Sie eine dauerhafte HTTPS-Adresse auf vgu.edu.vn ohne Abfrageparameter.",
+      "unsafe_content": "Entfernen Sie private Angaben, Zugangsdaten, Markup und Links aus dem FAQ-Text.",
+      "evidence_required": "Wählen Sie vor der Veröffentlichung öffentliche Angaben der Administration und geben Sie eine öffentliche Quelle an.",
+      "bilingual_required": "Geben Sie in beiden Sprachen eine Frage und Antwort ein. Entfernen Sie leere Alternativfragen.",
+      "high_risk": "Dieses Thema muss gesondert geprüft werden und kann nicht als verwaltete FAQ veröffentlicht werden.",
+      "alias_conflict": "Eine Frage überschneidet sich mit einer bestehenden FAQ. Ändern Sie sie oder verknüpfen Sie die passende integrierte FAQ.",
+      "builtin_conflict": "Ein Ersatz für diese integrierte FAQ besteht bereits. Öffnen Sie ihn in der FAQ-Liste.",
+      "retrieval_conflict": "Die bestehenden Suchregeln können eine andere Quelle auswählen. Prüfen und überarbeiten Sie die Fragen in der Vorschau.",
+      "stale_version": "Ein anderer Admin hat eine neuere Version gespeichert. Kopieren Sie ungespeicherte Änderungen, bevor Sie den neuesten Entwurf öffnen.",
+      "publication_limit": "Die Höchstzahl veröffentlichter FAQ ist erreicht.",
+      "invalid_builtin": "Wählen Sie eine gültige integrierte FAQ aus.",
+      "confirmation_required": "Bestätigen Sie die Änderung vor der Veröffentlichung.",
+      "validation": "Prüfen Sie die Eingaben und die Grenzen für Fragen und Antworten.",
+      "conflict": "Der gespeicherte Veröffentlichungsstatus hat sich geändert. Öffnen Sie die FAQ erneut."
     }
   }
 }

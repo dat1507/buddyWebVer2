@@ -178,7 +178,11 @@ async def query_chatbot(
     if remaining <= 0:
         return failure("timeout", 504, 1)
     try:
-        future = runtime.submit(payload.question, lease)
+        entries = await runtime.managed.get(min(0.35, remaining / 4))
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return failure("timeout", 504, 1)
+        future = runtime.submit(payload.question, lease, entries)
         result = await asyncio.wait_for(
             asyncio.shield(asyncio.wrap_future(future)), timeout=remaining
         )

@@ -274,19 +274,24 @@ function ChatbotPanel({ id, open, conversation: chat, onClose, onReady, onExited
                             <span>
                               {source.title === 'BuddyWeb guide'
                                 ? t('chatbot.guide')
-                                : source.verification_status === 'historical_reference'
-                                  ? t('chatbot.historicalGuide')
-                                  : ['owner_provided', 'conflicted'].includes(
-                                        source.verification_status,
-                                      )
-                                    ? t('chatbot.ownerGuide')
-                                    : t('chatbot.publicInfo')}
+                                : source.verification_status === 'admin_managed'
+                                  ? t('chatbot.managedFaq')
+                                  : source.verification_status === 'historical_reference'
+                                    ? t('chatbot.historicalGuide')
+                                    : ['owner_provided', 'conflicted'].includes(
+                                          source.verification_status,
+                                        )
+                                      ? t('chatbot.ownerGuide')
+                                      : t('chatbot.publicInfo')}
                             </span>
                             <span className="chatbot-source-id">
                               {source.entry_id} ·{' '}
-                              {['historical_reference', 'owner_provided', 'conflicted'].includes(
-                                source.verification_status,
-                              )
+                              {[
+                                'historical_reference',
+                                'owner_provided',
+                                'conflicted',
+                                'admin_managed',
+                              ].includes(source.verification_status)
                                 ? t('chatbot.notVerified')
                                 : t('chatbot.verified', { date: source.verified_on })}
                             </span>

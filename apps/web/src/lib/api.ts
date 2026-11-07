@@ -34,7 +34,25 @@ type InvitationApiErrorReason =
   | 'INVITATION_MUTATION_EXPIRED'
   | 'INVITATION_MUTATION_INVALID_STATE'
 
-type ApiErrorReason = 'STUDENT_TYPE_LOCKED_ACTIVE_MATCH' | InvitationApiErrorReason
+const knowledgeErrorCodes = [
+  'unsafe_source',
+  'unsafe_content',
+  'evidence_required',
+  'bilingual_required',
+  'high_risk',
+  'alias_conflict',
+  'builtin_conflict',
+  'retrieval_conflict',
+  'stale_version',
+  'publication_limit',
+  'invalid_builtin',
+  'confirmation_required',
+] as const
+type KnowledgeApiErrorReason = (typeof knowledgeErrorCodes)[number]
+const knowledgeReasons = new Set<ApiErrorReason>(knowledgeErrorCodes)
+
+type ApiErrorReason =
+  'STUDENT_TYPE_LOCKED_ACTIVE_MATCH' | InvitationApiErrorReason | KnowledgeApiErrorReason
 
 const profileConflictReasons = new Set<ApiErrorReason>(['STUDENT_TYPE_LOCKED_ACTIVE_MATCH'])
 const invitationReasons = new Set<ApiErrorReason>([
@@ -164,7 +182,9 @@ async function requestJson(path: string, options: JsonRequestOptions = {}): Prom
           ? profileConflictReasons
           : path.startsWith('/matching/invitations')
             ? invitationReasons
-            : null
+            : /^\/admin\/knowledge-base(?:[/?]|$)/.test(path)
+              ? knowledgeReasons
+              : null
       if (allowedReasons) {
         try {
           const payload = (await response.json()) as unknown

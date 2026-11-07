@@ -22,7 +22,7 @@ const json = (value: unknown, status = 200) => new Response(JSON.stringify(value
 const modules = [
   ['Users', 'users', 'User management'],
   ...(adminEventsEnabled ? ([['Events', 'events', 'Event management']] as const) : []),
-  ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
+  ['Knowledge Base', 'knowledge-base', 'Knowledge Base'],
   ['Audit Log', 'audit-log', 'Audit Log'],
   ['Settings', 'settings', 'Admin settings'],
 ] as const
@@ -81,6 +81,8 @@ describe('ADMIN-002 guarded App navigation', () => {
             : json({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 }),
         )
       }
+      if (path === 'knowledge-base')
+        fetch.mockImplementation(async () => json({ items: [], has_more: false }))
       useAuthStore.getState().setAuthenticated(admin)
       renderApp('/admin/settings')
       const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
@@ -103,6 +105,8 @@ describe('ADMIN-002 guarded App navigation', () => {
             'http://localhost:8000/api/admin/audit-logs/actors?page=1',
           ]),
         )
+      } else if (path === 'knowledge-base') {
+        expect(await screen.findByText('No managed FAQs match these filters.')).toBeVisible()
       } else {
         expect(fetch).not.toHaveBeenCalled()
       }

@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.admin_audit_logs import router as admin_audit_logs_router
 from app.api.admin_events import router as admin_events_router
+from app.api.admin_knowledge import router as admin_knowledge_router
 from app.api.admin_matching import router as admin_matching_router
 from app.api.admin_semesters import router as admin_semesters_router
 from app.api.admin_users import router as admin_users_router
@@ -90,6 +91,7 @@ app.include_router(profile_photos_router)
 app.include_router(admin_events_router)
 app.include_router(admin_event_media_router)
 app.include_router(admin_audit_logs_router)
+app.include_router(admin_knowledge_router)
 app.include_router(admin_matching_router)
 app.include_router(admin_semesters_router)
 app.include_router(admin_users_router)
