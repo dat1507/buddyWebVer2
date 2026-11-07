@@ -123,7 +123,7 @@ describe('ADMIN-001 guarded App and session integration', () => {
       resolveMe(json(admin))
     })
     expect(await screen.findByRole('main', { name: 'Administrator content' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Audit log' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Audit Log' })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/admin/audit-log?filter=login#latest')
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       'http://localhost:8000/api/auth/csrf/session',
@@ -161,7 +161,7 @@ describe('ADMIN-001 guarded App and session integration', () => {
     fireEvent.click(screen.getByRole('button', { name: /Switch to German/ }))
     expect(await screen.findByRole('main', { name: 'Inhalte der Administration' })).toBe(main)
     expect(screen.getByRole('complementary', { name: 'Administrationsbereich' })).toBeVisible()
-    expect(within(main).getByRole('heading', { name: 'Audit log' })).toBeVisible()
+    expect(within(main).getByRole('heading', { name: 'Aktivitätsprotokoll' })).toBeVisible()
     expect(screen.getByTestId('location').textContent).toBe('/admin/audit-log?view=details#entry')
     expect(fetch).not.toHaveBeenCalled()
   })
@@ -169,4 +169,12 @@ describe('ADMIN-001 guarded App and session integration', () => {
 
 vi.mock('@/pages/admin/admin-users-page', () => ({
   AdminUsersPage: () => <h1>User management</h1>,
+}))
+
+vi.mock('@/features/admin-audit-log', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/admin-audit-log')>()),
+  adminAuditClient: {
+    list: async () => ({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 }),
+    actors: async () => ({ items: [], has_more: false }),
+  },
 }))

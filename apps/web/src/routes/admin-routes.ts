@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+import { AdminAuditLogPage } from '@/pages/admin/admin-audit-log-page'
 import { AdminMatchingPage } from '@/pages/admin/admin-matching-page'
 import { AdminSemesterPage } from '@/pages/admin/admin-semester-page'
 import { AdminUsersPage } from '@/pages/admin/admin-users-page'
@@ -75,7 +76,8 @@ const adminRoutes: readonly AdminRoute[] = [
     title: 'Audit log',
     labelKey: 'adminNavigation.auditLog',
     Icon: ClipboardList,
-    kind: 'placeholder',
+    kind: 'page',
+    Component: AdminAuditLogPage,
   },
   {
     path: 'settings',

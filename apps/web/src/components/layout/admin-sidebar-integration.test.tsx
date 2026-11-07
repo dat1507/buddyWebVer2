@@ -23,7 +23,7 @@ const modules = [
   ['Users', 'users', 'User management'],
   ...(adminEventsEnabled ? ([['Events', 'events', 'Event management']] as const) : []),
   ['Knowledge Base', 'knowledge-base', 'Knowledge base'],
-  ['Audit Log', 'audit-log', 'Audit log'],
+  ['Audit Log', 'audit-log', 'Audit Log'],
   ['Settings', 'settings', 'Admin settings'],
 ] as const
 
@@ -73,7 +73,14 @@ describe('ADMIN-002 guarded App navigation', () => {
 
   it.each(modules)(
     'opens the guarded %s destination through the actual sidebar',
-    (label, path, title) => {
+    async (label, path, title) => {
+      if (path === 'audit-log') {
+        fetch.mockImplementation(async (url) =>
+          String(url).includes('/actors?')
+            ? json({ items: [], has_more: false })
+            : json({ items: [], page: 1, page_size: 20, total: 0, total_pages: 0 }),
+        )
+      }
       useAuthStore.getState().setAuthenticated(admin)
       renderApp('/admin/settings')
       const nav = screen.getByRole('navigation', { name: 'Administrator navigation' })
@@ -88,7 +95,17 @@ describe('ADMIN-002 guarded App navigation', () => {
       expect(link).toHaveAttribute('aria-current', 'page')
       expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
       expect(useAuthStore.getState().role).toBe('ADMIN')
-      expect(fetch).not.toHaveBeenCalled()
+      if (path === 'audit-log') {
+        expect(await screen.findByText('No activity matches these filters.')).toBeVisible()
+        expect(new Set(fetch.mock.calls.map(([url]) => String(url)))).toEqual(
+          new Set([
+            'http://localhost:8000/api/admin/audit-logs?page=1&period=month',
+            'http://localhost:8000/api/admin/audit-logs/actors?page=1',
+          ]),
+        )
+      } else {
+        expect(fetch).not.toHaveBeenCalled()
+      }
     },
   )
 
