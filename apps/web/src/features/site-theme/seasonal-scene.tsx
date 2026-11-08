@@ -1,4 +1,5 @@
 import type { ThemeId } from './site-theme'
+import { ChristmasScene } from './christmas-scene'
 
 type SeasonalTheme = Exclude<ThemeId, 'default'>
 
@@ -50,70 +51,6 @@ function Halloween() {
         <ellipse cy="-13" rx="36" ry="28" fill="#aa5229" />
         <ellipse cy="-13" rx="23" ry="28" fill="#ee8d47" />
         <ellipse cy="-13" rx="12" ry="28" fill="#f7ab60" />
-      </g>
-    </>
-  )
-}
-
-function Christmas() {
-  return (
-    <>
-      <g className="season-scene-detail" fill="none" strokeLinecap="round">
-        <path
-          d="M6 56q60 3 129-43m-121 47 65 3m-51-13 44-22m-15 16 55-8m-32-6 28-20"
-          stroke="#547d5c"
-          strokeWidth="5"
-        />
-        <path
-          d="m34 53 12-26m-1 23 27-18m-20 16 22 9m-13-12 27 2m-18-8 12-22m-3 19 23-12m-8 6 25 4m-17-7 16-16M27 60l17 14m-7-14 19 9m-5-8 24 7"
-          stroke="#9cb686"
-          strokeWidth="3"
-        />
-      </g>
-      <path d="M59 43q249 115 518-1" fill="none" stroke="#f0c984" strokeWidth="2" opacity=".8" />
-      <g className="season-scene-twinkle" fill="#ffdfa0">
-        <circle cx="180" cy="84" r="5" />
-        <circle cx="262" cy="96" r="4" />
-        <circle cx="346" cy="97" r="5" />
-        <circle cx="426" cy="87" r="4" />
-        <circle cx="560" cy="49" r="5" />
-      </g>
-      <g transform="translate(499 131)">
-        <path d="M0-61v28" stroke="#f1c47a" strokeWidth="2" />
-        <rect x="-7" y="-35" width="14" height="8" rx="2" fill="#f2ce88" />
-        <circle r="31" fill="#ac4052" stroke="#f1c47a" strokeWidth="2" />
-        <path
-          d="M-28-7q28-16 56 0m-56 12q28 16 56 0"
-          fill="none"
-          stroke="#f5c68b"
-          strokeWidth="2"
-        />
-      </g>
-      <g className="season-scene-detail" transform="translate(555 96)">
-        <path d="M0-45v23" stroke="#edc67d" strokeWidth="2" />
-        <circle r="21" fill="#34664c" stroke="#ecc67d" strokeWidth="2" />
-        <path d="M-13 0h26m-13-13v26m-9-22 18 18m-18 0L9-9" stroke="#f5d99e" strokeWidth="1.5" />
-      </g>
-      <g className="season-scene-snow" fill="#fff5dd">
-        <circle cx="139" cy="169" r="2.4" />
-        <circle cx="229" cy="148" r="2" />
-        <circle cx="307" cy="179" r="2.8" />
-        <circle cx="383" cy="124" r="2" />
-        <circle cx="448" cy="215" r="2.4" />
-        <circle cx="556" cy="197" r="2" />
-        <circle className="season-scene-detail" cx="107" cy="249" r="2.5" />
-        <circle className="season-scene-detail" cx="591" cy="259" r="3" />
-      </g>
-      <g transform="translate(542 432)">
-        <rect x="-26" y="-17" width="52" height="45" rx="3" fill="#a73a4d" />
-        <rect x="-30" y="-22" width="60" height="11" rx="3" fill="#c25462" />
-        <path
-          d="M0-21v49m0-50q-26 1-19-12 5-8 19 12 13-20 19-12 7 13-19 12"
-          fill="none"
-          stroke="#f3cb81"
-          strokeWidth="5"
-          strokeLinejoin="round"
-        />
       </g>
     </>
   )
@@ -188,11 +125,11 @@ export function SeasonalScene({
       data-motion-paused={paused || undefined}
       aria-hidden="true"
       focusable="false"
-      viewBox="0 0 640 560"
-      preserveAspectRatio="none"
+      viewBox={theme === 'christmas' ? '0 0 640 360' : '0 0 640 560'}
+      preserveAspectRatio={theme === 'christmas' ? 'xMidYMid meet' : 'none'}
     >
       {theme === 'halloween' && <Halloween />}
-      {theme === 'christmas' && <Christmas />}
+      {theme === 'christmas' && <ChristmasScene />}
       {theme === 'summer' && <Summer />}
     </svg>
   )

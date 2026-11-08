@@ -1,3 +1,5 @@
+- [Christmas Snowy & Cozy Wonderland - local review](CHRISTMAS_REDESIGN_2026-11-08.md)
+
 - [Seasonal Theme Management and local preview](../../implementation/tasks/ADMIN-SEASONAL-THEME-001.md)
 
 - [Approved Landing Header, community CTA and forest Footer](LANDING_COMMUNITY_UI_2026-11-06.md)

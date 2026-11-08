@@ -62,12 +62,13 @@ function HeroSection() {
           <div className="landing-campus-photo">
             <HeroBackgroundSlideshow />
             <div className="landing-photo-shade" aria-hidden="true" />
-            {theme && <SeasonalScene theme={theme} paused={paused} />}
+            {theme && theme !== 'christmas' && <SeasonalScene theme={theme} paused={paused} />}
             <div className="landing-photo-caption">
               <span className="landing-eyebrow">VIETNAMESE–GERMAN UNIVERSITY</span>
               <p>{t('landingRedesign.photoCaption')}</p>
             </div>
           </div>
+          {theme === 'christmas' && <SeasonalScene theme={theme} paused={paused} />}
           <div className="landing-hello">
             <Sparkles aria-hidden="true" className="size-6" />
             <span>{t('landingRedesign.hello')}</span>

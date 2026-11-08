@@ -38,40 +38,42 @@
 }
 
 :is(body:has([data-site-theme='christmas']), [data-theme-sample='christmas']) {
-  --season-paper: #faf4e8;
-  --season-panel: #fffdf7;
-  --season-ink: #20352a;
-  --season-quiet: #475e50;
-  --season-soft: #e7efe2;
-  --season-line: #b0bea9;
-  --season-field: #687d6f;
-  --season-action: #215b44;
-  --season-on-action: #fff9eb;
-  --season-hover: #184735;
-  --season-accent: #9b3040;
-  --season-band: #193d30;
-  --season-band-deep: #112c24;
-  --season-band-ink: #fff9eb;
-  --season-band-muted: #d4e4d6;
-  --season-highlight: #f9ce78;
-  --season-trim: #9e3143;
-  --season-shadow: rgba(30, 61, 43, 0.16);
+  --season-paper: #f1f8fc;
+  --season-panel: #ffffff;
+  --season-ink: #243e50;
+  --season-quiet: #496477;
+  --season-soft: #e1eff6;
+  --season-line: #b1cad8;
+  --season-field: #6c8798;
+  --season-action: #873d52;
+  --season-on-action: #ffffff;
+  --season-hover: #6e2f43;
+  --season-accent: #873d52;
+  --season-band: #e1edf4;
+  --season-band-deep: #d4e5ef;
+  --season-band-ink: #243e50;
+  --season-band-muted: #496477;
+  --season-highlight: #81521f;
+  --season-trim: #b89560;
   --season-error: #a2283d;
   --season-success: #175c43;
   --season-warning: #7b4614;
-  --season-base-hsl: 40 64.3% 94.5%;
-  --season-panel-hsl: 45 100% 98.4%;
-  --season-ink-hsl: 148.6 24.7% 16.7%;
-  --season-muted-hsl: 143.5 13.9% 32.4%;
-  --season-soft-hsl: 96.9 28.9% 91.2%;
-  --season-line-hsl: 100 13.9% 70.4%;
-  --season-field-hsl: 140 9.2% 44.9%;
-  --season-primary-hsl: 156.2 46.8% 24.3%;
-  --season-on-primary-hsl: 42 100% 96.1%;
-  --season-ring-hsl: 351 52.7% 39.8%;
-  --season-band-ink-hsl: 42 100% 96.1%;
-  --season-band-muted-hsl: 127.5 22.9% 86.3%;
-  --season-motif: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20228%20112%22%3E%3Cpath%20d%3D%22M160%2015v19m-60-19v44m99-44v37%22%20stroke%3D%22%23B98937%22%20stroke-width%3D%222%22%2F%3E%3Ccircle%20cx%3D%22160%22%20cy%3D%2257%22%20r%3D%2221%22%20fill%3D%22none%22%20stroke%3D%22%23A43545%22%20stroke-width%3D%223%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%2274%22%20r%3D%2215%22%20fill%3D%22none%22%20stroke%3D%22%23427251%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M199%2052v34m-17-17h34m-29-12%2024%2024m-24%200%2024-24%22%20stroke%3D%22%23B98937%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M147%2057h26m-21%207h16%22%20stroke%3D%22%23A43545%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E');
+  --season-shadow: rgba(46, 82, 106, 0.13);
+  --season-base-hsl: 201.8 64.7% 96.7%;
+  --season-panel-hsl: 0 0% 100%;
+  --season-ink-hsl: 204.5 37.9% 22.7%;
+  --season-muted-hsl: 204.8 24% 37.6%;
+  --season-soft-hsl: 200 53.8% 92.4%;
+  --season-line-hsl: 201.5 33.3% 77.1%;
+  --season-field-hsl: 203.2 17.6% 51%;
+  --season-primary-hsl: 343 37.8% 38.4%;
+  --season-on-primary-hsl: 0 0% 100%;
+  --season-ring-hsl: 343 37.8% 38.4%;
+  --season-band-ink-hsl: 204.5 37.9% 22.7%;
+  --season-band-muted-hsl: 204.8 24% 37.6%;
+  --season-motif:
+    radial-gradient(circle at 89% 28%, #fff 0 3px, transparent 4px),
+    radial-gradient(circle at 75% 66%, #b5d3e3 0 2px, transparent 3px);
 }
 
 :is(body:has([data-site-theme='summer']), [data-theme-sample='summer']) {
