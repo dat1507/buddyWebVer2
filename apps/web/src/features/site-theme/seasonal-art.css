@@ -1,0 +1,238 @@
+/* EN/DE variable subsets. Each preset requests only its heading and body faces. */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('./fonts/cinzel.woff2') format('woff2');
+  font-weight: 600 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('./fonts/playfairdisplay.woff2') format('woff2');
+  font-weight: 600 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Outfit';
+  src: url('./fonts/outfit.woff2') format('woff2');
+  font-weight: 600 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito Sans';
+  src: url('./fonts/nunitosans.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('./fonts/dmsans.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:is(body:has([data-site-theme='halloween']), [data-theme-sample='halloween']) {
+  --season-title: 'Cinzel', Georgia, serif;
+  --season-body: 'Nunito Sans', 'Poppins', sans-serif;
+  --season-title-weight: 700;
+  --season-title-tracking: -0.035em;
+  --season-hero-size: clamp(2.9rem, 4.9vw, 5.15rem);
+  --season-air:
+    radial-gradient(ellipse at 74% 18%, #3f2a52 0%, transparent 58%),
+    linear-gradient(160deg, #191325 35%, #24192f 100%);
+  --season-photo-shade: linear-gradient(180deg, #211632ce 0%, #2d1d4039 50%, #1b1428f5 100%);
+  --season-frame: #a97ec2;
+}
+:is(body:has([data-site-theme='christmas']), [data-theme-sample='christmas']) {
+  --season-title: 'Playfair Display', Georgia, serif;
+  --season-body: 'Nunito Sans', 'Poppins', sans-serif;
+  --season-title-weight: 700;
+  --season-title-tracking: -0.047em;
+  --season-hero-size: clamp(3rem, 5.25vw, 5.55rem);
+  --season-air:
+    radial-gradient(ellipse at 81% 20%, #f0dfbb 0%, transparent 55%),
+    linear-gradient(158deg, #faf4e8 35%, #e7ede0 100%);
+  --season-photo-shade: linear-gradient(180deg, #234439d0 0%, #314f2922 55%, #132f26f4 100%);
+  --season-frame: #b08a48;
+}
+:is(body:has([data-site-theme='summer']), [data-theme-sample='summer']) {
+  --season-title: 'Outfit', 'Poppins', sans-serif;
+  --season-body: 'DM Sans', 'Poppins', sans-serif;
+  --season-title-weight: 800;
+  --season-title-tracking: -0.052em;
+  --season-hero-size: clamp(3rem, 5.45vw, 5.6rem);
+  --season-air:
+    radial-gradient(ellipse at 88% 0%, #ffecad 0%, transparent 44%),
+    linear-gradient(145deg, #effaff 35%, #dceff2 100%);
+  --season-photo-shade: linear-gradient(180deg, #14607877 0%, #78c8ca13 48%, #0a374df2 100%);
+  --season-frame: #4f989b;
+}
+
+body:has([data-site-theme]),
+.theme-sample:is(
+  [data-theme-sample='halloween'],
+  [data-theme-sample='christmas'],
+  [data-theme-sample='summer']
+) {
+  font-family: var(--season-body);
+}
+body:has([data-site-theme]) :is(h1, h2),
+.theme-sample:is(
+    [data-theme-sample='halloween'],
+    [data-theme-sample='christmas'],
+    [data-theme-sample='summer']
+  )
+  .theme-sample-title {
+  font-family: var(--season-title);
+  font-weight: var(--season-title-weight);
+  letter-spacing: var(--season-title-tracking);
+}
+/* Dense cards, controls and assistant messages use the body face. */
+body:has([data-site-theme]) :is(.chatbot-header, [role='dialog'], [role='alertdialog']) h2 {
+  font-family: var(--season-body);
+  letter-spacing: -0.015em;
+}
+
+body:has([data-site-theme]) .landing-hero {
+  background-image: var(--season-air);
+}
+body:has([data-site-theme]) .landing-hero h1 {
+  font-size: var(--season-hero-size);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+body:has([data-site-theme]) .landing-hero-copy > .landing-eyebrow {
+  margin-bottom: 20px;
+}
+body:has([data-site-theme]) .landing-hero-copy > .landing-eyebrow::after {
+  content: '';
+  width: min(4rem, 12%);
+  height: 1px;
+  background: currentColor;
+  opacity: 0.62;
+}
+body:has([data-site-theme]) .landing-campus-photo {
+  box-shadow:
+    0 0 0 1px var(--season-frame),
+    0 0 0 7px color-mix(in srgb, var(--season-frame) 17%, transparent),
+    0 24px 56px var(--season-shadow);
+}
+body:has([data-site-theme]) .landing-photo-shade {
+  inset: 0;
+  background: var(--season-photo-shade);
+}
+body:has([data-site-theme]) .landing-photo-caption {
+  z-index: 2;
+}
+body:has([data-site-theme]) .landing-photo-caption p {
+  font-family: var(--season-title);
+  letter-spacing: var(--season-title-tracking);
+}
+body:has([data-site-theme]) :is(.landing-hello, .landing-campus-tag) {
+  z-index: 3;
+}
+body:has([data-site-theme]) .landing-ribbon {
+  border-block-color: var(--season-frame);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--season-trim) 13%, transparent),
+    transparent
+  );
+}
+body:has([data-site-theme]) .community-auth > div:not([aria-hidden]) {
+  border-top: 3px solid var(--season-frame);
+}
+body:has([data-site-theme]) .dashboard-welcome {
+  border-inline-start: 3px solid var(--season-highlight);
+}
+
+.season-scene {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+.season-scene[data-scene-placement='hero'] {
+  z-index: 1;
+  inset: 0;
+}
+.theme-sample:has(.season-scene) .theme-sample-content {
+  position: relative;
+  overflow: hidden;
+  background: var(--season-air);
+}
+.theme-sample:has(.season-scene) .theme-sample-content > div {
+  position: relative;
+}
+.season-scene[data-scene-placement='sample'] {
+  inset: 0 0 0 auto;
+  width: 43%;
+  opacity: 0.63;
+}
+
+@media (max-width: 767px) {
+  body:has([data-site-theme]) .landing-hero h1 {
+    font-size: clamp(2.25rem, 9.75vw, 4rem);
+  }
+  .season-scene-detail {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .season-scene[data-scene-placement='sample'] {
+    width: 33%;
+    opacity: 0.32;
+  }
+}
+
+/* Static first. Motion is confined to the hero and shares its existing pause button. */
+@media (prefers-reduced-motion: no-preference) {
+  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-flight {
+    animation: seasonal-flight 13s ease-in-out infinite;
+  }
+  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-twinkle {
+    animation: seasonal-glimmer 7s ease-in-out infinite;
+  }
+  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-snow {
+    animation: seasonal-snow 12s ease-in-out infinite;
+  }
+  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-clouds {
+    animation: seasonal-clouds 18s ease-in-out infinite;
+  }
+  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-surf {
+    animation: seasonal-surf 10s ease-in-out infinite;
+  }
+}
+@keyframes seasonal-flight {
+  50% {
+    transform: translate(28px, -12px);
+  }
+}
+@keyframes seasonal-glimmer {
+  50% {
+    opacity: 0.58;
+  }
+}
+@keyframes seasonal-snow {
+  0%,
+  100% {
+    transform: translateY(-12px);
+    opacity: 0.42;
+  }
+  50% {
+    transform: translateY(34px);
+    opacity: 0.92;
+  }
+}
+@keyframes seasonal-clouds {
+  50% {
+    transform: translateX(26px);
+  }
+}
+@keyframes seasonal-surf {
+  50% {
+    transform: translate(11px, -8px);
+  }
+}

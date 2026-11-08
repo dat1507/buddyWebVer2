@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { SeasonalScene } from '@/features/site-theme/seasonal-scene'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   publicThemeKey,
@@ -30,6 +31,7 @@ function ThemeSample({ theme, screen }: { theme: ThemeId; screen: PreviewId }) {
         <span>{t('siteTheme.sample.' + screen)}</span>
       </div>
       <div className="theme-sample-content">
+        {theme !== 'default' && <SeasonalScene theme={theme} placement="sample" />}
         <div>
           <p className="theme-sample-kicker">{t('siteTheme.sample.kicker')}</p>
           <p className="theme-sample-title">{t('siteTheme.sample.' + screen + 'Title')}</p>

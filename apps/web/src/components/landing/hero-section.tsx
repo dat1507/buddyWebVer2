@@ -5,11 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import { HeroBackgroundSlideshow } from '@/components/landing/hero-background-slideshow'
 import { Button } from '@/components/ui/button'
+import { SeasonalScene } from '@/features/site-theme/seasonal-scene'
+import { useSiteTheme } from '@/features/site-theme/site-theme'
 import { Typography } from '@/components/ui/typography'
 
 function HeroSection() {
   const { t } = useTranslation()
   const { paused, toggle } = useContext(LandingMotionContext)
+  const theme = useSiteTheme()
   return (
     <section id="home" className="landing-hero" aria-labelledby="hero-title">
       <div className="landing-shell landing-hero-grid">
@@ -59,6 +62,7 @@ function HeroSection() {
           <div className="landing-campus-photo">
             <HeroBackgroundSlideshow />
             <div className="landing-photo-shade" aria-hidden="true" />
+            {theme && <SeasonalScene theme={theme} paused={paused} />}
             <div className="landing-photo-caption">
               <span className="landing-eyebrow">VIETNAMESE–GERMAN UNIVERSITY</span>
               <p>{t('landingRedesign.photoCaption')}</p>

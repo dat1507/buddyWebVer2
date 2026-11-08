@@ -155,6 +155,11 @@ it('previews without writing, confirms publication and allows restoring Default'
     'data-theme-sample',
     'summer',
   )
+  expect(document.querySelector('[data-seasonal-scene=summer]')).toHaveAttribute(
+    'data-scene-placement',
+    'sample',
+  )
+  expect(document.querySelector('[data-site-theme]')).toBeNull()
   expect(publish).not.toHaveBeenCalled()
   for (const preset of ['summer', 'default']) {
     if (preset === 'default')

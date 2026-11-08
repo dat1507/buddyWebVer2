@@ -9,6 +9,7 @@ import './i18n'
 import './index.css'
 import './styles/community.css'
 import './features/site-theme/seasonal-theme.css'
+import './features/site-theme/seasonal-art.css'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
