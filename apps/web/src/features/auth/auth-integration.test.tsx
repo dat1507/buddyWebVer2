@@ -14,6 +14,7 @@ import { EventDetailPage } from '@/pages/public/event-detail-page'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { completeOwnProfile } from '@/test/profile'
+import { stubFetchWithDefaultTheme } from '@/test/site-theme'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -69,7 +70,7 @@ describe('AUTH-021 actual forms + client + Zustand', () => {
     })
 
     fetch = vi.fn<typeof globalThis.fetch>()
-    vi.stubGlobal('fetch', fetch)
+    stubFetchWithDefaultTheme(fetch)
   })
   afterEach(async () => {
     cleanup()

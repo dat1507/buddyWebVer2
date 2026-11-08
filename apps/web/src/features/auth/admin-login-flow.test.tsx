@@ -10,6 +10,7 @@ import { SessionBootstrap } from '@/features/auth/session-controls'
 import i18n from '@/i18n'
 import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { stubFetchWithDefaultTheme } from '@/test/site-theme'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -48,7 +49,7 @@ describe('AUTH-023 actual Admin login + client + guarded routing', () => {
     useAuthStore.getState().resetSession()
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
-    vi.stubGlobal('fetch', fetch)
+    stubFetchWithDefaultTheme(fetch)
   })
   afterEach(async () => {
     cleanup()

@@ -13,6 +13,7 @@ import { queryClient } from '@/lib/query-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { completeProfileCompletion } from '@/test/profile-completion'
 import { completeOwnProfile, completeProfilePreferences } from '@/test/profile'
+import { stubFetchWithDefaultTheme } from '@/test/site-theme'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -65,7 +66,7 @@ describe('AUTH-005 App routes + AUTH-021 bootstrap/logout', () => {
 
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
-    vi.stubGlobal('fetch', fetch)
+    stubFetchWithDefaultTheme(fetch)
   })
   afterEach(async () => {
     cleanup()

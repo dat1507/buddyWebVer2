@@ -14,6 +14,7 @@ import { currentBuddyList } from '@/test/current-buddies'
 import { completeOwnProfile } from '@/test/profile'
 import { incomingInvitationList, sentInvitationList } from '@/test/invitations'
 import { recommendationList } from '@/test/recommendations'
+import { stubFetchWithDefaultTheme } from '@/test/site-theme'
 
 const user = {
   id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -87,7 +88,7 @@ describe('FE-038 profile readiness routing', () => {
     })
     vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api')
     fetch = vi.fn<typeof globalThis.fetch>()
-    vi.stubGlobal('fetch', fetch)
+    stubFetchWithDefaultTheme(fetch)
   })
 
   afterEach(async () => {
