@@ -19,6 +19,33 @@ The UI/UX Pro Max skill guided contrast, semantic color pairs, visible focus, re
 
 Changed areas include the site theme client/boundary/CSS, public and User layouts, Admin Settings and EN/DE catalogs, site theme API/migration, Audit Log classification and the loopback review script.
 
+## Phase 2 · Seasonal visual redesign
+
+The frontend redesign is committed locally as `6a7381bbf5d39f46d529c29a1c3360e4489bd406`, directly after the Phase 1 implementation `f11bf6f041aec77d0ace688a35c6083a2a3bd283`. Owner visual acceptance remains open.
+
+| Preset | Typography | Landing illustration and motion |
+| --- | --- | --- |
+| Halloween | Cinzel headings and Nunito Sans body | Violet moonlight, pumpkin orange, a crescent, a web and pumpkins. Bats drift and stars glow. |
+| Christmas | Playfair Display headings and Nunito Sans body | Cream, evergreen, cranberry and gold. Pine, hanging lights, ornaments and a gift frame the campus photo, with sparse falling snow and slowly dimming lights. |
+| Summer | Outfit headings and DM Sans body | Sky blue, turquoise and warm sunlight. A sun and tropical leaves frame drifting clouds and moving surf. |
+| Default | Existing Poppins and styling | The seasonal illustration and tokens are absent. The original campus slideshow and controls remain available. |
+
+`seasonal-art.css` adds scoped heading and body font, weight and tracking tokens, plus the hero frame, gradient and subtle Login/Register and Dashboard details. Small headings, controls, dialogs and the assistant use the body face. The five locally hosted Latin variable WOFF2 files total about 161 KiB. Each seasonal preset uses two faces and has system fallbacks with `font-display: swap`. Individual SIL Open Font License files are alongside the fonts. [Google Fonts licensing guidance](https://googlefonts.github.io/gf-guide/onboarding.html).
+
+`SeasonalScene` draws the illustrations in one lightweight SVG per Landing hero or Admin preview. Desktop uses at most two independently animated groups per preset. Mobile removes secondary details. The illustrations ignore pointer events and are hidden from assistive technology. Only the Landing illustration animates. The system reduced-motion preference and the existing **Pause page animations** control both stop the seasonal movement. Admin Settings shows the static illustration and type inside its sample only. Admin Login retains Poppins.
+
+The exact `ui-ux-pro` skill was unavailable. The installed `ui-ux-pro-max` supplied the typography, responsive design, contrast and motion guidance.
+
+### Phase 2 review and verification
+
+- Use the startup commands and four links below. Pick a preset on Landing and watch the campus photo for 7–18 seconds, then toggle **Pause page animations**. Try the operating system's reduced-motion setting for the static version.
+- In the same tab, visit `/login` or `/register` while signed out. Sign in with the disposable review user for `/user/dashboard` and `/user/settings`. Open **VGU Buddy Assistant** from the dashboard. Use `?theme-preview=live` to clear the preview and see the locally published theme.
+- 71 focused frontend tests in six files passed. TypeScript, affected ESLint and Prettier checks, Vite production build and preview marker exclusion passed. The existing large-bundle advisory remains.
+- Chromium confirmed animated properties changed over time in each seasonal hero, no seasonal animation ran under reduced motion, and the page pause stopped Halloween's illustration. The four presets loaded on Landing, Login, Register and signed-in Dashboard. Landing and auth had no horizontal overflow at 320px or 390px. Dashboard was checked at desktop and 390px. The Christmas Landing rendered German copy. A Summer preview persisted through navigation to User Settings. The Summer assistant replied and Escape restored focus to its opener.
+- A matching screenshot comparison against the approved Phase 1 source found pixel-identical 390px Landing, Login and Dashboard crops, plus desktop Login. Desktop differences were confined to the rotating campus photo and the rasterization of the EN badge in the Dashboard sidebar. Default CSS and the existing slideshow were preserved.
+- Admin Login and the Admin Settings shell retained Poppins. The selected Christmas sample used Playfair Display without animation. The synthetic local API published Christmas, served it to the live public view, then published and served Default again. Preview links did not change the published value.
+- New browser coverage used Chromium emulation. Physical devices, other browser engines, and full Matching, Invitations, Conversations and Events workflows were not exercised. The Phase 1 backend gates remain the relevant evidence for the unchanged backend.
+
 ## Run the local review
 
 Run from the Task 05 worktree. The two Docker commands create dedicated loopback-only services. Skip them if the named review containers are already running. The database and review accounts are disposable. The API script sets its database and Redis URLs explicitly and binds to loopback.
