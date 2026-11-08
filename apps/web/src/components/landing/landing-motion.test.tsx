@@ -54,7 +54,7 @@ describe('Landing motion control', () => {
     expect(track).toHaveAttribute('data-slide-index', '2')
   })
 
-  it.each(['halloween', 'christmas', 'summer'] as const)(
+  it.each(['halloween', 'summer'] as const)(
     'keeps the %s illustration decorative and connected to the existing pause control',
     (theme) => {
       const { container } = render(<Review theme={theme} />)
@@ -69,6 +69,18 @@ describe('Landing motion control', () => {
       expect(scene).not.toHaveAttribute('data-motion-paused')
     },
   )
+
+  it('pauses Christmas snowfall and lights without rendering the old illustration', () => {
+    const { container } = render(<Review theme="christmas" />)
+    const effects = container.querySelector('.christmas-landing-effects')
+    expect(effects).toHaveAttribute('aria-hidden', 'true')
+    expect(container.querySelector('[data-seasonal-scene]')).toBeNull()
+    expect(effects).not.toHaveAttribute('data-paused')
+    fireEvent.click(screen.getByRole('button', { name: 'Pause page animations' }))
+    expect(effects).toHaveAttribute('data-paused', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Resume page animations' }))
+    expect(effects).not.toHaveAttribute('data-paused')
+  })
 
   it('localizes the control and announces its pressed state in German', async () => {
     await i18n.changeLanguage('de')

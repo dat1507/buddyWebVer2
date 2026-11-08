@@ -1,3 +1,10 @@
+## ADMIN-CHRISTMAS-REDESIGN-001 - Landing refinement
+
+17 focused Landing/motion tests, TypeScript, affected lint/format and Vite build PASS.
+EN/DE1440/390/320, snow/light pause, reduced motion and mobile navigation PASS.
+Other presets do not mount Christmas effects. Prior unrelated evidence reused.
+[Revision record](../project-knowledge/frontend/CHRISTMAS_REDESIGN_2026-11-08.md).
+
 ## ADMIN-CHRISTMAS-REDESIGN-001 - 2026-11-08 local completion
 
 63 focused frontend tests, TypeScript, affected ESLint, Prettier and build PASS;

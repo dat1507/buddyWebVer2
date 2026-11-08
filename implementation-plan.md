@@ -1,3 +1,12 @@
+## 2026-11-08 - Christmas Landing refinement local review
+
+TASK_ID: ADMIN-CHRISTMAS-REDESIGN-001. Local refinement replaces the Landing illustrated
+panel with sparse falling snow and green/red/yellow navbar lights. Original Hero
+proportions restored; winter colors/type retained. EN/DE1440/390/320, pause/reduced motion,
+mobile navigation PASS. Existing feature branch preserved; owner visual acceptance pending.
+[Revision evidence](docs/project-knowledge/frontend/CHRISTMAS_REDESIGN_2026-11-08.md).
+No push/merge/deploy/Production change. Preview localhost:5235/?theme-preview=christmas.
+
 ## 2026-11-08 - Christmas redesign locally complete; owner review pending
 
 TASK_ID: ADMIN-CHRISTMAS-REDESIGN-001. LOCAL COMPLETE / OWNER VISUAL ACCEPTANCE OPEN.

@@ -7,6 +7,7 @@ import { HeroBackgroundSlideshow } from '@/components/landing/hero-background-sl
 import { Button } from '@/components/ui/button'
 import { SeasonalScene } from '@/features/site-theme/seasonal-scene'
 import { useSiteTheme } from '@/features/site-theme/site-theme'
+import { ChristmasLandingEffects } from '@/features/site-theme/christmas-landing-effects'
 import { Typography } from '@/components/ui/typography'
 
 function HeroSection() {
@@ -15,6 +16,7 @@ function HeroSection() {
   const theme = useSiteTheme()
   return (
     <section id="home" className="landing-hero" aria-labelledby="hero-title">
+      {theme === 'christmas' && <ChristmasLandingEffects paused={paused} />}
       <div className="landing-shell landing-hero-grid">
         <div className="landing-hero-copy">
           <p className="landing-eyebrow">
@@ -68,7 +70,6 @@ function HeroSection() {
               <p>{t('landingRedesign.photoCaption')}</p>
             </div>
           </div>
-          {theme === 'christmas' && <SeasonalScene theme={theme} paused={paused} />}
           <div className="landing-hello">
             <Sparkles aria-hidden="true" className="size-6" />
             <span>{t('landingRedesign.hello')}</span>
