@@ -81,28 +81,43 @@ function Summer() {
           opacity=".74"
         />
       </g>
-      <g className="season-scene-surf">
-        <path d="M-32 494q112-63 234-10t236-6 238-18v118H-32Z" fill="#2cb4bc" opacity=".62" />
+      <g className="summer-swell summer-swell-back">
         <path
-          d="M-32 510q110-51 238-5t228-9 242-20"
-          fill="none"
-          stroke="#b7f1e8"
-          strokeWidth="3"
-          opacity=".84"
+          d="M-240 492q60-44 120 0t120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0V620H-240Z"
+          fill="#197c8b"
+          opacity=".94"
         />
-        <path d="M-32 529q119-47 240-5t224-8 244-22v84H-32Z" fill="#0d7791" opacity=".78" />
+        <path
+          d="M-240 492q60-44 120 0t120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0"
+          fill="none"
+          stroke="#d9fbef"
+          strokeWidth="2"
+          opacity=".48"
+        />
       </g>
-      <g
-        transform="translate(604 461)"
-        fill="#298f81"
-        stroke="#b0e5b3"
-        strokeWidth="1.1"
-        strokeLinejoin="round"
-      >
-        <path d="M0 0q-57-9-65-72 51 6 65 72Z" />
-        <path d="M0 0q-14-56 14-98 26 42-14 98Z" fill="#52ad85" />
-        <path d="M0 0q20-48 50-58-1 40-50 58Z" fill="#319f94" />
-        <path d="M0 0q-29-21-51-56m51 56q13-31 14-82M0 0q26-16 40-42" fill="none" />
+      <g className="summer-swell summer-swell-front">
+        <path
+          d="M-240 540q60-25 120 0t120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0 120 0V620H-240Z"
+          fill="#075b81"
+        />
+      </g>
+      {/* A board and coconuts share a small sandy shelf at the photo edge. */}
+      <path d="M510 448q67-23 130-10v49q-55 1-130-39Z" fill="#f4d9a1" />
+      <g transform="translate(575 383) rotate(22)">
+        <path
+          d="M0-68C28-43 26 46 0 65-26 46-28-43 0-68Z"
+          fill="#f78c75"
+          stroke="#fff0cf"
+          strokeWidth="3"
+        />
+        <path d="M-18-24h36m-37 12h38" fill="none" stroke="#fff0cf" strokeWidth="5" />
+        <path d="M0-58v111" fill="none" stroke="#913d3b" strokeWidth="1.5" opacity=".65" />
+      </g>
+      <g transform="translate(611 446)">
+        <ellipse cx="-13" cy="-1" rx="17" ry="13" fill="#9a5e3b" transform="rotate(-17)" />
+        <ellipse cx="9" cy="4" rx="16" ry="11" fill="#a66b44" />
+        <ellipse cx="9" cy="1" rx="12" ry="7" fill="#fff1d3" />
+        <path d="m8 0 5-17 7-2" fill="none" stroke="#337a6c" strokeWidth="2" />
       </g>
     </>
   )

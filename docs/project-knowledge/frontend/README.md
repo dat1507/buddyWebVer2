@@ -1,3 +1,5 @@
+- [Summer Surf & Beach Holiday - local review](SUMMER_REDESIGN_2026-11-09.md)
+
 - [Christmas Snowy & Cozy Wonderland - local review](CHRISTMAS_REDESIGN_2026-11-08.md)
 
 - [Seasonal Theme Management and local preview](../../implementation/tasks/ADMIN-SEASONAL-THEME-001.md)

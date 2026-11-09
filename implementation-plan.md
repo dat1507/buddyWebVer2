@@ -1,3 +1,13 @@
+## 2026-11-09 - Summer local candidate ready for owner visual review
+
+TASK_ID: ADMIN-SUMMER-REDESIGN-001. Local only on codex/summer-theme-redesign from
+verified Production a4fff542154a38257b160684fb9dd8982bda8716. Existing campus-photo
+layout, coastal palette and clipped wave effects. [Task](docs/implementation/tasks/ADMIN-SUMMER-REDESIGN-001.md)
+and [review](docs/project-knowledge/frontend/SUMMER_REDESIGN_2026-11-09.md).
+Christmas closure and Render assessment are tracked separately in local docs commit
+82a60908cc5edaa57faced50ba1e878fa678b93d. 05C and 06 planned, backup open.
+No push/merge/deploy. Await owner visual acceptance.
+
 ## 2026-11-08 - Christmas Landing refinement local review
 
 TASK_ID: ADMIN-CHRISTMAS-REDESIGN-001. Local refinement replaces the Landing illustrated

@@ -62,7 +62,7 @@
   --season-hero-size: clamp(3rem, 5.45vw, 5.6rem);
   --season-air:
     radial-gradient(ellipse at 88% 0%, #ffecad 0%, transparent 44%),
-    linear-gradient(145deg, #effaff 35%, #dceff2 100%);
+    linear-gradient(145deg, #f8fcf8 30%, #d8f2f0 72%, #f6e4c2 100%);
   --season-photo-shade: linear-gradient(180deg, #14607877 0%, #78c8ca13 48%, #0a374df2 100%);
   --season-frame: #4f989b;
 }
@@ -201,9 +201,6 @@ body:has([data-site-theme]) .dashboard-welcome {
   .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-clouds {
     animation: seasonal-clouds 18s ease-in-out infinite;
   }
-  .season-scene[data-scene-placement='hero']:not([data-motion-paused]) .season-scene-surf {
-    animation: seasonal-surf 10s ease-in-out infinite;
-  }
 }
 @keyframes seasonal-flight {
   50% {
@@ -229,11 +226,6 @@ body:has([data-site-theme]) .dashboard-welcome {
 @keyframes seasonal-clouds {
   50% {
     transform: translateX(26px);
-  }
-}
-@keyframes seasonal-surf {
-  50% {
-    transform: translate(11px, -8px);
   }
 }
 
@@ -307,4 +299,37 @@ body:has([data-site-theme]) .dashboard-welcome {
 }
 body:has([data-site-theme='christmas']) .landing-hero {
   background-size: cover;
+}
+
+/* Summer keeps the photo and reserves all layout space before motion starts. */
+body:has([data-site-theme='summer']) .landing-hero {
+  background-size: cover;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .summer-swell {
+    animation: summer-swell-travel 13s linear infinite;
+  }
+
+  .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .summer-swell-front {
+    animation-duration: 19s;
+    animation-direction: reverse;
+  }
+
+  .season-scene[data-seasonal-scene='summer'][data-motion-paused] .summer-swell {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes summer-swell-travel {
+  to {
+    transform: translateX(240px);
+  }
+}
+
+@media (max-width: 767px) {
+  .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .summer-swell-front,
+  .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .season-scene-clouds {
+    animation: none;
+  }
 }

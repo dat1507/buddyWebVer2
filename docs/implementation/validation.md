@@ -1,3 +1,7 @@
+## ADMIN-SUMMER-REDESIGN-001 - 2026-11-09 local verification
+
+23 focused tests, type/lint/format/build, EN/DE 1440/390/320, pause/reduced motion and six protected Hero comparisons passed. Protected UI fixture only. [Evidence](../project-knowledge/frontend/SUMMER_REDESIGN_2026-11-09.md).
+
 ## ADMIN-CHRISTMAS-REDESIGN-001 - Landing refinement
 
 17 focused Landing/motion tests, TypeScript, affected lint/format and Vite build PASS.

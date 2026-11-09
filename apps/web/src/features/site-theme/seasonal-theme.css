@@ -77,12 +77,12 @@
 }
 
 :is(body:has([data-site-theme='summer']), [data-theme-sample='summer']) {
-  --season-paper: #effaff;
-  --season-panel: #fcfeff;
+  --season-paper: #f1fbf8;
+  --season-panel: #fffdf7;
   --season-ink: #122d44;
   --season-quiet: #3f6073;
-  --season-soft: #dff2f1;
-  --season-line: #a2c5cc;
+  --season-soft: #e3f4ef;
+  --season-line: #aacbc9;
   --season-field: #557b89;
   --season-action: #075b81;
   --season-on-action: #ffffff;
@@ -93,17 +93,17 @@
   --season-band-ink: #f2fbff;
   --season-band-muted: #cde7ef;
   --season-highlight: #ffe082;
-  --season-trim: #c48a23;
+  --season-trim: #d58b71;
   --season-shadow: rgba(15, 65, 89, 0.16);
   --season-error: #a2283d;
   --season-success: #14644e;
   --season-warning: #795014;
-  --season-base-hsl: 198.8 100% 96.9%;
-  --season-panel-hsl: 200 100% 99.4%;
+  --season-base-hsl: 162 55.6% 96.5%;
+  --season-panel-hsl: 45 100% 98.4%;
   --season-ink-hsl: 207.6 58.1% 16.9%;
   --season-muted-hsl: 201.9 29.2% 34.9%;
-  --season-soft-hsl: 176.8 42.2% 91.2%;
-  --season-line-hsl: 190 29.2% 71.8%;
+  --season-soft-hsl: 162.4 43.6% 92.4%;
+  --season-line-hsl: 176.4 24.1% 73.1%;
   --season-field-hsl: 196.2 23.4% 43.5%;
   --season-primary-hsl: 198.7 89.7% 26.7%;
   --season-on-primary-hsl: 0 0% 100%;
