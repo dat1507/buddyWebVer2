@@ -1,3 +1,11 @@
+## 2026-11-09 - Tết Navbar refinement ready for local review
+
+TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Existing codex/vietnamese-tet-theme retained.
+Sticky Tết-only fireworks tested at 1440/390/320, with pause and reduced motion.
+40 focused tests, lint/format and build passed. Scroll effects remain proposals.
+[Review and proposals](docs/project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+Local preview http://127.0.0.1:5242/?theme-preview=tet. Owner approval pending.
+
 ## 2026-11-09 - Vietnamese Tết locally verified
 
 TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Isolated codex/vietnamese-tet-theme from

@@ -86,3 +86,47 @@ available in the new frontend. An older API cannot deserialize a stored tet valu
 Any later application rollback to that API must first ensure an earlier preset
 through the authorized workflow. The migration is forward-only. Keep the published
 Production theme under the owner's control.
+
+
+## 2026-11-09 - Navbar fireworks refinement
+
+The public Tết Navbar has a dotted gold trail, warm red and gold ray clusters and
+small particles. The strip sits within the bottom edge of the sticky header,
+using the existing space below the controls. It takes no layout space, is
+pointer-transparent and aria-hidden, and contains eleven bursts on desktop and
+five on mobile. A staggered CSS opacity/scale cycle animates on Landing. The
+existing Landing pause state freezes the current frame. Reduced motion and
+other public routes show a static strip. No scroll tracking or React animation
+loop. The existing Tết artwork, palette and photo composition are preserved.
+
+40 focused Navbar/Landing/motion/theme tests passed. TypeScript, affected
+ESLint, Prettier and Vite build passed. The existing bundle advisory remains.
+Chromium at 1440, 390 and 320 px verified sticky placement, no horizontal
+overflow, clear controls, desktop language/sign-in controls, mobile menu Escape,
+Pause/Resume, static reduced motion and static Login. The strip is absent from
+Default, Halloween, Christmas and Summer. Eight Navbar captures matched the
+previous baseline pixel-for-pixel at 1440 and 390 px. Local public API still
+reported stored Default. Browser probes used intercepted
+anonymous API responses. Backend and migration checks from the initial
+implementation were reused. No publish requests or Production changes.
+
+Review: http://127.0.0.1:5242/?theme-preview=tet
+Local captures in .local/review/fireworks: navbar-1440.png, navbar-390.png and
+navbar-fireworks.gif. Scroll with the menu closed, open the mobile menu and
+try Escape, then test Pause/Resume and system reduced motion.
+
+### Scroll effects for owner approval
+
+These options are proposals. The current refinement contains only the Navbar strip.
+
+| Option | Visual fit and impact | Cost and placement | Responsive and accessibility |
+| --- | --- | --- | --- |
+| A. Floating blossom petals | Strong continuity with hoa mai and hoa đào. Light movement between sections. | Low with a handful of transformed SVG petals. Clip to selected section edges. Optional shallow scroll response on desktop. | Keep petals in gutters and away from text. Reduce count or use a static accent on mobile. |
+| B. Floating lucky envelopes | Recognizable Tết symbol, but repeated envelopes would compete with the Hero ornament. | Low rendering cost, higher collision risk. Prefer one section-scoped ornament. Fixed edges would compete with controls. | Keep out of the CTA, chatbot and menu zones. Static on mobile if used. |
+| C. Golden cloud parallax | Calm, traditional texture that pairs with the gold trim. | Low as a static SVG. Parallax adds coordination and a larger moving area. Scope to a section background. | Keep the contrast low around reading areas and use static clouds on mobile and reduced motion. |
+| D. Firework sparkles | Links section transitions to the Navbar motif. Best as a tiny, brief accent. | Low with a single entry trigger per selected section and opacity/scale only. Avoid repeated triggers. | Keep away from copy and controls. Skip when reduced motion or Pause is active. |
+
+Recommendation: start with A and use D sparingly on desktop at one or two
+section entrances. Give each visible area one moving accent at a time, with
+static accents for mobile or reduced motion. Keep C available as a static
+alternative and reserve envelopes for the Hero. Avoid fixed viewport overlays.

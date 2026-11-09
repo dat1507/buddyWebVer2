@@ -1,0 +1,74 @@
+.tet-navbar-fireworks {
+  position: absolute;
+  inset: auto 0 0;
+  height: 16px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  color: #a87332;
+  background: linear-gradient(90deg, transparent, rgb(234 179 100 / 13%), transparent);
+}
+
+.tet-firework-trail,
+.tet-firework-row {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tet-firework-trail {
+  opacity: 0.55;
+}
+
+.tet-firework-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-inline: auto;
+  max-width: 1440px;
+}
+
+.tet-firework-cluster {
+  width: auto;
+  height: 100%;
+  overflow: visible;
+}
+
+.tet-firework-cluster:nth-child(3n + 2) {
+  color: #b64d5b;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-layout='public']:has(.landing-page) .tet-firework-cluster {
+    animation: tet-firework-glow 6.8s ease-in-out infinite;
+  }
+
+  [data-layout='public']:has(.landing-page[data-motion-paused]) .tet-firework-cluster {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes tet-firework-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 767px) {
+  .tet-navbar-fireworks {
+    height: 12px;
+  }
+
+  .tet-firework-cluster:nth-child(even),
+  .tet-firework-cluster:last-child {
+    display: none;
+  }
+}

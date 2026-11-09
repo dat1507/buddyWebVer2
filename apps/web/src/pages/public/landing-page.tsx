@@ -32,7 +32,7 @@ function LandingPage() {
 
   return (
     <LandingMotionContext value={{ paused, toggle: () => setPaused((previous) => !previous) }}>
-      <main className="landing-page">
+      <main className="landing-page" data-motion-paused={paused || undefined}>
         {state?.authNotice === 'adminDenied' ? (
           <p
             role="alert"

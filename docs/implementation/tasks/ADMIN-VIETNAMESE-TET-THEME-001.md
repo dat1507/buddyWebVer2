@@ -20,3 +20,12 @@ test_site_theme_live, test_migrations and migration-head Recap cases.
 
 [Design, verification, and owner review](../../project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
 Local implementation, disposable test database and local commit only.
+
+
+## Navbar refinement - 2026-11-09
+
+Owner requested the Tết-only sticky Navbar fireworks strip before local acceptance.
+Implemented decorative ray clusters and sparkles with existing Landing pause and
+static reduced motion. The four scroll effects are evaluated in Project Knowledge
+and await separate approval. Frontend-only verification passed (40 focused tests).
+Previous implementation commit d87ec0d860571bbcba776281d7df23a84061012a is retained.

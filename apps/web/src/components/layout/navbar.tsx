@@ -10,6 +10,8 @@ import { LanguageToggle } from '@/components/layout/language-toggle'
 import { Button } from '@/components/ui/button'
 import { UnreadBadge } from '@/components/ui/unread-badge'
 import { useBuddyUnread } from '@/features/chat/buddy-unread-state'
+import { useSiteTheme } from '@/features/site-theme/site-theme'
+import { TetNavbarFireworks } from '@/features/site-theme/tet-navbar-fireworks'
 import { useModalIsolation } from '@/hooks/use-modal-isolation'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -25,6 +27,7 @@ const navItems = [
 const survivalBookPath = '/documents/vgu-buddy-survival-book.pdf'
 
 function Navbar() {
+  const theme = useSiteTheme()
   const { t } = useTranslation()
   const { pathname, hash } = useLocation()
   const [activeHash, setActiveHash] = useState(hash || '#home')
@@ -363,6 +366,7 @@ function Navbar() {
           </aside>
         </div>
       ) : null}
+      {theme === 'tet' && <TetNavbarFireworks />}
     </header>
   )
 }
