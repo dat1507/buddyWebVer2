@@ -67,11 +67,25 @@
   --season-frame: #4f989b;
 }
 
+:is(body:has([data-site-theme='tet']), [data-theme-sample='tet']) {
+  --season-title: Georgia, 'Times New Roman', serif;
+  --season-body: 'Segoe UI', Arial, sans-serif;
+  --season-title-weight: 700;
+  --season-title-tracking: -0.035em;
+  --season-hero-size: clamp(3rem, 5.25vw, 5.5rem);
+  --season-air:
+    radial-gradient(ellipse at 88% 0%, #f9deb0 0%, transparent 50%),
+    linear-gradient(145deg, #fff9ef 34%, #fae9e4 100%);
+  --season-photo-shade: linear-gradient(180deg, #5b263943 0%, #5b263912 42%, #412132ee 100%);
+  --season-frame: #bc8450;
+}
+
 body:has([data-site-theme]),
 .theme-sample:is(
   [data-theme-sample='halloween'],
   [data-theme-sample='christmas'],
-  [data-theme-sample='summer']
+  [data-theme-sample='summer'],
+  [data-theme-sample='tet']
 ) {
   font-family: var(--season-body);
 }
@@ -79,7 +93,8 @@ body:has([data-site-theme]) :is(h1, h2),
 .theme-sample:is(
     [data-theme-sample='halloween'],
     [data-theme-sample='christmas'],
-    [data-theme-sample='summer']
+    [data-theme-sample='summer'],
+    [data-theme-sample='tet']
   )
   .theme-sample-title {
   font-family: var(--season-title);
@@ -331,5 +346,58 @@ body:has([data-site-theme='summer']) .landing-hero {
   .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .summer-swell-front,
   .season-scene[data-seasonal-scene='summer'][data-scene-placement='hero'] .season-scene-clouds {
     animation: none;
+  }
+}
+
+body:has([data-site-theme='tet']) .landing-hero {
+  background-size: cover;
+}
+
+.tet-envelope {
+  transform-box: fill-box;
+  transform-origin: center top;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .season-scene[data-seasonal-scene='tet'][data-scene-placement='hero'] .tet-petal {
+    animation: tet-petal-fall var(--petal-duration) var(--petal-delay) linear infinite;
+  }
+
+  .season-scene[data-seasonal-scene='tet'][data-scene-placement='hero'] .tet-envelope {
+    animation: tet-envelope-sway 5s ease-in-out infinite;
+  }
+
+  .season-scene[data-seasonal-scene='tet'][data-motion-paused] :is(.tet-petal, .tet-envelope) {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes tet-petal-fall {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(var(--petal-drift), 265px) rotate(145deg);
+    opacity: 0;
+  }
+}
+
+@keyframes tet-envelope-sway {
+  25% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .season-scene[data-seasonal-scene='tet'] > g:nth-last-child(-n + 6) .tet-petal {
+    display: none;
   }
 }

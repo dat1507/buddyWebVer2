@@ -1,3 +1,7 @@
+## ADMIN-VIETNAMESE-TET-THEME-001 - 2026-11-09 local verification
+
+23 frontend tests and 13 focused backend tests passed (including two Recap migration-head checks). Browser EN/DE 1440/390/320, pause/reduced motion, eight matched protected-theme captures and real local Preview/Publish/Restore passed. PostgreSQL 0026 to 0027, constraint, RLS, permissions and audit checked. [Evidence](../project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+
 ## ADMIN-SUMMER-REDESIGN-001 - 2026-11-09 local verification
 
 23 focused tests, type/lint/format/build, EN/DE 1440/390/320, pause/reduced motion and six protected Hero comparisons passed. Protected UI fixture only. [Evidence](../project-knowledge/frontend/SUMMER_REDESIGN_2026-11-09.md).

@@ -57,15 +57,13 @@ def test_alembic_script_directory_is_loadable() -> None:
     semester_verification_revision = script_directory.get_revision("0018_backup_verification")
     semester_reset_revision = script_directory.get_revision("0019_semester_reset_execution")
     semester_restore_revision = script_directory.get_revision("0020_semester_restore_execution")
-    restore_permissions_revision = script_directory.get_revision(
-        "0021_restore_runtime_permissions"
-    )
+    restore_permissions_revision = script_directory.get_revision("0021_restore_runtime_permissions")
     public_event_default_revision = script_directory.get_revision(
         "0022_public_event_visibility_default"
     )
 
     assert Path(script_directory.dir).resolve() == PROJECT_ROOT / "alembic"
-    assert script_directory.get_heads() == ["0026_site_theme"]
+    assert script_directory.get_heads() == ["0027_site_theme_tet"]
     assert user_revision is not None
     assert user_revision.down_revision == "0001_private_app_schema"
     assert refresh_revision is not None

@@ -113,6 +113,45 @@
   --season-motif: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20228%20112%22%3E%3Ccircle%20cx%3D%22169%22%20cy%3D%2246%22%20r%3D%2222%22%20fill%3D%22%23F5BD4E%22%2F%3E%3Cpath%20d%3D%22M169%2012v-9m0%2086v-9m34-34h9m-86%200h9m11-23-7-7m53%2053%207%207m0-60-7%207m-46%2046-7%207%22%20stroke%3D%22%23C78A20%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M53%2090q20-13%2040%200t40%200%2040%200%2040%200M66%20103q20-13%2040%200t40%200%2040%200%22%20fill%3D%22none%22%20stroke%3D%22%23208D9A%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E');
 }
 
+:is(body:has([data-site-theme='tet']), [data-theme-sample='tet']) {
+  --season-paper: #fff8ed;
+  --season-panel: #fffdf8;
+  --season-ink: #3d2526;
+  --season-quiet: #6d4b4a;
+  --season-soft: #f8e5df;
+  --season-line: #dcc0ae;
+  --season-field: #9b7368;
+  --season-action: #9b2638;
+  --season-on-action: #fffaf0;
+  --season-hover: #7b1f2e;
+  --season-accent: #8f2639;
+  --season-band: #692434;
+  --season-band-deep: #4b1a28;
+  --season-band-ink: #fff5e6;
+  --season-band-muted: #f4d8ce;
+  --season-highlight: #f8d188;
+  --season-trim: #c28b49;
+  --season-error: #a2263f;
+  --season-success: #28634a;
+  --season-warning: #80511c;
+  --season-shadow: rgb(98 38 44 / 15%);
+  --season-base-hsl: 36.7 100% 96.5%;
+  --season-panel-hsl: 42.9 100% 98.6%;
+  --season-ink-hsl: 357.5 24.5% 19.2%;
+  --season-muted-hsl: 1.7 19.1% 35.9%;
+  --season-soft-hsl: 14.4 64.1% 92.4%;
+  --season-line-hsl: 23.5 39.7% 77.3%;
+  --season-field-hsl: 12.9 20.3% 50.8%;
+  --season-primary-hsl: 350.8 60.6% 37.8%;
+  --season-on-primary-hsl: 40 100% 97.1%;
+  --season-ring-hsl: 349.1 58% 35.5%;
+  --season-band-ink-hsl: 36 100% 95.1%;
+  --season-band-muted-hsl: 15.8 63.3% 88.2%;
+  --season-motif:
+    radial-gradient(circle at 84% 20%, #f7d988 0 2px, transparent 3px),
+    radial-gradient(circle at 92% 63%, #f1b4b6 0 3px, transparent 4px);
+}
+
 /* Existing light theme declarations remain the Default fallback. */
 :where(body:has([data-site-theme])) {
   background: var(--season-paper);

@@ -1,3 +1,5 @@
+- [Vietnamese Tết theme - local review](VIETNAMESE_TET_2026-11-09.md)
+
 - [Summer Surf & Beach Holiday - local review](SUMMER_REDESIGN_2026-11-09.md)
 
 - [Christmas Snowy & Cozy Wonderland - local review](CHRISTMAS_REDESIGN_2026-11-08.md)

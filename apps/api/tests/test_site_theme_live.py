@@ -42,7 +42,8 @@ def test_theme_publish_with_runtime_role() -> None:
     url = base.set(database=name).render_as_string(hide_password=False)
     asyncio.run(database_command(configured, "CREATE DATABASE " + name))
     try:
-        migrate(url, "0025_managed_faq")
+        migrate(url, "0026_site_theme")
+        asyncio.run(database_command(url, "UPDATE app_private.site_theme SET theme = 'summer'"))
         migrate(url, "head")
         asyncio.run(exercise(url))
     finally:
@@ -114,17 +115,25 @@ async def exercise(url: str) -> None:
         ):
             initial = await public.get(PUBLIC)
             assert (
-                initial.json() == {"theme": "default"}
+                initial.json() == {"theme": "summer"}
                 and initial.headers["cache-control"] == "no-store"
             )
-            assert (await public.put(PUBLIC, json={"theme": "summer"})).status_code == 405
+            assert (await public.put(PUBLIC, json={"theme": "tet"})).status_code == 405
             assert (await public.get(ADMIN)).status_code == 401
             assert (await user.get(ADMIN)).status_code == 403
-            assert (await user.put(ADMIN, json={"theme": "summer"})).status_code == 403
-            assert (await no_csrf.put(ADMIN, json={"theme": "summer"})).status_code == 403
+            assert (await user.put(ADMIN, json={"theme": "tet"})).status_code == 403
+            assert (await no_csrf.put(ADMIN, json={"theme": "tet"})).status_code == 403
             assert (await admin.put(ADMIN, json={"theme": "custom"})).status_code == 422
             assert (await admin.put(ADMIN, json={"theme": "summer", "css": "x"})).status_code == 422
-            for theme in ("halloween", "christmas", "summer", "default", "default"):
+            for theme in (
+                "default",
+                "halloween",
+                "christmas",
+                "summer",
+                "tet",
+                "default",
+                "default",
+            ):
                 published = await admin.put(ADMIN, json={"theme": theme})
                 assert published.status_code == 200, published.text
                 assert published.headers["cache-control"] == "private, no-store"
@@ -135,7 +144,7 @@ async def exercise(url: str) -> None:
                 )
             feed = await admin.get("/api/admin/audit-logs?category=settings")
             assert feed.status_code == 200
-            assert feed.json()["total"] == 4
+            assert feed.json()["total"] == 6
         async with factory() as session:
             rows = (
                 await session.execute(
@@ -148,8 +157,8 @@ async def exercise(url: str) -> None:
             assert [(r.admin_id, r.previous, r.current) for r in rows] == [
                 (actors[UserRole.ADMIN], previous, current)
                 for previous, current in zip(
-                    ("default", "halloween", "christmas", "summer"),
-                    ("halloween", "christmas", "summer", "default"),
+                    ("summer", "default", "halloween", "christmas", "summer", "tet"),
+                    ("default", "halloween", "christmas", "summer", "tet", "default"),
                     strict=True,
                 )
             ]

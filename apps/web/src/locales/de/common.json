@@ -1742,6 +1742,10 @@
       "summer": {
         "name": "Sommer",
         "description": "Sonniger Campus mit Ozeanblau, Türkis und Wellen im Sonnenlicht."
+      },
+      "tet": {
+        "name": "Tết — Vietnamesisches Neujahrsfest",
+        "description": "Elegantes Frühlingsfest mit Aprikosenblüten, Pfirsichblüten und roten Glücksumschlägen."
       }
     },
     "sample": {

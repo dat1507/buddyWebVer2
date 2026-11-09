@@ -14,7 +14,7 @@ from app.models import User, UserRole
 from app.services.audit_logs import record_audit_log
 from app.services.csrf import CsrfTokenClaims
 
-ThemeId = Literal["default", "halloween", "christmas", "summer"]
+ThemeId = Literal["default", "halloween", "christmas", "summer", "tet"]
 Session = Annotated[AsyncSession, Depends(get_database_session)]
 Admin = Annotated[User, Depends(require_role(UserRole.ADMIN))]
 Csrf = Annotated[CsrfTokenClaims, Depends(require_session_csrf)]

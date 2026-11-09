@@ -32,8 +32,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it('allows only the four approved presets', () => {
-  expect(themeIds).toEqual(['default', 'halloween', 'christmas', 'summer'])
+it('allows only the five approved presets', () => {
+  expect(themeIds).toEqual(['default', 'halloween', 'christmas', 'summer', 'tet'])
   for (const theme of themeIds) expect(parseThemeId(theme)).toBe(theme)
   expect(parseThemeId('purple')).toBeUndefined()
 })
@@ -108,14 +108,14 @@ it('uses a localhost preview without reading or publishing the live theme', asyn
   try {
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/?theme-preview=christmas']}>
+        <MemoryRouter initialEntries={['/?theme-preview=tet']}>
           <SiteThemeBoundary>
             <ThemedPage />
           </SiteThemeBoundary>
         </MemoryRouter>
       </QueryClientProvider>,
     )
-    expect(screen.getByRole('main')).toHaveAttribute('data-site-theme', 'christmas')
+    expect(screen.getByRole('main')).toHaveAttribute('data-site-theme', 'tet')
     expect(read).not.toHaveBeenCalled()
     expect(publish).not.toHaveBeenCalled()
   } finally {
@@ -143,25 +143,25 @@ it('previews without writing, confirms publication and allows restoring Default'
   vi.spyOn(siteThemeClient, 'readAdmin').mockResolvedValue('default')
   const publish = vi
     .spyOn(siteThemeClient, 'publish')
-    .mockResolvedValueOnce('summer')
+    .mockResolvedValueOnce('tet')
     .mockResolvedValueOnce('default')
   openSettings()
   const presets = screen.getByRole('group', { name: 'Theme presets' })
   await screen.findByText('Currently published: Default.')
   expect(screen.getByRole('button', { name: 'Publish theme' })).toBeDisabled()
-  fireEvent.click(within(presets).getByRole('button', { name: /Summer/ }))
+  fireEvent.click(within(presets).getByRole('button', { name: /Tết/ }))
   fireEvent.click(screen.getByRole('button', { name: 'User Dashboard' }))
   expect(screen.getByText('Your Buddy journey').closest('[data-theme-sample]')).toHaveAttribute(
     'data-theme-sample',
-    'summer',
+    'tet',
   )
-  expect(document.querySelector('[data-seasonal-scene=summer]')).toHaveAttribute(
+  expect(document.querySelector('[data-seasonal-scene=tet]')).toHaveAttribute(
     'data-scene-placement',
     'sample',
   )
   expect(document.querySelector('[data-site-theme]')).toBeNull()
   expect(publish).not.toHaveBeenCalled()
-  for (const preset of ['summer', 'default']) {
+  for (const preset of ['tet', 'default']) {
     if (preset === 'default')
       fireEvent.click(within(presets).getByRole('button', { name: /Default/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Publish theme' }))

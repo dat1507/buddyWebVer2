@@ -1742,6 +1742,10 @@
       "summer": {
         "name": "Summer",
         "description": "Sunny Campus. Ocean blue, turquoise, and sunlit waves."
+      },
+      "tet": {
+        "name": "Tết — Vietnamese Lunar New Year",
+        "description": "Elegant spring celebration with apricot blossoms, peach blossoms and red lucky envelopes."
       }
     },
     "sample": {

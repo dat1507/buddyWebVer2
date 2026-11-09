@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { sessionClient } from '@/features/auth/session-client'
 import { getJson } from '@/lib/api'
 
-export const themeIds = ['default', 'halloween', 'christmas', 'summer'] as const
+export const themeIds = ['default', 'halloween', 'christmas', 'summer', 'tet'] as const
 export type ThemeId = (typeof themeIds)[number]
 
 const themeSchema = z.enum(themeIds)

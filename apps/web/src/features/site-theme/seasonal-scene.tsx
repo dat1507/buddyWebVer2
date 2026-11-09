@@ -1,5 +1,6 @@
 import type { ThemeId } from './site-theme'
 import { ChristmasScene } from './christmas-scene'
+import { TetScene } from './tet-scene'
 
 type SeasonalTheme = Exclude<ThemeId, 'default'>
 
@@ -146,6 +147,7 @@ export function SeasonalScene({
       {theme === 'halloween' && <Halloween />}
       {theme === 'christmas' && <ChristmasScene />}
       {theme === 'summer' && <Summer />}
+      {theme === 'tet' && <TetScene />}
     </svg>
   )
 }

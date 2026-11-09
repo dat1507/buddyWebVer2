@@ -1,3 +1,15 @@
+## 2026-11-09 - Vietnamese Tết locally verified
+
+TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Isolated codex/vietnamese-tet-theme from
+verified Production 55e82608e884be705eeef82529feff82c341538d. Summer owner closure
+is local in 39d2946 on its own branch. Fifth preset uses the existing theme engine,
+with forward-only 0027_site_theme_tet and local RLS, audit and publish checks.
+23 frontend tests and real local PostgreSQL verification passed. Owner review open.
+[Task](docs/implementation/tasks/ADMIN-VIETNAMESE-TET-THEME-001.md)
+and [review](docs/project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+Local preview http://127.0.0.1:5242/?theme-preview=tet. No Production change.
+Production requires separate authorization, migration and compatible API/frontend.
+
 ## 2026-11-09 - Summer local candidate ready for owner visual review
 
 TASK_ID: ADMIN-SUMMER-REDESIGN-001. Local only on codex/summer-theme-redesign from

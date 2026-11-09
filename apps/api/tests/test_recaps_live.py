@@ -130,7 +130,7 @@ def test_upgrade_from_existing_32_character_version_table() -> None:
         async with engine.connect() as connection:
             assert (
                 await connection.scalar(text("SELECT version_num FROM public.alembic_version"))
-                == "0026_site_theme"
+                == "0027_site_theme_tet"
             )
             assert await connection.scalar(
                 text(
@@ -198,7 +198,7 @@ async def acceptance(url: str) -> None:
     storage = ImageStorageService(transport)  # type: ignore[arg-type]
     async with engine.connect() as connection:
         version = await connection.scalar(text("SELECT version_num FROM public.alembic_version"))
-        assert version == "0026_site_theme"
+        assert version == "0027_site_theme_tet"
         width = await connection.scalar(
             text(
                 "SELECT character_maximum_length FROM information_schema.columns WHERE table_schema='public' AND table_name='alembic_version' AND column_name='version_num'"
