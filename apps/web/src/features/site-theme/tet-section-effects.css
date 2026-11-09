@@ -1,0 +1,143 @@
+.landing-page > :has(> .tet-scroll-effects) {
+  position: relative;
+}
+
+.tet-scroll-effects {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.tet-scroll-petal,
+.tet-section-sparkles {
+  position: absolute;
+}
+
+.tet-scroll-petal {
+  --tet-breeze: 2px;
+  opacity: 0.82;
+  translate: 0 var(--tet-scroll-drift, 0px);
+}
+
+.tet-scroll-petal-left {
+  left: 6px;
+}
+
+.tet-scroll-petal-right {
+  --tet-breeze: -2px;
+  right: 6px;
+}
+
+.tet-scroll-petal:nth-child(even) {
+  animation-delay: -3s;
+}
+
+.tet-section-sparkles {
+  top: 30px;
+  right: 3px;
+  width: 19px;
+  opacity: 0;
+}
+
+#about > .tet-scroll-effects > .tet-section-sparkles {
+  right: auto;
+  left: 3px;
+}
+
+.tet-section-sparkles[data-sparkled] > g {
+  animation: tet-section-sparkle 1050ms ease-out both;
+  transform-origin: center;
+}
+
+.tet-section-sparkles[data-sparkled] {
+  opacity: 1;
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .tet-scroll-petal {
+    animation-name: tet-section-breeze;
+    animation-duration: 6s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
+}
+
+@media (width < 1280px) {
+  .tet-scroll-petal:nth-child(3n) {
+    display: none;
+  }
+}
+
+@media (width >= 1280px) {
+  .tet-scroll-petal-left {
+    left: 11px;
+  }
+
+  .tet-scroll-petal-right {
+    right: 11px;
+  }
+
+  .tet-section-sparkles {
+    right: 3px;
+    width: 28px;
+  }
+}
+
+@media (width < 768px) {
+  .tet-scroll-petal {
+    left: 3px;
+    scale: 0.7;
+  }
+
+  .tet-scroll-petal-right {
+    right: 3px;
+    left: auto;
+  }
+
+  .tet-scroll-petal:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+@media (width < 768px), (prefers-reduced-motion: reduce) {
+  .tet-scroll-petal {
+    translate: none;
+  }
+
+  .tet-section-sparkles {
+    visibility: hidden;
+  }
+
+  .tet-section-sparkles > g {
+    animation-play-state: paused;
+  }
+}
+
+.landing-page[data-motion-paused] :is(.tet-scroll-petal, .tet-section-sparkles > g) {
+  animation-play-state: paused;
+}
+
+@keyframes tet-section-breeze {
+  from {
+    transform: translateY(-3px) rotate(-9deg);
+  }
+  to {
+    transform: translate(var(--tet-breeze), 3px) rotate(12deg);
+  }
+}
+
+@keyframes tet-section-sparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}

@@ -1,3 +1,11 @@
+## 2026-11-09 - Tết Landing scroll refinement ready for local review
+
+TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Approved Blossom Scroll Drift and
+Festive Section Sparkles are implemented on codex/vietnamese-tet-theme.
+[Verification and owner review](docs/project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+Local preview http://127.0.0.1:5242/?theme-preview=tet. Await owner visual acceptance.
+Release remains a separately authorized task.
+
 ## 2026-11-09 - Tết Navbar refinement ready for local review
 
 TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Existing codex/vietnamese-tet-theme retained.

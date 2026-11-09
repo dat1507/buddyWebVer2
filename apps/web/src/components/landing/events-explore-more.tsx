@@ -6,6 +6,7 @@ import { publicEventsEnabled } from '@/config/launch-scope'
 import { MerchandiseArtwork } from '@/features/merchandise/merchandise-artwork'
 import { RecapImage } from '@/features/recaps/recap-photo'
 import { fetchRecaps } from '@/features/recaps/recaps'
+import { TetSectionEffects } from '@/features/site-theme/tet-section-effects'
 import '@/features/recaps/recaps.css'
 
 function MemoryArtwork() {
@@ -90,6 +91,7 @@ function EventsExploreMore() {
           </article>
         </div>
       </div>
+      <TetSectionEffects />
     </div>
   )
 }

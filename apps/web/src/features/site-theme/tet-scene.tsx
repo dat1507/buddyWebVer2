@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { tetPetalColors, tetPetalPaths } from './tet-petals'
 
 const apricot = [
   [485, 144, 1.1],
@@ -99,12 +100,8 @@ export function TetScene() {
         <g key={i} transform={`translate(${45 + ((i * 127) % 543)} ${35 + ((i * 53) % 120)})`}>
           <path
             className="tet-petal"
-            d={
-              i % 3 === 0
-                ? 'M0 0C-7-10 3-17 10-11 12-4 5 3 0 0Z'
-                : 'M0 0C-5-8 2-13 7-9 8-3 4 2 0 0Z'
-            }
-            fill={i % 2 ? '#ffd56a' : '#f5a4b1'}
+            d={tetPetalPaths[i % 3 === 0 ? 'apricot' : 'peach']}
+            fill={tetPetalColors[i % 2 ? 'apricot' : 'peach']}
             style={
               {
                 '--petal-duration': `${13 + (i % 5) * 2}s`,

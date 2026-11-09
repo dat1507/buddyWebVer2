@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import groupPhoto from '@/assets/group.jpg'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { Typography } from '@/components/ui/typography'
+import { TetSectionEffects } from '@/features/site-theme/tet-section-effects'
 const features = [
   { key: 'social', icon: Users },
   { key: 'academic', icon: MessageCircle },
@@ -12,6 +13,7 @@ function AboutSection() {
   const { t } = useTranslation()
   return (
     <section id="about" className="landing-about scroll-mt-20" aria-labelledby="about-title">
+      <TetSectionEffects />
       <div className="landing-shell">
         <div className="landing-section-intro">
           <div>

@@ -1,3 +1,11 @@
+## 2026-11-09 - Task 05C local refinement complete / owner visual acceptance open
+
+TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Owner-approved scroll effects are
+implemented on codex/vietnamese-tet-theme from the existing Tết candidate.
+[Task](docs/implementation/tasks/ADMIN-VIETNAMESE-TET-THEME-001.md) and
+[local review](docs/project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+Owner visual acceptance is the next gate. Production release requires separate authorization.
+
 ## 2026-11-09 - Tết Navbar refinement ready for local review
 
 TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Existing codex/vietnamese-tet-theme retained.

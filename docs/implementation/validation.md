@@ -1,3 +1,12 @@
+## ADMIN-VIETNAMESE-TET-THEME-001 - Approved Landing scroll effects
+
+30 focused frontend tests, TypeScript, targeted ESLint/Prettier and build passed.
+Chromium EN/DE at 1440/900/390/320 passed. Verified section entry, one-time
+sparkles, pause/resume, reduced motion, gutters and overflow. Local Admin Tết
+preview passed. Four other presets matched the baseline at 1440/390 in both
+edited sections with the About photo masked. All 266 task index paths validated.
+[Review and capture details](../project-knowledge/frontend/VIETNAMESE_TET_2026-11-09.md).
+
 ## ADMIN-VIETNAMESE-TET-THEME-001 - Navbar refinement
 
 40 focused frontend tests and TypeScript/lint/format/build passed. Chromium

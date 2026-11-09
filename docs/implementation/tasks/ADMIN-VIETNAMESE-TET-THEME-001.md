@@ -29,3 +29,16 @@ Implemented decorative ray clusters and sparkles with existing Landing pause and
 static reduced motion. The four scroll effects are evaluated in Project Knowledge
 and await separate approval. Frontend-only verification passed (40 focused tests).
 Previous implementation commit d87ec0d860571bbcba776281d7df23a84061012a is retained.
+
+## Approved Landing scroll effects - 2026-11-09
+
+Owner approved A and D. Explore More and About have sparse edge petals and a
+one-time golden sparkle at each section entrance. Desktop and tablet use
+gentle scroll drift. Phones show static petals. The existing Landing pause and
+system reduced motion govern both effects. Frontend-only changes build on
+6f2ed111668e1233ccbf7eb0fab2f63f49b4e2c5.
+
+Focused source: the About and Explore More Landing sections and the Tết petal,
+scene and section-effect modules in apps/web/src/features/site-theme.
+Focused verification: About, Explore More, Landing motion and Landing assembly
+suites, plus the browser review linked above. Local visual acceptance is open.

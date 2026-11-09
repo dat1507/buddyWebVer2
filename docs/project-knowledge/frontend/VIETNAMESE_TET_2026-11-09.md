@@ -130,3 +130,61 @@ Recommendation: start with A and use D sparingly on desktop at one or two
 section entrances. Give each visible area one moving accent at a time, with
 static accents for mobile or reduced motion. Keep C available as a static
 alternative and reserve envelopes for the Hero. Avoid fixed viewport overlays.
+
+## 2026-11-09 - Approved Landing scroll effects
+
+Explore More and About carry both approved effects. Blossom Scroll Drift reuses
+the campus scene's two petal silhouettes and colors. Each section has six petals
+on desktop, four on tablet and two static petals on phones. The petals sit in
+the side gutters. The offset runs from about +18 to -18 px as a desktop section
+passes through the viewport, with a maximum of ±8 px on tablet. A slight CSS
+breeze varies their rotation and horizontal position.
+
+Festive Section Sparkles adds a small three-star gold cluster to the right edge
+of Explore More and the left edge of About. Each cluster scales and fades over
+1.05 seconds the first time its corner enters view on desktop or tablet.
+Reload the page to repeat the review. Phone widths and system reduced motion
+show static petal accents. The Hero and Navbar retain their existing artwork
+and motion.
+
+Pause page animations freezes petal drift and any sparkle already playing.
+Resume continues that sparkle and lets a newly visible section play once. A
+section passed while paused only plays if its corner is visible after resuming
+or enters view later. Reduced motion disables drift and hides the sparkles.
+Decorations are clipped to their section, hidden from assistive technology
+and transparent to pointers. Passive scroll listeners coalesce updates with
+requestAnimationFrame and write an offset only while the section is visible.
+IntersectionObserver disconnects after each burst. Both features stop
+tracking while paused and clean up on unmount.
+
+### Verification
+
+Thirty focused frontend tests, TypeScript, targeted ESLint and Prettier, and
+the Vite production build passed. The existing bundle advisory remains.
+Chromium passed EN/DE at 1440, 900, 390 and 320 px for gutter placement,
+controls, overflow, and Navbar animation. Desktop checks confirmed parallax,
+section entry, one burst per section, pause/resume, and live reduced motion.
+The German Admin Settings preview passed against the local API. No Publish
+request was sent and the saved theme was still Default.
+
+Explore More and About matched the Summer release baseline for Default,
+Halloween, Christmas and Summer at 1440 and 390 px. Captures excluded the
+sticky Navbar and chatbot and masked the About photo, which showed minor
+browser resampling differences. The photo asset is identical to the baseline.
+The local Tết preview returned HTTP 200. All 266 task files and index links
+were validated.
+
+### Owner acceptance
+
+Open the [local Tết Landing](http://127.0.0.1:5242/?theme-preview=tet). On a
+desktop or tablet, scroll slowly from Upcoming Events into Explore More, then
+into About. Look at the outer gutters for the moving apricot and peach petals
+and each small gold sparkle. Scroll back through both sections to confirm the
+sparkles play once. The Hero's Pause page animations button pauses the effects.
+To check reduced motion, turn on the operating system's reduced-motion setting
+and reload. The browser's reduced-motion emulation also works.
+
+Review artifacts in the worktree's .local/review/scroll-effects directory
+include landing-desktop.png, landing-mobile.png, drift.gif and sparkle.gif.
+The sparkle recording samples one triggered CSS animation. The GIF loops for
+review, while the effect in the page plays once per section.
