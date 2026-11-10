@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
+from sqlite3 import connect
 from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
 
 import pytest
-from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects import postgresql, sqlite
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
@@ -19,7 +21,11 @@ from app.models import (
     EventStatus,
     EventVisibility,
 )
-from app.services.event_sliders import MAX_EVENT_SLIDES, list_public_event_sliders
+from app.services.event_sliders import (
+    MAX_EVENT_SLIDES,
+    _slider_statement,
+    list_public_event_sliders,
+)
 from app.services.image_storage import ImageStorageService
 
 ADMIN_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -137,9 +143,75 @@ async def test_slider_projection_localizes_maps_cta_and_uses_one_bounded_query()
     assert "events.visibility in" not in sql
     assert "event_media.processing_status = 'ready'" in sql
     assert "events.start_date is null" in sql
-    assert "events.start_date >=" in sql
+    assert "events.start_date >" in sql
+    assert "events.end_date >" in sql
     assert "order by app_private.events.start_date asc nulls last, app_private.events.id asc" in sql
     assert f"limit {MAX_EVENT_SLIDES}" in sql
+
+
+def test_slider_schedule_eligibility_and_end_date_extension() -> None:
+    # SQLite fixtures store UTC instants in the format used by its SQLAlchemy dialect.
+    def utc_value(value: str) -> str:
+        return (
+            datetime.fromisoformat(value)
+            .astimezone(UTC)
+            .replace(tzinfo=None)
+            .isoformat(sep=" ", timespec="microseconds")
+        )
+
+    boundary = datetime.fromisoformat("2026-11-10T07:00:00+07:00").astimezone(UTC)
+    started = utc_value("2026-11-09T07:00:00+07:00")
+    ending = utc_value("2026-11-10T07:00:00+07:00")
+    future = utc_value("2026-11-11T07:00:00+07:00")
+
+    with closing(connect(":memory:")) as db:
+        db.executescript("""
+            ATTACH DATABASE ':memory:' AS app_private;
+            CREATE TABLE app_private.events (
+                id INTEGER, cover_media_id INTEGER, start_date TEXT, end_date TEXT,
+                status TEXT, deleted_at TEXT, published_at TEXT
+            );
+            CREATE TABLE app_private.event_media (
+                id INTEGER, event_id INTEGER, deleted_at TEXT, usage TEXT, processing_status TEXT
+            );
+        """)
+        rows = [
+            (1, future, None, "PUBLISHED"),
+            (2, started, future, "PUBLISHED"),
+            (3, started, ending, "PUBLISHED"),
+            (4, started, None, "PUBLISHED"),
+            (5, started, future, "DRAFT"),
+            (6, started, future, "CANCELLED"),
+            (7, None, ending, "PUBLISHED"),
+            (8, None, None, "PUBLISHED"),
+            (9, ending, None, "PUBLISHED"),
+        ]
+        for event_id, start, end, status in rows:
+            db.execute(
+                "INSERT INTO app_private.events VALUES (?, ?, ?, ?, ?, NULL, ?)",
+                (event_id, event_id, start, end, status, started),
+            )
+            db.execute(
+                "INSERT INTO app_private.event_media VALUES (?, ?, NULL, 'EVENT_COVER', 'READY')",
+                (event_id, event_id),
+            )
+
+        def selected_ids(at: datetime) -> list[int]:
+            statement = _slider_statement(at).with_only_columns(Event.id)
+            compiled = statement.compile(
+                dialect=sqlite.dialect(),
+                compile_kwargs={"literal_binds": True},
+            )
+            return [event_id for (event_id,) in db.execute(str(compiled))]
+
+        assert selected_ids(boundary - timedelta(microseconds=1)) == [2, 3, 9, 1, 7, 8]
+        assert selected_ids(boundary) == [2, 1, 7, 8]
+        assert selected_ids(boundary + timedelta(microseconds=1)) == [2, 1, 7, 8]
+
+        db.execute("UPDATE app_private.events SET end_date = ? WHERE id = 3", (future,))
+        assert selected_ids(boundary) == [2, 3, 1, 7, 8]
+        db.execute("UPDATE app_private.events SET end_date = NULL WHERE id = 3")
+        assert selected_ids(boundary) == [2, 1, 7, 8]
 
 
 @pytest.mark.anyio

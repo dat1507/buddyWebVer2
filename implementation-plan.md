@@ -1,3 +1,8 @@
+## 2026-11-10 — EVENT-SLIDER-ONGOING-ELIGIBILITY
+
+DONE — LOCAL VERIFIED / PRODUCTION NOT RELEASED. Shared Landing and User Events eligibility now
+includes ongoing Events with future End Dates. [Task](docs/implementation/tasks/EVENT-SLIDER-ONGOING-ELIGIBILITY.md).
+
 ## 2026-11-10 — EVENT-SLIDER-VISIBILITY-001
 
 DONE — ROOT CAUSE VERIFIED / UPCOMING-ONLY CONTRACT RETAINED. Past Start Date excludes Kawazo

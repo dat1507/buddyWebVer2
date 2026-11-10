@@ -59,7 +59,11 @@ def _slider_statement(now: datetime) -> Select[tuple[Event, EventMedia]]:
             Event.deleted_at.is_(None),
             Event.published_at.is_not(None),
             Event.status == EventStatus.PUBLISHED,
-            or_(Event.start_date.is_(None), Event.start_date >= now),
+            or_(
+                Event.start_date.is_(None),
+                Event.start_date > now,
+                Event.end_date > now,
+            ),
         )
         .order_by(Event.start_date.asc().nulls_last(), Event.id.asc())
         .limit(MAX_EVENT_SLIDES)
@@ -73,7 +77,7 @@ async def list_public_event_sliders(
     locale: EventLocale,
     now: datetime | None = None,
 ) -> list[PublicEventSliderResponse]:
-    """Return upcoming Events, then unscheduled announcements, using one bounded query."""
+    """Return upcoming and ongoing Events, then announcements, using one bounded query."""
     reference_time = now or datetime.now(UTC)
     if reference_time.tzinfo is None or reference_time.utcoffset() is None:
         raise ValueError("Slider query time must be timezone-aware.")

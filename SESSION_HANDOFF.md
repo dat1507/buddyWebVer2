@@ -1,3 +1,9 @@
+## 2026-11-10 — Ongoing Event Slider eligibility verified locally
+
+TASK_ID: NONE for the completed EVENT-SLIDER-ONGOING-ELIGIBILITY task. The shared Slider now returns ongoing
+Events until their End Date and retains existing announcement behavior. Local PostgreSQL confirmed
+End Date extension and clearing. No push or deployment. [Task](docs/implementation/tasks/EVENT-SLIDER-ONGOING-ELIGIBILITY.md).
+
 ## 2026-11-10 — Kawazo Slider diagnosis complete on the isolated branch
 
 TASK_ID: NONE for the isolated Event visibility investigation. Kawazo remains PUBLISHED and

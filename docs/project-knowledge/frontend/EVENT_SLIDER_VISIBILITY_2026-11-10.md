@@ -61,3 +61,28 @@ supported. No migration or manual database correction is required.
 - Local Chrome used the actual PostgreSQL-backed HTTP response as a fixture. At 1440 px in EN
   and 390 px in DE, the card linked to Event Detail when returned, the empty state rendered
   when absent, and neither case overflowed. Authenticated browser CRUD was not exercised.
+
+## Follow-up implementation — 2026-11-10
+
+The owner approved ongoing eligibility for both Landing and User Events. The shared Slider query
+now accepts a future Start Date, a future End Date, or a missing Start Date. For scheduled Events,
+the database requires any End Date to be after Start Date. A started Event is eligible only before
+its End Date and disappears if that date is cleared. A start-less announcement retains its previous
+eligibility even with a past End Date. All comparisons use the same timezone-aware reference instant.
+
+Publication, ready cover, ascending Start Date with nulls last, ID tie-break, API limit of 12 and
+client limit of five are preserved. Existing ordering gives ongoing Events their normal positions
+ahead of future starts. No UI, schema, publishing workflow, or other Events API changes were needed.
+
+Local PostgreSQL 17 and the real HTTP handlers verified that Save + Publish restores an expired
+Event after extending its End Date, preserves Start Date, and hides it again after clearing End Date.
+At 07:00 UTC+7 the scheduled Event changed from eligible immediately before the boundary to hidden at
+the boundary. This supersedes the upcoming-only rule for the local candidate. The observations
+above describe the previous policy and Production state at the time of investigation.
+
+Verification: 32 focused backend tests and 55 focused frontend tests passed. The frontend
+integration suite checked the ongoing card on Landing and the User Events detail round trip.
+Chrome used captured local API responses to verify the Landing card and empty state in EN/DE
+at both 1440 px and 390 px, with no horizontal overflow. Ruff lint/format, focused ESLint,
+Prettier, TypeScript and the production build passed. The build reported the existing chunk
+size advisory. User Events was verified through the authenticated integration fixture.

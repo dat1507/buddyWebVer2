@@ -33,7 +33,7 @@ const publicEvent = {
   locale: 'en' as const,
   title: 'Live matrix Event',
   description: 'Public Event route fixture.',
-  start_date: '2026-11-01T09:00:00+07:00',
+  start_date: '2026-10-30T09:00:00+07:00',
   end_date: '2026-11-01T11:00:00+07:00',
   timezone: 'Asia/Ho_Chi_Minh',
   location: 'VGU campus',
@@ -43,7 +43,7 @@ const publicEvent = {
   registration_enabled: false,
   registration_deadline: null,
   status: 'PUBLISHED' as const,
-  phase: 'UPCOMING' as const,
+  phase: 'ONGOING' as const,
   cover: null,
 }
 const sliderEvent = {
@@ -172,11 +172,18 @@ describe('independent Event feature-flag integration', () => {
     client.clear()
   })
 
-  it('round-trips from User Events through the shared detail page when public Events are enabled', async () => {
+  it('renders an ongoing Slider Event on Landing and round-trips from User Events', async () => {
     if (!publicEventsEnabled) return
 
     vi.spyOn(eventSliderRepository, 'listPublished').mockResolvedValue([sliderEvent])
     const readEvent = vi.spyOn(publicEventsClient, 'readEvent').mockResolvedValue(publicEvent)
+    const landing = renderWithRouter(<LandingPage />)
+    expect(
+      await screen.findByRole('link', { name: `View event: ${publicEvent.title}` }),
+    ).toHaveAttribute('href', `/events/${EVENT_ID}?from=landing`)
+    landing.unmount()
+    landing.client.clear()
+
     useAuthStore.getState().setAuthenticated(user)
     const { client } = renderWithRouter(<App />, '/user/events')
 
