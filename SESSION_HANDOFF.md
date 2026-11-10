@@ -1,3 +1,11 @@
+## 2026-11-10 — Kawazo Slider diagnosis complete on the isolated branch
+
+TASK_ID: NONE for the isolated Event visibility investigation. Kawazo remains PUBLISHED and
+ONGOING in the public Events API. Slider is upcoming-only and excludes the past Start Date.
+Local PostgreSQL and HTTP reproduction confirmed extension and null persistence. Tests and
+[diagnosis](docs/implementation/tasks/EVENT-SLIDER-VISIBILITY-001.md) are local.
+No Production write or deployment. An ongoing-event policy change requires a separate contract.
+
 ## 2026-11-09 - Tết Landing scroll refinement ready for local review
 
 TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Approved Blossom Scroll Drift and

@@ -312,6 +312,37 @@ async def test_published_event_accepts_partial_optional_schedule_and_location() 
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("end_date", ["2027-12-12T07:00:00+07:00", None])
+async def test_save_and_republish_keeps_start_and_persists_optional_end_date(
+    end_date: str | None,
+) -> None:
+    event = _event(status=EventStatus.PUBLISHED, version=2)
+    mock, session = _session()
+    mock.scalar.side_effect = [event, COVER_ID, event]
+
+    saved = await update_event_draft(
+        session,
+        _admin(),
+        EVENT_ID,
+        EventDraftUpdate.model_validate({"version": 2, "end_date": end_date}),
+    )
+    published = await set_event_status(
+        session,
+        _admin(),
+        EVENT_ID,
+        EventStatusUpdate(version=saved.version, status=EventStatus.PUBLISHED),
+    )
+
+    assert published.start_date == START
+    assert published.end_date == (
+        datetime(2027, 12, 12, tzinfo=UTC) if end_date is not None else None
+    )
+    assert published.status is EventStatus.PUBLISHED
+    assert published.published_at == PUBLISHED_AT
+    assert published.version == 3
+
+
+@pytest.mark.anyio
 async def test_unpublish_and_cancel_keep_first_publication_history() -> None:
     event = _event(status=EventStatus.PUBLISHED, version=7)
     event.registration_enabled = True

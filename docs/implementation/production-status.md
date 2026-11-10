@@ -1,3 +1,10 @@
+## 2026-11-10 — Kawazo read-only public API diagnosis
+
+Public Events returned the current Kawazo record as PUBLISHED and ONGOING, with Start Date
+2026-11-09 07:00 and End Date 2027-12-12 07:00 Asia/Ho_Chi_Minh. Public Slider returned 200
+with an empty array in EN and DE. The historical record ID returned 404. No authenticated
+read or write was performed. [Diagnosis](tasks/EVENT-SLIDER-VISIBILITY-001.md).
+
 ## 2026-11-04 — Expedited migration / backend deployment in progress
 
 Owner explicitly defers full backup, accepts lack of exact pre-release recovery checkpoint.

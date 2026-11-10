@@ -1,3 +1,8 @@
+## 2026-11-10 — EVENT-SLIDER-VISIBILITY-001
+
+DONE — ROOT CAUSE VERIFIED / UPCOMING-ONLY CONTRACT RETAINED. Past Start Date excludes Kawazo
+despite a persisted future End Date. [Local regression and diagnosis](docs/implementation/tasks/EVENT-SLIDER-VISIBILITY-001.md).
+
 ## 2026-11-09 - Task 05C local refinement complete / owner visual acceptance open
 
 TASK_ID: ADMIN-VIETNAMESE-TET-THEME-001. Owner-approved scroll effects are
