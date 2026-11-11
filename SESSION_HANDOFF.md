@@ -1,3 +1,8 @@
+## 2026-11-11 — Isolated Event Preview release candidate
+
+TASK_ID: FE-DASHBOARD-EVENT-PREVIEW-001. Local verification PASS; normal main release owner-authorized.
+Baseline f1d837be; only preview image classes changed. [Task](docs/implementation/tasks/FE-DASHBOARD-EVENT-PREVIEW-001.md).
+
 ## 2026-11-10 — Ongoing Event Slider eligibility verified locally
 
 TASK_ID: NONE for the completed EVENT-SLIDER-ONGOING-ELIGIBILITY task. The shared Slider now returns ongoing

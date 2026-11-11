@@ -1,3 +1,8 @@
+## 2026-11-11 — FE-DASHBOARD-EVENT-PREVIEW-001
+
+LOCAL VERIFIED / AUTHORIZED RELEASE IN PROGRESS. 41 tests, TS/build, lint/format and eight browser cases PASS.
+[Task](docs/implementation/tasks/FE-DASHBOARD-EVENT-PREVIEW-001.md).
+
 ## 2026-11-10 — EVENT-SLIDER-ONGOING-ELIGIBILITY
 
 DONE — LOCAL VERIFIED / PRODUCTION NOT RELEASED. Shared Landing and User Events eligibility now

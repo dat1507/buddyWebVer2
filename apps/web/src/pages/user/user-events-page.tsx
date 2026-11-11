@@ -26,11 +26,11 @@ function EventDashboardCard({ event, locale }: { event: EventSlider; locale: Eve
 
   return (
     <Card className="flex min-w-0 flex-col overflow-hidden">
-      <div className="flex aspect-[16/9] items-center justify-center bg-zinc-950">
+      <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-zinc-950">
         <img
           src={event.imageUrl}
           alt={event.imageAlt}
-          className="size-full object-contain"
+          className="absolute inset-0 size-full object-cover object-center"
           loading="lazy"
           decoding="async"
         />
