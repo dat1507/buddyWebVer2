@@ -114,7 +114,7 @@ describe('ADMIN-002 guarded App navigation', () => {
           ]),
         )
       } else if (path === 'knowledge-base') {
-        expect(await screen.findByText('No managed FAQs match these filters.')).toBeVisible()
+        expect(await screen.findByText('No FAQs match these filters.')).toBeVisible()
       } else {
         expect(fetch).not.toHaveBeenCalled()
       }
