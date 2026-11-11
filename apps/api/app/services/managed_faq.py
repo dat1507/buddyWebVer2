@@ -68,6 +68,32 @@ async def list_faqs(
     )
 
 
+async def catalog_rows(session: AsyncSession) -> list[tuple[Faq, FaqContent | None]]:
+    """One consistent snapshot of draft identities and their effective published content."""
+    rows = (
+        (
+            await session.execute(
+                text(
+                    PROJECTION.replace("r.content\n", "r.content, p.content AS public_content\n")
+                    + f" LEFT JOIN {REV} p ON p.faq_id=f.id AND p.revision=f.published_revision"
+                    + " ORDER BY f.updated_at DESC, f.id DESC"
+                )
+            )
+        )
+        .mappings()
+        .all()
+    )
+    return [
+        (
+            Faq.model_validate(
+                {key: value for key, value in row.items() if key != "public_content"}
+            ),
+            FaqContent.model_validate(row["public_content"]) if row["public_content"] else None,
+        )
+        for row in rows
+    ]
+
+
 async def history(session: AsyncSession, faq_id: UUID, page: int) -> History:
     rows = (
         (

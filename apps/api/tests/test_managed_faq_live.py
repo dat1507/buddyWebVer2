@@ -217,6 +217,12 @@ async def acceptance(url: str, monkeypatch: pytest.MonkeyPatch) -> None:
             assert saved.json()["status"] == "pending"
             await propagate()
             assert await answers(EN) == ["Students fold paper together."] * 2
+            catalog_response = await a.get(PATH + "/catalog", params={"search": "origami"})
+            assert catalog_response.status_code == 200
+            catalog_item = catalog_response.json()["items"][0]
+            assert catalog_item["content"]["en"]["answer"] == "Students fold paper together."
+            assert catalog_item["managed"]["content"]["en"]["answer"] == "A newer draft."
+            assert catalog_item["status"] == "pending"
             history = (await a.get(item + "/history")).json()
             assert [r["revision"] for r in history["items"]] == [4, 2, 1]
             assert history["items"][1]["author_id"] == str(a_id if edits[0].is_success else b_id)
@@ -265,6 +271,13 @@ async def acceptance(url: str, monkeypatch: pytest.MonkeyPatch) -> None:
                 linked_path + "/publish", json={"version": 1, "confirm": True}
             )
             assert linked_pub.status_code == 200, linked_pub.text
+            catalog_result = (
+                await a.get(PATH + "/catalog", params={"search": target.en.questions[0]})
+            ).json()
+            visible = [entry for entry in catalog_result["items"] if entry["id"] == target.id]
+            assert len(visible) == 1
+            assert visible[0]["content"]["en"]["answer"] == "VGU is a university."
+            assert visible[0]["managed"]["id"] == linked["id"]
             await propagate()
             assert await answers(target.en.questions[0]) == ["VGU is a university."] * 2
             assert (
@@ -272,6 +285,12 @@ async def acceptance(url: str, monkeypatch: pytest.MonkeyPatch) -> None:
             ).status_code == 200
             await propagate()
             assert await answers(target.en.questions[0]) == [target.en.answer] * 2
+            catalog_result = (
+                await a.get(PATH + "/catalog", params={"search": target.en.questions[0]})
+            ).json()
+            visible = [entry for entry in catalog_result["items"] if entry["id"] == target.id]
+            assert len(visible) == 1 and visible[0]["content"]["en"]["answer"] == target.en.answer
+            assert visible[0]["managed"]["published_revision"] is None
             assert (
                 await a.post(
                     PATH, json={"content": content(answer="Write to private@example.invalid")}

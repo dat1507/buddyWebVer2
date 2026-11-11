@@ -42,6 +42,7 @@ from app.services.chatbot.managed import (
 )
 from app.services.chatbot.models import Contract, Question
 from app.services.csrf import CsrfTokenClaims
+from app.services.faq_catalog import CatalogPage, catalog_page
 
 _PRIVATE = {"Cache-Control": "private, no-store", "Pragma": "no-cache"}
 router = APIRouter(prefix="/api/admin/knowledge-base", tags=["admin-knowledge-base"])
@@ -131,6 +132,25 @@ async def list_faqs(
 ) -> FaqPage:
     response.headers.update(_PRIVATE)
     return await repo.list_faqs(session, search.strip(), category or "", status or "", page)
+
+
+@router.get("/catalog")
+async def catalog(
+    response: Response,
+    _admin: Admin,
+    session: Session,
+    search: Annotated[str, Query(max_length=500)] = "",
+    category: Category | None = None,
+    status: Publication | None = None,
+    page: Annotated[int, Query(ge=1, le=5000)] = 1,
+) -> CatalogPage:
+    response.headers.update(_PRIVATE)
+    try:
+        return catalog_page(
+            await repo.catalog_rows(session), builtin_entries(), search, category, status, page
+        )
+    except KnowledgeUnavailable:
+        raise fail(503, "sources_unavailable") from None
 
 
 @router.get("/references")
