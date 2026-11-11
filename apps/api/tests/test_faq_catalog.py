@@ -1,6 +1,8 @@
 """Unified Admin catalog: effective content, search, pagination and ADMIN boundary."""
 
+from collections.abc import AsyncIterator, Iterable
 from datetime import UTC, datetime
+from typing import NoReturn
 from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
 
@@ -13,15 +15,20 @@ from app.core.config import AuthTokenSettings, get_auth_token_settings
 from app.core.database import get_database_session
 from app.main import app
 from app.models import User, UserRole
-from app.schemas.managed_faq import Faq, FaqContent, LocaleDraft
+from app.schemas.managed_faq import Category, Faq, FaqContent, LocaleDraft, Publication
 from app.services import managed_faq as repo
 from app.services.chatbot.knowledge import KnowledgeUnavailable
 from app.services.chatbot.managed import builtin_entries
-from app.services.faq_catalog import builtin_content, catalog_page
+from app.services.faq_catalog import CatalogPage, builtin_content, catalog_page
 from app.services.tokens import DEVELOPMENT_ACCESS_COOKIE_NAME, create_token_pair
 
 
-def managed(number=1, builtin_id=None, status="draft", content=None):
+def managed(
+    number: int = 1,
+    builtin_id: str | None = None,
+    status: Publication = "draft",
+    content: FaqContent | None = None,
+) -> Faq:
     return Faq(
         id=UUID(int=number),
         builtin_id=builtin_id,
@@ -40,16 +47,23 @@ def managed(number=1, builtin_id=None, status="draft", content=None):
     )
 
 
-def catalog(rows=(), search="", category=None, status=None, page=1):
+def catalog(
+    rows: Iterable[tuple[Faq, FaqContent | None]] = (),
+    search: str = "",
+    category: Category | None = None,
+    status: Publication | None = None,
+    page: int = 1,
+) -> CatalogPage:
     return catalog_page(list(rows), builtin_entries(), search, category, status, page)
 
 
-def test_unified_and_prefilled_without_copying_verification():
+def test_unified_and_prefilled_without_copying_verification() -> None:
     pages = [catalog([(managed(), None)], page=page) for page in (1, 2)]
     items = tuple(item for result in pages for item in result.items)
     assert len(items) == len(builtin_entries()) + 1
     for entry in builtin_entries():
         item = next(item for item in items if item.id == entry.id)
+        assert item.builtin is not None
         assert item.builtin.content.en.questions == entry.en.questions
         assert item.content.en.answer == entry.en.answer
         assert item.content.de.answer == entry.de.answer
@@ -60,7 +74,7 @@ def test_unified_and_prefilled_without_copying_verification():
 
 
 @pytest.mark.parametrize("state", ["draft", "pending", "published", "unpublished"])
-def test_replacement_is_one_identity_and_unpublish_exposes_original(state):
+def test_replacement_is_one_identity_and_unpublish_exposes_original(state: Publication) -> None:
     entry = builtin_entries()[0]
     faq = managed(builtin_id=entry.id, status=state)
     public = FaqContent(
@@ -81,16 +95,16 @@ def test_replacement_is_one_identity_and_unpublish_exposes_original(state):
 @pytest.mark.parametrize(
     "search", ["How do I register?", "HOW DO I", "Buddy Matching", "Wie registriere ich mich?"]
 )
-def test_builtin_questions_search(search):
+def test_builtin_questions_search(search: str) -> None:
     assert catalog(search=search).items
 
 
 @pytest.mark.parametrize("search", ["origami", "Fold paper", "PAPIER FALTEN", "Origami-Kreis"])
-def test_managed_questions_answers_and_bilingual_casefold(search):
+def test_managed_questions_answers_and_bilingual_casefold(search: str) -> None:
     assert any(item.managed for item in catalog([(managed(), None)], search=search).items)
 
 
-def test_published_and_pending_draft_answers_are_both_searchable():
+def test_published_and_pending_draft_answers_are_both_searchable() -> None:
     entry = builtin_entries()[0]
     faq = managed(builtin_id=entry.id, status="pending")
     public = FaqContent(
@@ -99,12 +113,13 @@ def test_published_and_pending_draft_answers_are_both_searchable():
         en=LocaleDraft(questions=("Public?",), answer="Live phrase"),
     )
     assert catalog([(faq, public)], search="live phrase").items[0].content == public
-    assert catalog([(faq, public)], search="fold paper").items[0].managed.content == faq.content
+    matched = catalog([(faq, public)], search="fold paper").items[0].managed
+    assert matched is not None and matched.content == faq.content
     assert catalog([(faq, public)], search=entry.en.questions[0]).items[0].id == entry.id
 
 
-def test_filters_apply_before_pagination_with_stable_no_duplicate_ids():
-    rows = [(managed(i), None) for i in range(1, 26)]
+def test_filters_apply_before_pagination_with_stable_no_duplicate_ids() -> None:
+    rows: list[tuple[Faq, FaqContent | None]] = [(managed(i), None) for i in range(1, 26)]
     first = catalog(rows, category="student-life", status="draft")
     second = catalog(rows, category="student-life", status="draft", page=2)
     assert len(first.items) == 20 and first.has_more
@@ -115,7 +130,7 @@ def test_filters_apply_before_pagination_with_stable_no_duplicate_ids():
 
 
 @pytest.mark.anyio
-async def test_catalog_query_joins_published_revision_in_one_snapshot():
+async def test_catalog_query_joins_published_revision_in_one_snapshot() -> None:
     faq = managed(status="pending")
     session = MagicMock(spec=AsyncSession)
     session.execute = AsyncMock(return_value=MagicMock())
@@ -130,17 +145,19 @@ async def test_catalog_query_joins_published_revision_in_one_snapshot():
 
 
 @pytest.fixture
-def anyio_backend():
+def anyio_backend() -> str:
     return "asyncio"
 
 
 @pytest.mark.anyio
-async def test_admin_catalog_transport_auth_bounds_no_store_and_source_failure(monkeypatch):
+async def test_admin_catalog_transport_auth_bounds_no_store_and_source_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     settings = AuthTokenSettings(signing_key=SecretBytes(bytes(range(32))), secure_cookies=False)
     session = MagicMock(spec=AsyncSession)
     session.scalar = AsyncMock()
 
-    async def database():
+    async def database() -> AsyncIterator[AsyncSession]:
         yield session
 
     app.dependency_overrides[get_database_session] = database
@@ -173,7 +190,7 @@ async def test_admin_catalog_transport_auth_bounds_no_store_and_source_failure(m
             assert (await client.get(path, params={"page": 0})).status_code == 422
             assert (await client.get(path, params={"search": "x" * 501})).status_code == 422
 
-            def unavailable():
+            def unavailable() -> NoReturn:
                 raise KnowledgeUnavailable("unavailable")
 
             monkeypatch.setattr("app.api.admin_knowledge.builtin_entries", unavailable)
