@@ -1,3 +1,11 @@
+## ADMIN-KB-UNIFIED-001 — 2026-11-11
+
+250 backend tests + 1 real PostgreSQL lifecycle + 45 frontend tests PASS. TS/affected ESLint,
+Prettier/Ruff/mypy/build PASS; existing chunk advisory. 32 EN/DE real-browser fixture cases
+at1440/768/390/320 no overflow/exceptions; real Tab/focus/prefill PASS. Task-only disposable
+PostgreSQL stopped; synthetic browser preview read-only. No Production access or release.
+[Evidence and limitations](../project-knowledge/chatbot/UNIFIED_FAQ_2026-11-11.md).
+
 ## ADMIN-VIETNAMESE-TET-THEME-001 - Approved Landing scroll effects
 
 30 focused frontend tests, TypeScript, targeted ESLint/Prettier and build passed.

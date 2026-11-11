@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ export const knowledgeInput =
   'min-h-11 w-full min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 function emptyDraft(builtin: BuiltinFaq | null): FaqContent {
+  if (builtin?.content) return builtin.content
   return {
     category: builtin?.category ?? 'faq',
     en: { questions: builtin ? [builtin.en] : [], answer: '' },
@@ -43,6 +44,10 @@ export function KnowledgeEditor({
   onClose: () => void
 }) {
   const { t, i18n } = useTranslation()
+  const heading = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    heading.current?.focus()
+  }, [])
   const cache = useQueryClient()
   const key = ['private', userId, 'knowledge-base'] as const
   const [saved, setSaved] = useState(initial)
@@ -120,7 +125,7 @@ export function KnowledgeEditor({
   const conflict = normalizeApiError(error).reason === 'stale_version'
 
   return (
-    <Card className="min-w-0 space-y-5 p-4 sm:p-6">
+    <Card ref={heading} tabIndex={-1} className="min-w-0 space-y-5 p-4 sm:p-6">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <Typography as="h2" variant="h4">
           {t(saved ? 'kb.edit' : 'kb.new')}
@@ -129,7 +134,12 @@ export function KnowledgeEditor({
           {t('kb.close')}
         </Button>
       </header>
-      {builtinId && <p className="break-words text-sm">{t('kb.replacing', { id: builtinId })}</p>}
+      {builtinId && (
+        <div className="space-y-2 break-words text-sm">
+          <p>{t('kb.replacing', { id: builtinId })}</p>
+          <p className="text-muted-foreground">{t('kb.replacementPolicy')}</p>
+        </div>
+      )}
       {saved && (
         <p className="text-sm text-muted-foreground">
           {t('kb.statuses.' + saved.status)} · {t('kb.revision', { number: saved.draft_revision })}

@@ -1863,6 +1863,15 @@
     }
   },
   "kb": {
+    "builtinExcluded": "This reference is excluded from verified public FAQs. It cannot be replaced through the existing verified-FAQ workflow.",
+    "faqLabel": "FAQ",
+    "view": "View FAQ",
+    "clearFilters": "Clear search and filters",
+    "viewGuide": "View systemPrompt.txt",
+    "guideVersion": "Repository snapshot deef12c (11 November 2026). This may differ from the deployed API version. View or download the original text on GitHub.",
+    "builtinFallback": "The original FAQ is currently available to the chatbot. A linked draft does not replace it until published.",
+    "draftAccess": "Edit opens the latest saved draft, with preview, publication actions and revision history. The content above shows the published version when available.",
+    "replacementPolicy": "Edits create a linked draft. Publishing requires Admin-provided evidence and a stable public VGU source. Original code or official provenance is not transferred. Existing content containing links or restricted details may need revision before it can be saved. The original remains the fallback.",
     "title": "Knowledge Base",
     "description": "Manage the public FAQs used by the BuddyWeb chatbot.",
     "confirmAction": "Confirm",
@@ -1877,7 +1886,7 @@
     "new": "New FAQ",
     "edit": "Edit FAQ",
     "close": "Close editor",
-    "empty": "No managed FAQs match these filters.",
+    "empty": "No FAQs match these filters.",
     "untitled": "Untitled FAQ",
     "managed": "Admin-managed",
     "builtin": "Built-in FAQ",
@@ -1944,6 +1953,9 @@
       "fallback": "No reliable match"
     },
     "citations": {
+      "unverified": "Unverified reference",
+      "conflicting": "Conflicting reference",
+      "outdated": "Outdated reference",
       "verified_code": "Code verified",
       "verified_official": "Officially verified",
       "owner_provided": "Owner-provided guide",
@@ -1968,7 +1980,7 @@
       "retrieval_conflict": "Existing retrieval rules may select a different source. Preview each proposed question and revise it.",
       "stale_version": "Another Admin saved a newer version. Copy any unsaved edits before opening the latest draft.",
       "publication_limit": "The publication limit has been reached.",
-      "invalid_builtin": "Select a valid built-in FAQ.",
+      "invalid_builtin": "Only code-verified or officially verified FAQs support managed replacements. Review this source in the repository.",
       "confirmation_required": "Confirm the change before making it public.",
       "validation": "Check the entered values and the limits for questions and answers.",
       "conflict": "The saved publication state changed. Reopen the current FAQ."

@@ -1863,6 +1863,15 @@
     }
   },
   "kb": {
+    "builtinExcluded": "Diese Referenz ist von verifizierten öffentlichen FAQs ausgeschlossen. Sie kann im bestehenden Workflow für verifizierte FAQs nicht ersetzt werden.",
+    "faqLabel": "FAQ",
+    "view": "FAQ ansehen",
+    "clearFilters": "Suche und Filter zurücksetzen",
+    "viewGuide": "systemPrompt.txt ansehen",
+    "guideVersion": "Repository-Stand deef12c (11. November 2026). Dieser kann von der bereitgestellten API-Version abweichen. Originaltext auf GitHub ansehen oder herunterladen.",
+    "builtinFallback": "Der Chatbot verwendet derzeit die ursprüngliche FAQ. Ein verknüpfter Entwurf ersetzt sie erst nach der Veröffentlichung.",
+    "draftAccess": "Bearbeiten öffnet den neuesten gespeicherten Entwurf mit Vorschau, Veröffentlichungsaktionen und Versionsverlauf. Oben steht die veröffentlichte Version, sofern vorhanden.",
+    "replacementPolicy": "Änderungen erstellen einen verknüpften Entwurf. Die Veröffentlichung erfordert einen Admin-Nachweis und eine stabile öffentliche VGU-Quelle. Die ursprüngliche Code- oder offizielle Herkunft wird nicht übertragen. Vorhandene Links oder geschützte Angaben müssen vor dem Speichern gegebenenfalls überarbeitet werden. Das Original bleibt als Rückfall verfügbar.",
     "title": "Wissensdatenbank",
     "description": "Verwalten Sie öffentliche FAQ für den BuddyWeb-Chatbot.",
     "confirmAction": "Bestätigen",
@@ -1877,7 +1886,7 @@
     "new": "Neue FAQ",
     "edit": "FAQ bearbeiten",
     "close": "Editor schließen",
-    "empty": "Keine verwalteten FAQ entsprechen diesen Filtern.",
+    "empty": "Keine FAQs entsprechen diesen Filtern.",
     "untitled": "FAQ ohne Titel",
     "managed": "Von Admins verwaltet",
     "builtin": "Integrierte FAQ",
@@ -1944,6 +1953,9 @@
       "fallback": "Keine verlässliche Übereinstimmung"
     },
     "citations": {
+      "unverified": "Unbestätigte Referenz",
+      "conflicting": "Widersprüchliche Referenz",
+      "outdated": "Veraltete Referenz",
       "verified_code": "Durch Code bestätigt",
       "verified_official": "Offiziell bestätigt",
       "owner_provided": "Bereitgestellter Leitfaden",
@@ -1968,7 +1980,7 @@
       "retrieval_conflict": "Die bestehenden Suchregeln können eine andere Quelle auswählen. Prüfen und überarbeiten Sie die Fragen in der Vorschau.",
       "stale_version": "Ein anderer Admin hat eine neuere Version gespeichert. Kopieren Sie ungespeicherte Änderungen, bevor Sie den neuesten Entwurf öffnen.",
       "publication_limit": "Die Höchstzahl veröffentlichter FAQ ist erreicht.",
-      "invalid_builtin": "Wählen Sie eine gültige integrierte FAQ aus.",
+      "invalid_builtin": "Nur Code-verifizierte oder offiziell verifizierte FAQs unterstützen verwaltete Ersatzversionen. Prüfen Sie diese Quelle im Repository.",
       "confirmation_required": "Bestätigen Sie die Änderung vor der Veröffentlichung.",
       "validation": "Prüfen Sie die Eingaben und die Grenzen für Fragen und Antworten.",
       "conflict": "Der gespeicherte Veröffentlichungsstatus hat sich geändert. Öffnen Sie die FAQ erneut."

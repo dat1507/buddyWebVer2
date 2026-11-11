@@ -1,3 +1,12 @@
+## 2026-11-11 — ADMIN-KB-UNIFIED-001 DONE — LOCAL VERIFIED
+
+TASK_ID: NONE. ADMIN-KB-UNIFIED-001 DONE — LOCAL VERIFIED; owner local acceptance pending.
+Implementation `6dec701e03ebf412b122fb9017523815de655839` on `codex/admin-kb-unified` from deef12c.
+250 backend + 1 real PostgreSQL lifecycle + 45 frontend tests PASS; static/build and 32 browser cases PASS.
+[Task](docs/implementation/tasks/ADMIN-KB-UNIFIED-001.md) · [Evidence](docs/project-knowledge/chatbot/UNIFIED_FAQ_2026-11-11.md).
+Review http://127.0.0.1:5231/.local/kb-review.html (read-only synthetic fixtures; `?lang=de`).
+No push/merge/deploy/Production access; original checkout and other work preserved.
+
 ## 2026-11-11 — FE-DASHBOARD-EVENT-PREVIEW-001
 
 LOCAL VERIFIED / AUTHORIZED RELEASE IN PROGRESS. 41 tests, TS/build, lint/format and eight browser cases PASS.

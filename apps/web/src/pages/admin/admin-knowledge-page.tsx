@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { BookOpen, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -10,10 +10,13 @@ import {
   categories,
   knowledgeClient,
   statuses,
+  systemPromptUrl,
+  type CatalogItem,
   type BuiltinFaq,
   type Faq,
 } from '@/features/admin-knowledge'
 import { KnowledgeEditor, knowledgeInput } from '@/features/admin-knowledge-editor'
+import { KnowledgeDetail } from '@/features/admin-knowledge-detail'
 import { useAuthStore } from '@/stores/auth-store'
 
 export function AdminKnowledgePage() {
@@ -26,13 +29,20 @@ export function AdminKnowledgePage() {
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
   const [editor, setEditor] = useState<{ faq: Faq | null; builtin: BuiltinFaq | null } | null>(null)
+  const [detail, setDetail] = useState<CatalogItem | null>(null)
+  const returnFocus = useRef<string>('')
+  const close = () => {
+    setEditor(null)
+    setDetail(null)
+    requestAnimationFrame(() => document.getElementById(returnFocus.current)?.focus())
+  }
   const params = new URLSearchParams({ search: filter, page: String(page) })
   if (category) params.set('category', category)
   if (status) params.set('status', status)
 
   const results = useQuery({
     queryKey: ['private', userId, 'knowledge-base', 'list', params.toString()],
-    queryFn: ({ signal }) => knowledgeClient.list(params, signal),
+    queryFn: ({ signal }) => knowledgeClient.catalog(params, signal),
     enabled: Boolean(userId) && view === 'faqs',
     meta: { private: true },
   })
@@ -58,7 +68,16 @@ export function AdminKnowledgePage() {
           initial={editor.faq}
           builtin={editor.builtin}
           userId={userId}
-          onClose={() => setEditor(null)}
+          onClose={close}
+        />
+      ) : detail ? (
+        <KnowledgeDetail
+          item={detail}
+          onClose={close}
+          onEdit={() => {
+            setEditor({ faq: detail.managed, builtin: detail.builtin })
+            setDetail(null)
+          }}
         />
       ) : (
         <>
@@ -94,9 +113,15 @@ export function AdminKnowledgePage() {
                   <input
                     className={knowledgeInput}
                     type="search"
-                    maxLength={100}
+                    maxLength={500}
                     value={search}
-                    onChange={(event) => setSearch(event.target.value)}
+                    onChange={(event) => {
+                      setSearch(event.target.value)
+                      if (!event.target.value) {
+                        setFilter('')
+                        setPage(1)
+                      }
+                    }}
                   />
                 </label>
                 <Button type="submit" variant="outline" className="min-h-11">
@@ -141,10 +166,32 @@ export function AdminKnowledgePage() {
                   </select>
                 </label>
               </div>
-              <Button className="min-h-11" onClick={() => setEditor({ faq: null, builtin: null })}>
-                <Plus aria-hidden="true" />
-                {t('kb.new')}
-              </Button>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button
+                  variant="outline"
+                  className="min-h-11"
+                  onClick={() => {
+                    setSearch('')
+                    setFilter('')
+                    setCategory('')
+                    setStatus('')
+                    setPage(1)
+                  }}
+                >
+                  {t('kb.clearFilters')}
+                </Button>
+                <Button
+                  id="kb-new"
+                  className="min-h-11"
+                  onClick={(event) => {
+                    returnFocus.current = event.currentTarget.id
+                    setEditor({ faq: null, builtin: null })
+                  }}
+                >
+                  <Plus aria-hidden="true" />
+                  {t('kb.new')}
+                </Button>
+              </div>
             </Card>
           )}
           {query.isLoading && <p role="status">{t('kb.loading')}</p>}
@@ -168,17 +215,34 @@ export function AdminKnowledgePage() {
                           {item.content[lang].questions[0] || t('kb.untitled')}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {t('kb.managed')} · {t('kb.statuses.' + item.status)} ·{' '}
+                          {t('kb.faqLabel')} · {t('kb.statuses.' + item.status)} ·{' '}
                           {t('kb.categories.' + item.content.category)}
                         </p>
                       </div>
-                      <Button
-                        variant="outline"
-                        className="min-h-11"
-                        onClick={() => setEditor({ faq: item, builtin: null })}
-                      >
-                        {t('kb.edit')}
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          id={'kb-view-' + item.id}
+                          variant="outline"
+                          className="min-h-11"
+                          onClick={(event) => {
+                            returnFocus.current = event.currentTarget.id
+                            setDetail(item)
+                          }}
+                        >
+                          {t('kb.view')}
+                        </Button>
+                        <Button
+                          id={'kb-edit-' + item.id}
+                          variant="outline"
+                          className="min-h-11"
+                          onClick={(event) => {
+                            returnFocus.current = event.currentTarget.id
+                            setEditor({ faq: item.managed, builtin: item.builtin })
+                          }}
+                        >
+                          {t('kb.edit')}
+                        </Button>
+                      </div>
                     </Card>
                   </li>
                 ))}
@@ -211,28 +275,13 @@ export function AdminKnowledgePage() {
                 <p className="text-sm">
                   {references.data.owner_guide} · {t('kb.guideDescription')}
                 </p>
+                <Button asChild variant="outline" className="h-auto min-h-11 whitespace-normal">
+                  <a href={systemPromptUrl} target="_blank" rel="noopener noreferrer">
+                    {t('kb.viewGuide')}
+                  </a>
+                </Button>
+                <p className="text-sm text-muted-foreground">{t('kb.guideVersion')}</p>
               </Card>
-              <ul className="space-y-2">
-                {references.data.builtin.map((item) => (
-                  <li key={item.id}>
-                    <Card className="flex min-w-0 flex-wrap items-center justify-between gap-2 p-4">
-                      <div className="min-w-0 break-words">
-                        <p className="font-semibold">{item[lang]}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {t('kb.builtin')} · {t('kb.citations.' + item.status)}
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="min-h-11"
-                        onClick={() => setEditor({ faq: null, builtin: item })}
-                      >
-                        {t('kb.replace')}
-                      </Button>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
             </>
           )}
         </>

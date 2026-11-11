@@ -47,7 +47,9 @@ const reference = z
   .object({
     id: z.string(),
     category: z.enum(categories),
-    status: z.enum(['verified_code', 'verified_official']),
+    status: z.string(),
+    content: content.optional(),
+    verified_on: z.iso.date().nullable().optional(),
     en: z.string(),
     de: z.string(),
   })
@@ -55,6 +57,22 @@ const reference = z
 const references = z
   .object({ builtin: z.array(reference).max(200), owner_guide: z.literal('systemPrompt.txt') })
   .strict()
+const catalogItem = z
+  .object({
+    id: z.string(),
+    content,
+    sources: z.array(z.object({ title: z.string(), reference: z.string() }).strict()),
+    status: z.enum(statuses),
+    managed: faq.nullable(),
+    builtin: reference.nullable(),
+  })
+  .strict()
+export type CatalogItem = z.infer<typeof catalogItem>
+// Pinned repository snapshot; this is not an assertion about the running API artifact.
+export const systemPromptUrl =
+  'https://github.com/dat1507/buddyWebVer2/blob/deef12c0a04cafc2a36c5e7639d2a83301c0bb2c' +
+  '/apps/api/app/services/chatbot/sources/systemPrompt.txt'
+
 const history = z
   .object({
     items: z
@@ -93,6 +111,12 @@ const root = '/admin/knowledge-base'
 const path = (id: string) => root + '/' + encodeURIComponent(id)
 
 export const knowledgeClient = {
+  async catalog(params: URLSearchParams, signal: AbortSignal) {
+    return parseContract(
+      z.object({ items: z.array(catalogItem).max(20), has_more: z.boolean() }).strict(),
+      await sessionClient.authenticatedJson(root + '/catalog?' + params, { signal }),
+    )
+  },
   async list(params: URLSearchParams, signal: AbortSignal) {
     return parseContract(
       z.object({ items: z.array(faq).max(20), has_more: z.boolean() }).strict(),

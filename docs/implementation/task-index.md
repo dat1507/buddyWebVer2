@@ -306,3 +306,5 @@ preserve all matching contract sections and cross-references from the legacy pla
 | [`SEM-007`](tasks/SEM-007.md)                                           | DONE / PRESERVED                                            | -                  | semester            | SEM-005/006, ADMIN-005; Frontend.                                                                                                                                                    |
 
 | [`FE-EVENT-MERCH-001`](tasks/FE-EVENT-MERCH-001.md) | DONE LOCAL / OWNER UI REVIEW PENDING | Owner-requested | frontend | Event return origin and Merchandise preview; local-only. |
+
+- [ADMIN-KB-UNIFIED-001](tasks/ADMIN-KB-UNIFIED-001.md) — Unified FAQ management (DONE - LOCAL VERIFIED).
